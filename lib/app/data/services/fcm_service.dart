@@ -27,8 +27,8 @@ class FCMService {
       FlutterLocalNotificationsPlugin();
 
   static const _androidChannel = AndroidNotificationChannel(
-    'shrimpbite_high_importance',
-    'Shrimpbite Notifications',
+    'Difwabite_high_importance',
+    'Difwabite Notifications',
     description: 'Important notifications for orders, OTPs, and updates',
     importance: Importance.max,
   );
@@ -140,7 +140,7 @@ class FCMService {
     if (notification == null) return;
 
     final data = message.data;
-    final String title = notification.title ?? 'Shrimpbite';
+    final String title = notification.title ?? 'Difwabite';
     final String body = notification.body ?? '';
 
     _localNotifications.show(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/constants/app_colors.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../controller/main_controller.dart';
 import '../../../widgets/bounce_widget.dart';
@@ -24,7 +25,7 @@ class _HomeHeaderState extends State<HomeHeader> {
           // Location Picker Row
           Row(
             children: [
-              const Icon(Icons.location_on, color: Color(0xFF1A1A1A), size: 18),
+              const Icon(Icons.location_on, color: AppColors.textPrimary, size: 18),
               const SizedBox(width: 4),
               const Expanded(
                 child: Column(
@@ -37,7 +38,7 @@ class _HomeHeaderState extends State<HomeHeader> {
                           style: TextStyle(
                             fontSize: 14.6,
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFF1A1A1A),
+                            color: AppColors.textPrimary,
                           ),
                         ),
                         Icon(Icons.keyboard_arrow_down, size: 20),
@@ -62,10 +63,10 @@ class _HomeHeaderState extends State<HomeHeader> {
                   tag: 'profile_pic',
                   child: CircleAvatar(
                     radius: 18,
-                    backgroundColor: Colors.green.shade200,
+                    backgroundColor: AppColors.secondary,
                     child: const Icon(
                       Icons.person,
-                      color: Color(0xFFE54141),
+                      color: AppColors.primary,
                       size: 20,
                     ),
                   ),
@@ -89,7 +90,7 @@ class _HomeHeaderState extends State<HomeHeader> {
                     readOnly: true,
                     onTap: () => Navigator.pushNamed(context, AppRoutes.search),
                     decoration: InputDecoration(
-                      hintText: 'Search "curries"',
+                      hintText: 'Search for water...',
                       fillColor: Colors.white,
                       filled: true,
                       contentPadding: const EdgeInsets.symmetric(vertical: 0),
@@ -104,19 +105,19 @@ class _HomeHeaderState extends State<HomeHeader> {
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                         borderSide: const BorderSide(
-                          color: Color(0xFF68B92E),
+                          color: AppColors.primary,
                           width: 1.5,
                         ),
                       ),
                       prefixIcon: const Icon(
                         Icons.search,
-                        color: Color(0xFFE54141),
+                        color: AppColors.primary,
                       ),
                       suffixIcon: const Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           VerticalDivider(indent: 10, endIndent: 10),
-                          Icon(Icons.mic, color: Color(0xFFE54141)),
+                          Icon(Icons.mic, color: AppColors.primary),
                           SizedBox(width: 8),
                         ],
                       ),

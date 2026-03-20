@@ -219,7 +219,7 @@ class AuthStore extends Notifier<AuthState> {
         return;
       }
 
-      // 2. Verify on backend and get Shrimpbite JWT
+      // 2. Verify on backend and get Difwabite JWT
       final fcmToken = await FCMService().getToken();
       final response = await ref.read(authServiceProvider).verifyFirebaseOtp(
             phoneNumber: phoneNumber,

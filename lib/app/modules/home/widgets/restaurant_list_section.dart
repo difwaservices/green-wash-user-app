@@ -22,16 +22,16 @@ const List<String> _cuisineTypes = [
 
 // ── Placeholder hero images (local assets as fallback) ───────────────────────
 const List<String> _heroImages = [
-  'assets/images/shrimp_dish_1.png',
-  'assets/images/shrimp_dish_2.png',
-  'assets/images/shrimp_dish_3.png',
-  'assets/images/shrimp_dish_4.png',
-  'assets/images/shrimp_dish_5.png',
-  'assets/images/shrimp_dish_6.png',
-  'assets/images/shrimp_fresh_pile.png',
-  'assets/images/shrimp_lemon_herb.png',
-  'assets/images/shrimp_tiger_trio.png',
-  'assets/images/shrimp_cooked_duo.png',
+  'assets/images/Difwa_dish_1.png',
+  'assets/images/Difwa_dish_2.png',
+  'assets/images/Difwa_dish_3.png',
+  'assets/images/Difwa_dish_4.png',
+  'assets/images/Difwa_dish_5.png',
+  'assets/images/Difwa_dish_6.png',
+  'assets/images/Difwa_fresh_pile.png',
+  'assets/images/Difwa_lemon_herb.png',
+  'assets/images/Difwa_tiger_trio.png',
+  'assets/images/Difwa_cooked_duo.png',
 ];
 
 // ── Offer cycling logic ───────────────────────────────────────────────────────
@@ -296,7 +296,7 @@ class _ShopCard extends StatelessWidget {
                       child: Text(
                         shop.businessName.isNotEmpty
                             ? shop.businessName
-                            : 'Fresh Shrimp · ₹499+',
+                            : 'Fresh Difwa · ₹499+',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(

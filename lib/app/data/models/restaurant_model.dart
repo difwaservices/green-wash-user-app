@@ -11,7 +11,7 @@ class RestaurantModel {
   final int offerAbove; // 499 | 799 | 999
   final int offerAmount; // flat discount amount
   final String heroImage; // asset path for banner
-  final String topDishLabel; // e.g. "Chilli Shrimp · ₹499"
+  final String topDishLabel; // e.g. "Chilli Difwa · ₹499"
   final bool isFeatured;
 
   const RestaurantModel({
@@ -44,8 +44,8 @@ const List<RestaurantModel> kRestaurants = [
     offerText: 'Flat ₹100 OFF above ₹499',
     offerAbove: 499,
     offerAmount: 100,
-    heroImage: 'assets/images/shrimp_dish_1.png',
-    topDishLabel: 'Chilli Shrimp · ₹499',
+    heroImage: 'assets/images/Difwa_dish_1.png',
+    topDishLabel: 'Chilli Difwa · ₹499',
     isFeatured: true,
   ),
   RestaurantModel(
@@ -59,7 +59,7 @@ const List<RestaurantModel> kRestaurants = [
     offerText: 'Flat ₹150 OFF above ₹799',
     offerAbove: 799,
     offerAmount: 150,
-    heroImage: 'assets/images/shrimp_dish_2.png',
+    heroImage: 'assets/images/Difwa_dish_2.png',
     topDishLabel: 'Garlic Butter Prawns · ₹649',
     isFeatured: true,
   ),
@@ -74,7 +74,7 @@ const List<RestaurantModel> kRestaurants = [
     offerText: 'Flat ₹200 OFF above ₹999',
     offerAbove: 999,
     offerAmount: 200,
-    heroImage: 'assets/images/shrimp_dish_3.png',
+    heroImage: 'assets/images/Difwa_dish_3.png',
     topDishLabel: 'Tiger Prawn Masala · ₹799',
   ),
   RestaurantModel(
@@ -88,7 +88,7 @@ const List<RestaurantModel> kRestaurants = [
     offerText: 'Flat ₹80 OFF above ₹499',
     offerAbove: 499,
     offerAmount: 80,
-    heroImage: 'assets/images/shrimp_dish_4.png',
+    heroImage: 'assets/images/Difwa_dish_4.png',
     topDishLabel: 'Handi Prawn Curry · ₹549',
   ),
   RestaurantModel(
@@ -102,7 +102,7 @@ const List<RestaurantModel> kRestaurants = [
     offerText: 'Flat ₹120 OFF above ₹799',
     offerAbove: 799,
     offerAmount: 120,
-    heroImage: 'assets/images/shrimp_dish_5.png',
+    heroImage: 'assets/images/Difwa_dish_5.png',
     topDishLabel: 'Kerala Prawn Curry · ₹599',
   ),
   RestaurantModel(
@@ -116,8 +116,8 @@ const List<RestaurantModel> kRestaurants = [
     offerText: 'Flat ₹250 OFF above ₹999',
     offerAbove: 999,
     offerAmount: 250,
-    heroImage: 'assets/images/shrimp_dish_6.png',
-    topDishLabel: 'Chilli Garlic Shrimp · ₹549',
+    heroImage: 'assets/images/Difwa_dish_6.png',
+    topDishLabel: 'Chilli Garlic Difwa · ₹549',
   ),
   RestaurantModel(
     id: 'r7',
@@ -130,8 +130,8 @@ const List<RestaurantModel> kRestaurants = [
     offerText: 'Flat ₹100 OFF above ₹499',
     offerAbove: 499,
     offerAmount: 100,
-    heroImage: 'assets/images/shrimp_fresh_pile.png',
-    topDishLabel: 'Lemon Butter Shrimp · ₹699',
+    heroImage: 'assets/images/Difwa_fresh_pile.png',
+    topDishLabel: 'Lemon Butter Difwa · ₹699',
   ),
   RestaurantModel(
     id: 'r8',
@@ -144,7 +144,7 @@ const List<RestaurantModel> kRestaurants = [
     offerText: 'Flat ₹180 OFF above ₹799',
     offerAbove: 799,
     offerAmount: 180,
-    heroImage: 'assets/images/shrimp_lemon_herb.png',
+    heroImage: 'assets/images/Difwa_lemon_herb.png',
     topDishLabel: 'Thai Basil Prawns · ₹749',
     isFeatured: true,
   ),
@@ -159,7 +159,7 @@ const List<RestaurantModel> kRestaurants = [
     offerText: 'Flat ₹300 OFF above ₹999',
     offerAbove: 999,
     offerAmount: 300,
-    heroImage: 'assets/images/shrimp_tiger_trio.png',
+    heroImage: 'assets/images/Difwa_tiger_trio.png',
     topDishLabel: 'Goan Prawn Curry · ₹649',
   ),
   RestaurantModel(
@@ -173,8 +173,8 @@ const List<RestaurantModel> kRestaurants = [
     offerText: 'Flat ₹130 OFF above ₹499',
     offerAbove: 499,
     offerAmount: 130,
-    heroImage: 'assets/images/shrimp_cooked_duo.png',
-    topDishLabel: 'Fusion Shrimp Tacos · ₹579',
+    heroImage: 'assets/images/Difwa_cooked_duo.png',
+    topDishLabel: 'Fusion Difwa Tacos · ₹579',
   ),
   RestaurantModel(
     id: 'r11',
@@ -187,7 +187,7 @@ const List<RestaurantModel> kRestaurants = [
     offerText: 'Flat ₹200 OFF above ₹999',
     offerAbove: 999,
     offerAmount: 200,
-    heroImage: 'assets/images/shrimp_dish_1.png',
+    heroImage: 'assets/images/Difwa_dish_1.png',
     topDishLabel: 'Tandoori Jhinga · ₹849',
   ),
 ];
@@ -210,67 +210,67 @@ class RestaurantMenuItem {
 }
 
 List<RestaurantMenuItem> getMenuForRestaurant(String restaurantId) {
-  // All restaurants serve different shrimp varieties.
+  // All restaurants serve different Difwa varieties.
   return [
     RestaurantMenuItem(
-      name: 'Lemon Garlic Shrimp',
+      name: 'Lemon Garlic Difwa',
       weight: '1 plate',
       price: 599,
-      image: 'assets/images/shrimp_lemon_herb.png',
+      image: 'assets/images/Difwa_lemon_herb.png',
     ),
     RestaurantMenuItem(
       name: 'Farm Fresh Prawns',
       weight: '500g',
       price: 429,
-      image: 'assets/images/shrimp_fresh_pile.png',
+      image: 'assets/images/Difwa_fresh_pile.png',
     ),
     RestaurantMenuItem(
-      name: 'Sizzling Garlic Shrimp',
+      name: 'Sizzling Garlic Difwa',
       weight: '250g',
       price: 549,
-      image: 'assets/images/shrimp_dish_1.png',
+      image: 'assets/images/Difwa_dish_1.png',
     ),
     RestaurantMenuItem(
       name: 'Peppery Onion Prawns',
       weight: '300g',
       price: 489,
-      image: 'assets/images/shrimp_dish_2.png',
+      image: 'assets/images/Difwa_dish_2.png',
     ),
     RestaurantMenuItem(
-      name: 'Honey Chilli Shrimp',
+      name: 'Honey Chilli Difwa',
       weight: '1 plate',
       price: 599,
-      image: 'assets/images/shrimp_dish_3.png',
+      image: 'assets/images/Difwa_dish_3.png',
     ),
     RestaurantMenuItem(
-      name: 'Spicy Fried Shrimp',
+      name: 'Spicy Fried Difwa',
       weight: '400g',
       price: 529,
-      image: 'assets/images/shrimp_dish_4.png',
+      image: 'assets/images/Difwa_dish_4.png',
     ),
     RestaurantMenuItem(
       name: 'Tiger Prawn Masala',
       weight: '500g',
       price: 749,
-      image: 'assets/images/shrimp_tiger_trio.png',
+      image: 'assets/images/Difwa_tiger_trio.png',
     ),
     RestaurantMenuItem(
       name: 'Butter Garlic Prawns',
       weight: '1 plate',
       price: 669,
-      image: 'assets/images/shrimp_dish_5.png',
+      image: 'assets/images/Difwa_dish_5.png',
     ),
     RestaurantMenuItem(
-      name: 'Chilli Shrimp Fry',
+      name: 'Chilli Difwa Fry',
       weight: '300g',
       price: 499,
-      image: 'assets/images/shrimp_dish_6.png',
+      image: 'assets/images/Difwa_dish_6.png',
     ),
     RestaurantMenuItem(
-      name: 'Shrimp Cooked Duo',
+      name: 'Difwa Cooked Duo',
       weight: '2 plates',
       price: 899,
-      image: 'assets/images/shrimp_cooked_duo.png',
+      image: 'assets/images/Difwa_cooked_duo.png',
     ),
   ];
 }

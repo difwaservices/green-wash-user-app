@@ -63,7 +63,7 @@ class SearchProduct {
   String get displayImage {
     if (image.length > 5) return image;
     final lower = name.toLowerCase();
-    if (lower.contains('tiger') || lower.contains('shrimp') || lower.contains('prawn')) {
+    if (lower.contains('tiger') || lower.contains('Difwa') || lower.contains('prawn')) {
       return 'https://images.unsplash.com/photo-1559737558-2f5a35f4523b?q=80&w=800&auto=format&fit=crop';
     }
     if (lower.contains('fish') || lower.contains('rohu')) {

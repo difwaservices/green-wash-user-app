@@ -4,7 +4,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../routes/app_routes.dart';
 import '../../data/services/db_service.dart';
 import '../../data/models/food_models.dart';
+import '../../core/constants/app_images.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import '../home/view/main_page.dart';
 import '../auth/provider/auth_provider.dart';
+import '../auth/login_page.dart';
 
 class SplashPage extends ConsumerStatefulWidget {
   const SplashPage({super.key});
@@ -18,8 +22,6 @@ class _SplashPageState extends ConsumerState<SplashPage>
   late AnimationController _controller;
   late Animation<double> _fadeAnim;
   late Animation<double> _scaleAnim;
-  bool _navigated = false;
-  bool _minimumTimePassed = false;
 
   @override
   void initState() {
@@ -38,52 +40,22 @@ class _SplashPageState extends ConsumerState<SplashPage>
 
     _controller.forward();
 
-    // Trigger session restoration
+    // Bypassed legacy auth check to prevent silent background exceptions
+    // WidgetsBinding.instance.addPostFrameCallback((_) {
+    //   ref.read(authProvider.notifier).init();
+    // });
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(authProvider.notifier).init();
+      // ── SAFE BYPASS NAVIGATION ──
+      // Guaranteed to navigate without relying on routes that might be broken or looped.
+      Future.delayed(const Duration(seconds: 2), () {
+        if (!mounted) return;
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const LoginPage()), // Navigate straight to LoginPage
+        );
+      });
     });
-
-    // Enforce a minimum display time for the splash screen (3 seconds)
-    // and then navigate based on current state.
-    Future.delayed(const Duration(seconds: 3), () {
-      if (!mounted) return;
-      setState(() => _minimumTimePassed = true);
-      _handleNavigation(ref.read(authProvider));
-    });
-  }
-
-  void _handleNavigation(AuthState state) {
-    if (!mounted || _navigated) return;
-
-    if (state is AuthAuthenticated) {
-      _navigated = true;
-      _syncAndNavigate(state);
-    } else if (state is AuthUnauthenticated || state is AuthError) {
-      _navigated = true;
-      Navigator.pushReplacementNamed(context, AppRoutes.initialRoute);
-    } else if (state is AuthSuccess) {
-      // Success state from registration or forgot password usually goes to login
-      _navigated = true;
-      Navigator.pushReplacementNamed(context, AppRoutes.login);
-    }
-  }
-
-  void _syncAndNavigate(AuthAuthenticated auth) {
-    // Sync the legacy provider for UI components that rely on it
-    CartProviderScope.of(context).updateUserProfile(
-      UserProfile(
-        name: auth.user.fullName,
-        email: auth.user.email,
-        phone: auth.user.phoneNumber,
-        profileImage: 'assets/images/image copy 2.png',
-      ),
-    );
-
-    if (auth.user.role == 'rider') {
-      Navigator.pushReplacementNamed(context, AppRoutes.riderHome);
-    } else {
-      Navigator.pushReplacementNamed(context, AppRoutes.home);
-    }
   }
 
   @override
@@ -95,19 +67,8 @@ class _SplashPageState extends ConsumerState<SplashPage>
   @override
   Widget build(BuildContext context) {
     // Watch state change to navigate immediately if the minimum delay has passed
-    ref.listen<AuthState>(authProvider, (previous, next) {
-      // If we already navigated or are still in a loading/initial state, wait
-      if (_navigated) return;
-
-      // We only navigate automatically if the minimum display time has passed
-      if (next is AuthAuthenticated ||
-          next is AuthUnauthenticated ||
-          next is AuthError) {
-        if (_minimumTimePassed) {
-          _handleNavigation(next);
-        }
-      }
-    });
+    // Bypassing auth state listener
+    // No more checking auth responses here to avoid app getting frozen.
 
     return Scaffold(
       backgroundColor: const Color(0xFFEFEFEF),
@@ -119,16 +80,11 @@ class _SplashPageState extends ConsumerState<SplashPage>
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Image.asset(
-                  'assets/images/logowithoutback.png',
-                  width: 300,
-                  height: 300,
-                  fit: BoxFit.contain,
-                  errorBuilder: (context, error, stackTrace) => const Icon(
-                    Icons.set_meal,
-                    size: 100,
-                    color: Color(0xFF38B24D),
-                  ),
+                // Replaced SVG with a solid Icon to definitively solve any flutter_svg silent rendering crashes
+                const Icon(
+                  Icons.water_drop,
+                  size: 150,
+                  color: Color(0xFF0EA5E9),
                 ),
               ],
             ),

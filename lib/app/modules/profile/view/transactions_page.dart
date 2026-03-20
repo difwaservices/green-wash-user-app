@@ -12,7 +12,7 @@ class TransactionsPage extends StatelessWidget {
         elevation: 0,
         centerTitle: true,
         title: const Text(
-          'ShrimpBite',
+          'DifwaBite',
           style: TextStyle(
             color: Color(0xFF1A1A1A),
             fontWeight: FontWeight.bold,
@@ -99,7 +99,7 @@ class TransactionsPage extends StatelessWidget {
             const SizedBox(height: 16),
             _buildTransactionItem(
               icon: Icons.set_meal_rounded,
-              title: 'Shrimp Shack',
+              title: 'Difwa Shack',
               subtitle: 'Wallet balance used • 7:30 PM',
               amount: '-\$24.50',
               isPositive: false,
@@ -120,7 +120,7 @@ class TransactionsPage extends StatelessWidget {
             ),
             _buildTransactionItem(
               icon: Icons.local_cafe_rounded, // Approximate for the soup icon
-              title: 'Shrimp Shack',
+              title: 'Difwa Shack',
               subtitle: 'Refund to Wallet • 12:30 PM',
               amount: '+\$12.00',
               isPositive: true,

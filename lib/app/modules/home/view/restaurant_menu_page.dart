@@ -8,7 +8,7 @@ import '../../../data/services/favorites_service.dart';
 import '../provider/shop_provider.dart';
 import '../widgets/cart_summary_bar.dart';
 import '../widgets/quantity_selector.dart';
-import 'package:licius_application/app/routes/app_routes.dart';
+import 'package:difwawaterapp/app/routes/app_routes.dart';
 
 class RestaurantMenuPage extends ConsumerWidget {
   final ShopModel shop;
@@ -33,12 +33,12 @@ class RestaurantMenuPage extends ConsumerWidget {
 
   String get _heroImage {
     final images = [
-      'assets/images/shrimp_dish_1.png',
-      'assets/images/shrimp_dish_2.png',
-      'assets/images/shrimp_dish_3.png',
-      'assets/images/shrimp_lemon_herb.png',
-      'assets/images/shrimp_tiger_trio.png',
-      'assets/images/shrimp_cooked_duo.png',
+      'assets/images/Difwa_dish_1.png',
+      'assets/images/Difwa_dish_2.png',
+      'assets/images/Difwa_dish_3.png',
+      'assets/images/Difwa_lemon_herb.png',
+      'assets/images/Difwa_tiger_trio.png',
+      'assets/images/Difwa_cooked_duo.png',
     ];
     final code = shop.id.codeUnits.fold<int>(0, (a, b) => a + b);
     return images[code % images.length];
@@ -256,7 +256,7 @@ class RestaurantMenuPage extends ConsumerWidget {
                     padding: EdgeInsets.fromLTRB(16, 4, 16, 12),
                     sliver: SliverToBoxAdapter(
                       child: Text(
-                        'SHRIMP VARIETIES',
+                        'Difwa VARIETIES',
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w800,
@@ -540,7 +540,7 @@ class _ProductCardState extends ConsumerState<_ProductCard> {
         id: p.id,
         title: p.name,
         unitPrice: p.price,
-        subtitle: p.category?.name ?? 'Shrimp',
+        subtitle: p.category?.name ?? 'Difwa',
         image: p.primaryImage,
         category: 'restaurant',
         shopId: widget.shopId,
@@ -569,7 +569,7 @@ class _ProductCardState extends ConsumerState<_ProductCard> {
               id: p.id,
               title: p.name,
               unitPrice: p.price,
-              subtitle: p.category?.name ?? 'Shrimp',
+              subtitle: p.category?.name ?? 'Difwa',
               image: p.primaryImage,
               category: 'restaurant',
               shopId: widget.shopId,
@@ -655,7 +655,7 @@ class _ProductCardState extends ConsumerState<_ProductCard> {
                       id: p.id,
                       title: p.name,
                       unitPrice: p.price,
-                      subtitle: p.category?.name ?? 'Shrimp',
+                      subtitle: p.category?.name ?? 'Difwa',
                       image: p.primaryImage,
                       category: 'restaurant',
                       shopId: widget.shopId,

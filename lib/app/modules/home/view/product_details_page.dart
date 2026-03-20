@@ -160,7 +160,7 @@ class ProductDetailsPage extends ConsumerWidget {
                               color: Colors.grey.shade800)),
                       const SizedBox(height: 24),
                       if (product.whyChoose.isNotEmpty) ...[
-                        const Text('Why Choose Our Shrimp',
+                        const Text('Why Choose Our Difwa',
                             style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,

@@ -8,7 +8,7 @@ class VegetablesPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final List<Map<String, dynamic>> products = [
       {
-        'title': 'Fresh Shrimps',
+        'title': 'Fresh Difwas',
         'price': '₹8.00',
         'subtitle': 'dozen',
         'image': 'assets/images/image copy 2.png',

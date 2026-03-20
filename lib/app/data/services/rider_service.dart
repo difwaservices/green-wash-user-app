@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../network/api_client.dart';
 
 final _socketServerDio = Dio(BaseOptions(
-  // baseUrl: 'https://shrimpbite-socket-server.onrender.com',
+  // baseUrl: 'https://Difwabite-socket-server.onrender.com',
   baseUrl: 'http://localhost:5001',
   connectTimeout: const Duration(seconds: 30),
   receiveTimeout: const Duration(seconds: 30),

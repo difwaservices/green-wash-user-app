@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/constants/app_colors.dart';
 import 'package:flutter/services.dart';
 import '../../../data/services/db_service.dart';
 import '../widgets/home_header.dart';
@@ -30,7 +31,7 @@ class HomePage extends ConsumerWidget {
               CartProviderScope.of(context).loadAddresses();
               CartProviderScope.of(context).syncWallet();
             },
-            color: const Color(0xFF68B92E),
+            color: AppColors.primary,
             child: CustomScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
               slivers: [
@@ -111,7 +112,7 @@ class _AnimatedFooterTextState extends State<AnimatedFooterText>
       child: const Padding(
         padding: EdgeInsets.symmetric(vertical: 0),
         child: Text(
-          'With love,\nfrom Shrimp.',
+          'With love,\nfrom Difwa.',
           textAlign: TextAlign.center,
           style: TextStyle(
             fontSize: 28,

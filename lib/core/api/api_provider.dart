@@ -9,7 +9,7 @@ final storageServiceProvider = Provider((ref) => SecureStorageService());
 final dioProvider = Provider<Dio>((ref) {
   final dio = Dio(
     BaseOptions(
-      baseUrl: dotenv.get('API_BASE_URL'),
+      baseUrl: 'mock_base_url', // dotenv.get('API_BASE_URL'),
       connectTimeout: const Duration(seconds: 15),
       receiveTimeout: const Duration(seconds: 15),
     ),

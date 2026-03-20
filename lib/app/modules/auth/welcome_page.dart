@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import '../../core/constants/app_colors.dart';
+import '../../core/constants/app_images.dart';
 import 'google_profile_page.dart';
 
 /// Real Google Sign-In instance
@@ -117,17 +120,21 @@ class WelcomePage extends StatelessWidget {
                 SizedBox(
                   height: screenHeight * 0.52,
                   width: double.infinity,
-                  child: Image.asset(
-                    'assets/images/liciousimage.jpeg',
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) => Container(
-                      color: Colors.grey.shade300,
-                      child: const Icon(
-                        Icons.image_not_supported,
-                        size: 60,
-                        color: Colors.grey,
+                  child: Stack(
+                    children: [
+                      Positioned.fill(
+                        child: SvgPicture.asset(
+                          AppImages.splashBg,
+                          fit: BoxFit.cover,
+                        ),
                       ),
-                    ),
+                      Center(
+                        child: SvgPicture.asset(
+                          AppImages.difwaLogo2,
+                          width: 200,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 Positioned.fill(
@@ -246,7 +253,7 @@ class WelcomePage extends StatelessWidget {
                             TextSpan(
                               text: 'Login',
                               style: TextStyle(
-                                color: Color(0xFF2E7D32),
+                              color: AppColors.primary,
                                 fontWeight: FontWeight.w700,
                               ),
                             ),
@@ -271,22 +278,26 @@ class WelcomePage extends StatelessWidget {
       child: OutlinedButton(
         onPressed: () => _handleGoogleSignIn(context),
         style: OutlinedButton.styleFrom(
-          side: const BorderSide(color: Color(0xFFE0E0E0), width: 1.5),
+          side: BorderSide(color: AppColors.borderColor, width: 1.5),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: const [
-            _GoogleLogo(size: 24),
-            SizedBox(width: 12),
-            Text(
+          children: [
+            Image.asset(
+              'assets/images/google_logo.png',
+              width: 24,
+              height: 24,
+            ),
+            const SizedBox(width: 12),
+            const Text(
               'Continue with google',
               style: TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.w500,
-                color: Color(0xFF333333),
+                color: AppColors.textPrimary,
               ),
             ),
           ],
@@ -302,7 +313,7 @@ class WelcomePage extends StatelessWidget {
       child: ElevatedButton(
         onPressed: () => Navigator.pushNamed(context, '/signup'),
         style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF2E7D32),
+          backgroundColor: AppColors.primary,
           foregroundColor: Colors.white,
           elevation: 0,
           shape: RoundedRectangleBorder(
@@ -325,20 +336,7 @@ class WelcomePage extends StatelessWidget {
   }
 }
 
-// ── Real Google "G" logo from asset ───────────────────────────────────────
-class _GoogleLogo extends StatelessWidget {
-  final double size;
-  const _GoogleLogo({this.size = 24});
 
-  @override
-  Widget build(BuildContext context) {
-    return Image.asset(
-      'assets/images/google_logo.png',
-      width: size,
-      height: size,
-      fit: BoxFit.contain,
-    );
-  }
-}
+// ── End of WelcomePage ──────────────────────────────────────────────────────
 
 

@@ -46,7 +46,7 @@ class PaymentService {
       var options = {
         'key': 'rzp_test_S7lSvWtu89c6zD', // Using the test key provided
         'amount': (amount * 100).toInt(),
-        'name': 'Shrimpbite',
+        'name': 'Difwabite',
         'order_id': orderId,
         'description': 'Wallet Top-up',
         'prefill': {'contact': contact, 'email': email},

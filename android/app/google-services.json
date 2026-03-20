@@ -42,7 +42,7 @@
               "client_id": "246944187312-4o7acti2m0pjin4pq4tnruijo649qres.apps.googleusercontent.com",
               "client_type": 2,
               "ios_info": {
-                "bundle_id": "com.example.liciusApplication"
+                "bundle_id": "com.difwawaterapp.app"
               }
             }
           ]
@@ -53,7 +53,7 @@
       "client_info": {
         "mobilesdk_app_id": "1:246944187312:android:fa5cff913cf04705994c75",
         "android_client_info": {
-          "package_name": "com.example.licius_application"
+          "package_name": "com.difwawaterapp.app"
         }
       },
       "oauth_client": [
@@ -61,7 +61,7 @@
           "client_id": "246944187312-bp84or86mjmvhntqiks23l88tmcspshf.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "com.example.licius_application",
+            "package_name": "com.difwawaterapp.app",
             "certificate_hash": "c9fa97cd659921d330d60a050e7783a3fff03d30"
           }
         },
@@ -86,7 +86,7 @@
               "client_id": "246944187312-4o7acti2m0pjin4pq4tnruijo649qres.apps.googleusercontent.com",
               "client_type": 2,
               "ios_info": {
-                "bundle_id": "com.example.liciusApplication"
+                "bundle_id": "com.difwawaterapp.app"
               }
             }
           ]
@@ -97,7 +97,7 @@
       "client_info": {
         "mobilesdk_app_id": "1:246944187312:android:9e709ec88c5d1a41994c75",
         "android_client_info": {
-          "package_name": "com.shrimpbite.app"
+          "package_name": "com.difwawaterapp.app"
         }
       },
       "oauth_client": [
@@ -105,7 +105,7 @@
           "client_id": "246944187312-as29kec6m49tlmk06980obr425ifc32g.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "com.shrimpbite.app",
+            "package_name": "com.difwawaterapp.app",
             "certificate_hash": "c9fa97cd659921d330d60a050e7783a3fff03d30"
           }
         },
@@ -130,7 +130,7 @@
               "client_id": "246944187312-4o7acti2m0pjin4pq4tnruijo649qres.apps.googleusercontent.com",
               "client_type": 2,
               "ios_info": {
-                "bundle_id": "com.example.liciusApplication"
+                "bundle_id": "com.difwawaterapp.app"
               }
             }
           ]

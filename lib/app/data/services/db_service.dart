@@ -37,20 +37,20 @@ class CartProvider extends ChangeNotifier {
   final List<FoodCategory> _foodCategories = const [
     FoodCategory(
       id: '1',
-      name: 'White Shrimp',
+      name: 'White Difwa',
       image: 'assets/images/image copy 11.png',
       colorValue: 0xFFFFF8E1, // Light Orange
     ),
     FoodCategory(
       id: '2',
-      name: 'Tiger Shrimp',
-      image: 'assets/images/shrimp_tiger_trio.png',
+      name: 'Tiger Difwa',
+      image: 'assets/images/Difwa_tiger_trio.png',
       colorValue: 0xFFE8F5E9, // Light Green
     ),
     FoodCategory(
       id: '4',
-      name: 'Peeled Shrimp',
-      image: 'assets/images/shrimp_cooked_duo.png',
+      name: 'Peeled Difwa',
+      image: 'assets/images/Difwa_cooked_duo.png',
       colorValue: 0xFFF3E5F5, // Light Purple
     ),
   ];
@@ -162,13 +162,13 @@ class CartProvider extends ChangeNotifier {
   final List<Product> _recommendedProducts = const [
     Product(
       id: 'p1',
-      name: 'White Shrimp',
+      name: 'White Difwa',
       image: 'assets/images/image copy 11.png',
       price: 349,
       weight: '500g',
-      category: 'White Shrimp',
+      category: 'White Difwa',
       description:
-          'White Shrimp is one of the most popular and widely consumed shrimp varieties across the world. Known for its mild flavor, firm texture, and high nutritional value, it is perfect for everyday home cooking as well as gourmet recipes. At Shrimpbite, our White Shrimp is sourced directly from trusted Indian aqua farmers, ensuring freshness, quality, and food safety in every pack.',
+          'White Difwa is one of the most popular and widely consumed Difwa varieties across the world. Known for its mild flavor, firm texture, and high nutritional value, it is perfect for everyday home cooking as well as gourmet recipes. At Difwabite, our White Difwa is sourced directly from trusted Indian aqua farmers, ensuring freshness, quality, and food safety in every pack.',
       whyChoose: [
         'Fresh and Naturally Sweet Flavor',
         'Firm Texture ideal for frying, grilling, curries, and stir-fries',
@@ -181,10 +181,10 @@ class CartProvider extends ChangeNotifier {
     Product(
       id: 'p2',
       name: 'Tiger Prawns',
-      image: 'assets/images/shrimp_tiger_trio.png',
+      image: 'assets/images/Difwa_tiger_trio.png',
       price: 499,
       weight: '1kg',
-      category: 'Tiger Shrimp',
+      category: 'Tiger Difwa',
       isFavorite: true,
       description:
           'Tiger Prawns are known for their spectacular size and bold, sweet flavor. Their distinctive stripes make them a chef favorite for presentation. These Jumbo prawns are perfect for big feasts.',
@@ -198,13 +198,13 @@ class CartProvider extends ChangeNotifier {
     ),
     Product(
       id: 'p3',
-      name: 'King Thai Shrimps',
-      image: 'assets/images/shrimp_lemon_herb.png',
+      name: 'King Thai Difwas',
+      image: 'assets/images/Difwa_lemon_herb.png',
       price: 649,
       weight: '500g',
-      category: 'White Shrimp',
+      category: 'White Difwa',
       description:
-          'Authentic King Thai Shrimps, marinated with subtle herbs for a unique coastal flavor. Best enjoyed sautéed or in light broths. A premium variety sought after for its delicate snap.',
+          'Authentic King Thai Difwas, marinated with subtle herbs for a unique coastal flavor. Best enjoyed sautéed or in light broths. A premium variety sought after for its delicate snap.',
       whyChoose: [
         'Premium export quality sourced for retail',
         'De-veined and cleaned for your convenience',
@@ -215,28 +215,28 @@ class CartProvider extends ChangeNotifier {
     Product(
       id: 'p4',
       name: 'Cooked Prawns Duo',
-      image: 'assets/images/shrimp_cooked_duo.png',
+      image: 'assets/images/Difwa_cooked_duo.png',
       price: 349,
       weight: '250g',
-      category: 'Peeled Shrimp',
+      category: 'Peeled Difwa',
       description:
           'Perfectly steamed and ready-to-eat prawns. Save time in the kitchen without compromising on that fresh seaside taste. These are pre-peeled and cooked to perfection.',
       whyChoose: [
         'Ready to eat - just thaw and serve in minutes',
         'Uniformly cooked to maintain juicy texture',
-        'Ideal for salads, rolls, and shrimp cocktails',
+        'Ideal for salads, rolls, and Difwa cocktails',
         'No mess, no hassle cleaning needed',
       ],
     ),
     Product(
       id: 'p5',
-      name: 'Fresh Shrimps',
-      image: 'assets/images/shrimp_fresh_pile.png',
+      name: 'Fresh Difwas',
+      image: 'assets/images/Difwa_fresh_pile.png',
       price: 249,
       weight: '500g',
-      category: 'Peeled Shrimp',
+      category: 'Peeled Difwa',
       description:
-          'Daily catch fresh shrimps, delivered straight from the coast to your kitchen. Vibrant, tender, and full of natural sea flavor. These are the foundation of any great seafood dish.',
+          'Daily catch fresh Difwas, delivered straight from the coast to your kitchen. Vibrant, tender, and full of natural sea flavor. These are the foundation of any great seafood dish.',
       whyChoose: [
         'Caught and delivered within 24 hours of sea time',
         'Never frozen, always fresh and chilled',
@@ -262,16 +262,16 @@ class CartProvider extends ChangeNotifier {
     ),
     Product(
       id: 'p7',
-      name: 'Lemon Garlic Shrimp',
+      name: 'Lemon Garlic Difwa',
       image: 'assets/images/image copy 5.png',
       price: 599,
       weight: '1 plate',
       category: 'Grocery',
       description:
-          'Tangy and buttery lemon garlic shrimp. A restaurant-style delicacy in the comfort of your home. Perfect for a quick dinner or a fancy appetizer.',
+          'Tangy and buttery lemon garlic Difwa. A restaurant-style delicacy in the comfort of your home. Perfect for a quick dinner or a fancy appetizer.',
       whyChoose: [
         'Infused with fresh lemon zest and garlic',
-        'Tender, melt-in-your-mouth shrimp',
+        'Tender, melt-in-your-mouth Difwa',
         'Low calorie and high in protein',
         'Chef-suggested pairing with sourdough or pasta',
       ],
@@ -282,25 +282,25 @@ class CartProvider extends ChangeNotifier {
       image: 'assets/images/image copy 3.png',
       price: 429,
       weight: '500g',
-      category: 'White Shrimp',
+      category: 'White Difwa',
       description:
           'Quality prawns from our sustainably managed aqua farms. Healthy, safe, and delicious. We monitor every stage of growth to ensure the highest standards.',
       whyChoose: [
         'Traceable back to the farm of origin',
-        'Balanced diet for shrimps ensures better nutrition',
+        'Balanced diet for Difwas ensures better nutrition',
         'Stringent quality checks at every harvest',
         'Available year-round with consistent flavor',
       ],
     ),
     Product(
       id: 'p9',
-      name: 'Sizzling Garlic Shrimp',
-      image: 'assets/images/shrimp_dish_1.png',
+      name: 'Sizzling Garlic Difwa',
+      image: 'assets/images/Difwa_dish_1.png',
       price: 549,
       weight: '250g',
       category: 'Grocery',
       description:
-          'Our best-selling Sizzling Garlic Shrimp is a flavor explosion. Tossed in a rich garlic butter sauce with a hint of chili, it is the ultimate comfort food for seafood lovers.',
+          'Our best-selling Sizzling Garlic Difwa is a flavor explosion. Tossed in a rich garlic butter sauce with a hint of chili, it is the ultimate comfort food for seafood lovers.',
       whyChoose: [
         'Intense garlic flavor in every bite',
         'Perfectly sautéed to retain juice',
@@ -311,7 +311,7 @@ class CartProvider extends ChangeNotifier {
     Product(
       id: 'p10',
       name: 'Peppery Onion Prawns',
-      image: 'assets/images/shrimp_dish_2.png',
+      image: 'assets/images/Difwa_dish_2.png',
       price: 489,
       weight: '300g',
       category: 'Grocery',
@@ -326,13 +326,13 @@ class CartProvider extends ChangeNotifier {
     ),
     Product(
       id: 'p11',
-      name: 'Honey Chilli Shrimp',
-      image: 'assets/images/shrimp_dish_3.png',
+      name: 'Honey Chilli Difwa',
+      image: 'assets/images/Difwa_dish_3.png',
       price: 599,
       weight: '1 plate',
       category: 'Grocery',
       description:
-          'A delightful Indo-Chinese fusion dish. Crispy shrimp glazed in a sweet and spicy honey-chili sauce, topped with sesame seeds. A perfect party starter.',
+          'A delightful Indo-Chinese fusion dish. Crispy Difwa glazed in a sweet and spicy honey-chili sauce, topped with sesame seeds. A perfect party starter.',
       whyChoose: [
         'The perfect balance of sweet and spicy',
         'Crispy texture with a juicy core',
@@ -342,13 +342,13 @@ class CartProvider extends ChangeNotifier {
     ),
     Product(
       id: 'p12',
-      name: 'Spicy Fried Shrimp',
-      image: 'assets/images/shrimp_dish_4.png',
+      name: 'Spicy Fried Difwa',
+      image: 'assets/images/Difwa_dish_4.png',
       price: 529,
       weight: '400g',
       category: 'Grocery',
       description:
-          'Classic crispy fried shrimp with a spicy rub. These are golden-brown on the outside and tender on the inside. Served best with a tangy dip.',
+          'Classic crispy fried Difwa with a spicy rub. These are golden-brown on the outside and tender on the inside. Served best with a tangy dip.',
       whyChoose: [
         'Extra crispy coating with signature spices',
         'Ideal snack for game nights or gatherings',
@@ -359,10 +359,10 @@ class CartProvider extends ChangeNotifier {
     Product(
       id: 'p13',
       name: 'Zesty Lemon Prawns',
-      image: 'assets/images/shrimp_dish_5.png',
+      image: 'assets/images/Difwa_dish_5.png',
       price: 649,
       weight: '350g',
-      category: 'Tiger Shrimp',
+      category: 'Tiger Difwa',
       description:
           'Refresh your palate with these Zesty Lemon Prawns. Marinated in a citrusy blend of lemon juice, cilantro, and mild spices. Light and healthy.',
       whyChoose: [
@@ -374,13 +374,13 @@ class CartProvider extends ChangeNotifier {
     ),
     Product(
       id: 'p14',
-      name: 'Classic Cooked Shrimps',
-      image: 'assets/images/shrimp_dish_6.png',
+      name: 'Classic Cooked Difwas',
+      image: 'assets/images/Difwa_dish_6.png',
       price: 599,
       weight: '400g',
-      category: 'Peeled Shrimp',
+      category: 'Peeled Difwa',
       description:
-          'Simple, elegant, and timeless. These shrimps are lightly seasoned and perfectly cooked to highlight their natural sweetness. The pure taste of Shrimpbite.',
+          'Simple, elegant, and timeless. These Difwas are lightly seasoned and perfectly cooked to highlight their natural sweetness. The pure taste of Difwabite.',
       whyChoose: [
         'Pure taste of the ocean with minimal seasoning',
         'Perfectly cleaned and deveined',

@@ -48,13 +48,13 @@ class ShopProduct {
     if (images.isNotEmpty && images.first.length > 5) return images.first;
 
     // Fallback logic for demo/missing data:
-    // If it's a "Fish" or "Prawns/Shrimp", return a relevant local asset if we had them.
+    // If it's a "Fish" or "Prawns/Difwa", return a relevant local asset if we had them.
     // For now, let's just use high-quality placeholder URLs if network image is missing
     final lower = name.toLowerCase();
     if (lower.contains('rohu')) {
       return 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?q=80&w=800&auto=format&fit=crop';
     }
-    if (lower.contains('prawn') || lower.contains('shrimp')) {
+    if (lower.contains('prawn') || lower.contains('Difwa')) {
       return 'https://images.unsplash.com/photo-1559737558-2f5a35f4523b?q=80&w=800&auto=format&fit=crop';
     }
     if (lower.contains('fish')) {
@@ -154,7 +154,7 @@ class ShopModel {
   factory ShopModel.fromJson(Map<String, dynamic> json) {
     return ShopModel(
       id: (json['id'] ?? json['_id'] ?? '').toString(),
-      name: (json['name'] ?? 'Shrimp Shop').toString(),
+      name: (json['name'] ?? 'Difwa Shop').toString(),
       businessName: (json['businessName'] ?? '').toString(),
       image: (json['image'] ?? json['logo'] ?? json['banner'] ?? '').toString(),
       location: (json['location'] ?? json['address'] ?? '').toString(),

@@ -37,9 +37,9 @@ class SocketService {
     if (_initialized && (_socket?.connected ?? false)) return;
 
     final token = await storage.getAccessToken();
-    final baseUrl = dotenv.maybeGet('SOCKET_URL') ??
-        'https://shrimpbite-socket-server.onrender.com';
-    final apiBaseUrl = dotenv.maybeGet('API_BASE_URL') ?? '';
+    final baseUrl = 'wss://mock_base_url'; // dotenv.maybeGet('SOCKET_URL') ??
+        // 'https://Difwabite-socket-server.onrender.com';
+    final apiBaseUrl = 'mock_api_url'; // dotenv.maybeGet('API_BASE_URL') ?? '';
 
     // 1. Poke Render (both API and Socket URLs) to wake up
     unawaited(_wakeUpRender(baseUrl));

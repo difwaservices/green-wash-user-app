@@ -257,7 +257,7 @@ class _TrackOrderPageState extends ConsumerState<TrackOrderPage>
             const Text('Order Delivered!',
                 style: TextStyle(fontWeight: FontWeight.w900, fontSize: 22)),
             const SizedBox(height: 8),
-            const Text('Enjoy your fresh shrimp! 🦐',
+            const Text('Enjoy your fresh Difwa! 🦐',
                 textAlign: TextAlign.center,
                 style: TextStyle(color: Colors.grey)),
             const SizedBox(height: 24),

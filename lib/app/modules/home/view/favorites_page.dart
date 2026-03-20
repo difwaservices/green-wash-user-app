@@ -292,7 +292,7 @@ class _FavProductCard extends ConsumerWidget {
                         id: p.id,
                         title: p.name,
                         unitPrice: p.price,
-                        subtitle: p.category?.name ?? 'Shrimp',
+                        subtitle: p.category?.name ?? 'Difwa',
                         image: p.primaryImage,
                         category: 'restaurant',
                       ));

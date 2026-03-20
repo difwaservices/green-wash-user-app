@@ -10,8 +10,8 @@ final shopServiceProvider = Provider<ShopService>((ref) {
 /// Fallback shop shown when the backend list endpoint is unavailable.
 const ShopModel _fallbackShop = ShopModel(
   id: '699ff3d316b54348792bf3bf',
-  name: 'ShrimpBite Shop',
-  businessName: 'Fresh Shrimp · Karnataka Special',
+  name: 'DifwaBite Shop',
+  businessName: 'Fresh Difwa · Karnataka Special',
   location: 'Karnataka, India',
 );
 

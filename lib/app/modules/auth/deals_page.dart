@@ -58,7 +58,7 @@ class DealsPage extends StatelessWidget {
 
                   // Subtitle
                   Text(
-                    'Get amazing discounts on shrimp, prawns &\nmore every day.',
+                    'Get amazing discounts on Difwa, prawns &\nmore every day.',
                     style: TextStyle(
                       fontSize: 14,
                       color: Colors.grey.shade500,

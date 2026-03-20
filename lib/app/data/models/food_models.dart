@@ -73,7 +73,7 @@ class UserOrder {
     // Backend returns orderId, createdAt, totalAmount, status, items
     return UserOrder(
       id: json['orderId'] ?? '',
-      restaurantName: 'Shrimpbite Retailer', // Placeholder as it's not directly in Order model top level
+      restaurantName: 'Difwabite Retailer', // Placeholder as it's not directly in Order model top level
       date: json['createdAt'] != null 
           ? DateTime.parse(json['createdAt']).toLocal().toString().split('.').first
           : '',

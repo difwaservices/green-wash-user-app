@@ -478,7 +478,7 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
                               orderId: order.id,
                               productName: (order.items.isNotEmpty && order.items[0].isNotEmpty)
                                   ? order.items[0].split('x ').last
-                                  : 'Shrimp Product',
+                                  : 'Difwa Product',
                               retailerId:
                                   '65e9f8f8f8f8f8f8f8f8f8f8', // Mock retailer ID
                               productId:
@@ -1301,7 +1301,7 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
                     ),
                     SizedBox(height: 4),
                     Text(
-                      'Unlock exclusive shrimp benefits',
+                      'Unlock exclusive Difwa benefits',
                       style: TextStyle(
                         color: Colors.white70,
                         fontSize: 12,

@@ -3,67 +3,82 @@ import 'package:flutter/material.dart';
 class AppColors {
   AppColors._();
 
-  // Primary
-  static const Color primary = Color(0xFF38B24D);
-  static const Color primaryDark = Color(0xFF2E7D32);
-  static const Color primaryButton = Color(0xFF438E5A);
-  static const Color primaryLight = Color(0xFF56C740);
-  static const Color accentGreen = Color(0xFF68B92E);
+  // New Brand Colors (Difwa Blue Theme)
+  static const Color primary = Color(0xFF169DFF);
+  static const Color logoPrimary = Color(0xFF1D3757);
+  static const Color logoSecondary = Color(0xFF11BAF9);
+  static const Color secondary = Color(0xFFDDE1F5);
+  static const Color buttonBgColor = Color(0xFF096FCE);
+  static const Color buttonTextColor = Color(0xFF4878BB);
+  static const Color inputField = Color(0xFF169DFF);
+  static const Color cardBgColor = Color(0xFFE9F5F9);
 
-  // Background
-  static const Color scaffoldBg = Color(0xFFF7F7F7);
+  // Theme Helpers
+  static const Color primaryTheme = Color.fromARGB(255, 58, 165, 228);
+  static const Color primaryColorNew = Color(0xFF02739C);
+  static const Color primaryColor = primary;
+
+  // Neutrals
+  static const Color black = Color(0xFF0E0E0E);
+  static const Color blackLight = Color.fromARGB(255, 26, 25, 25);
+  static const Color blackLight2 = Color.fromARGB(255, 22, 21, 21);
+  static const Color white = Color(0xFFFFFFFF);
+  static const Color softGrey = Color(0xFFF9FAFB);
+  static const Color darkGrey = Color.fromARGB(179, 132, 132, 132);
+  static const Color borderColor = Color(0xFFD9D9D9);
+  static const Color inactive = Color.fromARGB(159, 206, 206, 206);
+
+  // Semantic
+  static const Color red = Colors.red;
+  static const Color redColor = Color.fromARGB(255, 240, 31, 31);
+  static const Color green = Colors.green;
+  static const Color grey = Colors.grey;
+  static const Color myGreen = Color(0xFF4CAF50);
+
+  // Gradients
+  static const LinearGradient buttonBgGradient = LinearGradient(
+    colors: [Color(0xFF3EFFFF), Color(0xFF169DFF)],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+
+  static const LinearGradient iconBg = LinearGradient(
+    colors: [Color(0xFF3EFFFF), Color(0xFF169DFF)],
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+  );
+
+  static const LinearGradient splashGradient = LinearGradient(
+    colors: [Color(0xFF141E30), Color(0xFF243B55)],
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+  );
+
+  static const LinearGradient appBarGradient = LinearGradient(
+    colors: [Color(0xFFf8f8f8), Colors.white],
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+  );
+
+  static const Color iconBgStart = Color(0xFF3EFFFF);
+  static const Color iconBgEnd = Color(0xFF169DFF);
+
+  // ── Backward Compatibility Aliases ──────────────────────────
+  static const Color error = redColor;
+  static const Color scaffoldBg = softGrey;
   static const Color scaffoldBgAlt = Color(0xFFF5F5F5);
-  static const Color white = Colors.white;
-  static const Color cardBg = Colors.white;
-  static const Color searchBarBg = Color(0xFFF5F5F5);
-  static const Color productImageBg = Color(0xFFF1F8EB);
-  static const Color detailsBg = Color(0xFFF6F6F9);
-  static const Color detailsCircleBg = Color(0xFFF1F8EB);
-
-  // Text
-  static const Color textPrimary = Colors.black;
-  static const Color textSecondary = Colors.grey;
-  static const Color textLink = Color(0xFF1976D2);
-  static const Color textDark = Color(0xFF1A1A1A);
-  static const Color textMuted = Color(0xFF999999);
-  static const Color textSubtle = Color(0xFFAAAAAA);
-  static const Color textBody = Color(0xFF333333);
-
-  // Functional
-  static const Color error = Color(0xFFE53935);
-  static const Color favorite = Color(0xFFF44336);
-  static const Color cartBlue = Color(0xFF1565C0);
-
-  // Badge
-  static const Color badgeNewBg = Color(0xFFFFECB3);
-  static const Color badgeNewText = Color(0xFFFF9800);
-  static const Color badgeNewBgAlt = Color(0xFFFFE0B2);
-  static const Color badgeNewTextAlt = Color(0xFFF57C00);
-  static const Color badgeDiscountBg = Color(0xFFFFCDD2);
-  static const Color badgeDiscountText = Color(0xFFE53935);
-
-  // Category
-  static const Color categoryVegetableBg = Color(0xFFE8F5E9);
-  static const Color categoryFruitBg = Color(0xFFFFEBEE);
-  static const Color categoryBeverageBg = Color(0xFFFFF8E1);
-  static const Color categoryGroceryBg = Color(0xFFF3E5F5);
-  static const Color categoryOilBg = Color(0xFFE0F7FA);
-  static const Color categoryHouseholdBg = Color(0xFFFCE4EC);
-  static const Color categoryBabycareBg = Color(0xFFE3F2FD);
-
-  // Card
-  static const Color cardGradientStart = Color(0xFF56C740);
-  static const Color cardGradientEnd = Color(0xFF38B24D);
-  static const Color cardChipPink = Color(0xFFE84393);
-  static const Color cardChipYellow = Color(0xFFE8B934);
-  static const Color cardMastercardRed = Color(0xFFEB5502);
-  static const Color cardMastercardYellow = Color(0xFFEBAA02);
-
-  // Google
-  static const Color googleBlue = Color(0xFF4285F4);
-  static const Color googleRed = Color(0xFFEA4335);
-  static const Color googleBorder = Color(0xFFE0E0E0);
-
-  // Paypal
-  static const Color paypalBlue = Color(0xFF003087);
+  static const Color textPrimary = black;
+  static const Color textSecondary = grey;
+  static const Color textDark = blackLight;
+  static const Color textMuted = darkGrey;
+  static const Color mywhite = white;
+  static const Color myblack = black;
+  static const Color buttonbgColor = buttonBgColor;
+  static const Color accentGreen = logoSecondary;
+  static const Color accent = logoSecondary;
+  static const Color primaryDark = logoPrimary;
+  static const Color primaryButton = buttonBgColor;
+  static const Color primaryLight = secondary;
+  static const Color logoprimary = logoPrimary;
+  static const Color logosecondry = logoSecondary;
 }

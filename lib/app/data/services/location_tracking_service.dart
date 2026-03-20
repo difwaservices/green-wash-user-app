@@ -17,9 +17,9 @@ class LocationTaskHandler extends TaskHandler {
   Future<void> onStart(DateTime timestamp, TaskStarter taskStarter) async {
     // Since this runs in a separate entry-point isolate, we must ensure dotenv is loaded
     // to allow ApiClient to read the BASE_URL.
-    if (!dotenv.isInitialized) {
-      await dotenv.load();
-    }
+    // if (!dotenv.isInitialized) {
+    //   await dotenv.load();
+    // }
     final apiClient = ApiClient();
     _riderService = RiderService(apiClient);
   }

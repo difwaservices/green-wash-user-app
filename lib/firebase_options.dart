@@ -45,17 +45,17 @@ class DefaultFirebaseOptions {
     apiKey: 'AIzaSyCDCh9kYPOSZ6-K3FYYJ2jlK4QS9-KqEvk',
     appId: '1:246944187312:android:9e709ec88c5d1a41994c75',
     messagingSenderId: '246944187312',
-    projectId: 'shrimpbite',
-    storageBucket: 'shrimpbite.firebasestorage.app',
+    projectId: 'Difwabite',
+    storageBucket: 'Difwabite.firebasestorage.app',
   );
 
   static const FirebaseOptions web = FirebaseOptions(
     apiKey: 'AIzaSyB9_QnO0cYAa53Kw3VFqhDa3ZXjCHvovlw',
     appId: '1:246944187312:web:4b9be407cad8648e994c75',
     messagingSenderId: '246944187312',
-    projectId: 'shrimpbite',
-    authDomain: 'shrimpbite.firebaseapp.com',
-    storageBucket: 'shrimpbite.firebasestorage.app',
+    projectId: 'Difwabite',
+    authDomain: 'Difwabite.firebaseapp.com',
+    storageBucket: 'Difwabite.firebasestorage.app',
     measurementId: 'G-C5ZK3Z8F1P',
   );
 
@@ -63,8 +63,8 @@ class DefaultFirebaseOptions {
     apiKey: 'AIzaSyC3gkH97rVWWPptU5IX4PCXV7WjRH6U2U0',
     appId: '1:246944187312:ios:fe1480df51616526994c75',
     messagingSenderId: '246944187312',
-    projectId: 'shrimpbite',
-    storageBucket: 'shrimpbite.firebasestorage.app',
+    projectId: 'Difwabite',
+    storageBucket: 'Difwabite.firebasestorage.app',
     iosBundleId: 'com.example.liciusApplication',
   );
 
@@ -72,18 +72,18 @@ class DefaultFirebaseOptions {
     apiKey: 'AIzaSyC3gkH97rVWWPptU5IX4PCXV7WjRH6U2U0',
     appId: '1:246944187312:ios:1c0948f6a18630dc994c75',
     messagingSenderId: '246944187312',
-    projectId: 'shrimpbite',
-    storageBucket: 'shrimpbite.firebasestorage.app',
-    iosBundleId: 'com.shrimpbite.app',
+    projectId: 'Difwabite',
+    storageBucket: 'Difwabite.firebasestorage.app',
+    iosBundleId: 'com.Difwabite.app',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
     apiKey: 'AIzaSyB9_QnO0cYAa53Kw3VFqhDa3ZXjCHvovlw',
     appId: '1:246944187312:web:5900891e0b7f1eb7994c75',
     messagingSenderId: '246944187312',
-    projectId: 'shrimpbite',
-    authDomain: 'shrimpbite.firebaseapp.com',
-    storageBucket: 'shrimpbite.firebasestorage.app',
+    projectId: 'Difwabite',
+    authDomain: 'Difwabite.firebaseapp.com',
+    storageBucket: 'Difwabite.firebasestorage.app',
     measurementId: 'G-Q2Q4D4YXED',
   );
 }
