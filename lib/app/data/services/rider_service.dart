@@ -1,15 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../network/api_client.dart';
-
-final _socketServerDio = Dio(BaseOptions(
-  // baseUrl: 'https://Difwabite-socket-server.onrender.com',
-  baseUrl: 'http://localhost:5001',
-  connectTimeout: const Duration(seconds: 30),
-  receiveTimeout: const Duration(seconds: 30),
-  contentType: Headers.jsonContentType,
-));
-
 class RiderService {
   final ApiClient _apiClient;
 
@@ -118,7 +110,9 @@ class RiderService {
 
       // Step 2: notify socket server (fire-and-forget)
       try {
-        await _socketServerDio.post(
+        final socketUrl = dotenv.env['SOCKET_URL'] ?? 'https://difwa-backend.vercel.app';
+        final dio = Dio(BaseOptions(baseUrl: socketUrl));
+        await dio.post(
           '/api/order/delivered',
           data: {'orderId': orderId},
         );

@@ -1,69 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_images.dart';
-import 'google_profile_page.dart';
-
-/// Real Google Sign-In instance
-final GoogleSignIn _googleSignIn = GoogleSignIn(scopes: ['email', 'profile']);
 
 class WelcomePage extends StatelessWidget {
   const WelcomePage({super.key});
 
-  // ── Google Sign-In ─────────────────────────────────────────────────────────
-  Future<void> _handleGoogleSignIn(BuildContext context) async {
-    try {
-      // Cancel any previous sign-in first
-      await _googleSignIn.signOut();
-
-      final GoogleSignInAccount? account = await _googleSignIn.signIn();
-
-      if (account == null) {
-        // User cancelled the sign-in
-        return;
-      }
-
-      // ── LOG GOOGLE SIGN-IN SUCCESS ──────────────────────────────────────────
-      debugPrint('');
-      debugPrint('╔══════════════════════════════════════════════════════════════╗');
-      debugPrint('║              GOOGLE SIGN-IN SUCCESS                          ║');
-      debugPrint('╟──────────────────────────────────────────────────────────────╢');
-      debugPrint('║  Name  : ${account.displayName?.padRight(44) ?? "N/A"}║');
-      debugPrint('║  Email : ${account.email.padRight(44)}║');
-      debugPrint('║  ID    : ${account.id.padRight(44)}║');
-      debugPrint('╚══════════════════════════════════════════════════════════════╝');
-      debugPrint('');
-      // ───────────────────────────────────────────────────────────────────────
-
-      // Sign-in succeeded — navigate to the Google profile page
-      if (context.mounted) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => GoogleProfilePage(account: account),
-          ),
-        );
-      }
-    } catch (e, stackTrace) {
-      debugPrint('');
-      debugPrint('╔══════════════════════════════════════════════════════════════╗');
-      debugPrint('║              GOOGLE SIGN-IN FAILED                           ║');
-      debugPrint('╟──────────────────────────────────────────────────────────────╢');
-      debugPrint('║  Error: ${e.toString().padRight(52)}║');
-      debugPrint('╚══════════════════════════════════════════════════════════════╝');
-      debugPrint('Stacktrace: $stackTrace');
-      debugPrint('');
-
-      if (context.mounted) {
-        _showErrorDialog(
-          context,
-          'Google Sign-In Failed',
-          'Could not sign in with Google.\n\nMake sure you have configured a valid OAuth 2.0 Client ID in Google Cloud Console and added the REVERSED_CLIENT_ID to ios/Runner/Info.plist.\n\nError: $e',
-        );
-      }
-    }
-  }
 
   void _showErrorDialog(BuildContext context, String title, String message) {
     showDialog(
@@ -230,9 +172,7 @@ class WelcomePage extends StatelessWidget {
                   ),
                   const SizedBox(height: 28),
 
-                  // ── Real Google Sign-In button ──
-                  _googleSignInButton(context),
-                  const SizedBox(height: 14),
+
 
                   // ── Create account button ──
                   _createAccountButton(context),
@@ -271,40 +211,6 @@ class WelcomePage extends StatelessWidget {
     );
   }
 
-  Widget _googleSignInButton(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      height: 54,
-      child: OutlinedButton(
-        onPressed: () => _handleGoogleSignIn(context),
-        style: OutlinedButton.styleFrom(
-          side: BorderSide(color: AppColors.borderColor, width: 1.5),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Image.asset(
-              'assets/images/google_logo.png',
-              width: 24,
-              height: 24,
-            ),
-            const SizedBox(width: 12),
-            const Text(
-              'Continue with google',
-              style: TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w500,
-                color: AppColors.textPrimary,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
   Widget _createAccountButton(BuildContext context) {
     return SizedBox(

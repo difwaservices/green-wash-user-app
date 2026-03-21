@@ -93,32 +93,6 @@ class AuthService {
     }
   }
 
-  // ── Google Auth ───────────────────────────────────────────────────────────
-  Future<AuthResponseModel> googleAuth({
-    required String idToken,
-    String? fcmToken,
-  }) async {
-    try {
-      final data = await _client.post(
-        '${ApiClient.baseUrl}/google-auth',
-        data: {
-          'idToken': idToken,
-          if (fcmToken != null) 'fcmToken': fcmToken,
-        },
-      );
-      final response = AuthResponseModel.fromJson(data);
-      if (response.success && response.token != null) {
-        await ApiClient.saveToken(response.token!);
-      }
-      return response;
-    } on ApiException catch (e) {
-      return AuthResponseModel(success: false, message: e.message);
-    } catch (e) {
-      return AuthResponseModel(
-          success: false, message: 'Unexpected error: ${e.toString()}');
-    }
-  }
-
   Future<AuthResponseModel> sendOtp({
     required String phoneNumber,
     String? fcmToken,
@@ -149,37 +123,14 @@ class AuthService {
   Future<AuthResponseModel> verifyOtp({
     required String phoneNumber,
     required String otp,
-  }) async {
-    try {
-      final data = await _client.post(
-        '${ApiClient.otpBaseUrl}/verify',
-        data: {'phoneNumber': phoneNumber, 'otp': otp},
-      );
-      final response = AuthResponseModel.fromJson(data);
-      if (response.success && response.token != null && response.token!.isNotEmpty) {
-        await ApiClient.saveToken(response.token!);
-      }
-      return response;
-    } on ApiException catch (e) {
-      return AuthResponseModel(success: false, message: e.message);
-    } catch (e) {
-      return AuthResponseModel(
-          success: false, message: 'Unexpected error: ${e.toString()}');
-    }
-  }
-
-  // ── Verify Firebase OTP (New) ───────────────────────────────────────────
-  Future<AuthResponseModel> verifyFirebaseOtp({
-    required String phoneNumber,
-    required String idToken,
     String? fcmToken,
   }) async {
     try {
       final data = await _client.post(
-        '${ApiClient.otpBaseUrl}/verify-firebase',
+        '${ApiClient.otpBaseUrl}/verify',
         data: {
           'phoneNumber': phoneNumber,
-          'idToken': idToken,
+          'otp': otp,
           if (fcmToken != null) 'fcmToken': fcmToken,
         },
       );

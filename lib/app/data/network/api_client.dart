@@ -25,7 +25,7 @@ class ApiException implements Exception {
 /// Provider for ApiClient
 final apiClientProvider = Provider<ApiClient>((ref) {
   final dio = Dio(BaseOptions(
-    baseUrl: 'mock_base_url', // dotenv.get('API_BASE_URL').trim(),
+    baseUrl: dotenv.env['API_BASE_URL'] ?? 'https://difwa-backend.vercel.app/api',
     connectTimeout: const Duration(seconds: 30),
     receiveTimeout: const Duration(seconds: 30),
     contentType: Headers.jsonContentType,
@@ -64,7 +64,7 @@ class ApiClient {
 
   static Dio _createDefaultDio() {
     final dio = Dio(BaseOptions(
-      baseUrl: 'mock_base_url', // dotenv.get('API_BASE_URL').trim(),
+      baseUrl: dotenv.env['API_BASE_URL'] ?? 'https://difwa-backend.vercel.app/api',
       connectTimeout: const Duration(seconds: 30),
       receiveTimeout: const Duration(seconds: 30),
       contentType: Headers.jsonContentType,
@@ -86,7 +86,7 @@ class ApiClient {
 
   String _buildUrl(String path) {
     if (path.startsWith('http')) return path;
-    var base = 'mock_base_url'; // dotenv.get('API_BASE_URL').trim();
+    var base = dotenv.env['API_BASE_URL'] ?? 'https://difwa-backend.vercel.app/api';
     if (base.endsWith('/')) base = base.substring(0, base.length - 1);
     var p = path;
     if (!p.startsWith('/')) p = '/$p';
@@ -98,32 +98,67 @@ class ApiClient {
   Future<dynamic> get(String path,
       {Map<String, dynamic>? queryParameters,
       bool requiresAuth = false}) async {
-    // Backend bypassed. Returns dummy data.
-    return {'success': true, 'data': [], 'message': 'Mocked GET success'};
+    try {
+      final response = await _dio.get(
+        _buildUrl(path),
+        queryParameters: queryParameters,
+      );
+      return response.data;
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
   }
 
   Future<dynamic> post(String path,
       {dynamic data, bool requiresAuth = false}) async {
-    // Backend bypassed. Returns dummy data.
-    return {'success': true, 'data': {}, 'message': 'Mocked POST success'};
+    try {
+      final response = await _dio.post(
+        _buildUrl(path),
+        data: data,
+      );
+      return response.data;
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
   }
 
   Future<dynamic> put(String path,
       {dynamic data, bool requiresAuth = false}) async {
-    // Backend bypassed. Returns dummy data.
-    return {'success': true, 'data': {}, 'message': 'Mocked PUT success'};
+    try {
+      final response = await _dio.put(
+        _buildUrl(path),
+        data: data,
+      );
+      return response.data;
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
   }
 
   Future<dynamic> patch(String path,
       {dynamic data, bool requiresAuth = false}) async {
-    // Backend bypassed. Returns dummy data.
-    return {'success': true, 'data': {}, 'message': 'Mocked PATCH success'};
+    try {
+      final response = await _dio.patch(
+        _buildUrl(path),
+        data: data,
+      );
+      return response.data;
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
   }
 
   Future<dynamic> delete(String path,
       {dynamic data, bool requiresAuth = false}) async {
-    // Backend bypassed. Returns dummy data.
-    return {'success': true, 'data': {}, 'message': 'Mocked DELETE success'};
+    try {
+      final response = await _dio.delete(
+        _buildUrl(path),
+        data: data,
+      );
+      return response.data;
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
   }
 
   ApiException _handleError(DioException e) {

@@ -7,7 +7,6 @@ import '../storage/secure_storage_service.dart';
 import '../api/auth_interceptor.dart';
 import '../../app/data/network/api_client.dart';
 import '../../app/data/services/fcm_service.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
 // Unified Auth Provider for the app
 final authServiceProvider = Provider<AuthService>((ref) {
@@ -174,56 +173,39 @@ class AuthStore extends Notifier<AuthState> {
       
       debugPrint('AuthStore: Requesting OTP for $formattedPhone');
 
-      await FirebaseAuth.instance.verifyPhoneNumber(
-        phoneNumber: formattedPhone,
-        verificationCompleted: (PhoneAuthCredential credential) async {
-          // Automatic SMS code retrieval or instant verification
-          debugPrint('AuthStore: Phone verification completed automatically.');
-          await _signInWithFirebaseCredential(formattedPhone, credential);
-        },
-        verificationFailed: (FirebaseAuthException e) {
-          debugPrint('AuthStore: Phone verification failed: ${e.code} - ${e.message}');
-          state = AuthState.unauthenticated(
-              error: e.message ?? 'Phone verification failed');
-        },
-        codeSent: (String verificationId, int? resendToken) {
-          debugPrint('AuthStore: OTP code sent. Verification ID: $verificationId');
-          state = state.copyWith(
-            status: AuthStatus.initial,
-            successMessage: 'OTP sent to your phone via SMS',
-            verificationId: verificationId,
+      // Request OTP from backend
+      final response = await ref.read(authServiceProvider).sendOtp(
+            phoneNumber: formattedPhone,
           );
-        },
-        codeAutoRetrievalTimeout: (String verificationId) {
-          state = state.copyWith(verificationId: verificationId);
-        },
-      );
+
+      if (response.success) {
+        debugPrint('AuthStore: OTP sent successfully');
+        state = state.copyWith(
+          status: AuthStatus.initial,
+          successMessage: response.message,
+          verificationId: formattedPhone, // Use phone number as verification ID
+        );
+      } else {
+        state = AuthState.unauthenticated(
+            error: response.message);
+      }
     } catch (e) {
+      debugPrint('AuthStore: Error sending OTP: $e');
       state = AuthState.unauthenticated(error: e.toString());
     }
   }
 
-  /// Private helper to finalize login with a Firebase credential
-  Future<void> _signInWithFirebaseCredential(
-      String phoneNumber, PhoneAuthCredential credential) async {
+  /// Verify OTP from backend
+  Future<void> _verifyOtpWithBackend(
+      String phoneNumber, String otp) async {
     try {
       state = AuthState.loading();
 
-      // 1. Sign in to Firebase to get the idToken
-      final userCredential =
-          await FirebaseAuth.instance.signInWithCredential(credential);
-      final firebaseIdToken = await userCredential.user?.getIdToken();
-
-      if (firebaseIdToken == null) {
-        state = AuthState.unauthenticated(error: 'Failed to access Firebase');
-        return;
-      }
-
-      // 2. Verify on backend and get Difwabite JWT
+      // Verify OTP on backend and get JWT token
       final fcmToken = await FCMService().getToken();
-      final response = await ref.read(authServiceProvider).verifyFirebaseOtp(
+      final response = await ref.read(authServiceProvider).verifyOtp(
             phoneNumber: phoneNumber,
-            idToken: firebaseIdToken,
+            otp: otp,
             fcmToken: fcmToken,
           );
 
@@ -238,7 +220,7 @@ class AuthStore extends Notifier<AuthState> {
         state = AuthState.unauthenticated(error: response.message);
       }
     } catch (e) {
-      debugPrint('AuthStore: Error finalizing Firebase sign-in: $e');
+      debugPrint('AuthStore: Error verifying OTP: $e');
       state = AuthState.unauthenticated(error: e.toString());
     }
   }
@@ -265,6 +247,8 @@ class AuthStore extends Notifier<AuthState> {
         state = state.copyWith(
           status: AuthStatus.unauthenticated,
           successMessage: response.message,
+          otp: response.otp,
+          verificationId: phoneNumber,
         );
       } else {
         state = AuthState.unauthenticated(error: response.message);
@@ -274,29 +258,6 @@ class AuthStore extends Notifier<AuthState> {
     }
   }
 
-  Future<void> googleAuth({required String idToken}) async {
-    state = AuthState.loading();
-    try {
-      final fcmToken = await FCMService().getToken();
-      final response = await ref.read(authServiceProvider).googleAuth(
-            idToken: idToken,
-            fcmToken: fcmToken,
-          );
-
-      if (response.success && response.data != null && response.token != null) {
-        await _storage.saveTokens(
-          access: response.token!,
-          refresh: response.refreshToken ?? '',
-        );
-        unawaited(FCMService.sendTokenToBackend());
-        state = AuthState.authenticated(response.data!);
-      } else {
-        state = AuthState.unauthenticated(error: response.message);
-      }
-    } catch (e) {
-      state = AuthState.unauthenticated(error: e.toString());
-    }
-  }
 
   Future<void> verifyOtp(
       {required String phoneNumber, required String otp}) async {
@@ -307,14 +268,8 @@ class AuthStore extends Notifier<AuthState> {
       return;
     }
 
-    // 1. Create credential from SMS code
-    PhoneAuthCredential credential = PhoneAuthProvider.credential(
-      verificationId: verificationId,
-      smsCode: otp,
-    );
-
-    // 2. Delegate to helper
-    await _signInWithFirebaseCredential(phoneNumber, credential);
+    // Verify OTP with backend
+    await _verifyOtpWithBackend(phoneNumber, otp);
   }
 
   Future<void> forgotPassword({required String email}) async {

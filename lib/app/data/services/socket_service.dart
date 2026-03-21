@@ -37,9 +37,8 @@ class SocketService {
     if (_initialized && (_socket?.connected ?? false)) return;
 
     final token = await storage.getAccessToken();
-    final baseUrl = 'wss://mock_base_url'; // dotenv.maybeGet('SOCKET_URL') ??
-        // 'https://Difwabite-socket-server.onrender.com';
-    final apiBaseUrl = 'mock_api_url'; // dotenv.maybeGet('API_BASE_URL') ?? '';
+    final baseUrl = dotenv.env['SOCKET_URL'] ?? 'wss://difwa-backend.vercel.app';
+    final apiBaseUrl = dotenv.env['API_BASE_URL'] ?? 'https://difwa-backend.vercel.app/api';
 
     // 1. Poke Render (both API and Socket URLs) to wake up
     unawaited(_wakeUpRender(baseUrl));

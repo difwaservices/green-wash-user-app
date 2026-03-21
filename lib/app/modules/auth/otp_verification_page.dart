@@ -8,8 +8,9 @@ import '../../routes/app_routes.dart';
 
 class OtpVerificationPage extends ConsumerStatefulWidget {
   final String phoneNumber;
+  final String? otp;
 
-  const OtpVerificationPage({super.key, required this.phoneNumber});
+  const OtpVerificationPage({super.key, required this.phoneNumber, this.otp});
 
   @override
   ConsumerState<OtpVerificationPage> createState() =>
@@ -30,8 +31,15 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage> {
   @override
   void initState() {
     super.initState();
+    if (widget.otp != null && widget.otp!.length == _otpLength) {
+      for (int i = 0; i < _otpLength; i++) {
+        _controllers[i].text = widget.otp![i];
+      }
+    }
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _sendOtp();
+      if (widget.otp == null) {
+        _sendOtp();
+      }
     });
   }
 

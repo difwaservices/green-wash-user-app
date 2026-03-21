@@ -18,9 +18,17 @@ class AppRoutes {
   static const String paymentMethod = '/payment_method';
   static const String riderHome = '/rider-home';
   static const String topUp = '/top-up';
+  static const String otp = '/otp';
+  static const String profile = '/profile';
+  static const String orderSuccess = '/order-success';
+  static const String orderHistory = '/order-history';
+  static const String riderOrders = '/rider-orders';
+  static const String riderHistory = '/rider-history';
+  static const String riderOrderDetails = '/rider-order-details';
+  static const String payment = '/payment';
+  static const String search = '/search';
   static const String walletStatement = '/wallet-statement';
-  static const String activeOrders = '/active-orders';
   static const String trackOrder = '/track-order';
   static const String locationPicker = '/location-picker';
-  static const String search = '/search';
+  static const String activeOrders = '/active-orders';
 }

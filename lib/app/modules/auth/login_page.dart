@@ -1,18 +1,12 @@
 import 'package:flutter/material.dart';
-import '../../core/constants/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import '../../routes/app_routes.dart';
+import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_images.dart';
-import '../../data/models/food_models.dart';
-import '../../data/services/db_service.dart';
+import '../../routes/app_routes.dart';
 import '../../widgets/common_button.dart';
 import 'provider/auth_provider.dart';
 import 'widgets/input_field.dart';
-import 'package:google_sign_in/google_sign_in.dart';
-import 'google_profile_page.dart';
-
-final GoogleSignIn _googleSignIn = GoogleSignIn(scopes: ['email', 'profile']);
 
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
@@ -36,7 +30,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       final args = ModalRoute.of(context)?.settings.arguments;
       if (args is Map && args['verified'] == true) {
         _showSnackBar(
-          'User register successful please login',
+          'Registration successful! Please login.',
           backgroundColor: Colors.green.shade600,
           icon: Icons.check_circle,
         );
@@ -86,76 +80,30 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   // ── Login action ─────────────────────────────────────────────────────────
 
   Future<void> _login() async {
-    // ── AUTH BYPASS (for faster development) ──
-    final cartProvider = CartProviderScope.of(context);
-    cartProvider.updateUserProfile(
-      UserProfile(
-        name: 'Difwa User',
-        email: 'user@difwa.com',
-        phone: _phoneController.text.trim(),
-        profileImage: 'assets/images/difwalogo.svg',
-      ),
-    );
-    Navigator.pushNamedAndRemoveUntil(context, AppRoutes.home, (route) => false);
-    return;
-
-    /* Original login code
     final phone = _phoneController.text.trim();
-    // ... remaining original code ...
-    */
-  }
+    final password = _passwordController.text.trim();
 
-  // ── Google Sign-In action ────────────────────────────────────────────────
-  Future<void> _handleGoogleSignIn() async {
+    if (phone.isEmpty || password.isEmpty) {
+      _showSnackBar('Please fill in all fields.', backgroundColor: Colors.red);
+      return;
+    }
+
     try {
-      debugPrint('[GOOGLE AUTH] Sign-in process started...');
-      // Cancel any previous sign-in first to avoid stale data
-      await _googleSignIn.signOut();
-
-      final GoogleSignInAccount? account = await _googleSignIn.signIn();
-
-      if (account == null) {
-        // User cancelled the sign-in
-        return;
+      await ref.read(authProvider.notifier).login(
+            phoneNumber: phone,
+            password: password,
+          );
+      
+      // The listener in main.dart or auth_provider should handle navigation
+      // But if we want it here:
+      final newState = ref.read(authProvider);
+      if (newState is AuthAuthenticated) {
+        Navigator.pushNamedAndRemoveUntil(context, AppRoutes.home, (route) => false);
+      } else if (newState is AuthError) {
+        _showSnackBar(newState.message, backgroundColor: Colors.red);
       }
-
-      // ── LOG GOOGLE SIGN-IN SUCCESS ──────────────────────────────────────────
-      debugPrint('');
-      debugPrint('╔══════════════════════════════════════════════════════════════╗');
-      debugPrint('║              GOOGLE SIGN-IN SUCCESS                          ║');
-      debugPrint('╟──────────────────────────────────────────────────────────────╢');
-      debugPrint('║  Name  : ${account.displayName?.padRight(44) ?? "N/A"}║');
-      debugPrint('║  Email : ${account.email.padRight(44)}║');
-      debugPrint('║  ID    : ${account.id.padRight(44)}║');
-      debugPrint('╚══════════════════════════════════════════════════════════════╝');
-      debugPrint('');
-      // ───────────────────────────────────────────────────────────────────────
-
-      // Success! Navigate to the detail page (or perform backend sync)
-      if (mounted) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => GoogleProfilePage(account: account),
-          ),
-        );
-      }
-    } catch (e, stackTrace) {
-      debugPrint('');
-      debugPrint('╔══════════════════════════════════════════════════════════════╗');
-      debugPrint('║              GOOGLE SIGN-IN FAILED                           ║');
-      debugPrint('╟──────────────────────────────────────────────────────────────╢');
-      debugPrint('║  Error: ${e.toString().padRight(52)}║');
-      debugPrint('╚══════════════════════════════════════════════════════════════╝');
-      debugPrint('Stacktrace: $stackTrace');
-      debugPrint('');
-
-      if (mounted) {
-        _showSnackBar(
-          'Google Sign-In Failed: $e',
-          backgroundColor: Colors.red,
-        );
-      }
+    } catch (e) {
+      _showSnackBar('Login failed: ${e.toString()}', backgroundColor: Colors.red);
     }
   }
 
@@ -163,10 +111,139 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
+    final authState = ref.watch(authProvider);
+    final isLoading = authState is AuthLoading;
+
+    // Listen for auth state changes — alternate way to handle success/error
+    ref.listen<ProviderAuthState>(authProvider, (previous, next) {
+      if (next is AuthAuthenticated) {
+        Navigator.pushNamedAndRemoveUntil(context, AppRoutes.home, (route) => false);
+      } else if (next is AuthError) {
+        _showSnackBar(next.message, backgroundColor: Colors.red);
+      }
+    });
+
+    return Scaffold(
       backgroundColor: Colors.white,
-      body: Center(
-        child: Text("Login Page Reached! (UI removed for testing)", style: TextStyle(fontSize: 18, color: Colors.black)),
+      body: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
+        child: Column(
+          children: [
+            // ── Top breadcrumb/header image ──
+            Stack(
+              children: [
+                SizedBox(
+                  height: 300,
+                  width: double.infinity,
+                  child: Stack(
+                    children: [
+                       Positioned.fill(
+                        child: SvgPicture.asset(
+                          AppImages.splashBg, 
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                       Center(
+                        child: SvgPicture.asset(
+                          AppImages.difwaLogo2,
+                          width: 200,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+
+            // ── Form ──
+            Container(
+              padding: const EdgeInsets.fromLTRB(24, 28, 24, 32),
+              color: Colors.white,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Login',
+                    style: TextStyle(
+                      fontSize: 32,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Welcome back! Please enter your details.',
+                    style: TextStyle(fontSize: 15, color: Colors.grey),
+                  ),
+                  const SizedBox(height: 32),
+
+                  InputField(
+                    controller: _phoneController,
+                    label: 'Phone Number',
+                    hintText: 'Enter your phone number',
+                    prefixIcon: Icons.phone_outlined,
+                    keyboardType: TextInputType.phone,
+                  ),
+                  const SizedBox(height: 24),
+
+                  InputField(
+                    controller: _passwordController,
+                    label: 'Password',
+                    hintText: 'Enter your password',
+                    prefixIcon: Icons.lock_outline,
+                    isPassword: true,
+                    obscureText: _obscurePassword,
+                    onToggleVisibility: () =>
+                        setState(() => _obscurePassword = !_obscurePassword),
+                  ),
+                  const SizedBox(height: 12),
+
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton(
+                      onPressed: () => Navigator.pushNamed(context, AppRoutes.forgotPassword),
+                      child: const Text(
+                        'Forgot Password?',
+                        style: TextStyle(
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  CommonButton(
+                    text: 'Login',
+                    onPressed: _login,
+                    backgroundColor: AppColors.primary,
+                    isLoading: isLoading,
+                  ),
+                  const SizedBox(height: 32),
+
+                  Center(
+                    child: GestureDetector(
+                      onTap: () => Navigator.pushNamed(context, AppRoutes.signup),
+                      child: RichText(
+                        text: const TextSpan(
+                          text: "Don't have an account? ",
+                          style: TextStyle(fontSize: 14, color: Colors.grey),
+                          children: [
+                            TextSpan(
+                              text: 'Sign Up',
+                              style: TextStyle(
+                                  color: AppColors.primary,
+                                  fontWeight: FontWeight.bold),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

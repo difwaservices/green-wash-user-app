@@ -3,11 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_images.dart';
-import '../../routes/app_routes.dart';
 import '../../widgets/common_button.dart';
-import 'otp_verification_page.dart';
 import 'provider/auth_provider.dart';
 import 'widgets/input_field.dart';
+import '../../routes/app_routes.dart';
 
 class RegisterPage extends ConsumerStatefulWidget {
   const RegisterPage({super.key});
@@ -54,17 +53,35 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
   // ── Register action ───────────────────────────────────────────────────────
 
   Future<void> _register() async {
-    // ── AUTH BYPASS (for faster development) ──
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Account created successfully (Bypass)')),
-    );
-    Navigator.pushNamedAndRemoveUntil(context, AppRoutes.home, (route) => false);
-    return;
-
-    /* Original register code
     final fullName = _fullNameController.text.trim();
-    // ... remaining original code ...
-    */
+    final email = _emailController.text.trim();
+    final phone = _phoneController.text.trim();
+    final password = _passwordController.text.trim();
+    final confirmPassword = _confirmPasswordController.text.trim();
+
+    if (fullName.isEmpty || email.isEmpty || phone.isEmpty || password.isEmpty) {
+      _showSnackBar('Please fill in all fields.', backgroundColor: Colors.red);
+      return;
+    }
+
+    if (password != confirmPassword) {
+      _showSnackBar('Passwords do not match.', backgroundColor: Colors.red);
+      return;
+    }
+
+    try {
+      await ref.read(authProvider.notifier).register(
+            fullName: fullName,
+            email: email,
+            phoneNumber: phone,
+            password: password,
+            confirmPassword: confirmPassword,
+          );
+      
+      // Navigate on success (AuthSuccess is handled by ref.listen)
+    } catch (e) {
+      _showSnackBar('Registration failed: ${e.toString()}', backgroundColor: Colors.red);
+    }
   }
 
   // ── Build ─────────────────────────────────────────────────────────────────
@@ -73,6 +90,23 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
   Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
     final isLoading = authState is AuthLoading;
+
+    // Listen for auth state changes
+    ref.listen<ProviderAuthState>(authProvider, (previous, next) {
+      if (next is AuthSuccess) {
+        // Registration success moves to OTP verification
+        Navigator.pushReplacementNamed(
+          context,
+          AppRoutes.otp,
+          arguments: {
+            'phoneNumber': _phoneController.text.trim(),
+            'otp': next.otp,
+          },
+        );
+      } else if (next is AuthError) {
+        _showSnackBar(next.message, backgroundColor: Colors.red);
+      }
+    });
 
     return Scaffold(
       backgroundColor: Colors.white,

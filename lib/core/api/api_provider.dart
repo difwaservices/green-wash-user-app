@@ -9,7 +9,7 @@ final storageServiceProvider = Provider((ref) => SecureStorageService());
 final dioProvider = Provider<Dio>((ref) {
   final dio = Dio(
     BaseOptions(
-      baseUrl: 'mock_base_url', // dotenv.get('API_BASE_URL'),
+      baseUrl: dotenv.env['API_BASE_URL'] ?? 'https://difwa-backend.vercel.app/api',
       connectTimeout: const Duration(seconds: 15),
       receiveTimeout: const Duration(seconds: 15),
     ),

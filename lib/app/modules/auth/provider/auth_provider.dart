@@ -8,37 +8,37 @@ final secureStorageProvider = core.secureStorageProvider;
 
 // ── Auth State (Preserving for UI compatibility) ──────────────────────────
 
-sealed class AuthState {
-  const AuthState();
+sealed class ProviderAuthState {
+  const ProviderAuthState();
 }
 
-class AuthInitial extends AuthState {
+class AuthInitial extends ProviderAuthState {
   const AuthInitial();
 }
 
-class AuthLoading extends AuthState {
+class AuthLoading extends ProviderAuthState {
   const AuthLoading();
 }
 
-class AuthAuthenticated extends AuthState {
+class AuthAuthenticated extends ProviderAuthState {
   final UserModel user;
   final String token; // Token should ideally come from core or storage
 
   const AuthAuthenticated({required this.user, required this.token});
 }
 
-class AuthUnauthenticated extends AuthState {
+class AuthUnauthenticated extends ProviderAuthState {
   const AuthUnauthenticated();
 }
 
-class AuthSuccess extends AuthState {
+class AuthSuccess extends ProviderAuthState {
   final String message;
   final String? otp;
 
   const AuthSuccess({required this.message, this.otp});
 }
 
-class AuthError extends AuthState {
+class AuthError extends ProviderAuthState {
   final String message;
 
   const AuthError(this.message);
@@ -46,9 +46,9 @@ class AuthError extends AuthState {
 
 // ── Bridge Notifier ───────────────────────────────────────────────────────
 
-class AuthNotifier extends Notifier<AuthState> {
+class AuthNotifier extends Notifier<ProviderAuthState> {
   @override
-  AuthState build() {
+  ProviderAuthState build() {
     // Listen to core AuthStore and map to feature state
     final coreState = ref.watch(core.authStoreProvider);
     
@@ -64,7 +64,7 @@ class AuthNotifier extends Notifier<AuthState> {
         return AuthAuthenticated(user: coreState.user!, token: ''); // token hidden in storage
       case core.AuthStatus.unauthenticated:
         if (coreState.successMessage != null) {
-          return AuthSuccess(message: coreState.successMessage!);
+          return AuthSuccess(message: coreState.successMessage!, otp: coreState.otp);
         }
         if (coreState.error != null) {
           return AuthError(coreState.error!);
@@ -110,9 +110,6 @@ class AuthNotifier extends Notifier<AuthState> {
         );
   }
 
-  Future<void> googleAuth({required String idToken}) async {
-    await ref.read(core.authStoreProvider.notifier).googleAuth(idToken: idToken);
-  }
 
   Future<void> forgotPassword({required String email}) async {
     await ref.read(core.authStoreProvider.notifier).forgotPassword(email: email);
@@ -129,7 +126,7 @@ class AuthNotifier extends Notifier<AuthState> {
   void reset() => ref.invalidate(core.authStoreProvider);
 }
 
-final authProvider = NotifierProvider<AuthNotifier, AuthState>(() {
+final authProvider = NotifierProvider<AuthNotifier, ProviderAuthState>(() {
   return AuthNotifier();
 });
 
