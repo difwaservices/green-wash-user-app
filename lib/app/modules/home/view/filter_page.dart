@@ -151,7 +151,7 @@ class _FilterPageState extends State<FilterPage> {
           child: ElevatedButton(
             onPressed: () => Navigator.pop(context),
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF439462),
+              backgroundColor: const Color(0xFF06B6D4),
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -241,10 +241,10 @@ class _FilterPageState extends State<FilterPage> {
             padding: const EdgeInsets.all(4),
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: value ? const Color(0xFF68B92E) : Colors.transparent,
+              color: value ? const Color(0xFF06B6D4) : Colors.transparent,
               border: Border.all(
                 color: value
-                    ? const Color(0xFF68B92E)
+                    ? const Color(0xFF06B6D4)
                     : Colors.grey.withValues(alpha: 0.3),
               ),
             ),
@@ -259,3 +259,5 @@ class _FilterPageState extends State<FilterPage> {
     );
   }
 }
+
+

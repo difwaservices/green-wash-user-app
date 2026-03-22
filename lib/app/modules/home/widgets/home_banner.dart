@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import '../../../core/constants/app_images.dart';
 import '../../../widgets/bounce_widget.dart';
 
 class HomeBanner extends StatefulWidget {
@@ -11,16 +12,15 @@ class HomeBanner extends StatefulWidget {
 }
 
 class _HomeBannerState extends State<HomeBanner> {
-  final PageController _pageController = PageController();
+  final PageController _pageController = PageController(viewportFraction: 0.92);
   int _currentPage = 0;
   late Timer _timer;
 
   final List<String> _bannerImages = [
-    'assets/images/image copy 12.png',
-    'assets/images/image copy 5.png',
-    'assets/images/image copy 2.png',
-    'assets/images/image copy 3.png',
-    'assets/images/image copy.png',
+    AppImages.sliderSource,
+    AppImages.sliderOrder,
+    AppImages.sliderDrink,
+    AppImages.sliderRefresh,
   ];
 
   @override
@@ -30,7 +30,7 @@ class _HomeBannerState extends State<HomeBanner> {
   }
 
   void _startAutoScroll() {
-    _timer = Timer.periodic(const Duration(seconds: 4), (Timer timer) {
+    _timer = Timer.periodic(const Duration(seconds: 5), (Timer timer) {
       if (_currentPage < _bannerImages.length - 1) {
         _currentPage++;
       } else {
@@ -77,37 +77,34 @@ class _HomeBannerState extends State<HomeBanner> {
                     // Tap action for banner
                   },
                   scaleFactor: 0.96,
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(20),
-                    child: Stack(
-                      children: [
-                        Image.asset(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.08),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(16),
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Image.asset(
                           _bannerImages[index],
                           width: double.infinity,
                           height: 180,
-                          fit: BoxFit.cover,
+                          fit: BoxFit.contain,
                           errorBuilder: (context, error, stackTrace) => Container(
                             color: Colors.blue.shade100,
-                            child: const Center(child: Text('Food Banner')),
+                            child: const Center(
+                                child: Text('Water Distribution Banner')),
                           ),
                         ),
-                        // Optional: Gradient overlay for text readability
-                        Positioned.fill(
-                          child: DecoratedBox(
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.topCenter,
-                                end: Alignment.bottomCenter,
-                                colors: [
-                                  Colors.transparent,
-                                  Colors.black.withValues(alpha:  0.1),
-                                  Colors.black.withValues(alpha:  0.4),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
                   ),
                 ),
@@ -128,7 +125,7 @@ class _HomeBannerState extends State<HomeBanner> {
               width: _currentPage == index ? 20 : 6,
               decoration: BoxDecoration(
                 color: _currentPage == index
-                    ? const Color(0xFF68B92E)
+                    ? const Color(0xFF06B6D4)
                     : Colors.grey.withValues(alpha:  0.3),
                 borderRadius: BorderRadius.circular(3),
               ),
@@ -139,5 +136,6 @@ class _HomeBannerState extends State<HomeBanner> {
     ).animate().fadeIn(duration: 500.ms, curve: Curves.easeIn);
   }
 }
+
 
 

@@ -21,26 +21,22 @@ class CartService {
         requiresAuth: true,
       );
 
+      if (json == null || json['cart'] == null) return [];
+
       List<dynamic> data = [];
-      if (json is List) {
-        data = json;
-      } else if (json is Map) {
-        final directList = json['cart'] ?? json['items'] ?? json['data'];
-        if (directList is List) {
-          data = directList;
-        } else if (directList is Map && directList['items'] is List) {
-          data = directList['items'];
-        } else if (json['data'] is Map && json['data']['items'] is List) {
-          data = json['data']['items'];
-        }
+      final cartObj = json['cart'];
+      if (cartObj is List) {
+        data = cartObj;
+      } else if (cartObj is Map) {
+        final items = cartObj['items'] ?? cartObj['products'] ?? [];
+        if (items is List) data = items;
       }
 
       return data
           .map((e) => _mapToCartItem(Map<String, dynamic>.from(e)))
           .toList();
-    } catch (e, stack) {
-      print('Cart sync error: $e\\n$stack');
-      // If endpoint doesn't exist yet, return empty list
+    } catch (e) {
+      print('CartService: Error fetching cart: $e');
       return [];
     }
   }
@@ -58,7 +54,7 @@ class CartService {
         requiresAuth: true,
       );
     } catch (e) {
-      // SILENT FAIL for now, as UI might be using optimistic updates
+      print('CartService: Error adding to cart: $e');
     }
   }
 
@@ -66,8 +62,8 @@ class CartService {
   /// PUT /api/app/cart/update (requires auth token)
   Future<void> updateQuantity(String productId, int quantity) async {
     try {
-      await _client.put(
-        '${ApiClient.baseUrl}/cart/update',
+      await _client.post(
+        '${ApiClient.baseUrl}/cart/add',
         data: {
           'productId': productId,
           'quantity': quantity,
@@ -75,7 +71,7 @@ class CartService {
         requiresAuth: true,
       );
     } catch (e) {
-      // SILENT FAIL
+      print('CartService: Error updating quantity: $e');
     }
   }
 

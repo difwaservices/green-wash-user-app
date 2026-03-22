@@ -34,6 +34,10 @@ class SocketService {
   }
 
   Future<void> connect(SecureStorageService storage) async {
+    // TEMPORARILY DISABLED
+    debugPrint('🔌 SocketService: Connection is temporarily disabled.');
+    return;
+    
     if (_initialized && (_socket?.connected ?? false)) return;
 
     final token = await storage.getAccessToken();

@@ -27,7 +27,7 @@ import '../modules/cart/view/payment_page.dart';
 class AppPages {
   static Map<String, WidgetBuilder> get routes => {
         AppRoutes.splash: (context) => const SplashPage(),
-        AppRoutes.initialRoute: (context) => const LoginPage(),
+        AppRoutes.initialRoute: (context) => const RegisterPage(),
         AppRoutes.deals: (context) => const DealsPage(),
         AppRoutes.welcome: (context) => const LoginPage(),
         AppRoutes.login: (context) => const LoginPage(),
@@ -42,7 +42,7 @@ class AppPages {
         AppRoutes.forgotPassword: (context) => const ForgotPasswordPage(),
         AppRoutes.home: (context) => const MainPage(),
         AppRoutes.search: (context) => const SearchPage(),
-        AppRoutes.vegetables: (context) => const VegetablesPage(),
+        AppRoutes.waterAccessories: (context) => const VegetablesPage(),
         AppRoutes.cart: (context) => const CartPage(),
         AppRoutes.shippingAddress: (context) => const ShippingAddressPage(),
         AppRoutes.orderSuccess: (context) => const OrderSuccessPage(),

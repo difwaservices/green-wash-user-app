@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../auth/login_page.dart';
+import '../../../core/state/auth_store.dart';
+import '../../routes/app_routes.dart';
+import '../../core/constants/app_images.dart';
 
 class SplashPage extends ConsumerStatefulWidget {
   const SplashPage({super.key});
@@ -21,7 +23,7 @@ class _SplashPageState extends ConsumerState<SplashPage>
 
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1000),
+      duration: const Duration(milliseconds: 1200),
     );
 
     _fadeAnim = CurvedAnimation(parent: _controller, curve: Curves.easeIn);
@@ -32,16 +34,33 @@ class _SplashPageState extends ConsumerState<SplashPage>
 
     _controller.forward();
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      // ── SAFE BYPASS NAVIGATION ──
-      Future.delayed(const Duration(seconds: 2), () {
-        if (!mounted) return;
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const LoginPage()),
-        );
-      });
-    });
+    // ── INITIAL AUTH CHECK ──
+    _initializeApp();
+  }
+
+  Future<void> _initializeApp() async {
+    // 1. Give animations a moment to start
+    await Future.delayed(const Duration(milliseconds: 800));
+    
+    // 2. Perform initialization check via AuthStore
+    await ref.read(authStoreProvider.notifier).init();
+    
+    if (!mounted) return;
+    
+    // 3. Decide navigation based on Auth status
+    final authState = ref.read(authStoreProvider);
+    
+    if (authState.status == AuthStatus.authenticated) {
+      debugPrint('[Splash] Session found. Navigating to Home.');
+       if (authState.user?.role == 'rider') {
+         Navigator.pushReplacementNamed(context, AppRoutes.riderHome);
+       } else {
+         Navigator.pushReplacementNamed(context, AppRoutes.home);
+       }
+    } else {
+      debugPrint('[Splash] No session. Navigating to Sign Up.');
+      Navigator.pushReplacementNamed(context, AppRoutes.signup);
+    }
   }
 
   @override
@@ -53,19 +72,26 @@ class _SplashPageState extends ConsumerState<SplashPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFEFEFEF),
+      backgroundColor: Colors.white,
       body: Center(
         child: FadeTransition(
           opacity: _fadeAnim,
           child: ScaleTransition(
             scale: _scaleAnim,
-            child: const Column(
+            child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(
-                  Icons.water_drop,
-                  size: 150,
-                  color: Color(0xFF0EA5E9),
+                Image.asset(
+                  AppImages.difwaLogoPng,
+                  width: 300,
+                  height: 300,
+                  fit: BoxFit.contain,
+                ),
+                const SizedBox(height: 40),
+                // ── SUBTLE PROGRESS ──
+                const CircularProgressIndicator(
+                  strokeWidth: 3,
+                  valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF06B6D4)),
                 ),
               ],
             ),

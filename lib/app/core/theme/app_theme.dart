@@ -5,50 +5,82 @@ class AppTheme {
   AppTheme._();
 
   static ThemeData get lightTheme => ThemeData(
-    colorSchemeSeed: AppColors.primary,
     useMaterial3: true,
+    fontFamily: 'Nexa',
+    colorScheme: ColorScheme.fromSeed(
+      seedColor: AppColors.primary,
+      primary: AppColors.primary,
+      secondary: AppColors.secondary,
+      surface: Colors.white,
+    ),
     scaffoldBackgroundColor: AppColors.scaffoldBg,
+    
+    // ── Typography ──
+    textTheme: const TextTheme(
+      displayLarge: TextStyle(fontWeight: FontWeight.bold, color: AppColors.black),
+      headlineMedium: TextStyle(fontWeight: FontWeight.bold, color: AppColors.black),
+      titleLarge: TextStyle(fontWeight: FontWeight.w700, color: AppColors.black),
+      bodyLarge: TextStyle(color: AppColors.black),
+      bodyMedium: TextStyle(color: AppColors.blackLight),
+    ),
+
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
-      fillColor: const Color(0xFFF3F3F3),
-      contentPadding:
-          const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      fillColor: Colors.white,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide.none,
+        borderRadius: BorderRadius.circular(16),
+        borderSide: BorderSide(color: Colors.grey.shade200),
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide.none,
+        borderRadius: BorderRadius.circular(16),
+        borderSide: BorderSide(color: Colors.grey.shade200),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: AppColors.primary, width: 2),
+        borderRadius: BorderRadius.circular(16),
+        borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
       ),
-      hintStyle:
-          const TextStyle(color: Color(0xFFB0B0B0), fontSize: 14),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: const BorderSide(color: Colors.red, width: 1),
+      ),
+      hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
       prefixIconColor: WidgetStateColor.resolveWith((states) {
-        if (states.contains(WidgetState.focused)) {
-          return AppColors.primary;
-        }
-        return const Color(0xFF888888);
+        if (states.contains(WidgetState.focused)) return AppColors.primary;
+        return Colors.grey.shade400;
       }),
     ),
+
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
-        backgroundColor: AppColors.buttonbgColor,
-        foregroundColor: AppColors.mywhite,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-        padding:
-            const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+        backgroundColor: AppColors.primary,
+        foregroundColor: Colors.white,
+        elevation: 0,
+        minimumSize: const Size(double.infinity, 56),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, fontFamily: 'Nexa'),
       ),
     ),
+
     appBarTheme: const AppBarTheme(
-      backgroundColor: AppColors.primary,
-      foregroundColor: AppColors.mywhite,
+      backgroundColor: Colors.white,
+      foregroundColor: AppColors.black,
       elevation: 0,
+      centerTitle: true,
+      titleTextStyle: TextStyle(
+        color: AppColors.black,
+        fontSize: 18,
+        fontWeight: FontWeight.bold,
+        fontFamily: 'Nexa',
+      ),
+      iconTheme: IconThemeData(color: AppColors.black),
+    ),
+
+    cardTheme: CardThemeData(
+      color: Colors.white,
+      elevation: 2,
+      shadowColor: AppColors.primary.withValues(alpha: 0.1),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
     ),
   );
 }

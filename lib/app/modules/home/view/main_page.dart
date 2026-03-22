@@ -7,6 +7,7 @@ import '../../subscription/subscription_page.dart';
 import '../../wallet/view/wallet_page.dart';
 import '../controller/main_controller.dart';
 import '../../../data/services/db_service.dart';
+import '../../../core/constants/app_colors.dart';
 import '../widgets/cart_summary_bar.dart';
 
 class MainPage extends StatefulWidget {
@@ -74,7 +75,7 @@ class _MainPageState extends State<MainPage> {
                   'Press back again to exit the app.',
                   style: TextStyle(color: Colors.white, fontSize: 13),
                 ),
-                backgroundColor: Color(0xFF114F3B),
+                backgroundColor: Color(0xFF0891B2),
                 duration: Duration(seconds: 2),
                 behavior: SnackBarBehavior.floating,
                 margin: EdgeInsets.all(20),
@@ -88,7 +89,7 @@ class _MainPageState extends State<MainPage> {
           SystemNavigator.pop();
         },
         child: Scaffold(
-          backgroundColor: const Color(0xFFEBFFD7),
+          backgroundColor: AppColors.secondary,
           extendBody: true,
           body: Stack(
             children: [
@@ -126,10 +127,10 @@ class _MainPageState extends State<MainPage> {
             height: 70,
             margin: const EdgeInsets.fromLTRB(16, 0, 16, 20),
             decoration: BoxDecoration(
-              color: const Color(0xFFEBFFD7),
+              color: AppColors.secondary,
               borderRadius: BorderRadius.circular(35),
               border: Border.all(
-                  color: const Color(0xFF68B92E).withValues(alpha: 0.1)),
+                  color: AppColors.primary.withValues(alpha: 0.1)),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -155,8 +156,8 @@ class _MainPageState extends State<MainPage> {
                   shape: BoxShape.circle,
                   border: Border.all(
                     color: isCartSelected
-                        ? const Color(0xFF68B92E)
-                        : const Color(0xFF68B92E).withValues(alpha: 0.2),
+                        ? AppColors.primary
+                        : AppColors.primary.withValues(alpha: 0.2),
                     width: 2,
                   ),
                 ),
@@ -164,7 +165,7 @@ class _MainPageState extends State<MainPage> {
                   child: Icon(
                     Icons.shopping_cart_outlined,
                     color: isCartSelected
-                        ? const Color(0xFF68B92E)
+                        ? AppColors.primary
                         : const Color(0xFFE6B347),
                     size: 34,
                   ),
@@ -187,7 +188,7 @@ class _MainPageState extends State<MainPage> {
           Icon(
             icon,
             color:
-                isSelected ? const Color(0xFF68B92E) : const Color(0xFF4A4A4A),
+                isSelected ? AppColors.primary : const Color(0xFF4A4A4A),
             size: 24,
           ),
           const SizedBox(height: 4),
@@ -195,7 +196,7 @@ class _MainPageState extends State<MainPage> {
             label,
             style: TextStyle(
               color: isSelected
-                  ? const Color(0xFF68B92E)
+                  ? AppColors.primary
                   : const Color(0xFF4A4A4A),
               fontSize: 10,
               fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
@@ -206,3 +207,4 @@ class _MainPageState extends State<MainPage> {
     );
   }
 }
+

@@ -29,12 +29,10 @@ class AuthController extends ChangeNotifier {
 
   Future<AuthResponseModel> login({
     required String phoneNumber,
-    required String password,
   }) async {
     _setLoading(true);
     final response = await _authRepository.login(
       phoneNumber: phoneNumber,
-      password: password,
     );
     _setLoading(false);
     return response;

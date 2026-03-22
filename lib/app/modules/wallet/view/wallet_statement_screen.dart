@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../data/models/food_models.dart';
 import '../../../data/services/wallet_service.dart';
 import 'package:intl/intl.dart';
+import '../../../core/constants/app_colors.dart';
 
 // Provider for filtered wallet transactions
 final walletTransactionsProvider =
@@ -58,7 +59,7 @@ class _WalletStatementScreenState extends ConsumerState<WalletStatementScreen> {
                 return _buildTransactionList(filteredTx);
               },
               loading: () => const Center(
-                  child: CircularProgressIndicator(color: Color(0xFF68B92E))),
+                  child: CircularProgressIndicator(color: AppColors.primary)),
               error: (err, _) => Center(child: Text('Error: $err')),
             ),
           ),
@@ -115,7 +116,7 @@ class _WalletStatementScreenState extends ConsumerState<WalletStatementScreen> {
                     selected: isSelected,
                     onSelected: (val) =>
                         setState(() => _selectedDateFilter = filter),
-                    selectedColor: const Color(0xFF68B92E),
+                    selectedColor: AppColors.primary,
                     backgroundColor: const Color(0xFFF1F4F8),
                     elevation: 0,
                     pressElevation: 0,
@@ -146,7 +147,7 @@ class _WalletStatementScreenState extends ConsumerState<WalletStatementScreen> {
                             color: Colors.white)),
                     selected: true,
                     onSelected: (val) {},
-                    selectedColor: const Color(0xFF439462),
+                    selectedColor: AppColors.primaryDark,
                     backgroundColor: const Color(0xFFF1F4F8),
                     elevation: 0,
                     pressElevation: 0,
@@ -225,7 +226,7 @@ class _WalletStatementScreenState extends ConsumerState<WalletStatementScreen> {
             children: [
               _buildSummaryItem(
                   'Total money added', '+₹${totalCredit.toStringAsFixed(0)}',
-                  Colors.green),
+                  AppColors.primary),
               Container(width: 1, height: 30, color: Colors.white24),
               _buildSummaryItem('Expense', '-₹${totalDebit.toStringAsFixed(0)}',
                   Colors.redAccent),
@@ -392,7 +393,7 @@ class _TransactionItemWidget extends StatelessWidget {
                 style: TextStyle(
                   fontWeight: FontWeight.w900,
                   fontSize: 15,
-                  color: isCredit ? Colors.green : Colors.redAccent,
+                  color: isCredit ? AppColors.primary : Colors.redAccent,
                 ),
               ),
               const SizedBox(height: 4),
@@ -414,12 +415,12 @@ class _TransactionItemWidget extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: (isCredit ? Colors.green : Colors.grey).withValues(alpha: 0.1),
+        color: (isCredit ? AppColors.primary : Colors.grey).withValues(alpha: 0.1),
         shape: BoxShape.circle,
       ),
       child: Icon(
         isCredit ? Icons.add_rounded : Icons.shopping_bag_rounded,
-        color: isCredit ? Colors.green : Colors.grey[700],
+        color: isCredit ? AppColors.primary : Colors.grey[700],
         size: 20,
       ),
     );
@@ -429,7 +430,7 @@ class _TransactionItemWidget extends StatelessWidget {
     Color color;
     switch (status.toLowerCase()) {
       case 'success':
-        color = Colors.green;
+        color = AppColors.primary;
         break;
       case 'failed':
         color = Colors.red;

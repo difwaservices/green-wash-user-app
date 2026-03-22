@@ -3,19 +3,23 @@ import 'package:flutter/material.dart';
 class AppColors {
   AppColors._();
 
-  // New Brand Colors (Difwa Blue Theme)
-  static const Color primary = Color(0xFF169DFF);
-  static const Color logoPrimary = Color(0xFF1D3757);
-  static const Color logoSecondary = Color(0xFF11BAF9);
-  static const Color secondary = Color(0xFFDDE1F5);
-  static const Color buttonBgColor = Color(0xFF096FCE);
-  static const Color buttonTextColor = Color(0xFF4878BB);
-  static const Color inputField = Color(0xFF169DFF);
-  static const Color cardBgColor = Color(0xFFE9F5F9);
+  // Unified Brand Colors (Water-Inspired)
+  static const Color primary = Color(0xFF06B6D4); // Vibrant Cyan / Water Blue
+  static const Color primaryDark = Color(0xFF0891B2); // Deeper Cyan
+  static const Color primaryLight = Color(0xFFCFFAFE); // Very Light Aqua
+  
+  static const Color logoPrimary = Color(0xFF164E63); // Dark Cyan Navy
+  static const Color logoSecondary = Color(0xFF22D3EE); // Brightest Cyan
+  
+  static const Color secondary = Color(0xFFECFEFF); // Tinted Cyan White
+  static const Color buttonBgColor = Color(0xFF06B6D4); 
+  static const Color buttonTextColor = Colors.white;
+  static const Color inputField = Color(0xFF06B6D4);
+  static const Color cardBgColor = Color(0xFFFFFFFF);
 
   // Theme Helpers
-  static const Color primaryTheme = Color.fromARGB(255, 58, 165, 228);
-  static const Color primaryColorNew = Color(0xFF02739C);
+  static const Color primaryTheme = Color(0xFF06B6D4);
+  static const Color primaryColorNew = Color(0xFF0891B2);
   static const Color primaryColor = primary;
 
   // Neutrals
@@ -31,9 +35,9 @@ class AppColors {
   // Semantic
   static const Color red = Colors.red;
   static const Color redColor = Color.fromARGB(255, 240, 31, 31);
-  static const Color green = Colors.green;
+  static const Color green = Color(0xFF06B6D4); // Swapped to brand cyan
   static const Color grey = Colors.grey;
-  static const Color myGreen = Color(0xFF4CAF50);
+  static const Color myGreen = Color(0xFF06B6D4);
 
   // Gradients
   static const LinearGradient buttonBgGradient = LinearGradient(
@@ -74,11 +78,10 @@ class AppColors {
   static const Color mywhite = white;
   static const Color myblack = black;
   static const Color buttonbgColor = buttonBgColor;
-  static const Color accentGreen = logoSecondary;
-  static const Color accent = logoSecondary;
-  static const Color primaryDark = logoPrimary;
-  static const Color primaryButton = buttonBgColor;
-  static const Color primaryLight = secondary;
+  static const Color accentBlue = Color(0xFF06B6D4);
+  static const Color accent = Color(0xFF06B6D4);
+  static const Color primaryButton = Color(0xFF06B6D4);
   static const Color logoprimary = logoPrimary;
   static const Color logosecondry = logoSecondary;
+  static const Color accentGreen = Color(0xFF06B6D4); // Swapped to brand cyan
 }

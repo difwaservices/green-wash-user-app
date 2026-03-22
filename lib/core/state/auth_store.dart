@@ -132,27 +132,20 @@ class AuthStore extends Notifier<AuthState> {
     }
   }
 
-  Future<void> login({required String phone, required String password}) async {
+  Future<void> login({required String phone}) async {
     state = AuthState.loading();
     try {
-      final fcmToken = await FCMService().getToken();
-      final response = await ref.read(authServiceProvider).login(
+      final response = await ref.read(authServiceProvider).sendOtp(
             phoneNumber: phone,
-            password: password,
-            fcmToken: fcmToken,
           );
 
-      if (response.success && response.data != null && response.token != null) {
-        // Save tokens securely
-        await _storage.saveTokens(
-          access: response.token!,
-          refresh: response.refreshToken ?? '',
+      if (response.success) {
+        state = state.copyWith(
+          status: AuthStatus.unauthenticated,
+          successMessage: response.message,
+          verificationId: phone,
+          otp: response.otp,
         );
-        
-        // Sync FCM token if not already done by login payload
-        unawaited(FCMService.sendTokenToBackend());
-        
-        state = AuthState.authenticated(response.data!);
       } else {
         state = AuthState.unauthenticated(error: response.message);
       }
@@ -164,18 +157,12 @@ class AuthStore extends Notifier<AuthState> {
   Future<void> sendOtp({required String phoneNumber}) async {
     state = AuthState.loading();
     try {
-      String formattedPhone = phoneNumber.trim();
-      if (formattedPhone.length == 10) {
-        formattedPhone = '+91$formattedPhone';
-      } else if (formattedPhone.length == 12 && formattedPhone.startsWith('91')) {
-        formattedPhone = '+$formattedPhone';
-      }
-      
-      debugPrint('AuthStore: Requesting OTP for $formattedPhone');
+      final String rawPhone = phoneNumber.trim();
+      debugPrint('AuthStore: Requesting OTP for $rawPhone');
 
-      // Request OTP from backend
+      // Request OTP from backend using the raw number as specified in the UI
       final response = await ref.read(authServiceProvider).sendOtp(
-            phoneNumber: formattedPhone,
+            phoneNumber: rawPhone,
           );
 
       if (response.success) {
@@ -183,7 +170,7 @@ class AuthStore extends Notifier<AuthState> {
         state = state.copyWith(
           status: AuthStatus.initial,
           successMessage: response.message,
-          verificationId: formattedPhone, // Use phone number as verification ID
+          verificationId: rawPhone, // Use phone number as verification ID
         );
       } else {
         state = AuthState.unauthenticated(
@@ -199,14 +186,13 @@ class AuthStore extends Notifier<AuthState> {
   Future<void> _verifyOtpWithBackend(
       String phoneNumber, String otp) async {
     try {
-      state = AuthState.loading();
+      // Preserve current state (like verificationId) while moving to loading
+      state = state.copyWith(status: AuthStatus.loading);
 
       // Verify OTP on backend and get JWT token
-      final fcmToken = await FCMService().getToken();
       final response = await ref.read(authServiceProvider).verifyOtp(
             phoneNumber: phoneNumber,
             otp: otp,
-            fcmToken: fcmToken,
           );
 
       if (response.success && response.data != null && response.token != null) {
@@ -217,11 +203,18 @@ class AuthStore extends Notifier<AuthState> {
         state = AuthState.authenticated(response.data!);
         unawaited(syncFcmToken());
       } else {
-        state = AuthState.unauthenticated(error: response.message);
+        // If it failed, we should restore status but keep verificationId for retry
+        state = state.copyWith(
+          status: AuthStatus.unauthenticated,
+          error: response.message,
+        );
       }
     } catch (e) {
       debugPrint('AuthStore: Error verifying OTP: $e');
-      state = AuthState.unauthenticated(error: e.toString());
+      state = state.copyWith(
+        status: AuthStatus.unauthenticated,
+        error: e.toString(),
+      );
     }
   }
 
@@ -234,14 +227,12 @@ class AuthStore extends Notifier<AuthState> {
   }) async {
     state = AuthState.loading();
     try {
-      final fcmToken = await FCMService().getToken();
       final response = await ref.read(authServiceProvider).register(
             fullName: fullName,
             email: email,
             phoneNumber: phoneNumber,
             password: password,
             confirmPassword: confirmPassword,
-            fcmToken: fcmToken,
           );
       if (response.success) {
         state = state.copyWith(
@@ -261,14 +252,22 @@ class AuthStore extends Notifier<AuthState> {
 
   Future<void> verifyOtp(
       {required String phoneNumber, required String otp}) async {
+    // 1. Guard against concurrent calls
+    if (state.status == AuthStatus.loading) {
+      debugPrint('AuthStore: Verification already in progress, ignoring second call.');
+      return;
+    }
+
+    // 2. Check for verification session
     final verificationId = state.verificationId;
     if (verificationId == null) {
+      debugPrint('AuthStore: verificationId is null. State status: ${state.status}');
       state = AuthState.unauthenticated(
           error: 'Session expired. Please request OTP again.');
       return;
     }
 
-    // Verify OTP with backend
+    // 3. Verify OTP with backend
     await _verifyOtpWithBackend(phoneNumber, otp);
   }
 
@@ -306,6 +305,19 @@ class AuthStore extends Notifier<AuthState> {
     if (fcmToken != null) {
       await ref.read(authServiceProvider).updateFcmToken(fcmToken: fcmToken);
     }
+  }
+
+  Future<void> updateProfile({required String fullName, required String email}) async {
+    try {
+      final response = await ref.read(authServiceProvider).updateProfile(
+            fullName: fullName,
+            email: email,
+          );
+
+      if (response.success && response.data != null) {
+        state = state.copyWith(status: AuthStatus.authenticated, user: response.data);
+      }
+    } catch (_) {}
   }
 }
 

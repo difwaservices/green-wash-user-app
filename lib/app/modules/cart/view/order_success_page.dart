@@ -69,12 +69,12 @@ class _OrderSuccessPageState extends State<OrderSuccessPage> {
                   width: 150,
                   height: 150,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFEBFFD7),
+                    color: const Color(0xFFCFFAFE),
                     borderRadius: BorderRadius.circular(30),
                   ),
                   child: const Icon(
                     Icons.shopping_bag_outlined,
-                    color: Color(0xFF68B92E),
+                    color: Color(0xFF06B6D4),
                     size: 80,
                   ),
                 )
@@ -120,7 +120,7 @@ class _OrderSuccessPageState extends State<OrderSuccessPage> {
                           context, AppRoutes.home, (route) => false);
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF439462),
+                      backgroundColor: const Color(0xFF06B6D4),
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -152,8 +152,8 @@ class _OrderSuccessPageState extends State<OrderSuccessPage> {
               numberOfParticles: 20,
               gravity: 0.1,
               colors: const [
-                Color(0xFF68B92E), // Primary green
-                Color(0xFF439462), // Darker green
+                Color(0xFF06B6D4), // Primary green
+                Color(0xFF06B6D4), // Darker green
                 Color(0xFFFFD700), // Gold
                 Colors.white,
               ],
@@ -164,3 +164,5 @@ class _OrderSuccessPageState extends State<OrderSuccessPage> {
     );
   }
 }
+
+

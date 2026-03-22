@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:difwawaterapp/app/data/services/db_service.dart';
 import '../../../data/services/order_service.dart';
 import '../../../data/services/subscription_service.dart';
+import '../../../core/constants/app_colors.dart';
 import 'order_success_page.dart';
 
 class PaymentMethodPage extends ConsumerStatefulWidget {
@@ -62,7 +63,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
       builder: (context, child) => Theme(
         data: Theme.of(context).copyWith(
           colorScheme: const ColorScheme.light(
-            primary: Color(0xFF439462),
+            primary: AppColors.primary,
             onPrimary: Colors.white,
             surface: Colors.white,
           ),
@@ -112,7 +113,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                         onTap: () => Navigator.pushNamed(context, '/wallet'),
                         label: 'Wallet',
                         child: const Icon(Icons.account_balance_wallet_rounded,
-                            size: 28, color: Color(0xFF439462)),
+                            size: 28, color: AppColors.primary),
                       ),
                     ],
                   ),
@@ -124,16 +125,16 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                     child: Container(
                       padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF439462).withValues(alpha: 0.1),
+                        color: AppColors.primary.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
                             color:
-                                const Color(0xFF439462).withValues(alpha: 0.3)),
+                                AppColors.primary.withValues(alpha: 0.3)),
                       ),
                       child: Row(
                         children: [
                           const Icon(Icons.account_balance_wallet_rounded,
-                              color: Color(0xFF439462), size: 32),
+                              color: AppColors.primary, size: 32),
                           const SizedBox(width: 16),
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -146,7 +147,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                                 style: const TextStyle(
                                     fontSize: 20,
                                     fontWeight: FontWeight.bold,
-                                    color: Color(0xFF439462)),
+                                    color: AppColors.primary),
                               ),
                             ],
                           ),
@@ -158,7 +159,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                                     fontWeight: FontWeight.bold,
                                     fontSize: 12)),
                           const Icon(Icons.arrow_forward_ios,
-                              size: 16, color: Color(0xFF439462)),
+                              size: 16, color: AppColors.primary),
                         ],
                       ),
                     ),
@@ -221,7 +222,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                               style: const TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 18,
-                                  color: Color(0xFF439462)),
+                                  color: AppColors.primary),
                             ),
                           ],
                         ),
@@ -272,7 +273,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                             _frequency = f;
                             if (f != 'Weekly') _selectedDays = [];
                           }),
-                          selectedColor: const Color(0xFF439462),
+                          selectedColor: AppColors.primary,
                           labelStyle: TextStyle(
                               color: isSel ? Colors.white : Colors.black,
                               fontWeight:
@@ -307,12 +308,12 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                               height: 44,
                               decoration: BoxDecoration(
                                 color: selected
-                                    ? const Color(0xFF439462)
+                                    ? AppColors.primary
                                     : Colors.white,
                                 borderRadius: BorderRadius.circular(10),
                                 border: Border.all(
                                   color: selected
-                                      ? const Color(0xFF439462)
+                                      ? AppColors.primary
                                       : Colors.grey.shade300,
                                 ),
                               ),
@@ -352,19 +353,19 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: const Color(0xFF439462)),
+                          border: Border.all(color: AppColors.primary),
                         ),
                         child: Row(
                           children: [
                             const Icon(Icons.calendar_today_outlined,
-                                color: Color(0xFF439462), size: 20),
+                                color: AppColors.primary, size: 20),
                             const SizedBox(width: 12),
                             Text(
                               '${_startDate.day.toString().padLeft(2, '0')} / ${_startDate.month.toString().padLeft(2, '0')} / ${_startDate.year}',
                               style: const TextStyle(
                                   fontSize: 15,
                                   fontWeight: FontWeight.bold,
-                                  color: Color(0xFF439462)),
+                                  color: AppColors.primary),
                             ),
                             const Spacer(),
                             const Text('Tap to change',
@@ -470,7 +471,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                         }
                       },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF439462),
+                  backgroundColor: AppColors.primary,
                   foregroundColor: Colors.white,
                   elevation: 0,
                   shape: RoundedRectangleBorder(
@@ -514,16 +515,12 @@ class _TypeButton extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
           decoration: BoxDecoration(
-            color: selected ? const Color(0xFF439462) : Colors.white,
+            color: selected ? AppColors.primary : Colors.grey.shade200,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-                color:
-                    selected ? const Color(0xFF439462) : Colors.grey.shade200),
           ),
           child: Column(
             children: [
-              Icon(icon,
-                  color: selected ? Colors.white : Colors.grey, size: 24),
+              Icon(icon, color: selected ? Colors.white : Colors.grey, size: 24),
               const SizedBox(height: 8),
               Text(
                 label,
@@ -564,7 +561,7 @@ class _PaymentMethodTile extends StatelessWidget {
             color: Colors.white,
             borderRadius: BorderRadius.circular(12),
             border: selected
-                ? Border.all(color: const Color(0xFF38B24D), width: 2)
+                ? Border.all(color: AppColors.primary, width: 2)
                 : null,
           ),
           child: Column(
@@ -576,7 +573,7 @@ class _PaymentMethodTile extends StatelessWidget {
                 style: TextStyle(
                     fontSize: 12,
                     color: selected
-                        ? const Color(0xFF38B24D)
+                        ? AppColors.primary
                         : Colors.grey.shade600,
                     fontWeight: selected ? FontWeight.w600 : FontWeight.normal),
               ),
@@ -620,9 +617,9 @@ class _StepDot extends StatelessWidget {
   Widget build(BuildContext context) {
     final bool done = currentStep > stepIndex;
     final bool active = currentStep == stepIndex;
-    final Color bg = (done || active) ? const Color(0xFF68B92E) : Colors.white;
+    final Color bg = (done || active) ? AppColors.primary : Colors.white;
     final Color border =
-        (done || active) ? const Color(0xFF68B92E) : Colors.grey.shade300;
+        (done || active) ? AppColors.primary : Colors.grey.shade300;
     return Column(
       children: [
         Container(
@@ -649,7 +646,7 @@ class _StepDot extends StatelessWidget {
               fontSize: 10,
               fontWeight: FontWeight.w600,
               color: (done || active)
-                  ? const Color(0xFF38B24D)
+                  ? AppColors.primary
                   : Colors.grey.shade400,
               letterSpacing: 0.5),
         ),
@@ -666,7 +663,7 @@ class _StepLine extends StatelessWidget {
         child: Container(
           height: 2,
           margin: const EdgeInsets.only(bottom: 20),
-          color: active ? const Color(0xFF38B24D) : Colors.grey.shade300,
+          color: active ? AppColors.primary : Colors.grey.shade300,
         ),
       );
 }

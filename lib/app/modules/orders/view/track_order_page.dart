@@ -252,12 +252,12 @@ class _TrackOrderPageState extends ConsumerState<TrackOrderPage>
           mainAxisSize: MainAxisSize.min,
           children: [
             const Icon(Icons.check_circle_rounded,
-                color: Color(0xFF68B92E), size: 72),
+                color: Color(0xFF06B6D4), size: 72),
             const SizedBox(height: 16),
             const Text('Order Delivered!',
                 style: TextStyle(fontWeight: FontWeight.w900, fontSize: 22)),
             const SizedBox(height: 8),
-            const Text('Enjoy your fresh Difwa! 🦐',
+            const Text('Enjoy your fresh water! 💧',
                 textAlign: TextAlign.center,
                 style: TextStyle(color: Colors.grey)),
             const SizedBox(height: 24),
@@ -269,7 +269,7 @@ class _TrackOrderPageState extends ConsumerState<TrackOrderPage>
                   Navigator.pop(context); // back to active orders
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF114F3B),
+                  backgroundColor: const Color(0xFF0891B2),
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14)),
                   padding: const EdgeInsets.symmetric(vertical: 14),
@@ -345,7 +345,7 @@ class _TrackOrderPageState extends ConsumerState<TrackOrderPage>
               right: 0,
               child: LinearProgressIndicator(
                 backgroundColor: Colors.transparent,
-                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF114F3B)),
+                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF0891B2)),
               ),
             ),
 
@@ -439,7 +439,7 @@ class _TrackOrderPageState extends ConsumerState<TrackOrderPage>
                                 shape: BoxShape.circle,
                               ),
                               child: const Icon(Icons.timer_outlined,
-                                  color: Color(0xFF114F3B), size: 20),
+                                  color: Color(0xFF0891B2), size: 20),
                             ),
                             const SizedBox(height: 4),
                             Text(shortId,
@@ -508,13 +508,13 @@ class _TrackOrderPageState extends ConsumerState<TrackOrderPage>
                     height: 22,
                     decoration: BoxDecoration(
                       color: isDone
-                          ? const Color(0xFF114F3B)
+                          ? const Color(0xFF0891B2)
                           : Colors.grey.shade200,
                       shape: BoxShape.circle,
                       boxShadow: isCurrent
                           ? [
                               BoxShadow(
-                                  color: const Color(0xFF114F3B)
+                                  color: const Color(0xFF0891B2)
                                       .withValues(alpha: 0.3),
                                   blurRadius: 8)
                             ]
@@ -532,7 +532,7 @@ class _TrackOrderPageState extends ConsumerState<TrackOrderPage>
                       width: 2,
                       height: 40,
                       color: isDone
-                          ? const Color(0xFF114F3B)
+                          ? const Color(0xFF0891B2)
                           : Colors.grey.shade200,
                     ),
                 ],
@@ -596,11 +596,11 @@ class _TrackOrderPageState extends ConsumerState<TrackOrderPage>
           Container(
             padding: const EdgeInsets.all(8),
             decoration: const BoxDecoration(
-              color: Color(0xFFEBFFD7),
+              color: Color(0xFFCFFAFE),
               shape: BoxShape.circle,
             ),
             child: const Icon(Icons.location_on,
-                color: Color(0xFF114F3B), size: 18),
+                color: Color(0xFF0891B2), size: 18),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -636,7 +636,7 @@ class _TrackOrderPageState extends ConsumerState<TrackOrderPage>
         children: [
           CircleAvatar(
             radius: 26,
-            backgroundColor: const Color(0xFF114F3B),
+            backgroundColor: const Color(0xFF0891B2),
             child: (hasRider && _riderName.trim().isNotEmpty)
                 ? Text(
                     _riderName.trim()[0].toUpperCase(),
@@ -702,7 +702,7 @@ class _TrackOrderPageState extends ConsumerState<TrackOrderPage>
       case 'ontheway':
         return 'Your order is on the way! 🛵';
       case 'delivered':
-        return 'Enjoy your meal! 🦐';
+        return 'Enjoy your fresh water! 💧';
       default:
         return 'Tracking your order...';
     }
@@ -724,7 +724,7 @@ class _IconBtn extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: isPrimary ? const Color(0xFF114F3B) : Colors.white,
+          color: isPrimary ? const Color(0xFF0891B2) : Colors.white,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
               color: isPrimary ? Colors.transparent : Colors.grey.shade200),
@@ -735,3 +735,4 @@ class _IconBtn extends StatelessWidget {
     );
   }
 }
+

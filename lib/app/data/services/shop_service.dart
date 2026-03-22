@@ -1,19 +1,15 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/shop_product_model.dart';
+import '../models/food_models.dart';
 import '../network/api_client.dart';
+import 'package:flutter/foundation.dart';
 
 /// Provider for ShopService
 final shopServiceProvider = Provider<ShopService>((ref) {
   return ShopService(client: ref.watch(apiClientProvider));
 });
 
-/// Fallback shop shown when the backend list endpoint is unavailable.
-const ShopModel _fallbackShop = ShopModel(
-  id: '699ff3d316b54348792bf3bf',
-  name: 'DifwaBite Shop',
-  businessName: 'Fresh Difwa · Karnataka Special',
-  location: 'Karnataka, India',
-);
+/// Service layer for shops.
 
 class ShopService {
   final ApiClient _client;
@@ -27,21 +23,13 @@ class ShopService {
         requiresAuth: true,
       );
 
-      final raw = json['data'] ?? json['shops'] ?? json['retailers'];
-      if (raw is List && raw.isNotEmpty) {
-        final shops = raw
-            .map((e) => ShopModel.fromJson(e as Map<String, dynamic>))
-            .toList();
-        return shops.isNotEmpty ? shops : [_fallbackShop];
-      }
-      return [_fallbackShop];
-    } on ApiException catch (e) {
-      if (e.statusCode == 404 || e.statusCode == null) {
-        return [_fallbackShop];
-      }
-      rethrow;
-    } catch (_) {
-      return [_fallbackShop];
+      final raw = json['data'] as List<dynamic>? ?? [];
+      return raw
+          .map((e) => ShopModel.fromJson(e as Map<String, dynamic>))
+          .toList();
+    } catch (e) {
+      debugPrint('ShopService: Error fetching shops: $e');
+      return [];
     }
   }
 
@@ -61,6 +49,22 @@ class ShopService {
       throw ApiException(
           message:
               'Failed to fetch products for shop $shopId: ${e.toString()}');
+    }
+  }
+
+  Future<List<FoodCategory>> getCategories() async {
+    try {
+      final json = await _client.get(
+        '${ApiClient.baseUrl}/categories',
+        requiresAuth: true,
+      );
+      final raw = json['data'] as List<dynamic>? ?? [];
+      return raw
+          .map((e) => FoodCategory.fromJson(e as Map<String, dynamic>))
+          .toList();
+    } catch (e) {
+      debugPrint('ShopService: Error fetching categories: $e');
+      return [];
     }
   }
 }

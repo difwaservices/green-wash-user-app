@@ -12,6 +12,7 @@ import '../../auth/provider/auth_provider.dart';
 import '../../subscriptions/view/subscription_dashboard_page.dart';
 import '../../home/view/favorites_page.dart';
 import '../../../routes/app_routes.dart';
+import '../../../core/constants/app_colors.dart';
 
 class ProfilePage extends ConsumerStatefulWidget {
   const ProfilePage({super.key});
@@ -30,7 +31,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
       body: SafeArea(
         child: RefreshIndicator(
           onRefresh: () => ref.refresh(auth.userProfileProvider.future),
-          color: const Color(0xFF114F3B),
+          color: AppColors.primaryDark,
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
             padding:
@@ -49,7 +50,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                 const Text(
                   'Quick Actions',
                   style: TextStyle(
-                      color: Color(0xFF114F3B),
+                      color: Color(0xFF0891B2),
                       fontSize: 16,
                       fontWeight: FontWeight.bold),
                 ),
@@ -121,7 +122,7 @@ class _ProfileHeader extends StatelessWidget {
               Text(
                 'Hello, ${name.split(' ').first}!',
                 style: const TextStyle(
-                  color: Color(0xFF114F3B),
+                  color: Color(0xFF0891B2),
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
                 ),
@@ -149,12 +150,12 @@ class _ProfileHeader extends StatelessWidget {
                       const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
                     color: user.isShopActive
-                        ? const Color(0xFF68B92E).withOpacity(0.1)
+                        ? AppColors.primary.withOpacity(0.1)
                         : Colors.red.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
                       color: user.isShopActive
-                          ? const Color(0xFF68B92E)
+                          ? AppColors.primary
                           : Colors.red,
                     ),
                   ),
@@ -166,7 +167,7 @@ class _ProfileHeader extends StatelessWidget {
                         height: 8,
                         decoration: BoxDecoration(
                           color:
-                              user.isShopActive ? const Color(0xFF68B92E) : Colors.red,
+                              user.isShopActive ? AppColors.primary : Colors.red,
                           shape: BoxShape.circle,
                         ),
                       ),
@@ -175,7 +176,7 @@ class _ProfileHeader extends StatelessWidget {
                         user.isShopActive ? 'SHOP OPEN' : 'SHOP CLOSED',
                         style: TextStyle(
                           color: user.isShopActive
-                              ? const Color(0xFF114F3B)
+                              ? AppColors.primaryDark
                               : Colors.red,
                           fontSize: 10,
                           fontWeight: FontWeight.bold,
@@ -202,7 +203,7 @@ class _ProfileHeader extends StatelessWidget {
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFF114F3B).withValues(alpha: 0.3),
+                  color: AppColors.primaryDark.withValues(alpha: 0.3),
                   blurRadius: 20,
                   spreadRadius: 2,
                   offset: const Offset(0, 5),
@@ -210,14 +211,14 @@ class _ProfileHeader extends StatelessWidget {
               ],
             ),
             child: CircleAvatar(
-              backgroundColor: const Color(0xFFEBFFD7),
+              backgroundColor: AppColors.primaryLight,
               radius: 40,
               child: Text(
                 name.isNotEmpty ? name[0].toUpperCase() : 'U',
                 style: const TextStyle(
                   fontSize: 32,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF114F3B),
+                  color: AppColors.primaryDark,
                 ),
               ),
             ),
@@ -270,8 +271,8 @@ class _ActiveOrdersAndSubscriptions extends ConsumerWidget {
             child: Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: const Color(0xFFEBFFD7),
-                border: Border.all(color: const Color(0xFF114F3B).withOpacity(0.1)),
+                color: AppColors.primaryLight,
+                border: Border.all(color: AppColors.primaryDark.withOpacity(0.1)),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Column(
@@ -280,7 +281,7 @@ class _ActiveOrdersAndSubscriptions extends ConsumerWidget {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: const BoxDecoration(
-                      color: Color(0xFF114F3B),
+                      color: AppColors.primaryDark,
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(Icons.inventory_2_outlined,
@@ -290,7 +291,7 @@ class _ActiveOrdersAndSubscriptions extends ConsumerWidget {
                   const Text(
                     'Active Orders',
                     style: TextStyle(
-                      color: Color(0xFF114F3B),
+                      color: Color(0xFF0891B2),
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                     ),
@@ -300,7 +301,7 @@ class _ActiveOrdersAndSubscriptions extends ConsumerWidget {
                         ? '$activeOrdersCount Active Order${activeOrdersCount > 1 ? 's' : ''}'
                         : 'No Active Orders',
                     style: const TextStyle(
-                      color: Color(0xFF114F3B),
+                      color: AppColors.primaryDark,
                       fontSize: 12,
                     ),
                   ),
@@ -314,7 +315,7 @@ class _ActiveOrdersAndSubscriptions extends ConsumerWidget {
                     ),
                     child: const Text('Arriving in 15 mins',
                         style: TextStyle(
-                            color: Color(0xFF114F3B),
+                            color: Color(0xFF0891B2),
                             fontSize: 10,
                             fontWeight: FontWeight.w500)),
                   ),
@@ -330,7 +331,7 @@ class _ActiveOrdersAndSubscriptions extends ConsumerWidget {
             child: Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: const Color(0xFF114F3B),
+                color: AppColors.primaryDark,
                 border: Border.all(color: Colors.white.withOpacity(0.1)),
                 borderRadius: BorderRadius.circular(20),
               ),
@@ -343,8 +344,8 @@ class _ActiveOrdersAndSubscriptions extends ConsumerWidget {
                       color: const Color(0xFFA5C9AD).withValues(alpha: 0.3),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.card_membership_outlined,
-                        color: Color(0xFFA5C9AD), size: 20),
+                    child: Icon(Icons.card_membership_outlined,
+                        color: AppColors.primary.withValues(alpha: 0.5), size: 20),
                   ),
                   const SizedBox(height: 12),
                   const Text(
@@ -370,9 +371,9 @@ class _ActiveOrdersAndSubscriptions extends ConsumerWidget {
                       color: const Color(0xFFA5C9AD).withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(20),
                     ),
-                    child: const Text('Renewal Jun 11, 2023',
+                    child: Text('Renewal Jun 11, 2023',
                         style:
-                            TextStyle(color: Color(0xFFA5C9AD), fontSize: 10)),
+                            TextStyle(color: AppColors.primary.withValues(alpha: 0.5), fontSize: 10)),
                   ),
                 ],
               ),
@@ -469,7 +470,7 @@ class _QuickActionBtn extends StatelessWidget {
                           : Icons.location_on_rounded,
                   color: isFavBtn && badgeCount > 0
                       ? Colors.red
-                      : const Color(0xFF114F3B),
+                      : AppColors.primaryDark,
                   size: 20,
                 ),
                 if (badgeCount > 0)
@@ -501,7 +502,7 @@ class _QuickActionBtn extends StatelessWidget {
               title,
               textAlign: TextAlign.center,
               style: const TextStyle(
-                  color: Color(0xFF114F3B),
+                  color: AppColors.primaryDark,
                   fontSize: 10,
                   fontWeight: FontWeight.w600),
             ),
@@ -550,16 +551,16 @@ class _ListTileItem extends StatelessWidget {
         ),
         child: Row(
           children: [
-            Icon(icon, color: const Color(0xFF114F3B), size: 24),
+            Icon(icon, color: AppColors.primaryDark, size: 24),
             const SizedBox(width: 16),
             Expanded(
                 child: Text(title,
                     style: const TextStyle(
-                        color: Color(0xFF114F3B),
+                        color: AppColors.primaryDark,
                         fontSize: 16,
                         fontWeight: FontWeight.w600))),
-            const Icon(Icons.arrow_forward_ios_rounded,
-                color: Color(0xFFA5C9AD), size: 16),
+            Icon(Icons.arrow_forward_ios_rounded,
+                color: AppColors.primary.withValues(alpha: 0.5), size: 16),
           ],
         ),
       ),
@@ -591,14 +592,15 @@ class _SignOutButton extends ConsumerWidget {
           children: const [
             Text('Sign Out',
                 style: TextStyle(
-                    color: Color(0xFF114F3B),
+                    color: AppColors.primaryDark,
                     fontWeight: FontWeight.bold,
                     fontSize: 16)),
             SizedBox(width: 8),
-            Icon(Icons.logout, color: Color(0xFF114F3B)),
+            Icon(Icons.logout, color: AppColors.primaryDark),
           ],
         ),
       ),
     );
   }
 }
+

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../core/constants/app_images.dart';
 import 'provider/auth_provider.dart';
 import 'widgets/input_field.dart';
 
@@ -74,7 +75,7 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
                   height: 300,
                   width: double.infinity,
                   child: Image.asset(
-                    'assets/images/image copy 7.png',
+                    AppImages.waterHero,
                     fit: BoxFit.cover,
                     errorBuilder: (context, error, stackTrace) => Container(
                       color: Colors.grey.shade300,
@@ -152,7 +153,7 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
           ),
           child: const Icon(
             Icons.lock_reset,
-            color: Color(0xFF2E7D32),
+            color: Color(0xFF0891B2),
             size: 30,
           ),
         ),
@@ -190,7 +191,7 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
           child: ElevatedButton(
             onPressed: isLoading ? null : _sendResetOtp,
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF2E7D32),
+              backgroundColor: const Color(0xFF0891B2),
               foregroundColor: Colors.white,
               elevation: 0,
               shape: RoundedRectangleBorder(
@@ -220,7 +221,7 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
                 text: '← ',
                 style: TextStyle(
                   fontSize: 14,
-                  color: Color(0xFF2E7D32),
+                  color: Color(0xFF0891B2),
                   fontWeight: FontWeight.w600,
                 ),
                 children: [
@@ -228,7 +229,7 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
                     text: 'Back to Login',
                     style: TextStyle(
                       fontSize: 14,
-                      color: Color(0xFF2E7D32),
+                      color: Color(0xFF0891B2),
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -256,7 +257,7 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
           ),
           child: const Icon(
             Icons.mark_email_read_outlined,
-            color: Color(0xFF2E7D32),
+            color: Color(0xFF0891B2),
             size: 40,
           ),
         ),
@@ -287,7 +288,7 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
               _showSnackBar('Transitioning to Reset Password flow...');
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF2E7D32),
+              backgroundColor: const Color(0xFF0891B2),
               foregroundColor: Colors.white,
               elevation: 0,
               shape: RoundedRectangleBorder(
@@ -308,10 +309,10 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
             'Change number',
             style: TextStyle(
               fontSize: 14,
-              color: Color(0xFF2E7D32),
+              color: Color(0xFF0891B2),
               fontWeight: FontWeight.w600,
               decoration: TextDecoration.underline,
-              decorationColor: Color(0xFF2E7D32),
+              decorationColor: Color(0xFF0891B2),
             ),
           ),
         ),
@@ -320,5 +321,6 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
     );
   }
 }
+
 
 

@@ -14,7 +14,7 @@ class OrderService {
   }) async {
     try {
       final response = await _apiClient.post(
-        '${ApiClient.baseUrl}/orders',
+        'https://difwa-backend.vercel.app/app/orders',
         data: {
           'deliveryAddress': deliveryAddress,
           'paymentMethod': paymentMethod,
@@ -23,8 +23,6 @@ class OrderService {
         requiresAuth: true,
       );
 
-      // ApiClient returns the response body as a Map.gterg
-      // If paymentStatus is Paid, or success is true, we consider it successful.
       return {
         'success': response['success'] ?? true,
         'order': response['order'] ?? response['data'],

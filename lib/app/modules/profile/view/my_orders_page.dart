@@ -19,20 +19,20 @@ class MyOrdersPage extends ConsumerWidget {
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new,
-              color: Color(0xFF114F3B), size: 20),
+              color: Color(0xFF0891B2), size: 20),
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
           'My Orders',
           style: TextStyle(
-            color: Color(0xFF114F3B),
+            color: Color(0xFF0891B2),
             fontSize: 20,
             fontWeight: FontWeight.bold,
           ),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh, color: Color(0xFF114F3B)),
+            icon: const Icon(Icons.refresh, color: Color(0xFF0891B2)),
             onPressed: () => ref.invalidate(myOrdersProvider),
           ),
         ],
@@ -42,7 +42,7 @@ class MyOrdersPage extends ConsumerWidget {
             ? const _EmptyOrdersView()
             : RefreshIndicator(
                 onRefresh: () async => ref.refresh(myOrdersProvider),
-                color: const Color(0xFF114F3B),
+                color: const Color(0xFF0891B2),
                 child: ListView.builder(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -53,7 +53,7 @@ class MyOrdersPage extends ConsumerWidget {
                 ),
               ),
         loading: () => const Center(
-          child: CircularProgressIndicator(color: Color(0xFF114F3B)),
+          child: CircularProgressIndicator(color: Color(0xFF0891B2)),
         ),
         error: (err, _) => Center(
           child: Column(
@@ -152,7 +152,7 @@ class _OrderCard extends ConsumerWidget {
       case 'cancelled':
         return Colors.red;
       default:
-        return const Color(0xFF114F3B);
+        return const Color(0xFF0891B2);
     }
   }
 
@@ -296,7 +296,7 @@ class _OrderCard extends ConsumerWidget {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
                                   content: Text('Added to cart for reorder!'),
-                                  backgroundColor: Color(0xFF114F3B),
+                                  backgroundColor: Color(0xFF0891B2),
                                   behavior: SnackBarBehavior.floating,
                                 ),
                               );
@@ -346,9 +346,10 @@ class _PlaceholderImage extends StatelessWidget {
         child: Icon(
           Icons.set_meal_outlined,
           size: 40,
-          color: const Color(0xFF114F3B).withValues(alpha: 0.5),
+          color: const Color(0xFF0891B2).withValues(alpha: 0.5),
         ),
       ),
     );
   }
 }
+

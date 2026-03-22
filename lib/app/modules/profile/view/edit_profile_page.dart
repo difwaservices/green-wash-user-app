@@ -67,7 +67,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
             content: Text(response.message.isNotEmpty 
                 ? response.message 
                 : 'Profile updated successfully!'),
-            backgroundColor: const Color(0xFF68B92E),
+            backgroundColor: const Color(0xFF06B6D4),
           ),
         );
         Navigator.pop(context);
@@ -119,12 +119,12 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                       width: 16,
                       height: 16,
                       child: CircularProgressIndicator(
-                          strokeWidth: 2, color: Color(0xFF68B92E)),
+                          strokeWidth: 2, color: Color(0xFF06B6D4)),
                     )
                   : const Text(
                       'SAVE',
                       style: TextStyle(
-                        color: Color(0xFF68B92E),
+                        color: Color(0xFF06B6D4),
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -144,7 +144,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                     children: [
                       CircleAvatar(
                         radius: 60,
-                        backgroundColor: const Color(0xFFEBFFD7),
+                        backgroundColor: const Color(0xFFCFFAFE),
                         child: Text(
                           _nameController.text.isNotEmpty
                               ? _nameController.text[0].toUpperCase()
@@ -152,7 +152,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                           style: const TextStyle(
                             fontSize: 48,
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFF114F3B),
+                            color: Color(0xFF0891B2),
                           ),
                         ),
                       ),
@@ -162,7 +162,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                         child: Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF68B92E),
+                            color: const Color(0xFF06B6D4),
                             shape: BoxShape.circle,
                             border: Border.all(color: Colors.white, width: 2),
                           ),
@@ -211,7 +211,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                   child: ElevatedButton(
                     onPressed: _isSaving ? null : _saveProfile,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF439462),
+                      backgroundColor: const Color(0xFF06B6D4),
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
@@ -232,7 +232,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
           );
         },
         loading: () => const Center(
-            child: CircularProgressIndicator(color: Color(0xFF68B92E))),
+            child: CircularProgressIndicator(color: Color(0xFF06B6D4))),
         error: (e, _) => Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -293,3 +293,5 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
     );
   }
 }
+
+

@@ -32,9 +32,11 @@ class _TopUpPageState extends ConsumerState<TopUpPage> {
   }
 
   void _handlePaymentSuccess(PaymentSuccessResponse response) async {
+    debugPrint('TopUpPage: Payment SUCCESS: ID=${response.paymentId}, OrderID=${response.orderId}');
     setState(() => _isLoading = true);
     final amount = double.tryParse(_amountController.text) ?? 0.0;
-
+    
+    debugPrint('TopUpPage: Verifying payment with backend (amount: $amount)...');
     final result = await ref.read(walletServiceProvider).topUpSuccess(
           amount: amount,
           razorpayOrderId: response.orderId!,
@@ -42,11 +44,11 @@ class _TopUpPageState extends ConsumerState<TopUpPage> {
           razorpaySignature: response.signature!,
         );
 
+    debugPrint('TopUpPage: Verification result: $result');
+
     if (mounted) {
       setState(() => _isLoading = false);
       if (result['success'] == true) {
-        // Sync both the ChangeNotifier (used in Profile/Checkout) 
-        // and invalidate the Riverpod providers (used in WalletPage)
         CartProviderScope.of(context).syncWallet();
         ref.invalidate(walletBalanceProvider);
         ref.invalidate(walletHistoryProvider);
@@ -54,7 +56,7 @@ class _TopUpPageState extends ConsumerState<TopUpPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
               content: Text('Wallet topped up successfully!'),
-              backgroundColor: AppColors.accentGreen),
+              backgroundColor: Color(0xFF06B6D4)),
         );
         Navigator.pop(context);
       } else {
@@ -68,6 +70,7 @@ class _TopUpPageState extends ConsumerState<TopUpPage> {
   }
 
   void _handlePaymentFailure(PaymentFailureResponse response) {
+    debugPrint('TopUpPage: Payment FAILED: Code=${response.code}, Message=${response.message}');
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
           content: Text('Payment Failed: ${response.message}'),
@@ -76,10 +79,11 @@ class _TopUpPageState extends ConsumerState<TopUpPage> {
   }
 
   void _handleExternalWallet(ExternalWalletResponse response) {
+    debugPrint('TopUpPage: External Wallet selected: ${response.walletName}');
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
           content: Text('External Wallet: ${response.walletName}'),
-          backgroundColor: AppColors.primary),
+          backgroundColor: const Color(0xFF06B6D4)),
     );
   }
 

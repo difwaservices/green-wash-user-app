@@ -26,7 +26,6 @@ class AuthInterceptor extends QueuedInterceptor {
   AuthInterceptor(this._dio, this._storage, {AuthLogoutCallback? logoutCallback}) 
       : _logoutCallback = logoutCallback {
     _refreshDio = Dio(BaseOptions(baseUrl: _dio.options.baseUrl));
-    _refreshDio.interceptors.add(LogInterceptor(requestBody: true, responseBody: true));
   }
 
   @override
@@ -38,6 +37,7 @@ class AuthInterceptor extends QueuedInterceptor {
     }
 
     final String? token = await _storage.getAccessToken();
+    debugPrint('AuthInterceptor: Path: ${options.path}, RequiresAuth: $requiresAuth, HasToken: ${token != null && token.isNotEmpty}');
 
     if (token != null && token.isNotEmpty) {
       options.headers['Authorization'] = 'Bearer $token';
@@ -58,7 +58,8 @@ class AuthInterceptor extends QueuedInterceptor {
 
       final refreshToken = await _storage.getRefreshToken();
       if (refreshToken == null || refreshToken.isEmpty) {
-        _onRefreshFailed('No refresh token available');
+        // If no refresh token exists, we can't do anything silent.
+        // Just let the original 401 error pass to the caller.
         return handler.next(err);
       }
 
@@ -69,13 +70,18 @@ class AuthInterceptor extends QueuedInterceptor {
           _isRefreshing = true;
           try {
             debugPrint('AuthInterceptor: Refreshing access token...');
-            final response = await _refreshDio.post('/app/auth/refresh', data: {
-              'refreshToken': refreshToken,
-            });
+            // Using relative path to allow ApiClient/BaseOptions to handle /api prefix
+            final response = await _refreshDio.post(
+              'https://difwa-backend.vercel.app/app/refresh', 
+              data: {
+                'refreshToken': refreshToken,
+              },
+            );
 
             if (response.statusCode == 200) {
-              newAccessToken = response.data['accessToken'] ?? response.data['token'];
-              final newRefreshToken = response.data['refreshToken'] ?? refreshToken;
+              final data = response.data['data'] ?? response.data;
+              newAccessToken = data['accessToken'] ?? data['token'];
+              final newRefreshToken = data['refreshToken'] ?? refreshToken;
 
               await _storage.saveTokens(
                 access: newAccessToken!,

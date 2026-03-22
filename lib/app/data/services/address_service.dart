@@ -6,7 +6,7 @@ class AddressService {
 
   AddressService(this._client);
 
-  Future<Map<String, dynamic>> saveAddress({
+  Future<dynamic> saveAddress({
     required String label,
     required String fullAddress,
     required String city,
@@ -28,14 +28,14 @@ class AddressService {
     );
   }
 
-  Future<Map<String, dynamic>> getAddresses() async {
+  Future<dynamic> getAddresses() async {
     return await _client.get(
       '${ApiClient.baseUrl}/address',
       requiresAuth: true,
     );
   }
 
-  Future<Map<String, dynamic>> deleteAddress(String id) async {
+  Future<dynamic> deleteAddress(String id) async {
     return await _client.delete(
       '${ApiClient.baseUrl}/address/$id',
       requiresAuth: true,

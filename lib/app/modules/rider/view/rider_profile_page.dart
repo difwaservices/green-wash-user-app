@@ -43,7 +43,7 @@ class RiderProfilePage extends ConsumerWidget {
                     children: [
                       CircleAvatar(
                         radius: 48,
-                        backgroundColor: const Color(0xFFEBFFD7),
+                        backgroundColor: const Color(0xFFCFFAFE),
                         child: Text(
                           (user?.fullName ?? 'R').substring(0, 1).toUpperCase(),
                           style: const TextStyle(fontSize: 38, fontWeight: FontWeight.bold, color: AppColors.accentGreen),
@@ -65,7 +65,7 @@ class RiderProfilePage extends ConsumerWidget {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFEBFFD7),
+                      color: const Color(0xFFCFFAFE),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: const Text('✅  Verified Rider', style: TextStyle(color: AppColors.accentGreen, fontWeight: FontWeight.bold, fontSize: 12)),
@@ -179,3 +179,4 @@ class _ActionButton extends StatelessWidget {
     );
   }
 }
+

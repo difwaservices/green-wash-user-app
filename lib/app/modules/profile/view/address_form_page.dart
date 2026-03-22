@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../data/models/food_models.dart';
 import '../../../data/services/db_service.dart';
+import '../../../core/constants/app_colors.dart';
 
 class AddressFormPage extends StatefulWidget {
   final UserAddress? address;
@@ -112,8 +113,8 @@ class _AddressFormPageState extends State<AddressFormPage> {
                   Switch(
                     value: _isDefault,
                     onChanged: (v) => setState(() => _isDefault = v),
-                    activeThumbColor: const Color(0xFF68B92E),
-                    activeTrackColor: const Color(0xFFEBFFD7),
+                    activeThumbColor: AppColors.primary,
+                    activeTrackColor: AppColors.primaryLight,
                   ),
                   const Text(
                     'Set as default address',
@@ -131,7 +132,7 @@ class _AddressFormPageState extends State<AddressFormPage> {
                 child: ElevatedButton(
                   onPressed: () => _save(context),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF439462),
+                    backgroundColor: AppColors.primary,
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
@@ -188,7 +189,7 @@ class _AddressFormPageState extends State<AddressFormPage> {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(0xFF439462)),
+              borderSide: const BorderSide(color: AppColors.primary),
             ),
           ),
         ),
@@ -196,3 +197,5 @@ class _AddressFormPageState extends State<AddressFormPage> {
     );
   }
 }
+
+

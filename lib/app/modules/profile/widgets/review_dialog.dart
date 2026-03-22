@@ -117,7 +117,7 @@ class _ReviewDialogState extends State<ReviewDialog> {
                       }
                     },
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF68B92E),
+                backgroundColor: const Color(0xFF06B6D4),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
               child: _isSubmitting
@@ -130,3 +130,4 @@ class _ReviewDialogState extends State<ReviewDialog> {
     );
   }
 }
+

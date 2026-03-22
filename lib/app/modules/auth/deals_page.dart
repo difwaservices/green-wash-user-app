@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../core/constants/app_images.dart';
 
 class DealsPage extends StatelessWidget {
   const DealsPage({super.key});
@@ -16,7 +17,7 @@ class DealsPage extends StatelessWidget {
             height: screenHeight,
             width: double.infinity,
             child: Image.asset(
-              'assets/images/image copy 5.png',
+              AppImages.waterHero,
               fit: BoxFit.cover,
               errorBuilder: (context, error, stackTrace) => Container(
                 color: Colors.grey.shade300,
@@ -46,7 +47,7 @@ class DealsPage extends StatelessWidget {
                 children: [
                   // Title
                   const Text(
-                    'Best Deals on\nAll Seafood',
+                    'Best Deals on\nWater Delivery',
                     style: TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.w900,
@@ -58,7 +59,7 @@ class DealsPage extends StatelessWidget {
 
                   // Subtitle
                   Text(
-                    'Get amazing discounts on Difwa, prawns &\nmore every day.',
+                    'Get amazing discounts on Difwa water, bottles &\nmore every day.',
                     style: TextStyle(
                       fontSize: 14,
                       color: Colors.grey.shade500,
@@ -80,7 +81,7 @@ class DealsPage extends StatelessWidget {
                         width: isActive ? 20 : 8,
                         decoration: BoxDecoration(
                           color: isActive
-                              ? const Color(0xFF2E7D32)
+                              ? const Color(0xFF0891B2)
                               : Colors.grey.shade300,
                           borderRadius: BorderRadius.circular(4),
                         ),
@@ -97,7 +98,7 @@ class DealsPage extends StatelessWidget {
                       onPressed: () =>
                           Navigator.pushReplacementNamed(context, '/signup'),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF2E7D32),
+                        backgroundColor: const Color(0xFF0891B2),
                         foregroundColor: Colors.white,
                         elevation: 0,
                         shape: RoundedRectangleBorder(
@@ -122,3 +123,4 @@ class DealsPage extends StatelessWidget {
     );
   }
 }
+

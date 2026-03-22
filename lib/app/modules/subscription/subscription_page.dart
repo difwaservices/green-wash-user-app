@@ -85,7 +85,7 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage> {
             ref.invalidate(myOrdersProvider);
             ref.invalidate(walletBalanceProvider);
           },
-          color: const Color(0xFF68B92E),
+          color: const Color(0xFF06B6D4),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -109,13 +109,13 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage> {
                     ),
                     loading: () => const Center(
                         child: CircularProgressIndicator(
-                            color: Color(0xFF68B92E))),
+                            color: Color(0xFF06B6D4))),
                     error: (e, _) =>
                         Center(child: Text('Error loading orders: $e')),
                   ),
                   loading: () => const Center(
                       child:
-                          CircularProgressIndicator(color: Color(0xFF68B92E))),
+                          CircularProgressIndicator(color: Color(0xFF06B6D4))),
                   error: (e, _) => Center(child: Text('Error: $e')),
                 ),
               ),
@@ -150,20 +150,20 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
             decoration: BoxDecoration(
-              color: const Color(0xFF68B92E).withValues(alpha: 0.1),
+              color: const Color(0xFF06B6D4).withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                  color: const Color(0xFF68B92E).withValues(alpha: 0.3)),
+                  color: const Color(0xFF06B6D4).withValues(alpha: 0.3)),
             ),
             child: Row(
               children: [
                 const Icon(Icons.account_balance_wallet,
-                    color: Color(0xFF68B92E), size: 16),
+                    color: Color(0xFF06B6D4), size: 16),
                 const SizedBox(width: 6),
                 balanceAsync.when(
                   data: (b) => Text('₹${b.toStringAsFixed(0)}',
                       style: const TextStyle(
-                          color: Color(0xFF2E7D32),
+                          color: Color(0xFF0891B2),
                           fontWeight: FontWeight.bold,
                           fontSize: 14)),
                   loading: () => const SizedBox(
@@ -209,11 +209,11 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage> {
               margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
               decoration: BoxDecoration(
                 color:
-                    isSelected ? const Color(0xFF68B92E) : Colors.transparent,
+                    isSelected ? const Color(0xFF06B6D4) : Colors.transparent,
                 borderRadius: BorderRadius.circular(16),
                 border: isToday && !isSelected
                     ? Border.all(
-                        color: const Color(0xFF68B92E).withValues(alpha: 0.4))
+                        color: const Color(0xFF06B6D4).withValues(alpha: 0.4))
                     : null,
               ),
               child: Column(
@@ -238,7 +238,7 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage> {
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         color:
-                            isSelected ? Colors.white : const Color(0xFF68B92E),
+                            isSelected ? Colors.white : const Color(0xFF06B6D4),
                       ),
                     ),
                 ],
@@ -278,10 +278,10 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage> {
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: const Color(0xFFEBFFD7).withValues(alpha: 0.5),
+        color: const Color(0xFFCFFAFE).withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(24),
         border:
-            Border.all(color: const Color(0xFF68B92E).withValues(alpha: 0.2)),
+            Border.all(color: const Color(0xFF06B6D4).withValues(alpha: 0.2)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -292,7 +292,7 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage> {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
-                  color: hasDelivery ? const Color(0xFF68B92E) : Colors.grey,
+                  color: hasDelivery ? const Color(0xFF06B6D4) : Colors.grey,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
@@ -322,10 +322,10 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage> {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFEBFFD7),
+                        color: const Color(0xFFCFFAFE),
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(
-                          color: const Color(0xFF68B92E).withValues(alpha: 0.2),
+                          color: const Color(0xFF06B6D4).withValues(alpha: 0.2),
                         ),
                       ),
                       child: Text(
@@ -334,7 +334,7 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage> {
                                 : 'PENDING')
                             .toUpperCase(),
                         style: const TextStyle(
-                          color: Color(0xFF439462),
+                          color: Color(0xFF06B6D4),
                           fontSize: 10,
                           fontWeight: FontWeight.w900,
                         ),
@@ -433,16 +433,16 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage> {
             child: const Row(
               children: [
                 Icon(Icons.location_on_outlined,
-                    color: Color(0xFF68B92E), size: 16),
+                    color: Color(0xFF06B6D4), size: 16),
                 SizedBox(width: 4),
                 Text(
                   'Track',
                   style: TextStyle(
-                    color: Color(0xFF68B92E),
+                    color: Color(0xFF06B6D4),
                     fontWeight: FontWeight.bold,
                     fontSize: 14,
                     decoration: TextDecoration.underline,
-                    decorationColor: Color(0xFF68B92E),
+                    decorationColor: Color(0xFF06B6D4),
                   ),
                 ),
               ],
@@ -450,7 +450,7 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage> {
           ),
           const SizedBox(width: 12),
           Icon(isDelivered ? Icons.check_circle : Icons.radio_button_checked,
-              color: const Color(0xFF68B92E)),
+              color: const Color(0xFF06B6D4)),
         ],
       ),
     );
@@ -481,7 +481,7 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage> {
                 if (sub.retailerName.isNotEmpty)
                   Text(sub.retailerName,
                       style: TextStyle(
-                          color: const Color(0xFF114F3B).withValues(alpha: 0.7),
+                          color: const Color(0xFF0891B2).withValues(alpha: 0.7),
                           fontSize: 11,
                           fontWeight: FontWeight.w600)),
                 Text('Qty ${sub.quantity} • ${sub.frequency}',
@@ -494,23 +494,23 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage> {
             child: const Row(
               children: [
                 Icon(Icons.location_on_outlined,
-                    color: Color(0xFF68B92E), size: 16),
+                    color: Color(0xFF06B6D4), size: 16),
                 SizedBox(width: 4),
                 Text(
                   'Track',
                   style: TextStyle(
-                    color: Color(0xFF68B92E),
+                    color: Color(0xFF06B6D4),
                     fontWeight: FontWeight.bold,
                     fontSize: 14,
                     decoration: TextDecoration.underline,
-                    decorationColor: Color(0xFF68B92E),
+                    decorationColor: Color(0xFF06B6D4),
                   ),
                 ),
               ],
             ),
           ),
           const SizedBox(width: 12),
-          const Icon(Icons.check_circle, color: Color(0xFF68B92E)),
+          const Icon(Icons.check_circle, color: Color(0xFF06B6D4)),
         ],
       ),
     );
@@ -535,7 +535,7 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage> {
           Text('Fetching order details…'),
         ]),
         duration: Duration(seconds: 10),
-        backgroundColor: Color(0xFF114F3B),
+        backgroundColor: Color(0xFF0891B2),
       ),
     );
 
@@ -591,7 +591,7 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage> {
         width: 50,
         height: 50,
         color: const Color(0xFFE8F5E9),
-        child: const Icon(Icons.set_meal, color: Color(0xFF68B92E), size: 24),
+        child: const Icon(Icons.set_meal, color: Color(0xFF06B6D4), size: 24),
       );
 
   Widget _buildYourPlans(List<UserSubscription> subs) {
@@ -629,10 +629,10 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage> {
       child: Row(
         children: [
           CircleAvatar(
-            backgroundColor: (isActive ? const Color(0xFF68B92E) : Colors.grey)
+            backgroundColor: (isActive ? const Color(0xFF06B6D4) : Colors.grey)
                 .withValues(alpha: 0.12),
             child: Icon(isActive ? Icons.check : Icons.pause,
-                color: isActive ? const Color(0xFF68B92E) : Colors.grey),
+                color: isActive ? const Color(0xFF06B6D4) : Colors.grey),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -649,7 +649,7 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage> {
           // Pause / Resume toggle
           Switch(
             value: isActive,
-            activeThumbColor: const Color(0xFF68B92E),
+            activeThumbColor: const Color(0xFF06B6D4),
             onChanged: (val) async {
               final newStatus = val ? 'Active' : 'Paused';
               final ok = await ref
@@ -746,7 +746,7 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage> {
         builder: (context, child) => Theme(
           data: Theme.of(context).copyWith(
             colorScheme: const ColorScheme.light(
-              primary: Color(0xFF68B92E),
+              primary: Color(0xFF06B6D4),
               onPrimary: Colors.white,
             ),
           ),
@@ -812,3 +812,5 @@ class _ActionButton extends StatelessWidget {
     );
   }
 }
+
+

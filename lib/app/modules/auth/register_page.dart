@@ -17,25 +17,20 @@ class RegisterPage extends ConsumerStatefulWidget {
 
 class _RegisterPageState extends ConsumerState<RegisterPage> {
   final _fullNameController = TextEditingController();
-  final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
+  final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
-
-  bool _obscurePassword = true;
-  bool _obscureConfirm = true;
 
   @override
   void dispose() {
     _fullNameController.dispose();
-    _emailController.dispose();
     _phoneController.dispose();
+    _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     super.dispose();
   }
-
-  // ── Helper ────────────────────────────────────────────────────────────────
 
   void _showSnackBar(String message, {Color backgroundColor = Colors.black87}) {
     if (!mounted) return;
@@ -52,14 +47,14 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
 
   // ── Register action ───────────────────────────────────────────────────────
 
-  Future<void> _register() async {
+  Future<void> _handleGetStarted() async {
     final fullName = _fullNameController.text.trim();
-    final email = _emailController.text.trim();
     final phone = _phoneController.text.trim();
+    final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
     final confirmPassword = _confirmPasswordController.text.trim();
 
-    if (fullName.isEmpty || email.isEmpty || phone.isEmpty || password.isEmpty) {
+    if (fullName.isEmpty || phone.isEmpty || email.isEmpty || password.isEmpty) {
       _showSnackBar('Please fill in all fields.', backgroundColor: Colors.red);
       return;
     }
@@ -77,14 +72,10 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
             password: password,
             confirmPassword: confirmPassword,
           );
-      
-      // Navigate on success (AuthSuccess is handled by ref.listen)
     } catch (e) {
-      _showSnackBar('Registration failed: ${e.toString()}', backgroundColor: Colors.red);
+      _showSnackBar('Registration failed. Please try again.', backgroundColor: Colors.red);
     }
   }
-
-  // ── Build ─────────────────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
@@ -94,8 +85,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
     // Listen for auth state changes
     ref.listen<ProviderAuthState>(authProvider, (previous, next) {
       if (next is AuthSuccess) {
-        // Registration success moves to OTP verification
-        Navigator.pushReplacementNamed(
+        Navigator.pushNamed(
           context,
           AppRoutes.otp,
           arguments: {
@@ -114,44 +104,32 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
         physics: const BouncingScrollPhysics(),
         child: Column(
           children: [
-            // ── Top food image with back button ──
+            // ── Top branding section ──
             Stack(
               children: [
                 SizedBox(
-                  height: 280,
+                  height: 240,
                   width: double.infinity,
                   child: Stack(
                     children: [
-                       Positioned.fill(
+                      Positioned.fill(
                         child: SvgPicture.asset(
                           AppImages.splashBg, 
                           fit: BoxFit.cover,
                         ),
                       ),
-                       Center(
-                        child: SvgPicture.asset(
-                          AppImages.difwaLogo2,
-                          width: 160,
+                      Center(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Image.asset(
+                              AppImages.difwaLogoPng,
+                              width: 140,
+                            ),
+                          ],
                         ),
                       ),
                     ],
-                  ),
-                ),
-                Positioned(
-                  top: 48,
-                  left: 20,
-                  child: GestureDetector(
-                    onTap: () => Navigator.pop(context),
-                    child: Container(
-                      width: 36,
-                      height: 36,
-                      decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha:  0.3),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(Icons.arrow_back,
-                          color: Colors.white, size: 20),
-                    ),
                   ),
                 ),
               ],
@@ -159,108 +137,119 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
 
             // ── Form section ──
             Container(
-              padding: const EdgeInsets.fromLTRB(24, 28, 24, 32),
-              color: Colors.white,
+              padding: const EdgeInsets.fromLTRB(28, 24, 28, 40),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(30),
+                  topRight: Radius.circular(30),
+                ),
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    'Create account',
+                    'Create Account',
                     style: TextStyle(
-                        fontSize: 28,
+                        fontSize: 26,
                         fontWeight: FontWeight.bold,
-                        color: Colors.black),
+                        color: Color(0xFF1A1A1A)),
                   ),
-                  const SizedBox(height: 6),
-                  const Text(
-                    'Quickly create your account',
-                    style: TextStyle(fontSize: 15, color: Colors.grey),
-                  ),
-                  const SizedBox(height: 28),
+                  const SizedBox(height: 24),
 
                   InputField(
                     controller: _fullNameController,
                     label: 'Full Name',
-                    hintText: 'Enter your full name',
+                    hintText: 'e.g. Dam',
                     prefixIcon: Icons.person_outline,
-                    keyboardType: TextInputType.name,
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 16),
 
                   InputField(
                     controller: _emailController,
                     label: 'Email Address',
-                    hintText: 'Enter your email address',
+                    hintText: 'dam@example.com',
                     prefixIcon: Icons.email_outlined,
                     keyboardType: TextInputType.emailAddress,
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 16),
 
                   InputField(
                     controller: _phoneController,
                     label: 'Phone Number',
-                    hintText: 'Enter your phone number',
-                    prefixIcon: Icons.phone_outlined,
+                    hintText: '5000000000',
+                    prefixIcon: Icons.phone_android_outlined,
                     keyboardType: TextInputType.phone,
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 16),
 
                   InputField(
                     controller: _passwordController,
                     label: 'Password',
-                    hintText: 'Enter your password',
-                    prefixIcon: Icons.lock_outline,
+                    hintText: '••••••••',
                     isPassword: true,
-                    obscureText: _obscurePassword,
-                    onToggleVisibility: () =>
-                        setState(() => _obscurePassword = !_obscurePassword),
+                    prefixIcon: Icons.lock_outline,
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 16),
 
                   InputField(
                     controller: _confirmPasswordController,
                     label: 'Confirm Password',
-                    hintText: 'Re-enter your password',
-                    prefixIcon: Icons.lock_outline,
+                    hintText: '••••••••',
                     isPassword: true,
-                    obscureText: _obscureConfirm,
-                    onToggleVisibility: () =>
-                        setState(() => _obscureConfirm = !_obscureConfirm),
+                    prefixIcon: Icons.lock_clock_outlined,
                   ),
                   const SizedBox(height: 32),
 
-                  // Signup Button
                   CommonButton(
-                    text: 'Create Account',
-                    onPressed: _register,
+                    text: 'Sign Up & Verify',
+                    onPressed: _handleGetStarted,
                     backgroundColor: AppColors.primary,
-                    borderRadius: 12,
+                    borderRadius: 16,
                     isLoading: isLoading,
                   ),
+                  
                   const SizedBox(height: 24),
-
-                  // Login link
+                  
+                  // Login Link
                   Center(
-                    child: GestureDetector(
-                      onTap: () =>
-                          Navigator.pushReplacementNamed(context, '/login'),
-                      child: RichText(
-                        text: const TextSpan(
-                          text: 'Already have an account ? ',
-                          style: TextStyle(fontSize: 14, color: Colors.grey),
-                          children: [
-                            TextSpan(
-                              text: 'Login',
-                              style: TextStyle(
-                                  color: AppColors.primary,
-                                  fontWeight: FontWeight.bold),
-                            ),
-                          ],
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text(
+                          "Already have an account?",
+                          style: TextStyle(color: Colors.grey, fontSize: 13),
                         ),
-                      ),
+                        TextButton(
+                          onPressed: () => Navigator.pushReplacementNamed(context, AppRoutes.login),
+                          child: const Text(
+                            'Log In',
+                            style: TextStyle(
+                              color: AppColors.primary,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 24),
+                  
+                  // Verification Info
+                  const SizedBox(height: 8),
+                  Center(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.shield_outlined, size: 14, color: Colors.grey.shade300),
+                        const SizedBox(width: 6),
+                        Text(
+                          'Your data is secure and private',
+                          style: TextStyle(fontSize: 12, color: Colors.grey.shade300),
+                        ),
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -270,5 +259,3 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
     );
   }
 }
-
-

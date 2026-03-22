@@ -571,13 +571,13 @@ class _RiderHomePageState extends ConsumerState<RiderHomePage> {
                             width: 60,
                             height: 60,
                             decoration: const BoxDecoration(
-                              color: Color(0xFFEBFFD7),
+                              color: Color(0xFFCFFAFE),
                               shape: BoxShape.circle,
                             ),
                             child: const Icon(
                               Icons.person_rounded,
                               size: 32,
-                              color: Color(0xFF68B92E),
+                              color: Color(0xFF06B6D4),
                             ),
                           ),
                           const SizedBox(width: 16),
@@ -878,13 +878,13 @@ class _RiderHomePageState extends ConsumerState<RiderHomePage> {
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 10, vertical: 5),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFEBFFD7),
+                              color: const Color(0xFFCFFAFE),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Text(
                               '#${(order['orderId']?.toString() ?? '').length >= 6 ? order['orderId'].toString().substring(order['orderId'].toString().length - 6).toUpperCase() : (order['orderId']?.toString() ?? '').toUpperCase()}',
                               style: const TextStyle(
-                                color: Color(0xFF439462),
+                                color: Color(0xFF06B6D4),
                                 fontWeight: FontWeight.bold,
                                 fontSize: 12,
                                 letterSpacing: 0.5,
@@ -1021,7 +1021,7 @@ class _RiderHomePageState extends ConsumerState<RiderHomePage> {
                                 _handleResponse(order['orderId'], 'Accepted'),
                         style: ElevatedButton.styleFrom(
                           backgroundColor:
-                              isProcessing ? Colors.grey : const Color(0xFF68B92E),
+                              isProcessing ? Colors.grey : const Color(0xFF06B6D4),
                           foregroundColor: Colors.white,
                           elevation: 0,
                           shape: RoundedRectangleBorder(
@@ -1098,7 +1098,7 @@ class _RiderHomePageState extends ConsumerState<RiderHomePage> {
                                 fontSize: 11, fontWeight: FontWeight.bold)),
                         style: ElevatedButton.styleFrom(
                           backgroundColor:
-                              isProcessing ? Colors.grey : const Color(0xFF68B92E),
+                              isProcessing ? Colors.grey : const Color(0xFF06B6D4),
                           foregroundColor: Colors.white,
                           elevation: 0,
                           shape: RoundedRectangleBorder(
@@ -1171,7 +1171,7 @@ class _RiderHomePageState extends ConsumerState<RiderHomePage> {
             ),
             child: Icon(Icons.delivery_dining_rounded,
                 size: 80,
-                color: const Color(0xFF68B92E).withValues(alpha: 0.2)),
+                color: const Color(0xFF06B6D4).withValues(alpha: 0.2)),
           ),
           const SizedBox(height: 24),
           const Text(
@@ -1212,14 +1212,14 @@ class _NewOrderBanner extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [Color(0xFF439462), Color(0xFF68B92E)],
+          colors: [Color(0xFF06B6D4), Color(0xFF06B6D4)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF68B92E).withValues(alpha: 0.4),
+            color: const Color(0xFF06B6D4).withValues(alpha: 0.4),
             blurRadius: 16,
             offset: const Offset(0, 6),
           ),
@@ -1308,3 +1308,5 @@ class _NewOrderBanner extends StatelessWidget {
         .fadeIn(duration: 300.ms);
   }
 }
+
+

@@ -29,14 +29,14 @@ class _ActiveOrdersPageState extends ConsumerState<ActiveOrdersPage> {
             style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 18,
-                color: Color(0xFF114F3B))),
+                color: Color(0xFF0891B2))),
         backgroundColor: const Color(0xFFF0F4EC),
-        foregroundColor: const Color(0xFF114F3B),
+        foregroundColor: const Color(0xFF0891B2),
         elevation: 0,
         centerTitle: true,
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh_rounded, color: Color(0xFF114F3B)),
+            icon: const Icon(Icons.refresh_rounded, color: Color(0xFF0891B2)),
             onPressed: () => ref.invalidate(activeOrdersProvider),
             tooltip: 'Refresh',
           ),
@@ -48,7 +48,7 @@ class _ActiveOrdersPageState extends ConsumerState<ActiveOrdersPage> {
             return _buildEmptyState(context);
           }
           return RefreshIndicator(
-            color: const Color(0xFF114F3B),
+            color: const Color(0xFF0891B2),
             onRefresh: () async =>
                 ref.read(activeOrdersProvider.notifier).refresh(),
             child: ListView.builder(
@@ -89,18 +89,18 @@ class _ActiveOrdersPageState extends ConsumerState<ActiveOrdersPage> {
           Container(
             padding: const EdgeInsets.all(28),
             decoration: const BoxDecoration(
-              color: Color(0xFFEBFFD7),
+              color: Color(0xFFCFFAFE),
               shape: BoxShape.circle,
             ),
             child: const Icon(Icons.inventory_2_outlined,
-                size: 56, color: Color(0xFF68B92E)),
+                size: 56, color: Color(0xFF06B6D4)),
           ),
           const SizedBox(height: 24),
           const Text('No Active Orders',
               style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 20,
-                  color: Color(0xFF114F3B))),
+                  color: Color(0xFF0891B2))),
           const SizedBox(height: 8),
           Text('Place an order and track it live here!',
               style: TextStyle(color: Colors.grey.shade500, fontSize: 14)),
@@ -110,7 +110,7 @@ class _ActiveOrdersPageState extends ConsumerState<ActiveOrdersPage> {
             icon: const Icon(Icons.storefront_outlined),
             label: const Text('Order Something'),
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF114F3B),
+              backgroundColor: const Color(0xFF0891B2),
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16)),
@@ -142,7 +142,7 @@ class _ActiveOrdersPageState extends ConsumerState<ActiveOrdersPage> {
             icon: const Icon(Icons.refresh, size: 18),
             label: const Text('Retry'),
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF114F3B),
+              backgroundColor: const Color(0xFF0891B2),
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12)),
@@ -270,7 +270,7 @@ class _ActiveOrderCard extends StatelessWidget {
               child: Row(
                 children: [
                   const Icon(Icons.set_meal_outlined,
-                      size: 18, color: Color(0xFF68B92E)),
+                      size: 18, color: Color(0xFF06B6D4)),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(itemsSummary,
@@ -299,7 +299,7 @@ class _ActiveOrderCard extends StatelessWidget {
                 child: Row(
                   children: [
                     const Icon(Icons.location_on,
-                        color: Color(0xFF114F3B), size: 18),
+                        color: Color(0xFF0891B2), size: 18),
                     const SizedBox(width: 10),
                     Expanded(
                       child: Column(
@@ -338,7 +338,7 @@ class _ActiveOrderCard extends StatelessWidget {
                     children: [
                       CircleAvatar(
                         radius: 16,
-                        backgroundColor: const Color(0xFF114F3B),
+                        backgroundColor: const Color(0xFF0891B2),
                         child: Text(
                           riderName.isNotEmpty
                               ? riderName[0].toUpperCase()
@@ -372,7 +372,7 @@ class _ActiveOrderCard extends StatelessWidget {
                           child: Container(
                             padding: const EdgeInsets.all(8),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF114F3B),
+                              color: const Color(0xFF0891B2),
                               borderRadius: BorderRadius.circular(10),
                             ),
                             child: const Icon(Icons.call,
@@ -393,7 +393,7 @@ class _ActiveOrderCard extends StatelessWidget {
                       style: const TextStyle(
                           fontWeight: FontWeight.w900,
                           fontSize: 20,
-                          color: Color(0xFF114F3B))),
+                          color: Color(0xFF0891B2))),
                 ],
               ),
             ),
@@ -437,7 +437,7 @@ class _ActiveOrderCard extends StatelessWidget {
       case 'out for delivery':
         return {'bg': const Color(0xFFEF4444), 'text': Colors.white};
       default:
-        return {'bg': const Color(0xFF114F3B), 'text': Colors.white};
+        return {'bg': const Color(0xFF0891B2), 'text': Colors.white};
     }
   }
 }
@@ -483,3 +483,4 @@ class _ShimmerBoxState extends State<_ShimmerBox>
     );
   }
 }
+

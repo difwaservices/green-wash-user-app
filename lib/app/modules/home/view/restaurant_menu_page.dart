@@ -9,6 +9,8 @@ import '../provider/shop_provider.dart';
 import '../widgets/cart_summary_bar.dart';
 import '../widgets/quantity_selector.dart';
 import 'package:difwawaterapp/app/routes/app_routes.dart';
+import '../../../core/constants/app_colors.dart';
+import 'product_details_page.dart';
 
 class RestaurantMenuPage extends ConsumerWidget {
   final ShopModel shop;
@@ -148,7 +150,7 @@ class RestaurantMenuPage extends ConsumerWidget {
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 10, vertical: 6),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFF68B92E),
+                                  color: AppColors.primary,
                                   borderRadius: BorderRadius.circular(10),
                                 ),
                                 child: Row(
@@ -180,7 +182,7 @@ class RestaurantMenuPage extends ConsumerWidget {
                               _MetaChip(
                                 icon: Icons.bolt,
                                 label: _deliveryTime,
-                                iconColor: const Color(0xFF68B92E),
+                                iconColor: AppColors.primary,
                               ),
                               _MetaChip(
                                 icon: Icons.location_on_outlined,
@@ -209,7 +211,7 @@ class RestaurantMenuPage extends ConsumerWidget {
                                   SizedBox(width: 12),
                                   Expanded(
                                     child: Text(
-                                      'This restaurant is currently offline and not accepting orders.',
+                                      'This water plant is currently offline and not accepting orders.',
                                       style: TextStyle(
                                           color: Colors.white,
                                           fontSize: 12,
@@ -226,20 +228,20 @@ class RestaurantMenuPage extends ConsumerWidget {
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 12, vertical: 8),
                               decoration: BoxDecoration(
-                                color: const Color(0xFFEBFFD7),
+                                color: AppColors.primary.withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(10),
                               ),
                               child: Row(
                                 children: [
                                   const Icon(Icons.local_offer,
-                                      size: 14, color: Color(0xFF439462)),
+                                      size: 14, color: AppColors.primaryDark),
                                   const SizedBox(width: 8),
                                   Text(
                                     'Flat ₹100 OFF above ₹499',
                                     style: const TextStyle(
                                       fontSize: 13,
                                       fontWeight: FontWeight.w700,
-                                      color: Color(0xFF439462),
+                                      color: AppColors.primaryDark,
                                     ),
                                   ),
                                 ],
@@ -256,7 +258,7 @@ class RestaurantMenuPage extends ConsumerWidget {
                     padding: EdgeInsets.fromLTRB(16, 4, 16, 12),
                     sliver: SliverToBoxAdapter(
                       child: Text(
-                        'Difwa VARIETIES',
+                        'WATER VARIETIES',
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w800,
@@ -359,7 +361,7 @@ class RestaurantMenuPage extends ConsumerWidget {
         errorBuilder: (_, __, ___) => _localHero(),
       );
     }
-    return _localHero();
+        return _localHero();
   }
 
   Widget _localHero() {
@@ -369,7 +371,7 @@ class RestaurantMenuPage extends ConsumerWidget {
       errorBuilder: (_, __, ___) => Container(
         color: Colors.grey.shade200,
         child: const Center(
-            child: Icon(Icons.restaurant, size: 64, color: Colors.grey)),
+            child: Icon(Icons.water_drop_outlined, size: 64, color: Colors.grey)),
       ),
     );
   }
@@ -402,129 +404,142 @@ class _ProductCardState extends ConsumerState<_ProductCard> {
     final cart = CartProviderScope.of(context);
     final p = widget.product;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade200),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // ── Product Image ─────────────────────────────────────────────
-          Stack(
-            children: [
-              ClipRRect(
-                borderRadius:
-                    const BorderRadius.vertical(top: Radius.circular(16)),
-                child: p.primaryImage.isNotEmpty
-                    ? Image.network(
-                        p.primaryImage,
-                        height: 110,
-                        width: double.infinity,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => _imagePlaceholder(),
-                      )
-                    : _imagePlaceholder(),
-              ),
-              // Favorite button — wired to backend
-              Positioned(
-                top: 6,
-                right: 6,
-                child: _FavoriteHeart(productId: p.id),
-              ),
-              // Out of stock badge
-              if (!p.isAvailable)
-                Positioned.fill(
-                  child: ClipRRect(
-                    borderRadius:
-                        const BorderRadius.vertical(top: Radius.circular(16)),
-                    child: Container(
-                      color: Colors.black.withValues(alpha: 0.45),
-                      child: const Center(
-                        child: Text(
-                          'Out of Stock',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ProductDetailsPage(
+              product: p.toProduct(widget.isShopActive,
+                  shopName: widget.shopName),
+            ),
+          ),
+        );
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.grey.shade200),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // ── Product Image ─────────────────────────────────────────────
+            Stack(
+              children: [
+                ClipRRect(
+                  borderRadius:
+                      const BorderRadius.vertical(top: Radius.circular(16)),
+                  child: p.primaryImage.isNotEmpty
+                      ? Image.network(
+                          p.primaryImage,
+                          height: 110,
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => _imagePlaceholder(),
+                        )
+                      : _imagePlaceholder(),
+                ),
+                // Favorite button
+                Positioned(
+                  top: 6,
+                  right: 6,
+                  child: _FavoriteHeart(productId: p.id),
+                ),
+                // Out of stock badge
+                if (!p.isAvailable)
+                  Positioned.fill(
+                    child: ClipRRect(
+                      borderRadius:
+                          const BorderRadius.vertical(top: Radius.circular(16)),
+                      child: Container(
+                        color: Colors.black.withValues(alpha: 0.45),
+                        child: const Center(
+                          child: Text(
+                            'Out of Stock',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
                       ),
                     ),
                   ),
-                ),
-            ],
-          ),
-
-          // ── Product Info ──────────────────────────────────────────────
-          Padding(
-            padding: const EdgeInsets.fromLTRB(10, 8, 10, 0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  p.name,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF1A1A1A),
-                  ),
-                ),
-                const SizedBox(height: 2),
-                if (p.category != null)
-                  Text(
-                    p.category!.name,
-                    style: const TextStyle(fontSize: 11, color: Colors.grey),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                if (p.description.isNotEmpty)
-                  Text(
-                    p.description,
-                    style: TextStyle(fontSize: 10, color: Colors.grey.shade500),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
               ],
             ),
-          ),
 
-          const Spacer(),
-
-          // ── Price + Add to Cart ──────────────────────────────────────
-          Padding(
-            padding: const EdgeInsets.fromLTRB(10, 0, 10, 10),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  '₹${p.price.toStringAsFixed(0)}',
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w900,
-                    color: Color(0xFF1A1A1A),
-                  ),
-                ),
-                // Dynamic Cart Controls
-                if (p.isAvailable)
-                  _buildCartControls(context, cart, p, widget.shopName)
-                else
-                  Container(
-                    width: 32,
-                    height: 32,
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade300,
-                      borderRadius: BorderRadius.circular(8),
+            // ── Product Info ──────────────────────────────────────────────
+            Padding(
+              padding: const EdgeInsets.fromLTRB(10, 8, 10, 0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    p.name,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF1A1A1A),
                     ),
-                    child: const Icon(Icons.add, color: Colors.grey, size: 18),
                   ),
-              ],
+                  const SizedBox(height: 2),
+                  if (p.category != null)
+                    Text(
+                      p.category!.name,
+                      style: const TextStyle(fontSize: 11, color: Colors.grey),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  if (p.description.isNotEmpty)
+                    Text(
+                      p.description,
+                      style: TextStyle(fontSize: 10, color: Colors.grey.shade500),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                ],
+              ),
             ),
-          ),
-        ],
+
+            const Spacer(),
+
+            // ── Price + Add to Cart ──────────────────────────────────────
+            Padding(
+              padding: const EdgeInsets.fromLTRB(10, 0, 10, 10),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    '₹${p.price.toStringAsFixed(0)}',
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w900,
+                      color: Color(0xFF1A1A1A),
+                    ),
+                  ),
+                  // Dynamic Cart Controls
+                  if (p.isAvailable)
+                    _buildCartControls(context, cart, p, widget.shopName)
+                  else
+                    Container(
+                      width: 28,
+                      height: 28,
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade100,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(Icons.add, color: Colors.grey, size: 16),
+                    ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     )
         .animate(delay: (60 * widget.index).ms)
@@ -579,7 +594,7 @@ class _ProductCardState extends ConsumerState<_ProductCard> {
               SnackBar(
                 content: Text('${p.name} added to cart!'),
                 duration: const Duration(seconds: 1),
-                backgroundColor: const Color(0xFF439462),
+                backgroundColor: AppColors.primaryDark,
                 behavior: SnackBarBehavior.floating,
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10)),
@@ -593,7 +608,7 @@ class _ProductCardState extends ConsumerState<_ProductCard> {
           width: 32,
           height: 32,
           decoration: BoxDecoration(
-            color: const Color(0xFF68B92E),
+            color: AppColors.primary,
             borderRadius: BorderRadius.circular(8),
           ),
           child: const Icon(Icons.add, color: Colors.white, size: 18),
@@ -605,7 +620,7 @@ class _ProductCardState extends ConsumerState<_ProductCard> {
       quantity: cartItem.quantity,
       onIncrement: () => cart.increment(p.name),
       onDecrement: () => cart.decrement(p.name),
-      size: 32, // Compact size for grid card
+      size: 32,
     );
   }
 
@@ -622,7 +637,7 @@ class _ProductCardState extends ConsumerState<_ProductCard> {
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
         ),
         content: Text(
-          'Your cart contains dishes from $oldShopName. Do you want to discard the selection and add dishes from $newShopName?',
+          'Your cart contains products from $oldShopName. Do you want to discard the selection and add products from $newShopName?',
           style:
               const TextStyle(color: Colors.black87, fontSize: 14, height: 1.5),
         ),
@@ -666,7 +681,7 @@ class _ProductCardState extends ConsumerState<_ProductCard> {
                       SnackBar(
                         content:
                             Text('Cart replaced with items from $newShopName'),
-                        backgroundColor: const Color(0xFF439462),
+                        backgroundColor: AppColors.primaryDark,
                         behavior: SnackBarBehavior.floating,
                       ),
                     );
@@ -920,7 +935,7 @@ class _ProductsErrorState extends StatelessWidget {
             ElevatedButton.icon(
               onPressed: onRetry,
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF68B92E),
+                backgroundColor: const Color(0xFF06B6D4),
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12)),
@@ -998,3 +1013,4 @@ class _MetaChip extends StatelessWidget {
     );
   }
 }
+

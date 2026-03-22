@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../data/services/db_service.dart';
 import '../../cart/view/cart_page.dart';
+import '../../../core/constants/app_colors.dart';
 
 class CartSummaryBar extends StatelessWidget {
   final CartProvider cart;
@@ -42,12 +43,12 @@ class CartSummaryBar extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: const Color(0xFF68B92E).withValues(alpha: 0.2),
+                color: AppColors.primary.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
                 Icons.shopping_basket_rounded,
-                color: Color(0xFF68B92E),
+                color: AppColors.primary,
                 size: 20,
               ),
             ),
@@ -79,7 +80,7 @@ class CartSummaryBar extends StatelessWidget {
             const Text(
               'VIEW CART',
               style: TextStyle(
-                color: Color(0xFF68B92E),
+                color: AppColors.primary,
                 fontSize: 13,
                 fontWeight: FontWeight.w900,
                 letterSpacing: 1,
@@ -88,7 +89,7 @@ class CartSummaryBar extends StatelessWidget {
             const SizedBox(width: 6),
             const Icon(
               Icons.arrow_forward_ios_rounded,
-              color: Color(0xFF68B92E),
+              color: AppColors.primary,
               size: 14,
             ),
           ],

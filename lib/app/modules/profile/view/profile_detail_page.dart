@@ -5,6 +5,8 @@ import '../../../data/services/db_service.dart';
 import '../../../data/services/subscription_service.dart';
 import '../../../data/models/subscription_model.dart';
 import '../../../data/models/food_models.dart';
+import '../../../core/constants/app_colors.dart';
+import '../../../core/constants/app_images.dart';
 import 'address_form_page.dart';
 import '../widgets/review_dialog.dart';
 
@@ -26,6 +28,12 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
   List<SubscriptionPlan> _subscriptionPlans = [];
   bool _subscriptionsLoading = false;
   String? _subscriptionsError;
+  final Map<String, bool> _notificationSettings = {
+    'Allow Notifications': true, 
+    'Email Notifications': false,
+    'Order Notifications': false,
+    'General Notifications': true,
+  };
   String? _selectedPlanId;
 
   @override
@@ -182,13 +190,13 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
                     padding:
                         const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFEBFFD7),
+                      color: const Color(0xFFCFFAFE),
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: const Text(
                       'DEFAULT',
                       style: TextStyle(
-                        color: Color(0xFF68B92E),
+                        color: Color(0xFF06B6D4),
                         fontSize: 10,
                         fontWeight: FontWeight.bold,
                       ),
@@ -199,14 +207,14 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
                   children: [
                     CircleAvatar(
                       radius: 24,
-                      backgroundColor: const Color(0xFFEBFFD7),
+                      backgroundColor: const Color(0xFFCFFAFE),
                       child: Icon(
                         addr.title == 'Home'
                             ? Icons.home_rounded
                             : addr.title == 'Work'
                                 ? Icons.work_rounded
                                 : Icons.location_on_rounded,
-                        color: const Color(0xFF68B92E),
+                        color: const Color(0xFF06B6D4),
                         size: 20,
                       ),
                     ),
@@ -315,13 +323,13 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.add_circle_outline, color: Color(0xFF439462)),
+                    Icon(Icons.add_circle_outline, color: Color(0xFF06B6D4)),
                     SizedBox(width: 8),
                     Text(
                       'Add New Address',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF439462),
+                        color: Color(0xFF06B6D4),
                       ),
                     ),
                   ],
@@ -339,7 +347,7 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
       return const Padding(
         padding: EdgeInsets.only(top: 40),
         child:
-            Center(child: CircularProgressIndicator(color: Color(0xFF68B92E))),
+            Center(child: CircularProgressIndicator(color: Color(0xFF06B6D4))),
       );
     }
 
@@ -371,10 +379,10 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
             contentPadding: const EdgeInsets.all(16),
             leading: CircleAvatar(
               radius: 30,
-              backgroundColor: const Color(0xFFEBFFD7),
+              backgroundColor: const Color(0xFFCFFAFE),
               child: const Icon(
                 Icons.inventory_2_outlined,
-                color: Color(0xFF68B92E),
+                color: Color(0xFF06B6D4),
               ),
             ),
             title: Text(
@@ -422,7 +430,7 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
               isExpanded
                   ? Icons.expand_less_rounded
                   : Icons.expand_more_rounded,
-              color: const Color(0xFF68B92E),
+              color: const Color(0xFF06B6D4),
             ),
             onTap: () {
               setState(() {
@@ -487,15 +495,15 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
                           );
                         },
                         icon: const Icon(Icons.star_outline,
-                            color: Color(0xFF68B92E)),
+                            color: Color(0xFF06B6D4)),
                         label: const Text(
                           'Rate & Review',
                           style: TextStyle(
-                              color: Color(0xFF68B92E),
+                              color: Color(0xFF06B6D4),
                               fontWeight: FontWeight.bold),
                         ),
                         style: OutlinedButton.styleFrom(
-                          side: const BorderSide(color: Color(0xFF68B92E)),
+                          side: const BorderSide(color: Color(0xFF06B6D4)),
                           shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12)),
                           padding: const EdgeInsets.symmetric(vertical: 12),
@@ -514,27 +522,13 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
   // --- NOTIFICATIONS DESIGN (Image 4) ---
   Widget _buildNotificationsDetail() {
     return Column(
-      children: [
-        _buildNotificationCard(
-          'Allow Notifications',
-          'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed diam nonummym',
-          true,
-        ),
-        _buildNotificationCard(
-          'Email Notifications',
-          'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed diam nonummym',
-          false,
-        ),
-        _buildNotificationCard(
-          'Order Notifications',
-          'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed diam nonummym',
-          false,
-        ),
-        _buildNotificationCard(
-          'General Notifications',
-          'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed diam nonummym',
-          true,
-        ),
+      children: _notificationSettings.keys.map((key) {
+        return _buildNotificationCard(
+          key,
+          'Get real-time updates for $key.',
+          _notificationSettings[key] ?? false,
+        );
+      }).toList() + [
         const SizedBox(height: 60),
         _buildSaveButton('Save settings'),
       ],
@@ -566,13 +560,13 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFEBFFD7),
+                  color: const Color(0xFFCFFAFE),
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: const Text(
                   'DEFAULT',
                   style: TextStyle(
-                    color: Color(0xFF68B92E),
+                    color: Color(0xFF06B6D4),
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
                   ),
@@ -609,7 +603,7 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
                       ],
                     ),
                   ),
-                  const Icon(Icons.expand_less, color: Color(0xFF68B92E)),
+                  const Icon(Icons.expand_less, color: Color(0xFF06B6D4)),
                 ],
               ),
               const SizedBox(height: 24),
@@ -640,8 +634,8 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
                   Switch(
                     value: _makeDefaultCard,
                     onChanged: (v) => setState(() => _makeDefaultCard = v),
-                    activeThumbColor: const Color(0xFF68B92E),
-                    activeTrackColor: const Color(0xFFEBFFD7),
+                    activeThumbColor: const Color(0xFF06B6D4),
+                    activeTrackColor: const Color(0xFFCFFAFE),
                   ),
                   const Text(
                     'Make default',
@@ -708,7 +702,7 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
       child: ElevatedButton(
         onPressed: () {},
         style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF439462), // Darker designer green
+          backgroundColor: const Color(0xFF06B6D4), // Darker designer green
           foregroundColor: Colors.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
@@ -741,13 +735,13 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
               height: 50,
               decoration: BoxDecoration(
                 color: isCompleted
-                    ? const Color(0xFFEBFFD7)
+                    ? const Color(0xFFCFFAFE)
                     : const Color(0xFFF1F4F8),
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 icon,
-                color: isCompleted ? const Color(0xFF68B92E) : Colors.grey,
+                color: isCompleted ? const Color(0xFF06B6D4) : Colors.grey,
                 size: 24,
               ),
             ),
@@ -756,7 +750,7 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
                 width: 2,
                 height: 50,
                 color: isCompleted
-                    ? const Color(0xFFEBFFD7)
+                    ? const Color(0xFFCFFAFE)
                     : const Color(0xFFF1F4F8),
               ),
           ],
@@ -823,8 +817,13 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
           const SizedBox(width: 12),
           Switch(
             value: value,
-            onChanged: (v) {},
-            activeThumbColor: const Color(0xFF68B92E),
+            onChanged: (v) {
+              setState(() {
+                _notificationSettings[title] = v;
+              });
+            },
+            activeThumbColor: const Color(0xFF06B6D4),
+            activeTrackColor: const Color(0xFFCFFAFE),
           ),
         ],
       ),
@@ -881,35 +880,35 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
     return Column(
       children: [
         _buildFavoriteCard(
-          'Fresh Broccoli',
-          '1.50 lbs',
-          '2.22',
-          4,
-          'assets/images/image copy.png',
-          const Color(0xFFEBFFD7),
+          '20L Mineral Jar',
+          'Premium RO+UV',
+          '80',
+          1,
+          AppImages.water20L,
+          const Color(0xFFE3F2FD),
         ),
         _buildFavoriteCard(
-          'Black Grapes',
-          '5.0 lbs',
-          '2.32',
-          4,
-          'assets/images/image copy 2.png',
-          const Color(0xFFFFF1F1),
+          '1L Mineral Bottle',
+          'Pack of 12',
+          '240',
+          1,
+          AppImages.waterSmall,
+          const Color(0xFFE1F5FE),
         ),
         _buildFavoriteCard(
-          'Avocado',
-          '1.50 lbs',
-          '2.22',
-          4,
-          'assets/images/image copy.png',
-          const Color(0xFFFFF8E1),
+          'Table Top Dispenser',
+          'Manual Tap',
+          '499',
+          1,
+          AppImages.bottleIcon,
+          const Color(0xFFF1F8E9),
         ),
         _buildFavoriteCard(
-          'Pineapple',
-          'dozen',
-          '3.22',
-          4,
-          'assets/images/image copy 2.png',
+          'Water Pump',
+          'Automatic USB',
+          '299',
+          1,
+          AppImages.water20L,
           const Color(0xFFFFF3E0),
         ),
       ],
@@ -968,7 +967,7 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
                   Text(
                     '₹$price x $count',
                     style: const TextStyle(
-                      color: Color(0xFF68B92E),
+                      color: Color(0xFF06B6D4),
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
                     ),
@@ -994,7 +993,7 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
                   icon: const Icon(
                     Icons.add,
                     size: 18,
-                    color: Color(0xFF68B92E),
+                    color: Color(0xFF06B6D4),
                   ),
                   onPressed: () {},
                 ),
@@ -1090,7 +1089,7 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
                 ? Colors.red.withValues(alpha: 0.1)
                 : (isNegative
                     ? Colors.orange.withValues(alpha: 0.1)
-                    : Colors.green.withValues(alpha: 0.1)),
+                    : AppColors.primary.withValues(alpha: 0.1)),
             child: Icon(
               isFailed
                   ? Icons.error_outline
@@ -1099,7 +1098,7 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
                       : Icons.account_balance_wallet_outlined),
               color: isFailed
                   ? Colors.red
-                  : (isNegative ? Colors.orange : Colors.green),
+                  : (isNegative ? Colors.orange : AppColors.primary),
             ),
           ),
           const SizedBox(width: 16),
@@ -1131,7 +1130,7 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
                   fontSize: 15,
                   color: isFailed
                       ? Colors.grey
-                      : (isNegative ? Colors.black : Colors.green),
+                      : (isNegative ? Colors.black : AppColors.primary),
                 ),
               ),
               Text(
@@ -1200,7 +1199,7 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
         height: 300,
         child: Center(
           child: CircularProgressIndicator(
-            color: Color(0xFF439462),
+            color: Color(0xFF06B6D4),
           ),
         ),
       );
@@ -1227,7 +1226,7 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
                 icon: const Icon(Icons.refresh),
                 label: const Text('Retry'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF439462),
+                  backgroundColor: const Color(0xFF06B6D4),
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12)),
@@ -1259,14 +1258,14 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
             gradient: const LinearGradient(
-              colors: [Color(0xFF1B4332), Color(0xFF439462)],
+              colors: [Color(0xFF0891B2), Color(0xFF06B6D4)],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
             borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF439462).withValues(alpha: 0.32),
+                color: const Color(0xFF06B6D4).withValues(alpha: 0.32),
                 blurRadius: 18,
                 offset: const Offset(0, 8),
               ),
@@ -1578,3 +1577,5 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
     );
   }
 }
+
+

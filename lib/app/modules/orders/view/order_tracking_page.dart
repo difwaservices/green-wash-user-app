@@ -108,7 +108,7 @@ class _OrderTrackingPageState extends ConsumerState<OrderTrackingPage> {
   Color _roleColor(String role) {
     switch (role.toLowerCase()) {
       case 'retailer':
-        return const Color(0xFF68B92E);
+        return const Color(0xFF06B6D4);
       case 'rider':
         return const Color(0xFFE67E22);
       case 'user':
@@ -165,7 +165,7 @@ class _OrderTrackingPageState extends ConsumerState<OrderTrackingPage> {
     Color color;
     switch (status.toLowerCase()) {
       case 'delivered':
-        color = const Color(0xFF68B92E);
+        color = const Color(0xFF06B6D4);
         break;
       case 'cancelled':
         color = Colors.red;
@@ -175,7 +175,7 @@ class _OrderTrackingPageState extends ConsumerState<OrderTrackingPage> {
         color = const Color(0xFFE67E22);
         break;
       default:
-        color = const Color(0xFF114F3B); // Dark green or grey
+        color = const Color(0xFF0891B2); // Dark green or grey
     }
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
@@ -199,7 +199,7 @@ class _OrderTrackingPageState extends ConsumerState<OrderTrackingPage> {
     if (_isLoading) {
       return const Scaffold(
         body: Center(
-          child: CircularProgressIndicator(color: Color(0xFF114F3B)),
+          child: CircularProgressIndicator(color: Color(0xFF0891B2)),
         ),
       );
     }
@@ -257,7 +257,7 @@ class _OrderTrackingPageState extends ConsumerState<OrderTrackingPage> {
       ),
       body: RefreshIndicator(
         onRefresh: _loadOrderDetails,
-        color: const Color(0xFF114F3B),
+        color: const Color(0xFF0891B2),
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.all(20),
@@ -297,16 +297,16 @@ class _OrderTrackingPageState extends ConsumerState<OrderTrackingPage> {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF68B92E).withValues(alpha: 0.08),
+                    color: const Color(0xFF06B6D4).withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: const Color(0xFF68B92E).withValues(alpha: 0.15)),
+                    border: Border.all(color: const Color(0xFF06B6D4).withValues(alpha: 0.15)),
                   ),
                   child: Row(
                     children: [
                       Container(
                         padding: const EdgeInsets.all(8),
                         decoration: const BoxDecoration(
-                          color: Color(0xFF68B92E),
+                          color: Color(0xFF06B6D4),
                           shape: BoxShape.circle,
                         ),
                         child: const Icon(Icons.storefront, color: Colors.white, size: 18),
@@ -327,7 +327,7 @@ class _OrderTrackingPageState extends ConsumerState<OrderTrackingPage> {
                             Text(
                               shopName,
                               style: const TextStyle(
-                                color: Color(0xFF114F3B),
+                                color: Color(0xFF0891B2),
                                 fontWeight: FontWeight.w900,
                                 fontSize: 16,
                               ),
@@ -364,7 +364,7 @@ class _OrderTrackingPageState extends ConsumerState<OrderTrackingPage> {
                 const SizedBox(height: 8),
                 Text(frequency,
                     style: const TextStyle(
-                        color: Color(0xFF68B92E),
+                        color: Color(0xFF06B6D4),
                         fontSize: 16,
                         fontWeight: FontWeight.w900)),
                 if (customDaysStr.isNotEmpty) ...[
@@ -429,7 +429,7 @@ class _OrderTrackingPageState extends ConsumerState<OrderTrackingPage> {
     Color payStatusColor;
     switch (paymentStatus.toLowerCase()) {
       case 'paid':
-        payStatusColor = const Color(0xFF68B92E);
+        payStatusColor = const Color(0xFF06B6D4);
         break;
       case 'pending':
         payStatusColor = Colors.orange;
@@ -467,7 +467,7 @@ class _OrderTrackingPageState extends ConsumerState<OrderTrackingPage> {
                   valueStyle: const TextStyle(
                       fontWeight: FontWeight.w900,
                       fontSize: 18,
-                      color: Color(0xFF114F3B)),
+                      color: Color(0xFF0891B2)),
                 ),
               if (paymentMethod.isNotEmpty) ...[
                 const Divider(height: 20, color: Color(0xFFEEEEEE)),
@@ -555,10 +555,10 @@ class _OrderTrackingPageState extends ConsumerState<OrderTrackingPage> {
         Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: const Color(0xFF114F3B).withValues(alpha: 0.1),
+            color: const Color(0xFF0891B2).withValues(alpha: 0.1),
             shape: BoxShape.circle,
           ),
-          child: const Icon(Icons.location_on, color: Color(0xFF114F3B), size: 20),
+          child: const Icon(Icons.location_on, color: Color(0xFF0891B2), size: 20),
         ),
         const SizedBox(width: 12),
         Expanded(
@@ -627,7 +627,7 @@ class _OrderTrackingPageState extends ConsumerState<OrderTrackingPage> {
         final role = item['role']?.toString() ?? 'system';
         final statusText = item['status']?.toString() ?? '';
         final ts = _formatTimestamp(item['timestamp']);
-        final color = isLast ? const Color(0xFF68B92E) : Colors.grey.shade400;
+        final color = isLast ? const Color(0xFF06B6D4) : Colors.grey.shade400;
 
         return Row(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -681,7 +681,7 @@ class _OrderTrackingPageState extends ConsumerState<OrderTrackingPage> {
                         style: TextStyle(
                             fontWeight: FontWeight.w900,
                             fontSize: 16,
-                            color: isLast ? const Color(0xFF114F3B) : const Color(0xFF2C3E50))),
+                            color: isLast ? const Color(0xFF0891B2) : const Color(0xFF2C3E50))),
                     const SizedBox(height: 6),
                     Row(
                       children: [
@@ -727,7 +727,7 @@ class _OrderTrackingPageState extends ConsumerState<OrderTrackingPage> {
           role = 'rider';
         }
 
-        final color = isLast ? const Color(0xFF68B92E) : Colors.grey.shade400;
+        final color = isLast ? const Color(0xFF06B6D4) : Colors.grey.shade400;
 
         return Row(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -781,7 +781,7 @@ class _OrderTrackingPageState extends ConsumerState<OrderTrackingPage> {
                         style: TextStyle(
                             fontWeight: FontWeight.w900,
                             fontSize: 16,
-                            color: isLast ? const Color(0xFF114F3B) : const Color(0xFF2C3E50))),
+                            color: isLast ? const Color(0xFF0891B2) : const Color(0xFF2C3E50))),
                     const SizedBox(height: 6),
                     Row(
                       children: [
@@ -804,3 +804,4 @@ class _OrderTrackingPageState extends ConsumerState<OrderTrackingPage> {
     );
   }
 }
+

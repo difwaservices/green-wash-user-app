@@ -3,10 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_images.dart';
-import '../../routes/app_routes.dart';
 import '../../widgets/common_button.dart';
 import 'provider/auth_provider.dart';
 import 'widgets/input_field.dart';
+import '../../routes/app_routes.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
@@ -17,58 +17,18 @@ class LoginPage extends ConsumerStatefulWidget {
 
 class _LoginPageState extends ConsumerState<LoginPage> {
   final _phoneController = TextEditingController();
-  final _passwordController = TextEditingController();
-
-  bool _obscurePassword = true;
-  bool _agreeToTerms = false;
-
-  @override
-  void initState() {
-    super.initState();
-    // Show "verified" toast only when arriving from OTP verification
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final args = ModalRoute.of(context)?.settings.arguments;
-      if (args is Map && args['verified'] == true) {
-        _showSnackBar(
-          'Registration successful! Please login.',
-          backgroundColor: Colors.green.shade600,
-          icon: Icons.check_circle,
-        );
-      }
-    });
-  }
 
   @override
   void dispose() {
     _phoneController.dispose();
-    _passwordController.dispose();
     super.dispose();
   }
 
-  // ── Helpers ──────────────────────────────────────────────────────────────
-
-  void _showSnackBar(
-    String message, {
-    Color backgroundColor = Colors.black87,
-    IconData? icon,
-  }) {
+  void _showSnackBar(String message, {Color backgroundColor = Colors.black87}) {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Row(
-          children: [
-            if (icon != null) ...[
-              Icon(icon, color: Colors.white, size: 18),
-              const SizedBox(width: 8),
-            ],
-            Expanded(
-              child: Text(
-                message,
-                style: const TextStyle(fontWeight: FontWeight.w600),
-              ),
-            ),
-          ],
-        ),
+        content: Text(message, style: const TextStyle(fontWeight: FontWeight.w500)),
         backgroundColor: backgroundColor,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -77,47 +37,40 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     );
   }
 
-  // ── Login action ─────────────────────────────────────────────────────────
+  // ── Send OTP action ───────────────────────────────────────────────────────
 
-  Future<void> _login() async {
+  Future<void> _handleSendOtp() async {
     final phone = _phoneController.text.trim();
-    final password = _passwordController.text.trim();
 
-    if (phone.isEmpty || password.isEmpty) {
-      _showSnackBar('Please fill in all fields.', backgroundColor: Colors.red);
+    if (phone.isEmpty || phone.length < 10) {
+      _showSnackBar('Please enter a valid phone number.', backgroundColor: Colors.red);
       return;
     }
 
     try {
-      await ref.read(authProvider.notifier).login(
-            phoneNumber: phone,
-            password: password,
-          );
-      
-      // The listener in main.dart or auth_provider should handle navigation
-      // But if we want it here:
-      final newState = ref.read(authProvider);
-      if (newState is AuthAuthenticated) {
-        Navigator.pushNamedAndRemoveUntil(context, AppRoutes.home, (route) => false);
-      } else if (newState is AuthError) {
-        _showSnackBar(newState.message, backgroundColor: Colors.red);
-      }
+      await ref.read(authProvider.notifier).sendOtp(phoneNumber: phone);
     } catch (e) {
-      _showSnackBar('Login failed: ${e.toString()}', backgroundColor: Colors.red);
+      _showSnackBar('Failed to send OTP. Please try again.', backgroundColor: Colors.red);
     }
   }
-
-  // ── Build ────────────────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
     final isLoading = authState is AuthLoading;
 
-    // Listen for auth state changes — alternate way to handle success/error
+    // Listen for auth state changes
     ref.listen<ProviderAuthState>(authProvider, (previous, next) {
-      if (next is AuthAuthenticated) {
-        Navigator.pushNamedAndRemoveUntil(context, AppRoutes.home, (route) => false);
+      if (next is AuthSuccess) {
+        // Success moves to OTP verification
+        Navigator.pushNamed(
+          context,
+          AppRoutes.otp,
+          arguments: {
+            'phoneNumber': _phoneController.text.trim(),
+            'otp': next.otp, // Pass OTP for auto-verification if provided
+          },
+        );
       } else if (next is AuthError) {
         _showSnackBar(next.message, backgroundColor: Colors.red);
       }
@@ -129,24 +82,29 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         physics: const BouncingScrollPhysics(),
         child: Column(
           children: [
-            // ── Top breadcrumb/header image ──
+            // ── Premium Branding ──
             Stack(
               children: [
                 SizedBox(
-                  height: 300,
+                  height: 340,
                   width: double.infinity,
                   child: Stack(
                     children: [
-                       Positioned.fill(
+                      Positioned.fill(
                         child: SvgPicture.asset(
-                          AppImages.splashBg, 
+                          AppImages.splashBg,
                           fit: BoxFit.cover,
                         ),
                       ),
-                       Center(
-                        child: SvgPicture.asset(
-                          AppImages.difwaLogo2,
-                          width: 200,
+                      Center(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Image.asset(
+                              AppImages.difwaLogoPng,
+                              width: 180,
+                            ),
+                          ],
                         ),
                       ),
                     ],
@@ -155,88 +113,75 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               ],
             ),
 
-            // ── Form ──
+            // ── Verification Form ──
             Container(
-              padding: const EdgeInsets.fromLTRB(24, 28, 24, 32),
-              color: Colors.white,
+              padding: const EdgeInsets.fromLTRB(28, 40, 28, 40),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(36),
+                  topRight: Radius.circular(36),
+                ),
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    'Login',
+                    'Welcome Back!',
                     style: TextStyle(
-                      fontSize: 32,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
-                    ),
+                        fontSize: 30,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF1A1A1A)),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 10),
                   const Text(
-                    'Welcome back! Please enter your details.',
-                    style: TextStyle(fontSize: 15, color: Colors.grey),
+                    'Enter your registered phone number to verify your identity.',
+                    style: TextStyle(fontSize: 15, color: Colors.grey, height: 1.5),
                   ),
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 48),
 
                   InputField(
                     controller: _phoneController,
                     label: 'Phone Number',
-                    hintText: 'Enter your phone number',
-                    prefixIcon: Icons.phone_outlined,
+                    hintText: '2000000000',
+                    prefixIcon: Icons.phone_android_outlined,
                     keyboardType: TextInputType.phone,
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 40),
 
-                  InputField(
-                    controller: _passwordController,
-                    label: 'Password',
-                    hintText: 'Enter your password',
-                    prefixIcon: Icons.lock_outline,
-                    isPassword: true,
-                    obscureText: _obscurePassword,
-                    onToggleVisibility: () =>
-                        setState(() => _obscurePassword = !_obscurePassword),
-                  ),
-                  const SizedBox(height: 12),
-
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: TextButton(
-                      onPressed: () => Navigator.pushNamed(context, AppRoutes.forgotPassword),
-                      child: const Text(
-                        'Forgot Password?',
-                        style: TextStyle(
-                            color: AppColors.primary,
-                            fontWeight: FontWeight.w600),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-
+                  // Send OTP Button
                   CommonButton(
-                    text: 'Login',
-                    onPressed: _login,
+                    text: 'Request OTP',
+                    onPressed: _handleSendOtp,
                     backgroundColor: AppColors.primary,
+                    borderRadius: 16,
                     isLoading: isLoading,
                   ),
+
                   const SizedBox(height: 32),
 
+                  // Sign Up Link
                   Center(
-                    child: GestureDetector(
-                      onTap: () => Navigator.pushNamed(context, AppRoutes.signup),
-                      child: RichText(
-                        text: const TextSpan(
-                          text: "Don't have an account? ",
-                          style: TextStyle(fontSize: 14, color: Colors.grey),
-                          children: [
-                            TextSpan(
-                              text: 'Sign Up',
-                              style: TextStyle(
-                                  color: AppColors.primary,
-                                  fontWeight: FontWeight.bold),
-                            ),
-                          ],
+                    child: Column(
+                      children: [
+                        const Text(
+                          "New to Difwa Water?",
+                          style: TextStyle(color: Colors.grey, fontSize: 13),
                         ),
-                      ),
+                        const SizedBox(height: 8),
+                        GestureDetector(
+                          onTap: () =>
+                              Navigator.pushNamed(context, AppRoutes.signup),
+                          child: const Text(
+                            'Join Now / Signup',
+                            style: TextStyle(
+                              color: AppColors.primary,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 15,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],

@@ -6,6 +6,7 @@ import '../../../data/services/db_service.dart';
 import '../../../data/models/product_model.dart';
 import '../controller/main_controller.dart';
 import '../widgets/quantity_selector.dart';
+import '../../../core/constants/app_colors.dart';
 
 class FavoritesPage extends ConsumerWidget {
   const FavoritesPage({super.key});
@@ -30,14 +31,14 @@ class FavoritesPage extends ConsumerWidget {
         centerTitle: true,
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh, color: Color(0xFF68B92E)),
+            icon: const Icon(Icons.refresh, color: Color(0xFF06B6D4)),
             onPressed: () => ref.invalidate(favoriteProductsProvider),
           ),
         ],
       ),
       body: productsAsync.when(
         loading: () => const Center(
-          child: CircularProgressIndicator(color: Color(0xFF68B92E)),
+          child: CircularProgressIndicator(color: Color(0xFF06B6D4)),
         ),
         error: (err, _) => _buildError(context, ref, err),
         data: (products) => products.isEmpty
@@ -71,13 +72,13 @@ class FavoritesPage extends ConsumerWidget {
           Container(
             padding: const EdgeInsets.all(28),
             decoration: BoxDecoration(
-              color: const Color(0xFFEBFFD7),
+              color: const Color(0xFFCFFAFE),
               shape: BoxShape.circle,
             ),
             child: const Icon(
               Icons.favorite_outline_rounded,
               size: 72,
-              color: Color(0xFF68B92E),
+              color: Color(0xFF06B6D4),
             ),
           ),
           const SizedBox(height: 24),
@@ -98,7 +99,7 @@ class FavoritesPage extends ConsumerWidget {
           ElevatedButton.icon(
             onPressed: () => MainControllerScope.of(context).changePage(0),
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF439462),
+              backgroundColor: AppColors.primary,
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16)),
@@ -131,10 +132,11 @@ class FavoritesPage extends ConsumerWidget {
           ElevatedButton.icon(
             onPressed: () => ref.invalidate(favoriteProductsProvider),
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF68B92E),
+              backgroundColor: AppColors.primary,
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12)),
+              side: const BorderSide(color: AppColors.primary), // Added for focused border effect
             ),
             icon: const Icon(Icons.refresh, size: 18),
             label: const Text('Retry'),
@@ -299,7 +301,7 @@ class _FavProductCard extends ConsumerWidget {
                       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                         content: Text('${p.name} added to cart!'),
                         duration: const Duration(seconds: 1),
-                        backgroundColor: const Color(0xFF439462),
+                        backgroundColor: AppColors.primary,
                         behavior: SnackBarBehavior.floating,
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10)),
@@ -309,7 +311,7 @@ class _FavProductCard extends ConsumerWidget {
                       width: 30,
                       height: 30,
                       decoration: BoxDecoration(
-                        color: const Color(0xFF68B92E),
+                        color: const Color(0xFF06B6D4),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child:
@@ -339,3 +341,5 @@ class _FavProductCard extends ConsumerWidget {
         ),
       );
 }
+
+

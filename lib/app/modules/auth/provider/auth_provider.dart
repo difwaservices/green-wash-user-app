@@ -75,9 +75,8 @@ class AuthNotifier extends Notifier<ProviderAuthState> {
 
   Future<void> login({
     required String phoneNumber,
-    required String password,
   }) async {
-     await ref.read(core.authStoreProvider.notifier).login(phone: phoneNumber, password: password);
+     await ref.read(core.authStoreProvider.notifier).login(phone: phoneNumber);
   }
 
   Future<void> register({
@@ -121,6 +120,13 @@ class AuthNotifier extends Notifier<ProviderAuthState> {
 
   Future<void> init() async {
      await ref.read(core.authStoreProvider.notifier).init();
+  }
+  
+  Future<void> updateProfile({required String fullName, required String email}) async {
+     await ref.read(core.authStoreProvider.notifier).updateProfile(
+           fullName: fullName,
+           email: email,
+         );
   }
   
   void reset() => ref.invalidate(core.authStoreProvider);

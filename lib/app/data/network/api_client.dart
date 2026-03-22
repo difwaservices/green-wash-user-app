@@ -26,23 +26,23 @@ class ApiException implements Exception {
 final apiClientProvider = Provider<ApiClient>((ref) {
   final dio = Dio(BaseOptions(
     baseUrl: dotenv.env['API_BASE_URL'] ?? 'https://difwa-backend.vercel.app/api',
-    connectTimeout: const Duration(seconds: 30),
-    receiveTimeout: const Duration(seconds: 30),
+    connectTimeout: const Duration(seconds: 60),
+    receiveTimeout: const Duration(seconds: 60),
     contentType: Headers.jsonContentType,
   ));
 
   final storage = ref.watch(storageServiceProvider);
   dio.interceptors.addAll([
     AuthInterceptor(dio, storage),
-    // PrettyDioLogger(
-    //   requestHeader: true,
-    //   requestBody: true,
-    //   responseBody: true,
-    //   responseHeader: false,
-    //   error: true,
-    //   compact: true,
-    //   maxWidth: 90,
-    // ),
+    PrettyDioLogger(
+      requestHeader: true,
+      requestBody: true,
+      responseBody: true,
+      responseHeader: false,
+      error: true,
+      compact: true,
+      maxWidth: 90,
+    ),
   ]);
 
   return ApiClient(dio);
@@ -65,8 +65,8 @@ class ApiClient {
   static Dio _createDefaultDio() {
     final dio = Dio(BaseOptions(
       baseUrl: dotenv.env['API_BASE_URL'] ?? 'https://difwa-backend.vercel.app/api',
-      connectTimeout: const Duration(seconds: 30),
-      receiveTimeout: const Duration(seconds: 30),
+      connectTimeout: const Duration(seconds: 60),
+      receiveTimeout: const Duration(seconds: 60),
       contentType: Headers.jsonContentType,
     ));
 
@@ -90,7 +90,9 @@ class ApiClient {
     if (base.endsWith('/')) base = base.substring(0, base.length - 1);
     var p = path;
     if (!p.startsWith('/')) p = '/$p';
-    return base + p;
+    final fullUrl = base + p;
+    // debugPrint('📡 Raw Request URL: $fullUrl');
+    return fullUrl;
   }
 
   // ── HTTP Methods (Bypassed) ────────────────────────────────────────────────
@@ -102,6 +104,7 @@ class ApiClient {
       final response = await _dio.get(
         _buildUrl(path),
         queryParameters: queryParameters,
+        options: Options(extra: {'requiresAuth': requiresAuth}),
       );
       return response.data;
     } on DioException catch (e) {
@@ -115,6 +118,7 @@ class ApiClient {
       final response = await _dio.post(
         _buildUrl(path),
         data: data,
+        options: Options(extra: {'requiresAuth': requiresAuth}),
       );
       return response.data;
     } on DioException catch (e) {
@@ -128,6 +132,7 @@ class ApiClient {
       final response = await _dio.put(
         _buildUrl(path),
         data: data,
+        options: Options(extra: {'requiresAuth': requiresAuth}),
       );
       return response.data;
     } on DioException catch (e) {
@@ -141,6 +146,7 @@ class ApiClient {
       final response = await _dio.patch(
         _buildUrl(path),
         data: data,
+        options: Options(extra: {'requiresAuth': requiresAuth}),
       );
       return response.data;
     } on DioException catch (e) {
@@ -154,6 +160,7 @@ class ApiClient {
       final response = await _dio.delete(
         _buildUrl(path),
         data: data,
+        options: Options(extra: {'requiresAuth': requiresAuth}),
       );
       return response.data;
     } on DioException catch (e) {

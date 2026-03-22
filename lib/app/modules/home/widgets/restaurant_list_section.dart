@@ -2,22 +2,24 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../data/models/shop_product_model.dart';
 import '../provider/shop_provider.dart';
-import '../../home/view/restaurant_menu_page.dart';
+import '../view/restaurant_menu_page.dart';
 import 'filter_bottom_sheet.dart';
+import '../../../core/constants/app_images.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 
 // ── Cuisine types to cycle through for display ───────────────────────────────
 const List<String> _cuisineTypes = [
-  'Seafood · Coastal',
-  'Seafood · Grill',
-  'Seafood · Pan Asian',
-  'Seafood · Kerala',
-  'Seafood · Thai',
-  'Seafood · Mughlai',
-  'Seafood · Chinese',
-  'Seafood · Continental',
-  'Seafood · Goan',
-  'Seafood · Fusion',
-  'Seafood · Tandoor',
+  'Purified · Mineral',
+  'Alkaline · RO+UV',
+  'Natural · Spring',
+  'Distilled · Clean',
+  'Ionized · Balanced',
+  'Bottled · Bulk',
+  'Sparkling · Fresh',
+  'Filtered · Pure',
+  'Eco-Friendly · Safe',
+  'Premium · Health',
+  'Domestic · Supply',
 ];
 
 // ── Placeholder hero images (local assets as fallback) ───────────────────────
@@ -97,7 +99,7 @@ class _ShopsList extends StatelessWidget {
           child: Row(
             children: [
               const Text(
-                'Restaurants Near You',
+                'Water Plants Near You',
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w800,
@@ -121,20 +123,20 @@ class _ShopsList extends StatelessWidget {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF68B92E).withValues(alpha: 0.1),
+                    color: const Color(0xFF06B6D4).withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Row(
                     children: [
                       Icon(Icons.filter_list_rounded,
-                          size: 16, color: Color(0xFF68B92E)),
+                          size: 16, color: Color(0xFF06B6D4)),
                       SizedBox(width: 4),
                       Text(
                         'Filters',
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w700,
-                          color: Color(0xFF68B92E),
+                          color: Color(0xFF06B6D4),
                         ),
                       ),
                     ],
@@ -173,7 +175,7 @@ class _ShopCard extends StatelessWidget {
     final above = _offerAbove(index);
     if (above >= 999) return const Color(0xFF7B2FF7);
     if (above >= 799) return const Color(0xFF1565C0);
-    return const Color(0xFF68B92E);
+    return const Color(0xFF06B6D4);
   }
 
   String get _heroImage => _heroImages[index % _heroImages.length];
@@ -209,7 +211,7 @@ class _ShopCard extends StatelessWidget {
         if (!shop.isShopActive) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('This shop is currently not accepting orders.'),
+              content: Text('This plant is currently not accepting orders.'),
               backgroundColor: Colors.black87,
               behavior: SnackBarBehavior.floating,
             ),
@@ -296,7 +298,7 @@ class _ShopCard extends StatelessWidget {
                       child: Text(
                         shop.businessName.isNotEmpty
                             ? shop.businessName
-                            : 'Fresh Difwa · ₹499+',
+                            : 'Pure Water · ₹499+',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
@@ -381,7 +383,7 @@ class _ShopCard extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF68B92E),
+                        color: const Color(0xFF06B6D4),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Row(
@@ -422,7 +424,7 @@ class _ShopCard extends StatelessWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         const Icon(Icons.bolt,
-                            size: 14, color: Color(0xFF68B92E)),
+                            size: 14, color: Color(0xFF06B6D4)),
                         const SizedBox(width: 3),
                         Text(
                           shop.deliveryTime.isNotEmpty
@@ -511,7 +513,7 @@ class _ShopCard extends StatelessWidget {
         height: 180,
         color: Colors.grey.shade100,
         child: const Center(
-          child: Icon(Icons.restaurant, size: 48, color: Colors.grey),
+          child: Icon(Icons.water_drop_outlined, size: 48, color: Colors.grey),
         ),
       ),
     );
@@ -535,15 +537,21 @@ class _ShopsLoadingState extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Padding(
-          padding: EdgeInsets.fromLTRB(16, 20, 16, 12),
-          child: Text(
-            'Restaurants Near You',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w800,
-              color: Color(0xFF1A1A1A),
-            ),
+        Center(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 24),
+            child: Image.asset(
+              AppImages.difwaLogoPng,
+              width: 100,
+              height: 100,
+            )
+                .animate(onPlay: (controller) => controller.repeat())
+                .scale(
+                    begin: const Offset(0.9, 0.9),
+                    end: const Offset(1.1, 1.1),
+                    duration: 1000.ms,
+                    curve: Curves.easeInOut)
+                .fadeIn(begin: 0.6, duration: 1000.ms, curve: Curves.easeInOut),
           ),
         ),
         ...List.generate(3, (i) => const _ShopShimmerCard()),
@@ -661,7 +669,7 @@ class _ShopsErrorState extends StatelessWidget {
             const Icon(Icons.wifi_off_rounded, size: 56, color: Colors.grey),
             const SizedBox(height: 12),
             const Text(
-              'Could not load restaurants',
+              'Could not load water plants',
               style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
@@ -677,7 +685,7 @@ class _ShopsErrorState extends StatelessWidget {
             ElevatedButton.icon(
               onPressed: onRetry,
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF68B92E),
+                backgroundColor: const Color(0xFF06B6D4),
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12)),
@@ -711,7 +719,7 @@ class _ShopsEmptyState extends StatelessWidget {
             const Icon(Icons.storefront_outlined, size: 56, color: Colors.grey),
             const SizedBox(height: 12),
             const Text(
-              'No restaurants found',
+              'No water plants found',
               style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
@@ -719,7 +727,7 @@ class _ShopsEmptyState extends StatelessWidget {
             ),
             const SizedBox(height: 6),
             Text(
-              'Check back later for nearby restaurants.',
+              'Check back later for nearby water plants.',
               style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
               textAlign: TextAlign.center,
             ),
@@ -727,7 +735,7 @@ class _ShopsEmptyState extends StatelessWidget {
             ElevatedButton.icon(
               onPressed: onRetry,
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF68B92E),
+                backgroundColor: const Color(0xFF06B6D4),
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12)),

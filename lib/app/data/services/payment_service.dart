@@ -1,3 +1,4 @@
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:razorpay_flutter/razorpay_flutter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../network/api_client.dart';
@@ -39,14 +40,30 @@ class PaymentService {
       print("orderResponse type: ${orderResponse.runtimeType}");
       print("orderResponse data: $orderResponse");
 
-      final orderId = orderResponse['order']['id'];
+      String? orderId;
+      if (orderResponse is Map) {
+        if (orderResponse.containsKey('order') &&
+            orderResponse['order'] is Map &&
+            orderResponse['order'].containsKey('id')) {
+          orderId = orderResponse['order']['id'];
+        } else if (orderResponse.containsKey('id')) {
+          orderId = orderResponse['id'];
+        } else if (orderResponse.containsKey('data') && orderResponse['data'] is Map && orderResponse['data'].containsKey('id')) {
+          orderId = orderResponse['data']['id'];
+        }
+      }
+
+      if (orderId == null) {
+        throw Exception("Could not find order ID in backend response. Response: $orderResponse");
+      }
+
       print("Extracted orderId: $orderId");
 
       // 2. Open Razorpay Checkout
       var options = {
-        'key': 'rzp_test_S7lSvWtu89c6zD', // Using the test key provided
+        'key': dotenv.env['RAZORPAY_KEY'] ?? 'rzp_test_S7lSvWtu89c6zD', // Using the test key provided
         'amount': (amount * 100).toInt(),
-        'name': 'Difwabite',
+        'name': 'Difwa Water',
         'order_id': orderId,
         'description': 'Wallet Top-up',
         'prefill': {'contact': contact, 'email': email},

@@ -7,6 +7,8 @@ import '../../../data/services/subscription_service.dart';
 import '../widgets/cart_summary_bar.dart';
 import '../widgets/quantity_selector.dart';
 
+import '../../../core/constants/app_colors.dart';
+
 class ProductDetailsPage extends ConsumerWidget {
   final Product product;
 
@@ -18,6 +20,40 @@ class ProductDetailsPage extends ConsumerWidget {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => SubscriptionConfigDrawer(product: product),
+    );
+  }
+
+  void _addToCart(BuildContext context, CartProvider cart, CartItem newItem) {
+    if (!cart.isSameShop(newItem.shopId)) {
+      _showReplaceCartDialog(context, cart, newItem);
+    } else {
+      cart.addToCart(newItem);
+    }
+  }
+
+  void _showReplaceCartDialog(
+      BuildContext context, CartProvider cart, CartItem newItem) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Replace selection?'),
+        content: Text('Your cart contains products from ${cart.cartShopName}. '
+            'Do you want to discard them and add products from ${newItem.shopName}?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('NO'),
+          ),
+          TextButton(
+            onPressed: () {
+              cart.clearCart();
+              cart.addToCart(newItem);
+              Navigator.pop(context);
+            },
+            child: const Text('YES'),
+          ),
+        ],
+      ),
     );
   }
 
@@ -85,21 +121,21 @@ class ProductDetailsPage extends ConsumerWidget {
                     tag: 'product_${product.id}',
                     child: product.image.isEmpty
                         ? const Center(
-                            child: Icon(Icons.set_meal_outlined,
+                            child: Icon(Icons.water_drop_outlined,
                                 size: 64, color: Colors.grey))
                         : product.image.startsWith('http')
                             ? Image.network(
                                 product.image,
                                 fit: BoxFit.cover,
                                 errorBuilder: (_, __, ___) => const Center(
-                                    child: Icon(Icons.set_meal_outlined,
+                                    child: Icon(Icons.water_drop_outlined,
                                         size: 64, color: Colors.grey)),
                               )
                             : Image.asset(
                                 product.image,
                                 fit: BoxFit.cover,
                                 errorBuilder: (_, __, ___) => const Center(
-                                    child: Icon(Icons.set_meal_outlined,
+                                    child: Icon(Icons.water_drop_outlined,
                                         size: 64, color: Colors.grey)),
                               ),
                   ),
@@ -139,7 +175,7 @@ class ProductDetailsPage extends ConsumerWidget {
                               style: const TextStyle(
                                   fontSize: 24,
                                   fontWeight: FontWeight.w800,
-                                  color: Color(0xFF68B92E))),
+                                  color: AppColors.primaryDark)),
                         ],
                       ),
                       const SizedBox(height: 8),
@@ -160,7 +196,7 @@ class ProductDetailsPage extends ConsumerWidget {
                               color: Colors.grey.shade800)),
                       const SizedBox(height: 24),
                       if (product.whyChoose.isNotEmpty) ...[
-                        const Text('Why Choose Our Difwa',
+                        const Text('Why Choose Our Water',
                             style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
@@ -172,7 +208,7 @@ class ProductDetailsPage extends ConsumerWidget {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   const Icon(Icons.check_circle,
-                                      color: Color(0xFF68B92E), size: 20),
+                                      color: AppColors.primary, size: 20),
                                   const SizedBox(width: 12),
                                   Expanded(
                                       child: Text(point,
@@ -226,21 +262,21 @@ class ProductDetailsPage extends ConsumerWidget {
                         style: TextStyle(
                             fontWeight: FontWeight.bold, fontSize: 16)),
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: const Color(0xFF68B92E),
+                      foregroundColor: AppColors.primary,
                       side: const BorderSide(
-                          color: Color(0xFF68B92E), width: 1.5),
+                          color: AppColors.primary, width: 1.5),
                       minimumSize: const Size(double.infinity, 50),
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12)),
                     ),
                   ),
                   const SizedBox(height: 12),
-                  !isInCart
-                      ? ElevatedButton(
-                          onPressed: () =>
-                              cart.addToCart(CartItem.fromProduct(product)),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF68B92E),
+                      !isInCart
+                        ? ElevatedButton(
+                            onPressed: () => _addToCart(
+                                context, cart, CartItem.fromProduct(product)),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.primary,
                             foregroundColor: Colors.white,
                             minimumSize: const Size(double.infinity, 56),
                             shape: RoundedRectangleBorder(
@@ -258,7 +294,7 @@ class ProductDetailsPage extends ConsumerWidget {
                               color: const Color(0xFFF7F8FA),
                               borderRadius: BorderRadius.circular(16),
                               border: Border.all(
-                                  color: const Color(0xFF68B92E)
+                                  color: AppColors.primary
                                       .withValues(alpha: 0.2))),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -327,7 +363,7 @@ class _SubscriptionConfigDrawerState extends State<SubscriptionConfigDrawer> {
       builder: (context, child) => Theme(
         data: Theme.of(context).copyWith(
           colorScheme: const ColorScheme.light(
-            primary: Color(0xFF68B92E),
+            primary: AppColors.primary,
             onPrimary: Colors.white,
             surface: Colors.white,
           ),
@@ -377,11 +413,11 @@ class _SubscriptionConfigDrawerState extends State<SubscriptionConfigDrawer> {
                         _frequency = freq;
                         if (freq != 'Weekly') _selectedDays = [];
                       }),
-                      selectedColor:
-                          const Color(0xFF68B92E).withValues(alpha: 0.2),
+                       selectedColor:
+                          AppColors.primary.withValues(alpha: 0.2),
                       labelStyle: TextStyle(
                           color: _frequency == freq
-                              ? const Color(0xFF2E7D32)
+                              ? AppColors.primaryDark
                               : Colors.black87,
                           fontWeight: _frequency == freq
                               ? FontWeight.bold
@@ -412,11 +448,11 @@ class _SubscriptionConfigDrawerState extends State<SubscriptionConfigDrawer> {
                     width: 44,
                     height: 44,
                     decoration: BoxDecoration(
-                      color: selected ? const Color(0xFF68B92E) : Colors.white,
+                      color: selected ? AppColors.primary : Colors.white,
                       borderRadius: BorderRadius.circular(10),
                       border: Border.all(
                         color: selected
-                            ? const Color(0xFF68B92E)
+                            ? AppColors.primary
                             : Colors.grey.shade300,
                       ),
                     ),
@@ -456,7 +492,7 @@ class _SubscriptionConfigDrawerState extends State<SubscriptionConfigDrawer> {
                   IconButton(
                       onPressed: () => setState(() => _quantity++),
                       icon: const Icon(Icons.add_circle,
-                          color: Color(0xFF68B92E))),
+                          color: AppColors.primary)),
                 ],
               ),
             ],
@@ -471,21 +507,21 @@ class _SubscriptionConfigDrawerState extends State<SubscriptionConfigDrawer> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               decoration: BoxDecoration(
-                color: const Color(0xFF68B92E).withValues(alpha: 0.05),
+                color: AppColors.primary.withValues(alpha: 0.05),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFF68B92E)),
+                border: Border.all(color: AppColors.primary),
               ),
               child: Row(
                 children: [
                   const Icon(Icons.event_outlined,
-                      color: Color(0xFF68B92E), size: 20),
+                      color: AppColors.primary, size: 20),
                   const SizedBox(width: 12),
                   Text(
                     '${_startDate.day.toString().padLeft(2, '0')} / ${_startDate.month.toString().padLeft(2, '0')} / ${_startDate.year}',
                     style: const TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF2E7D32)),
+                        color: AppColors.primaryDark),
                   ),
                   const Spacer(),
                   const Text('Tap to change',
@@ -513,12 +549,12 @@ class _SubscriptionConfigDrawerState extends State<SubscriptionConfigDrawer> {
                   messenger.showSnackBar(SnackBar(
                     content: Text(res['message'] ?? 'Subscribed successfully!'),
                     backgroundColor:
-                        res['success'] == true ? Colors.green : Colors.red,
+                        res['success'] == true ? AppColors.primary : Colors.red,
                   ));
                 }
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF2E7D32),
+                backgroundColor: AppColors.primaryDark,
                 foregroundColor: Colors.white,
                 minimumSize: const Size(double.infinity, 56),
                 shape: RoundedRectangleBorder(

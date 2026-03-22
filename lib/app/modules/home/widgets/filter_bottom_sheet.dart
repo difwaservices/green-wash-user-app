@@ -26,7 +26,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
   bool _freeShipping = false;
   bool _sameDayDelivery = false;
 
-  final Color _primaryColor = const Color(0xFF68B92E);
+  final Color _primaryColor = const Color(0xFF06B6D4);
   final Color _bgColor = const Color(0xFFF8F9FA);
 
   // Active filters list
@@ -358,5 +358,6 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
     return Divider(color: Colors.grey.shade100, height: 16);
   }
 }
+
 
 

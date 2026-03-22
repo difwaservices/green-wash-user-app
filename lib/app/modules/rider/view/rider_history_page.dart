@@ -25,9 +25,9 @@ class RiderHistoryPage extends ConsumerWidget {
             style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 18,
-                color: Color(0xFF114F3B))),
+                color: Color(0xFF0891B2))),
         backgroundColor: const Color(0xFFF0F4EC),
-        foregroundColor: const Color(0xFF114F3B),
+        foregroundColor: const Color(0xFF0891B2),
         elevation: 0,
         centerTitle: true,
         actions: const [],
@@ -86,7 +86,7 @@ class RiderHistoryPage extends ConsumerWidget {
           Container(
             padding: const EdgeInsets.all(28),
             decoration: const BoxDecoration(
-              color: Color(0xFFEBFFD7),
+              color: Color(0xFFCFFAFE),
               shape: BoxShape.circle,
             ),
             child: const Icon(Icons.history_rounded,
@@ -97,7 +97,7 @@ class RiderHistoryPage extends ConsumerWidget {
               style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 20,
-                  color: Color(0xFF114F3B))),
+                  color: Color(0xFF0891B2))),
           const SizedBox(height: 8),
           Text('Completed deliveries will appear here',
               style: TextStyle(color: Colors.grey.shade500, fontSize: 14)),
@@ -221,7 +221,7 @@ class _DeliveryHistoryCard extends StatelessWidget {
                                 'delivered' ||
                             item['status']?.toString().toLowerCase() ==
                                 'completed')
-                        ? const Color(0xFFEBFFD7)
+                        ? const Color(0xFFCFFAFE)
                         : Colors.orange.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(10),
                   ),
@@ -278,7 +278,7 @@ class _DeliveryHistoryCard extends StatelessWidget {
                     icon: const Icon(Icons.phone_in_talk_rounded,
                         size: 20, color: AppColors.accentGreen),
                     style: IconButton.styleFrom(
-                      backgroundColor: const Color(0xFFEBFFD7),
+                      backgroundColor: const Color(0xFFCFFAFE),
                       padding: const EdgeInsets.all(8),
                       minimumSize: Size.zero,
                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -366,7 +366,7 @@ class _Row extends StatelessWidget {
             color: const Color(0xFFF0F4EC),
             borderRadius: BorderRadius.circular(8),
           ),
-          child: Icon(icon, size: 16, color: const Color(0xFF114F3B)),
+          child: Icon(icon, size: 16, color: const Color(0xFF0891B2)),
         ),
         const SizedBox(width: 12),
         Expanded(
@@ -390,3 +390,4 @@ class _Row extends StatelessWidget {
     );
   }
 }
+

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/constants/app_colors.dart';
 
 class QuantitySelector extends StatelessWidget {
   final int quantity;
@@ -21,7 +22,7 @@ class QuantitySelector extends StatelessWidget {
         color: const Color(0xFFF7F8FA),
         borderRadius: BorderRadius.circular(size / 2),
         border: Border.all(
-          color: const Color(0xFF68B92E).withValues(alpha: 0.1),
+          color: AppColors.primary.withValues(alpha: 0.1),
           width: 1,
         ),
       ),
@@ -53,7 +54,7 @@ class QuantitySelector extends StatelessWidget {
           _buildButton(
             icon: Icons.add_rounded,
             onPressed: onIncrement,
-            iconColor: const Color(0xFF68B92E),
+            iconColor: AppColors.primary,
             isPrimary: true,
           ),
         ],

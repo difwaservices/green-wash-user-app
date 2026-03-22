@@ -19,29 +19,29 @@ class _OnboardingPageState extends State<OnboardingPage> {
     {
       'title': 'Pure Drinking Water\nAt Your Doorstep',
       'subtitle': 'Fresh and filtered water delivered right to\nyour home or office.',
-      'image': AppImages.difwaLogo2,
+      'image': AppImages.difwaLogoPng,
       'layout': 'standard', // title top, image center
-      'isSvg': true,
+      'isSvg': false,
     },
     {
       'title': 'Safe and Hygienic\nPremium Quality',
       'subtitle':
           'Our water undergoes strict filtration processes\nto ensure your health and safety.',
-      'image': AppImages.waterJpg,
+      'image': AppImages.waterHero,
       'layout': 'card', // title top, image in rounded card
       'isSvg': false,
     },
     {
       'title': 'Effortless Ordering\nIn Just a Tap',
       'subtitle': 'Quick and easy booking through the\nDifwa Water App.',
-      'image': AppImages.bottleSvg,
+      'image': AppImages.bottleIcon,
       'layout': 'fullimage', // image fills top, curved white bottom
       'isSvg': true,
     },
     {
       'title': 'Fast Delivery\nStay Hydrated',
       'subtitle': 'On-time delivery across the city\nto keep you and your family healthy.',
-      'image': AppImages.bottalJpg,
+      'image': AppImages.waterBottle,
       'layout': 'bottom', // image top half, title+subtitle bottom, skip/next
       'isSvg': false,
     },

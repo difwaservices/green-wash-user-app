@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../widgets/common_button.dart';
+import '../../core/constants/app_images.dart';
+import '../../core/constants/app_colors.dart';
 import 'provider/auth_provider.dart';
 import '../../data/models/food_models.dart';
 import '../../data/services/db_service.dart';
@@ -10,7 +12,11 @@ class OtpVerificationPage extends ConsumerStatefulWidget {
   final String phoneNumber;
   final String? otp;
 
-  const OtpVerificationPage({super.key, required this.phoneNumber, this.otp});
+  const OtpVerificationPage({
+    super.key,
+    required this.phoneNumber,
+    this.otp,
+  });
 
   @override
   ConsumerState<OtpVerificationPage> createState() =>
@@ -18,82 +24,74 @@ class OtpVerificationPage extends ConsumerStatefulWidget {
 }
 
 class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage> {
-  static const int _otpLength = 6;
-
   final List<TextEditingController> _controllers =
-      List.generate(_otpLength, (_) => TextEditingController());
-  final List<FocusNode> _focusNodes =
-      List.generate(_otpLength, (_) => FocusNode());
+      List.generate(6, (index) => TextEditingController());
+  final List<FocusNode> _focusNodes = List.generate(6, (index) => FocusNode());
 
-  bool _isSendingOtp = false;
+  int _resendTimer = 30;
   bool _isVerifying = false;
+  bool _isSendingOtp = false;
+  final int _otpLength = 6;
 
   @override
   void initState() {
     super.initState();
+    _startTimer();
+    // Pre-fill OTP if development mode (provided from registration)
     if (widget.otp != null && widget.otp!.length == _otpLength) {
       for (int i = 0; i < _otpLength; i++) {
         _controllers[i].text = widget.otp![i];
       }
+      
+      // ── AUTO-VERIFY FEATURE ──
+      // If OTP is provided, auto-trigger the verification to save user time
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        debugPrint('[OTP] Auto-verifying from backend code: ${widget.otp}');
+        Future.delayed(const Duration(milliseconds: 1500), () => _verifyOtp());
+      });
     }
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (widget.otp == null) {
-        _sendOtp();
+  }
+
+  void _startTimer() {
+    Future.delayed(const Duration(seconds: 1), () {
+      if (mounted && _resendTimer > 0) {
+        setState(() => _resendTimer--);
+        _startTimer();
       }
     });
   }
 
   @override
   void dispose() {
-    for (var c in _controllers) {
-      c.dispose();
+    for (var controller in _controllers) {
+      controller.dispose();
     }
-    for (var f in _focusNodes) {
-      f.dispose();
+    for (var node in _focusNodes) {
+      node.dispose();
     }
     super.dispose();
   }
 
-  // ── Send / Resend OTP ─────────────────────────────────────────────────────
-
   Future<void> _sendOtp() async {
-    setState(() {
-      _isSendingOtp = true;
-      for (var c in _controllers) {
-        c.clear();
-      }
-    });
-
+    setState(() => _isSendingOtp = true);
     await ref
         .read(authProvider.notifier)
         .sendOtp(phoneNumber: widget.phoneNumber);
-
     if (!mounted) return;
-    setState(() => _isSendingOtp = false);
-
-    final authState = ref.read(authProvider);
-
-    if (authState is AuthSuccess) {
-      _showSnackBar('OTP has been sent to your phone via SMS',
-          backgroundColor: Colors.green);
-      ref.read(authProvider.notifier).reset();
-    } else if (authState is AuthError) {
-      debugPrint('[OTP ERROR] ${authState.message}');
-      _showSnackBar(authState.message, backgroundColor: Colors.red);
-      ref.read(authProvider.notifier).reset();
-    }
+    setState(() {
+      _isSendingOtp = false;
+      _resendTimer = 30;
+    });
+    _startTimer();
   }
 
-  // ── Verify OTP ────────────────────────────────────────────────────────────
-
   Future<void> _verifyOtp() async {
-    final otp = _controllers.map((e) => e.text).join();
+    final otp = _controllers.map((c) => c.text).join();
     if (otp.length < _otpLength) {
-      _showSnackBar('Please enter the complete $_otpLength-digit OTP');
+      _showSnackBar('Please enter the complete 6-digit OTP.',
+          backgroundColor: Colors.orange.shade700);
       return;
     }
-
-    debugPrint('[OTP] User submitting OTP: $otp for ${widget.phoneNumber}');
 
     setState(() => _isVerifying = true);
 
@@ -116,7 +114,7 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage> {
         arguments: {'verified': true},
       );
     } else if (authState is AuthAuthenticated) {
-      debugPrint('[OTP] Instant login successful!');
+      debugPrint('[OTP] Authentication successful! Navigating home.');
 
       // Update legacy CartProvider profile (kept for rest of UI compatibility)
       try {
@@ -126,10 +124,9 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage> {
             name: authState.user.fullName,
             email: authState.user.email,
             phone: authState.user.phoneNumber,
-            profileImage: 'assets/images/image copy 2.png',
+            profileImage: AppImages.defaultAvatar,
           ),
         );
-        // Sync cart immediately after login
         cartProvider.loadCartFromApi();
       } catch (e) {
         debugPrint('Failed to update CartProvider profile: $e');
@@ -145,11 +142,9 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage> {
     } else if (authState is AuthError) {
       debugPrint('[OTP] Verification failed: ${authState.message}');
       _showSnackBar(authState.message, backgroundColor: Colors.red);
-      ref.read(authProvider.notifier).reset();
+      // ref.read(authProvider.notifier).reset(); // REMOVED: This was causing "Session Expired" on second attempt
     }
   }
-
-  // ── Snack bar helper ──────────────────────────────────────────────────────
 
   void _showSnackBar(String message, {Color backgroundColor = Colors.black87}) {
     if (!mounted) return;
@@ -165,8 +160,6 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage> {
     );
   }
 
-  // ── Build ─────────────────────────────────────────────────────────────────
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -174,8 +167,13 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
+        centerTitle: true,
+        title: const Text(
+          'Verification',
+          style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold),
+        ),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black54),
+          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black87, size: 20),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -183,59 +181,59 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage> {
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 28.0),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              const SizedBox(height: 24),
+              const SizedBox(height: 32),
+              
+              // Branding Icon
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.vpn_key_outlined,
+                  size: 50,
+                  color: AppColors.primary,
+                ),
+              ),
+              
+              const SizedBox(height: 32),
 
               const Text(
-                'Verification Code',
+                'Enter 6-Digit Code',
                 style: TextStyle(
-                  fontSize: 26,
+                  fontSize: 24,
                   fontWeight: FontWeight.bold,
-                  color: Colors.black87,
+                  color: Color(0xFF1A1A1A),
                 ),
               ),
-              const SizedBox(height: 10),
-              Text(
-                'We have sent the verification code to your\nphone number ${widget.phoneNumber}',
-                style: const TextStyle(
-                    fontSize: 14, color: Colors.black54, height: 1.5),
-              ),
-              const SizedBox(height: 8),
-              // ── Info Hint ───────────────────────────────────────────────
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFE3F2FD),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: const Color(0xFF64B5F6)),
-                ),
-                child: const Row(
+              const SizedBox(height: 12),
+              RichText(
+                textAlign: TextAlign.center,
+                text: TextSpan(
+                  text: 'Code has been sent to ',
+                  style: const TextStyle(fontSize: 14, color: Colors.grey, height: 1.5),
                   children: [
-                    Icon(Icons.sms_outlined, size: 14, color: Color(0xFF1976D2)),
-                    SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        'We have sent an SMS with a 6-digit verification code to your phone. Please enter it below.',
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: Color(0xFF1976D2),
-                          fontWeight: FontWeight.w500,
-                        ),
+                    TextSpan(
+                      text: widget.phoneNumber,
+                      style: const TextStyle(
+                        color: Color(0xFF1A1A1A),
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 28),
+              const SizedBox(height: 48),
 
               // ── 6 OTP boxes ─────────────────────────────────────────────
               if (_isSendingOtp)
                 const Center(
                   child: Padding(
                     padding: EdgeInsets.symmetric(vertical: 20),
-                    child: CircularProgressIndicator(color: Color(0xFF2E7D32)),
+                    child: CircularProgressIndicator(color: AppColors.primary),
                   ),
                 )
               else
@@ -244,8 +242,8 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage> {
                   children: List.generate(_otpLength, (index) {
                     return Container(
                       margin: const EdgeInsets.symmetric(horizontal: 5),
-                      width: 46,
-                      height: 54,
+                      width: 48,
+                      height: 56,
                       child: TextField(
                         controller: _controllers[index],
                         focusNode: _focusNodes[index],
@@ -254,21 +252,21 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage> {
                         textAlignVertical: TextAlignVertical.center,
                         maxLength: 1,
                         style: const TextStyle(
-                          fontSize: 20,
+                          fontSize: 22,
                           fontWeight: FontWeight.bold,
-                          color: Colors.black87,
+                          color: Color(0xFF1A1A1A),
                         ),
                         decoration: InputDecoration(
                           counterText: '',
                           contentPadding: EdgeInsets.zero,
                           enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: const BorderSide(color: Colors.black12),
+                            borderRadius: BorderRadius.circular(14),
+                            borderSide: BorderSide(color: Colors.grey.shade300),
                           ),
                           focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(14),
                             borderSide: const BorderSide(
-                                color: Color(0xFF2E7D32), width: 2),
+                                color: AppColors.primary, width: 2),
                           ),
                           fillColor: Colors.grey.shade50,
                           filled: true,
@@ -291,22 +289,26 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage> {
                   }),
                 ),
 
-              const SizedBox(height: 36),
+              const SizedBox(height: 40),
 
-              // ── Resend ───────────────────────────────────────────────────
+              // ── Resend & Timer ──────────────────────────────────────────
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text("Didn't receive the code? ",
-                      style: TextStyle(color: Colors.black54, fontSize: 13)),
+                  Text(
+                    _resendTimer > 0 
+                      ? "Resend code in " 
+                      : "Didn't receive the code? ",
+                    style: const TextStyle(color: Colors.grey, fontSize: 13),
+                  ),
                   GestureDetector(
-                    onTap: _isSendingOtp ? null : _sendOtp,
+                    onTap: (_isSendingOtp || _resendTimer > 0) ? null : _sendOtp,
                     child: Text(
-                      'Resend',
+                      _resendTimer > 0 ? "00:${_resendTimer.toString().padLeft(2, '0')}" : 'Resend Now',
                       style: TextStyle(
-                        color: _isSendingOtp
+                        color: (_isSendingOtp || _resendTimer > 0)
                             ? Colors.grey
-                            : const Color(0xFF2E7D32),
+                            : AppColors.primary,
                         fontWeight: FontWeight.bold,
                         fontSize: 13,
                       ),
@@ -315,18 +317,24 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage> {
                 ],
               ),
 
-              const SizedBox(height: 40),
+              const SizedBox(height: 48),
 
               // ── Confirm Button ───────────────────────────────────────────
               CommonButton(
-                text: 'Confirm',
+                text: 'Verify & Proceed',
                 onPressed: _verifyOtp,
-                backgroundColor: const Color(0xFF2E7D32),
-                borderRadius: 28,
+                backgroundColor: AppColors.primary,
+                borderRadius: 16,
                 isLoading: _isVerifying,
               ),
 
-              const SizedBox(height: 24),
+              const SizedBox(height: 32),
+              
+              const Text(
+                'By proceeding, you agree to our Terms of Service\nand Privacy Policy.',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 11, color: Colors.grey, height: 1.5),
+              ),
             ],
           ),
         ),

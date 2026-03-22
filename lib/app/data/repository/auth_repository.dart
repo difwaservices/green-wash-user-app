@@ -22,11 +22,9 @@ class AuthRepository {
 
   Future<AuthResponseModel> login({
     required String phoneNumber,
-    required String password,
   }) async {
-    return await _authService.login(
+    return await _authService.sendOtp(
       phoneNumber: phoneNumber,
-      password: password,
     );
   }
 

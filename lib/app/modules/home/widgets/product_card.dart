@@ -8,6 +8,7 @@ import '../../../data/services/favorites_service.dart';
 import '../view/product_details_page.dart';
 import '../widgets/quantity_selector.dart';
 import '../../../widgets/bounce_widget.dart';
+import '../../../core/constants/app_colors.dart';
 
 class ProductCard extends ConsumerWidget {
   final Product product;
@@ -144,7 +145,7 @@ class ProductCard extends ConsumerWidget {
                                     padding: const EdgeInsets.all(6),
                                     decoration: BoxDecoration(
                                       color: product.isShopActive
-                                          ? const Color(0xFF68B92E)
+                                          ? AppColors.primary
                                           : Colors.grey,
                                       borderRadius: BorderRadius.circular(8),
                                     ),

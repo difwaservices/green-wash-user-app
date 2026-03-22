@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../data/services/order_service.dart';
 import '../../../data/services/socket_service.dart';
 import '../../auth/provider/auth_provider.dart';
+import '../../../core/constants/app_images.dart';
 
 // Local provider removed, using shared provider from order_service.dart
 
@@ -31,7 +32,7 @@ class _HeaderDelegate extends SliverPersistentHeaderDelegate {
             Container(
               decoration: const BoxDecoration(
                 image: DecorationImage(
-                  image: AssetImage('assets/images/image copy 10.png'),
+                  image: AssetImage(AppImages.waterHero),
                   fit: BoxFit.cover,
                   alignment: Alignment.center,
                 ),
@@ -127,11 +128,11 @@ class _OrdersPageState extends ConsumerState<OrdersPage> {
               Container(
                 padding: const EdgeInsets.all(18),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF114F3B).withValues(alpha: 0.08),
+                  color: const Color(0xFF0891B2).withValues(alpha: 0.08),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(Icons.delivery_dining,
-                    size: 48, color: Color(0xFF114F3B)),
+                    size: 48, color: Color(0xFF0891B2)),
               ),
               const SizedBox(height: 20),
               const Text('🎉 Rider Assigned!',
@@ -145,7 +146,7 @@ class _OrdersPageState extends ConsumerState<OrdersPage> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(Icons.phone, color: Color(0xFF114F3B), size: 18),
+                    const Icon(Icons.phone, color: Color(0xFF0891B2), size: 18),
                     const SizedBox(width: 6),
                     Text(riderPhone,
                         style: const TextStyle(
@@ -159,13 +160,13 @@ class _OrdersPageState extends ConsumerState<OrdersPage> {
                     child: OutlinedButton(
                       onPressed: () => Navigator.pop(context),
                       style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: Color(0xFF114F3B)),
+                        side: const BorderSide(color: Color(0xFF0891B2)),
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12)),
                         padding: const EdgeInsets.symmetric(vertical: 12),
                       ),
                       child: const Text('OK',
-                          style: TextStyle(color: Color(0xFF114F3B))),
+                          style: TextStyle(color: Color(0xFF0891B2))),
                     ),
                   ),
                   if (riderPhone.isNotEmpty) ...[
@@ -177,7 +178,7 @@ class _OrdersPageState extends ConsumerState<OrdersPage> {
                           Navigator.pop(context);
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF114F3B),
+                          backgroundColor: const Color(0xFF0891B2),
                           shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12)),
                           padding: const EdgeInsets.symmetric(vertical: 12),
@@ -226,7 +227,7 @@ class _OrdersPageState extends ConsumerState<OrdersPage> {
                 child: Padding(
                   padding: const EdgeInsets.only(right: 16, top: 8),
                   child: IconButton(
-                    icon: const Icon(Icons.refresh, color: Color(0xFF114F3B)),
+                    icon: const Icon(Icons.refresh, color: Color(0xFF0891B2)),
                     onPressed: () => ref.invalidate(myOrdersProvider),
                   ),
                 ),
@@ -252,7 +253,7 @@ class _OrdersPageState extends ConsumerState<OrdersPage> {
                     ),
               loading: () => const SliverFillRemaining(
                 child: Center(
-                    child: CircularProgressIndicator(color: Color(0xFF114F3B))),
+                    child: CircularProgressIndicator(color: Color(0xFF0891B2))),
               ),
               error: (err, _) => SliverFillRemaining(
                 child: Center(child: Text('Error: $err')),
@@ -326,7 +327,7 @@ class _LiveOrderCardState extends State<_LiveOrderCard>
   Color get _statusColor {
     switch (_status.toLowerCase()) {
       case 'delivered':
-        return const Color(0xFF2E7D32);
+        return const Color(0xFF0891B2);
       case 'cancelled':
         return Colors.red;
       case 'out for delivery':
@@ -365,7 +366,7 @@ class _LiveOrderCardState extends State<_LiveOrderCard>
         HapticFeedback.mediumImpact();
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
           content: Text('Added to cart for reorder!'),
-          backgroundColor: Color(0xFF114F3B),
+          backgroundColor: Color(0xFF0891B2),
         ));
         _controller.forward().then((_) => _controller.reverse());
       },
@@ -509,6 +510,7 @@ class _LiveOrderCardState extends State<_LiveOrderCard>
         width: 120,
         height: 150,
         color: const Color(0xFFE8F5E9),
-        child: const Icon(Icons.set_meal, size: 40, color: Color(0xFF114F3B)),
+        child: const Icon(Icons.set_meal, size: 40, color: Color(0xFF0891B2)),
       );
 }
+

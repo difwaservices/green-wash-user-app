@@ -75,13 +75,13 @@ class CartPage extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(30),
             decoration: const BoxDecoration(
-              color: Color(0xFFEBFFD7),
+              color: Color(0xFFCFFAFE),
               shape: BoxShape.circle,
             ),
             child: const Icon(
               Icons.shopping_cart_outlined,
               size: 80,
-              color: Color(0xFF68B92E),
+              color: Color(0xFF06B6D4),
             ),
           ),
           const SizedBox(height: 24),
@@ -114,7 +114,7 @@ class CartPage extends StatelessWidget {
                 } catch (_) {}
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF439462),
+                backgroundColor: const Color(0xFF06B6D4),
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
@@ -223,7 +223,7 @@ class CartPage extends StatelessWidget {
                     Text(
                       '₹${item.unitPrice.toStringAsFixed(0)}',
                       style: const TextStyle(
-                        color: Color(0xFF68B92E),
+                        color: Color(0xFF06B6D4),
                         fontWeight: FontWeight.bold,
                         fontSize: 15,
                       ),
@@ -271,7 +271,7 @@ class CartPage extends StatelessWidget {
                     child: const Text(
                       'Schedule',
                       style: TextStyle(
-                        color: Color(0xFF68B92E),
+                        color: Color(0xFF06B6D4),
                         fontSize: 11,
                         fontWeight: FontWeight.bold,
                         decoration: TextDecoration.underline,
@@ -324,7 +324,7 @@ class CartPage extends StatelessWidget {
                 style: const TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF68B92E),
+                  color: Color(0xFF06B6D4),
                 ),
               ),
             ],
@@ -342,7 +342,7 @@ class CartPage extends StatelessWidget {
                 );
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF439462),
+                backgroundColor: const Color(0xFF06B6D4),
                 foregroundColor: Colors.white,
                 elevation: 0,
                 shape: RoundedRectangleBorder(
@@ -402,3 +402,5 @@ class CartPage extends StatelessWidget {
     );
   }
 }
+
+

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../routes/app_routes.dart';
 import '../../../data/services/wallet_service.dart';
+import '../../../core/constants/app_colors.dart';
 
 // Provider for wallet balance
 final walletBalanceProvider = FutureProvider.autoDispose<double>((ref) async {
@@ -72,14 +73,14 @@ class WalletPage extends ConsumerWidget {
       padding: const EdgeInsets.all(30),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [Color(0xFF68B92E), Color(0xFF4A8B1E)],
+          colors: [AppColors.primary, AppColors.primaryDark],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF68B92E).withValues(alpha: 0.3),
+            color: AppColors.primary.withValues(alpha: 0.3),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -116,7 +117,7 @@ class WalletPage extends ConsumerWidget {
             context,
             Icons.add_circle_outline,
             'Add Money',
-            Colors.blue,
+            AppColors.primary,
             () => Navigator.pushNamed(context, AppRoutes.topUp),
           ),
         ),
@@ -126,7 +127,7 @@ class WalletPage extends ConsumerWidget {
             context,
             Icons.history,
             'Statement',
-            Colors.orange,
+            AppColors.primaryDark,
             () => Navigator.pushNamed(context, AppRoutes.walletStatement),
           ),
         ),
@@ -237,12 +238,12 @@ class _TransactionItem extends StatelessWidget {
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
               color:
-                  (isCredit ? Colors.green : Colors.red).withValues(alpha: 0.1),
+                  (isCredit ? AppColors.primary : Colors.red).withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
             child: Icon(
               isCredit ? Icons.arrow_downward : Icons.arrow_upward,
-              color: isCredit ? Colors.green : Colors.red,
+              color: isCredit ? AppColors.primary : Colors.red,
               size: 20,
             ),
           ),
@@ -262,7 +263,7 @@ class _TransactionItem extends StatelessWidget {
             amount,
             style: TextStyle(
               fontWeight: FontWeight.w900,
-              color: isCredit ? Colors.green : Colors.black,
+              color: isCredit ? AppColors.primary : Colors.black,
             ),
           ),
         ],

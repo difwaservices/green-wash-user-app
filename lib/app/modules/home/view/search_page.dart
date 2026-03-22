@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../data/models/search_model.dart';
 import '../../../data/models/shop_product_model.dart';
+import '../../../core/constants/app_colors.dart';
 import '../provider/search_provider.dart';
 import 'restaurant_menu_page.dart';
 
@@ -63,10 +64,10 @@ class _SearchPageState extends ConsumerState<SearchPage> {
             onSubmitted: _onSearch,
             textInputAction: TextInputAction.search,
             decoration: InputDecoration(
-              hintText: 'Search for shops or products...',
+              hintText: 'Search for plants or products...',
               hintStyle: const TextStyle(fontSize: 14, color: Colors.grey),
               prefixIcon:
-                  const Icon(Icons.search, color: Color(0xFFE54141), size: 20),
+                  Icon(Icons.search, color: AppColors.primary, size: 20),
               suffixIcon: _searchController.text.isNotEmpty
                   ? IconButton(
                       icon: const Icon(Icons.clear, size: 18),
@@ -119,7 +120,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
           ),
           const SizedBox(width: 8),
           _FilterChip(
-            label: 'Shops',
+            label: 'Plants',
             isSelected: state.activeFilter == 'shops',
             count: state.result?.shops.length ?? 0,
             onTap: () => ref.read(searchProvider.notifier).setFilter('shops'),
@@ -140,7 +141,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
   Widget _buildBody(SearchState state) {
     if (state.isLoading) {
       return const Center(
-          child: CircularProgressIndicator(color: Color(0xFF68B92E)));
+          child: CircularProgressIndicator(color: Color(0xFF06B6D4)));
     }
 
     if (state.error != null) {
@@ -177,7 +178,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
     List<dynamic> displayList = [];
     if (state.activeFilter == 'all') {
       if (shops.isNotEmpty) {
-        displayList.add('Shops');
+        displayList.add('Water Plants');
         displayList.addAll(shops);
       }
       if (products.isNotEmpty) {
@@ -224,7 +225,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
         if (!shop.isShopActive) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('This shop is currently not accepting orders.'),
+              content: Text('This plant is currently not accepting orders.'),
               backgroundColor: Colors.black87,
             ),
           );
@@ -283,7 +284,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                           width: 70,
                           height: 70,
                           color: Colors.grey.shade200,
-                          child: const Icon(Icons.store, color: Colors.grey),
+                          child: const Icon(Icons.water_drop_outlined, color: Colors.grey),
                         ),
                       ),
                     ),
@@ -308,7 +309,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                           Row(
                             children: [
                               const Icon(Icons.star,
-                                  color: Color(0xFF68B92E), size: 14),
+                                  color: Color(0xFF06B6D4), size: 14),
                               const SizedBox(width: 4),
                               Text(
                                 shop.rating.toString(),
@@ -402,7 +403,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                         width: 80,
                         height: 80,
                         color: Colors.grey.shade200,
-                        child: const Icon(Icons.set_meal, color: Colors.grey),
+                        child: const Icon(Icons.water_drop_outlined, color: Colors.grey),
                       ),
                     ),
                   ),
@@ -421,7 +422,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                         Text(
                           'from ${product.shopName}',
                           style: const TextStyle(
-                              color: Color(0xFF68B92E),
+                              color: Color(0xFF06B6D4),
                               fontSize: 11,
                               fontWeight: FontWeight.w600),
                         ),
@@ -451,7 +452,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                         : null,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: product.isShopActive
-                          ? const Color(0xFF68B92E)
+                          ? const Color(0xFF06B6D4)
                           : Colors.grey,
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -518,10 +519,10 @@ class _FilterChip extends StatelessWidget {
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(horizontal: 16),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF68B92E) : Colors.transparent,
+          color: isSelected ? const Color(0xFF06B6D4) : Colors.transparent,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: isSelected ? const Color(0xFF68B92E) : Colors.grey.shade300,
+            color: isSelected ? const Color(0xFF06B6D4) : Colors.grey.shade300,
           ),
         ),
         child: Center(
@@ -564,3 +565,4 @@ class _FilterChip extends StatelessWidget {
     );
   }
 }
+

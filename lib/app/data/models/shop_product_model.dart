@@ -1,3 +1,5 @@
+import 'food_models.dart';
+
 /// Model for an API-fetched product category (embedded inside a product).
 class ShopProductCategory {
   final String id;
@@ -64,6 +66,22 @@ class ShopProduct {
       return 'https://images.unsplash.com/photo-1599487488170-d11ec9c172f0?q=80&w=800&auto=format&fit=crop';
     }
     return '';
+  }
+
+  Product toProduct(bool shopActive, {String? shopName}) {
+    return Product(
+      id: id,
+      name: name,
+      image: primaryImage,
+      price: price,
+      weight: category?.name ?? 'Difwa VARIETY',
+      category: category?.name ?? 'Restaurant',
+      description: description,
+      isShopActive: shopActive && isAvailable,
+      badgeText: !isAvailable ? 'Out of Stock' : '',
+      shopId: retailerId,
+      shopName: shopName ?? '',
+    );
   }
 
   factory ShopProduct.fromJson(Map<String, dynamic> json) {

@@ -31,6 +31,8 @@ class CartItem {
       subtitle: product.weight,
       image: product.image,
       category: product.category,
+      shopId: product.shopId,
+      shopName: product.shopName,
     );
   }
 

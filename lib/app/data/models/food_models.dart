@@ -156,6 +156,8 @@ class Product {
   final String description;
   final List<String> whyChoose;
   final bool isShopActive;
+  final String shopId;
+  final String shopName;
 
   const Product({
     required this.id,
@@ -169,6 +171,8 @@ class Product {
     this.description = '',
     this.whyChoose = const [],
     this.isShopActive = true,
+    this.shopId = '',
+    this.shopName = '',
   });
 
   factory Product.fromJson(Map<String, dynamic> json) {
@@ -184,6 +188,8 @@ class Product {
       description: json['description']?.toString() ?? '',
       whyChoose: (json['whyChoose'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? const [],
       isShopActive: json['isShopActive'] ?? json['isActive'] ?? true,
+      shopId: json['shopId']?.toString() ?? '',
+      shopName: json['shopName']?.toString() ?? '',
     );
   }
 }

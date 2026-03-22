@@ -6,46 +6,6 @@ import '../../core/constants/app_images.dart';
 class WelcomePage extends StatelessWidget {
   const WelcomePage({super.key});
 
-
-  void _showErrorDialog(BuildContext context, String title, String message) {
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Row(
-          children: [
-            const Icon(Icons.error_outline, color: Colors.red, size: 26),
-            const SizedBox(width: 8),
-            Text(
-              title,
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-          ],
-        ),
-        content: Text(
-          message,
-          style: const TextStyle(
-            fontSize: 13,
-            color: Color(0xFF555555),
-            height: 1.5,
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text(
-              'OK',
-              style: TextStyle(
-                color: Color(0xFF2E7D32),
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
@@ -71,9 +31,9 @@ class WelcomePage extends StatelessWidget {
                         ),
                       ),
                       Center(
-                        child: SvgPicture.asset(
-                          AppImages.difwaLogo2,
-                          width: 200,
+                        child: Image.asset(
+                          AppImages.difwaLogoPng,
+                          width: 250,
                         ),
                       ),
                     ],
