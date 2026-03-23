@@ -110,7 +110,12 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                       _PaymentMethodTile(
                         index: 3,
                         selected: true,
-                        onTap: () => Navigator.pushNamed(context, '/wallet'),
+                        onTap: () async {
+                          await Navigator.pushNamed(context, '/wallet');
+                          if (mounted) {
+                            CartProviderScope.of(context).syncWallet();
+                          }
+                        },
                         label: 'Wallet',
                         child: const Icon(Icons.account_balance_wallet_rounded,
                             size: 28, color: AppColors.primary),
@@ -119,8 +124,11 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                   ),
                   const SizedBox(height: 24),
                   GestureDetector(
-                    onTap: () {
-                      Navigator.pushNamed(context, '/wallet');
+                    onTap: () async {
+                      await Navigator.pushNamed(context, '/wallet');
+                      if (mounted) {
+                        CartProviderScope.of(context).syncWallet();
+                      }
                     },
                     child: Container(
                       padding: const EdgeInsets.all(20),
@@ -404,6 +412,13 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                                 'Insufficient wallet balance. Please top up.');
                           }
 
+                          if (_orderType == 1 &&
+                              _frequency == 'Weekly' &&
+                              _selectedDays.isEmpty) {
+                            throw Exception(
+                                'Please select at least one day for your weekly subscription.');
+                          }
+
                           final deliveryAddressMap = {
                             'address': selectedAddr.street,
                             'city':
@@ -453,6 +468,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                               await cartProvider.syncWallet();
                               cartProvider.clearCart();
                               ref.invalidate(activeOrdersProvider);
+                              ref.invalidate(myOrdersProvider);
                               navigator.pushAndRemoveUntil(
                                   MaterialPageRoute(
                                       builder: (_) => OrderSuccessPage(

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import '../models/food_models.dart';
 import '../network/api_client.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -17,17 +18,22 @@ class ProductService {
   /// Response shape: { "success": true, "categories": [...] }
   Future<List<FoodCategory>> getCategories() async {
     try {
-      final json = await _client.get('${ApiClient.baseUrl}/categories');
-      // Backend returns "categories" key (not "data")
-      final data = (json['categories'] ?? json['data']) as List<dynamic>? ?? [];
-      return data
-          .map((e) => FoodCategory.fromJson(e as Map<String, dynamic>))
-          .toList();
+      final json = await _client.get('${ApiClient.baseUrl}/categories', requiresAuth: false);
+      final rawData = (json['categories'] ?? json['data']) as List<dynamic>? ?? [];
+      
+      // Senior Dev: Move parsing to ISOLATE to keep UI thread smooth
+      return await compute(_parseCategories, rawData);
     } on ApiException {
       rethrow;
     } catch (e) {
       throw ApiException(message: 'Unexpected error: ${e.toString()}');
     }
+  }
+
+  static List<FoodCategory> _parseCategories(List<dynamic> data) {
+    return data
+        .map((e) => FoodCategory.fromJson(e as Map<String, dynamic>))
+        .toList();
   }
 
   /// Fetch products, optionally filtered by category.
@@ -39,18 +45,24 @@ class ProductService {
       final json = await _client.get(
         '${ApiClient.baseUrl}/products',
         queryParameters: queryParams,
+        requiresAuth: false,
       );
-      // Support both "products" and "data" response keys
-      final data = (json['products'] ?? json['data']) as List<dynamic>? ?? [];
-      return data
-          .map((e) => Product.fromJson(e as Map<String, dynamic>))
-          .toList();
+      
+      final rawData = (json['products'] ?? json['data']) as List<dynamic>? ?? [];
+      
+      // Senior Dev: Offload mapping of large product lists to BACKGROUND isolate
+      return await compute(_parseProducts, rawData);
     } on ApiException catch (e) {
-      // 404 means endpoint not yet available — return empty so UI falls back
       if (e.statusCode == 404) return [];
       rethrow;
     } catch (e) {
       throw ApiException(message: 'Unexpected error: ${e.toString()}');
     }
+  }
+
+  static List<Product> _parseProducts(List<dynamic> data) {
+    return data
+        .map((e) => Product.fromJson(e as Map<String, dynamic>))
+        .toList();
   }
 }

@@ -132,10 +132,15 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage> {
         debugPrint('Failed to update CartProvider profile: $e');
       }
 
-      if (authState.user.role == 'rider') {
+      debugPrint('[OTP] User role: ${authState.user.role}');
+      final role = (authState.user.role).toLowerCase();
+      // Broad check to handle various rider roles (e.g., 'rider', 'shop_rider', 'retailer_rider')
+      if (role.contains('rider') || role.contains('delivery') || role.contains('driver')) {
+        debugPrint('[OTP] Navigating to Rider Dashboard (role: $role)');
         Navigator.pushNamedAndRemoveUntil(
             context, AppRoutes.riderHome, (route) => false);
       } else {
+        debugPrint('[OTP] Navigating to Customer Home (role: $role)');
         Navigator.pushNamedAndRemoveUntil(
             context, AppRoutes.home, (route) => false);
       }

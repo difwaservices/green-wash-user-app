@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../data/models/food_models.dart';
 import '../../../data/services/order_service.dart';
 import '../../../data/services/socket_service.dart';
 import '../../auth/provider/auth_provider.dart';
@@ -75,8 +76,8 @@ class _HeaderDelegate extends SliverPersistentHeaderDelegate {
   @override
   double get minExtent => kToolbarHeight + 20;
   @override
-  bool shouldRebuild(covariant SliverPersistentHeaderDelegate oldDelegate) =>
-      true;
+  bool shouldRebuild(covariant _HeaderDelegate oldDelegate) =>
+      expandedHeight != oldDelegate.expandedHeight;
 }
 
 class OrdersPage extends ConsumerStatefulWidget {
@@ -268,7 +269,7 @@ class _OrdersPageState extends ConsumerState<OrdersPage> {
 }
 
 class _LiveOrderCard extends StatefulWidget {
-  final Map<String, dynamic> order;
+  final UserOrder order;
   const _LiveOrderCard({required this.order});
 
   @override
@@ -295,32 +296,15 @@ class _LiveOrderCardState extends State<_LiveOrderCard>
     super.dispose();
   }
 
-  String get _title {
-    final items = widget.order['items'] as List<dynamic>? ?? [];
-    if (items.isEmpty) return 'Order';
-    final p = items.first['product'];
-    return (p is Map && p['name'] != null) ? p['name'].toString() : 'Order';
-  }
+  String get _title =>
+      widget.order.items.isNotEmpty ? widget.order.items.first.name : 'Order';
 
-  String get _description {
-    final items = widget.order['items'] as List<dynamic>? ?? [];
-    return items.map((i) {
-      final p = i['product'];
-      final name = p is Map ? p['name']?.toString() ?? 'Item' : 'Item';
-      return '${i['quantity']}x $name';
-    }).join(', ');
-  }
+  String get _description =>
+      widget.order.items.map((i) => '${i.quantity}x ${i.name}').join(', ');
 
-  double get _total {
-    final items = widget.order['items'] as List<dynamic>? ?? [];
-    return items.fold(0.0, (sum, i) {
-      final price = (i['price'] as num?)?.toDouble() ?? 0;
-      final qty = (i['quantity'] as num?)?.toDouble() ?? 1;
-      return sum + price * qty;
-    });
-  }
+  double get _total => widget.order.total;
 
-  String get _status => widget.order['status']?.toString() ?? 'Pending';
+  String get _status => widget.order.status;
 
   bool get _isDelivered => _status.toLowerCase() == 'delivered';
 
@@ -348,16 +332,8 @@ class _LiveOrderCardState extends State<_LiveOrderCard>
     }
   }
 
-  String get _imageUrl {
-    final items = widget.order['items'] as List<dynamic>? ?? [];
-    if (items.isEmpty) return '';
-    final p = items.first['product'];
-    if (p is Map) {
-      final imgs = p['images'] as List<dynamic>?;
-      return (imgs != null && imgs.isNotEmpty) ? imgs.first.toString() : '';
-    }
-    return '';
-  }
+  String get _imageUrl =>
+      widget.order.items.isNotEmpty ? widget.order.items.first.image : '';
 
   @override
   Widget build(BuildContext context) {

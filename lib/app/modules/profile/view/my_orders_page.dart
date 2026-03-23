@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../data/models/food_models.dart';
 import '../../../data/services/order_service.dart';
 import '../../orders/view/order_tracking_page.dart';
 
@@ -101,43 +102,28 @@ class _EmptyOrdersView extends StatelessWidget {
 }
 
 class _OrderCard extends ConsumerWidget {
-  final Map<String, dynamic> order;
+  final UserOrder order;
 
   const _OrderCard({required this.order});
 
-  String _orderTitle() {
-    final items = order['items'] as List<dynamic>? ?? [];
-    if (items.isEmpty) return 'Order';
-    final first = items.first;
-    final product = first['product'];
-    if (product is Map && product['name'] != null)
-      return product['name'].toString();
-    return 'Order';
-  }
+  String _orderTitle() =>
+      order.items.isNotEmpty ? order.items.first.name : 'Order';
 
   String _orderDescription() {
-    final items = order['items'] as List<dynamic>? ?? [];
-    if (items.isEmpty) return 'No items';
-    final first = items.first;
-    final product = first['product'];
-    final name = (product is Map && product['name'] != null)
-        ? product['name'].toString()
-        : 'Item';
-    final qty = first['quantity']?.toString() ?? '1';
+    if (order.items.isEmpty) return 'No items';
+    final first = order.items.first;
+    final name = first.name;
+    final qty = first.quantity.toString();
 
-    if (items.length > 1) {
-      return '${qty}x $name & ${items.length - 1} more';
+    if (order.items.length > 1) {
+      return '${qty}x $name & ${order.items.length - 1} more';
     }
     return '${qty}x $name';
   }
 
-  double _totalPrice() {
-    return (order['totalAmount'] as num?)?.toDouble() ??
-        (order['total'] as num?)?.toDouble() ??
-        0.0;
-  }
+  double _totalPrice() => order.total;
 
-  String _orderStatus() => order['status']?.toString() ?? 'Pending';
+  String _orderStatus() => order.status;
 
   bool _isDelivered() => _orderStatus().toLowerCase() == 'delivered';
 
@@ -156,16 +142,7 @@ class _OrderCard extends ConsumerWidget {
     }
   }
 
-  String _imageUrl() {
-    final items = order['items'] as List<dynamic>? ?? [];
-    if (items.isEmpty) return '';
-    final product = items.first['product'];
-    if (product is Map) {
-      final images = product['images'] as List<dynamic>? ?? [];
-      return images.isNotEmpty ? images.first.toString() : '';
-    }
-    return '';
-  }
+  String _imageUrl() => order.items.isNotEmpty ? order.items.first.image : '';
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -288,7 +265,10 @@ class _OrderCard extends ConsumerWidget {
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) =>
-                                      OrderTrackingPage(order: order),
+                                      OrderTrackingPage(order: {
+                                    '_id': order.id,
+                                    'status': order.status,
+                                  }),
                                 ),
                               );
                             } else {

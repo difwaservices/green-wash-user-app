@@ -10,6 +10,7 @@ import '../../../data/services/favorites_service.dart';
 import './my_orders_page.dart';
 import '../../auth/provider/auth_provider.dart';
 import '../../subscriptions/view/subscription_dashboard_page.dart';
+import '../../../data/services/subscription_service.dart';
 import '../../home/view/favorites_page.dart';
 import '../../../routes/app_routes.dart';
 import '../../../core/constants/app_colors.dart';
@@ -263,6 +264,12 @@ class _ActiveOrdersAndSubscriptions extends ConsumerWidget {
       orElse: () => 0,
     );
 
+    final subscriptionsAsync = ref.watch(mySubscriptionsProvider);
+    final activeSubsCount = subscriptionsAsync.maybeWhen(
+      data: (subs) => subs.length,
+      orElse: () => 0,
+    );
+
     return Row(
       children: [
         Expanded(
@@ -271,8 +278,8 @@ class _ActiveOrdersAndSubscriptions extends ConsumerWidget {
             child: Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: AppColors.primaryLight,
-                border: Border.all(color: AppColors.primaryDark.withOpacity(0.1)),
+                color: const Color(0xFFE0F7FA), // Light Cyan
+                border: Border.all(color: const Color(0xFF00ACC1).withValues(alpha: 0.1)),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Column(
@@ -281,7 +288,7 @@ class _ActiveOrdersAndSubscriptions extends ConsumerWidget {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: const BoxDecoration(
-                      color: AppColors.primaryDark,
+                      color: Color(0xFF00ACC1), // Primary Cyan
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(Icons.inventory_2_outlined,
@@ -291,7 +298,7 @@ class _ActiveOrdersAndSubscriptions extends ConsumerWidget {
                   const Text(
                     'Active Orders',
                     style: TextStyle(
-                      color: Color(0xFF0891B2),
+                      color: Color(0xFF00838F),
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                     ),
@@ -301,7 +308,7 @@ class _ActiveOrdersAndSubscriptions extends ConsumerWidget {
                         ? '$activeOrdersCount Active Order${activeOrdersCount > 1 ? 's' : ''}'
                         : 'No Active Orders',
                     style: const TextStyle(
-                      color: AppColors.primaryDark,
+                      color: Color(0xFF006064),
                       fontSize: 12,
                     ),
                   ),
@@ -313,11 +320,11 @@ class _ActiveOrdersAndSubscriptions extends ConsumerWidget {
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(20),
                     ),
-                    child: const Text('Arriving in 15 mins',
+                    child: const Text('Track Live',
                         style: TextStyle(
-                            color: Color(0xFF0891B2),
+                            color: Color(0xFF00ACC1),
                             fontSize: 10,
-                            fontWeight: FontWeight.w500)),
+                            fontWeight: FontWeight.w600)),
                   ),
                 ],
               ),
@@ -331,8 +338,8 @@ class _ActiveOrdersAndSubscriptions extends ConsumerWidget {
             child: Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: AppColors.primaryDark,
-                border: Border.all(color: Colors.white.withOpacity(0.1)),
+                color: const Color(0xFF00ACC1),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Column(
@@ -341,11 +348,11 @@ class _ActiveOrdersAndSubscriptions extends ConsumerWidget {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFA5C9AD).withValues(alpha: 0.3),
+                      color: Colors.white.withValues(alpha: 0.2),
                       shape: BoxShape.circle,
                     ),
-                    child: Icon(Icons.card_membership_outlined,
-                        color: AppColors.primary.withValues(alpha: 0.5), size: 20),
+                    child: const Icon(Icons.card_membership_outlined,
+                        color: Colors.white, size: 20),
                   ),
                   const SizedBox(height: 12),
                   const Text(
@@ -356,10 +363,12 @@ class _ActiveOrdersAndSubscriptions extends ConsumerWidget {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  const Text(
-                    '2 Active Plans',
-                    style: TextStyle(
-                      color: Color(0xFFA5C9AD),
+                  Text(
+                    activeSubsCount > 0
+                        ? '$activeSubsCount Active Plan${activeSubsCount > 1 ? 's' : ''}'
+                        : 'No Active Plans',
+                    style: const TextStyle(
+                      color: Colors.white70,
                       fontSize: 12,
                     ),
                   ),
@@ -368,12 +377,12 @@ class _ActiveOrdersAndSubscriptions extends ConsumerWidget {
                     padding:
                         const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFA5C9AD).withValues(alpha: 0.2),
+                      color: Colors.white.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(20),
                     ),
-                    child: Text('Renewal Jun 11, 2023',
-                        style:
-                            TextStyle(color: AppColors.primary.withValues(alpha: 0.5), fontSize: 10)),
+                    child: Text(
+                        activeSubsCount > 0 ? 'Managed Live' : 'View Plans',
+                        style: const TextStyle(color: Colors.white, fontSize: 10)),
                   ),
                 ],
               ),

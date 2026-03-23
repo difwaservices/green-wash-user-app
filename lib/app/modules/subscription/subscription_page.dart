@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import '../../data/models/food_models.dart';
 import '../../data/models/subscription_model.dart';
 import '../../data/services/subscription_service.dart';
 import '../../data/services/order_service.dart';
@@ -250,26 +251,18 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage> {
     );
   }
 
-  Widget _buildStatusCard(List<UserSubscription> subs, List<dynamic> orders) {
+  Widget _buildStatusCard(List<UserSubscription> subs, List<UserOrder> orders) {
     // 1. Find subscriptions that should deliver on this date
     final deliveringSubs = subs
         .where((s) => s.status == 'Active' && _deliversOn(s, _selectedDate))
         .toList();
 
     // 2. Find real orders created for this date
-    // We assume the order's createdAt or custom field matches the date
     final ordersForDate = orders.where((o) {
-      if (o is! Map) return false;
-      final createdAtStr = o['createdAt']?.toString();
-      if (createdAtStr == null) return false;
-      try {
-        final orderDate = DateTime.parse(createdAtStr);
-        return orderDate.day == _selectedDate.day &&
-            orderDate.month == _selectedDate.month &&
-            orderDate.year == _selectedDate.year;
-      } catch (_) {
-        return false;
-      }
+      final orderDate = o.date;
+      return orderDate.day == _selectedDate.day &&
+          orderDate.month == _selectedDate.month &&
+          orderDate.year == _selectedDate.year;
     }).toList();
 
     final hasDelivery = deliveringSubs.isNotEmpty || ordersForDate.isNotEmpty;
@@ -329,8 +322,8 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage> {
                         ),
                       ),
                       child: Text(
-                        (ordersForDate.isNotEmpty && ordersForDate.first['status'] != null
-                                ? ordersForDate.first['status'].toString()
+                        (ordersForDate.isNotEmpty
+                                ? ordersForDate.first.status
                                 : 'PENDING')
                             .toUpperCase(),
                         style: const TextStyle(
@@ -362,18 +355,16 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage> {
           else ...[
             // Show matched/real orders first
             ...ordersForDate.map((order) {
-              final items = order['items'] as List<dynamic>? ?? [];
-              if (items.isEmpty) return const SizedBox();
+              if (order.items.isEmpty) return const SizedBox();
               return _buildRealOrderItem(order);
             }),
             // Show subscriptions that haven't turned into orders yet
             ...deliveringSubs.where((sub) {
               // Avoid duplicates if order is already shown
               return !ordersForDate.any((o) {
-                final oItems = o['items'] as List<dynamic>? ?? [];
-                return oItems.any((item) =>
-                    item['product']?['_id'] == sub.productId ||
-                    item['product'] == sub.productId);
+                return o.items.any((item) =>
+                    // Ideally check product ID here, but our model uses name for simplicity in some places
+                    item.name == sub.productName);
               });
             }).map((sub) => _buildDeliveryItem(sub)),
           ],
@@ -382,18 +373,13 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage> {
     );
   }
 
-  Widget _buildRealOrderItem(Map<String, dynamic> order) {
-    final items = order['items'] as List<dynamic>? ?? [];
-    if (items.isEmpty) return const SizedBox();
-    final item = items.first;
-    final product = item['product'];
-    final name =
-        product is Map ? product['name']?.toString() ?? 'Item' : 'Item';
-    final image = (product is Map && (product['images'] as List?)?.isNotEmpty == true)
-        ? (product['images'] as List).first.toString()
-        : '';
-    final qty = item['quantity']?.toString() ?? '1';
-    final status = order['status']?.toString() ?? 'Pending';
+  Widget _buildRealOrderItem(UserOrder order) {
+    if (order.items.isEmpty) return const SizedBox();
+    final item = order.items.first;
+    final name = item.name;
+    final image = item.image;
+    final qty = item.quantity.toString();
+    final status = order.status;
     final isDelivered = status.toLowerCase() == 'delivered';
 
     return Padding(
@@ -426,7 +412,10 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => OrderTrackingPage(order: order),
+                  builder: (context) => OrderTrackingPage(order: {
+                    '_id': order.id,
+                    'status': order.status,
+                  }),
                 ),
               );
             },

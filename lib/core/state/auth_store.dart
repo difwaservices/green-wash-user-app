@@ -132,20 +132,21 @@ class AuthStore extends Notifier<AuthState> {
     }
   }
 
-  Future<void> login({required String phone}) async {
+  Future<void> login({required String identifier, required String password}) async {
     state = AuthState.loading();
     try {
-      final response = await ref.read(authServiceProvider).sendOtp(
-            phoneNumber: phone,
+      final response = await ref.read(authServiceProvider).login(
+            identifier: identifier,
+            password: password,
           );
 
-      if (response.success) {
-        state = state.copyWith(
-          status: AuthStatus.unauthenticated,
-          successMessage: response.message,
-          verificationId: phone,
-          otp: response.otp,
+      if (response.success && response.data != null) {
+        await _storage.saveTokens(
+          access: response.token ?? '',
+          refresh: response.refreshToken ?? '',
         );
+        state = AuthState.authenticated(response.data!);
+        unawaited(syncFcmToken());
       } else {
         state = AuthState.unauthenticated(error: response.message);
       }
@@ -203,10 +204,14 @@ class AuthStore extends Notifier<AuthState> {
         state = AuthState.authenticated(response.data!);
         unawaited(syncFcmToken());
       } else {
-        // If it failed, we should restore status but keep verificationId for retry
+        debugPrint('AuthStore: OTP verified but insufficient data for login. Success: ${response.success}, User: ${response.data != null}, Token: ${response.token != null}');
+        // If it failed (or succeeded without login data), clear successMessage and set error/message
         state = state.copyWith(
           status: AuthStatus.unauthenticated,
-          error: response.message,
+          error: response.message.isNotEmpty 
+              ? response.message 
+              : 'Verification successful but login failed. No user data returned.',
+          successMessage: null, // CRITICAL: Clear successMessage so AuthNotifier doesn't return AuthSuccess
         );
       }
     } catch (e) {

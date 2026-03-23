@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/search_model.dart';
 import '../network/api_client.dart';
@@ -31,27 +32,34 @@ class SearchService {
         return const SearchResult();
       }
 
-      final rawShops = data['shops'];
-      final rawProducts = data['products'];
+      final rawShops = data['shops'] as List? ?? [];
+      final rawProducts = data['products'] as List? ?? [];
 
-      final shops = rawShops is List
-          ? rawShops
-              .map((e) => SearchShop.fromJson(e as Map<String, dynamic>))
-              .toList()
-          : <SearchShop>[];
-
-      final products = rawProducts is List
-          ? rawProducts
-              .map((e) => SearchProduct.fromJson(e as Map<String, dynamic>))
-              .toList()
-          : <SearchProduct>[];
-
-      return SearchResult(shops: shops, products: products);
+      // Senior Dev: Offload complex search result parsing to an isolate
+      return await compute(_parseSearchResult, {
+        'shops': rawShops,
+        'products': rawProducts,
+      });
     } on ApiException catch (e) {
       throw ApiException(
           message: 'Search failed: ${e.message}', statusCode: e.statusCode);
     } catch (e) {
       throw ApiException(message: 'Search failed: ${e.toString()}');
     }
+  }
+
+  static SearchResult _parseSearchResult(Map<String, dynamic> data) {
+    final rawShops = data['shops'] as List;
+    final rawProducts = data['products'] as List;
+
+    final shops = rawShops
+        .map((e) => SearchShop.fromJson(e as Map<String, dynamic>))
+        .toList();
+
+    final products = rawProducts
+        .map((e) => SearchProduct.fromJson(e as Map<String, dynamic>))
+        .toList();
+
+    return SearchResult(shops: shops, products: products);
   }
 }

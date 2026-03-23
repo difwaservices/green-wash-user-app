@@ -53,10 +53,7 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
     final cartProvider = CartProviderScope.of(context);
     cartProvider.setLoadingOrders(true);
     try {
-      final ordersJson = await ref.read(orderServiceProvider).getMyOrders();
-      final List<UserOrder> orders = ordersJson
-          .map((json) => UserOrder.fromJson(json as Map<String, dynamic>))
-          .toList();
+      final orders = await ref.read(orderServiceProvider).getMyOrders();
       cartProvider.setOrders(orders);
     } catch (e) {
       debugPrint('Error loading orders: $e');
@@ -393,7 +390,7 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Placed on ${order.date}',
+                  'Placed on ${_formatDate(order.date)}',
                   style: const TextStyle(color: Colors.grey, fontSize: 12),
                 ),
                 const SizedBox(height: 4),
@@ -447,14 +444,14 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
                   const SizedBox(height: 16),
                   _buildTimelineItem(
                     'Order Placed',
-                    order.date,
+                    _formatDate(order.date),
                     Icons.inventory_2_outlined,
                     true,
                     true,
                   ),
                   _buildTimelineItem(
                     'Order Confirmed',
-                    order.date,
+                    _formatDate(order.date),
                     Icons.check_circle_outline,
                     true,
                     true,
@@ -468,7 +465,7 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
                   ),
                   _buildTimelineItem(
                     'Order Delivered',
-                    order.status == 'Delivered' ? order.date : 'Pending',
+                    order.status == 'Delivered' ? _formatDate(order.date) : 'Pending',
                     Icons.shopping_basket_outlined,
                     order.status == 'Delivered',
                     order.status == 'Delivered',
@@ -484,8 +481,8 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
                             context: context,
                             builder: (context) => ReviewDialog(
                               orderId: order.id,
-                              productName: (order.items.isNotEmpty && order.items[0].isNotEmpty)
-                                  ? order.items[0].split('x ').last
+                              productName: (order.items.isNotEmpty)
+                                  ? order.items[0].name
                                   : 'Difwa Product',
                               retailerId:
                                   '65e9f8f8f8f8f8f8f8f8f8f8', // Mock retailer ID
@@ -1575,6 +1572,10 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
         ],
       ),
     );
+  }
+
+  String _formatDate(DateTime date) {
+    return '${date.day}/${date.month}/${date.year}';
   }
 }
 

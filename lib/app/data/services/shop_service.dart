@@ -24,13 +24,19 @@ class ShopService {
       );
 
       final raw = json['data'] as List<dynamic>? ?? [];
-      return raw
-          .map((e) => ShopModel.fromJson(e as Map<String, dynamic>))
-          .toList();
+      
+      // Senior Dev: Offload complex shop listing to isolate
+      return await compute(_parseShops, raw);
     } catch (e) {
       debugPrint('ShopService: Error fetching shops: $e');
       return [];
     }
+  }
+
+  static List<ShopModel> _parseShops(List<dynamic> data) {
+    return data
+        .map((e) => ShopModel.fromJson(e as Map<String, dynamic>))
+        .toList();
   }
 
   Future<List<ShopProduct>> getShopProducts(String shopId) async {
@@ -39,10 +45,10 @@ class ShopService {
         '${ApiClient.baseUrl}/shops/$shopId/products',
         requiresAuth: true,
       );
-      final data = (json['data'] ?? json['products']) as List<dynamic>? ?? [];
-      return data
-          .map((e) => ShopProduct.fromJson(e as Map<String, dynamic>))
-          .toList();
+      final raw = (json['data'] ?? json['products']) as List<dynamic>? ?? [];
+      
+      // Senior Dev: Background thread for shop product parsing
+      return await compute(_parseShopProducts, raw);
     } on ApiException {
       rethrow;
     } catch (e) {
@@ -52,6 +58,12 @@ class ShopService {
     }
   }
 
+  static List<ShopProduct> _parseShopProducts(List<dynamic> data) {
+    return data
+        .map((e) => ShopProduct.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
   Future<List<FoodCategory>> getCategories() async {
     try {
       final json = await _client.get(
@@ -59,12 +71,18 @@ class ShopService {
         requiresAuth: true,
       );
       final raw = json['data'] as List<dynamic>? ?? [];
-      return raw
-          .map((e) => FoodCategory.fromJson(e as Map<String, dynamic>))
-          .toList();
+      
+      // Senior Dev: Isolate for category mapping
+      return await compute(_parseCategories, raw);
     } catch (e) {
       debugPrint('ShopService: Error fetching categories: $e');
       return [];
     }
+  }
+
+  static List<FoodCategory> _parseCategories(List<dynamic> data) {
+    return data
+        .map((e) => FoodCategory.fromJson(e as Map<String, dynamic>))
+        .toList();
   }
 }

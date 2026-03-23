@@ -16,11 +16,13 @@ class LoginPage extends ConsumerStatefulWidget {
 }
 
 class _LoginPageState extends ConsumerState<LoginPage> {
-  final _phoneController = TextEditingController();
+  final _identifierController = TextEditingController();
+  final _passwordController = TextEditingController();
 
   @override
   void dispose() {
-    _phoneController.dispose();
+    _identifierController.dispose();
+    _passwordController.dispose();
     super.dispose();
   }
 
@@ -37,20 +39,26 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     );
   }
 
-  // ── Send OTP action ───────────────────────────────────────────────────────
+  Future<void> _handleLogin() async {
+    final identifier = _identifierController.text.trim();
+    final password = _passwordController.text.trim();
 
-  Future<void> _handleSendOtp() async {
-    final phone = _phoneController.text.trim();
-
-    if (phone.isEmpty || phone.length < 10) {
-      _showSnackBar('Please enter a valid phone number.', backgroundColor: Colors.red);
+    if (identifier.isEmpty) {
+      _showSnackBar('Please enter your email or phone number.', backgroundColor: Colors.red);
+      return;
+    }
+    if (password.isEmpty) {
+      _showSnackBar('Please enter your password.', backgroundColor: Colors.red);
       return;
     }
 
     try {
-      await ref.read(authProvider.notifier).sendOtp(phoneNumber: phone);
+      await ref.read(authProvider.notifier).login(
+        identifier: identifier,
+        password: password,
+      );
     } catch (e) {
-      _showSnackBar('Failed to send OTP. Please try again.', backgroundColor: Colors.red);
+      _showSnackBar('Login failed. Please try again.', backgroundColor: Colors.red);
     }
   }
 
@@ -61,16 +69,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
     // Listen for auth state changes
     ref.listen<ProviderAuthState>(authProvider, (previous, next) {
-      if (next is AuthSuccess) {
-        // Success moves to OTP verification
-        Navigator.pushNamed(
-          context,
-          AppRoutes.otp,
-          arguments: {
-            'phoneNumber': _phoneController.text.trim(),
-            'otp': next.otp, // Pass OTP for auto-verification if provided
-          },
-        );
+      if (next is AuthAuthenticated) {
+        Navigator.pushReplacementNamed(context, AppRoutes.home);
       } else if (next is AuthError) {
         _showSnackBar(next.message, backgroundColor: Colors.red);
       }
@@ -135,24 +135,41 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   ),
                   const SizedBox(height: 10),
                   const Text(
-                    'Enter your registered phone number to verify your identity.',
+                    'Enter your registered email or phone number and password to login.',
                     style: TextStyle(fontSize: 15, color: Colors.grey, height: 1.5),
                   ),
-                  const SizedBox(height: 48),
+                  const SizedBox(height: 38),
 
                   InputField(
-                    controller: _phoneController,
-                    label: 'Phone Number',
-                    hintText: '2000000000',
-                    prefixIcon: Icons.phone_android_outlined,
-                    keyboardType: TextInputType.phone,
+                    controller: _identifierController,
+                    label: 'Email / Phone Number',
+                    hintText: 'user@example.com or 5000000000',
+                    prefixIcon: Icons.person_outline,
                   ),
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 16),
 
-                  // Send OTP Button
+                  InputField(
+                    controller: _passwordController,
+                    label: 'Password',
+                    hintText: '••••••••',
+                    isPassword: true,
+                    prefixIcon: Icons.lock_outline,
+                  ),
+                  const SizedBox(height: 16),
+
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: GestureDetector(
+                      onTap: () => Navigator.pushNamed(context, AppRoutes.forgotPassword),
+                      child: const Text('Forgot Password?', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 13)),
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+
+                  // Login Button
                   CommonButton(
-                    text: 'Request OTP',
-                    onPressed: _handleSendOtp,
+                    text: 'Login',
+                    onPressed: _handleLogin,
                     backgroundColor: AppColors.primary,
                     borderRadius: 16,
                     isLoading: isLoading,

@@ -27,46 +27,55 @@ class PaymentService {
     required String email,
   }) async {
     try {
-      // 1. Create order on backend
-      print("Starting openCheckout... amount is $amount");
-      print("Contact: '$contact', Email: '$email'");
+      final keyId = dotenv.env['RAZORPAY_KEY_ID'] ?? 'rzp_test_S7lSvWtu89c6zD';
+      print("Starting openCheckout...");
+      print("Razorpay Key ID being used: $keyId");
+      print("Amount: $amount, Contact: '$contact', Email: '$email'");
 
+      if (contact.isEmpty && email.isEmpty) {
+        print("WARNING: Both contact and email are empty. Razorpay may require at least one.");
+      }
+
+      print("Calling backend to create Razorpay Order ID...");
       final orderResponse = await _apiClient.post(
         '${ApiClient.paymentBaseUrl}/create-order',
         data: {'amount': amount},
         requiresAuth: true,
       );
 
-      print("orderResponse type: ${orderResponse.runtimeType}");
       print("orderResponse data: $orderResponse");
 
       String? orderId;
       if (orderResponse is Map) {
-        if (orderResponse.containsKey('order') &&
-            orderResponse['order'] is Map &&
-            orderResponse['order'].containsKey('id')) {
-          orderId = orderResponse['order']['id'];
+        // Broad extraction logic for various backend response formats
+        if (orderResponse.containsKey('order') && orderResponse['order'] is Map) {
+          orderId = orderResponse['order']['id']?.toString();
         } else if (orderResponse.containsKey('id')) {
-          orderId = orderResponse['id'];
-        } else if (orderResponse.containsKey('data') && orderResponse['data'] is Map && orderResponse['data'].containsKey('id')) {
-          orderId = orderResponse['data']['id'];
+          orderId = orderResponse['id']?.toString();
+        } else if (orderResponse.containsKey('data') && orderResponse['data'] is Map) {
+          orderId = orderResponse['data']['id']?.toString();
+        } else if (orderResponse.containsKey('razorpayOrderId')) {
+          orderId = orderResponse['razorpayOrderId']?.toString();
         }
-      }
-
-      if (orderId == null) {
-        throw Exception("Could not find order ID in backend response. Response: $orderResponse");
       }
 
       print("Extracted orderId: $orderId");
 
+      if (orderId == null || orderId.isEmpty) {
+        throw Exception("Server returned success but no valid Razorpay Order ID found. Response: $orderResponse");
+      }
+
       // 2. Open Razorpay Checkout
       var options = {
-        'key': dotenv.env['RAZORPAY_KEY'] ?? 'rzp_test_S7lSvWtu89c6zD', // Using the test key provided
+        'key': keyId,
         'amount': (amount * 100).toInt(),
         'name': 'Difwa Water',
         'order_id': orderId,
         'description': 'Wallet Top-up',
-        'prefill': {'contact': contact, 'email': email},
+        'prefill': {
+          if (contact.isNotEmpty) 'contact': contact,
+          if (email.isNotEmpty) 'email': email,
+        },
         'external': {
           'wallets': ['paytm']
         }

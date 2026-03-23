@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../models/food_models.dart';
 import '../network/api_client.dart';
 import 'socket_service.dart';
 
@@ -14,7 +15,7 @@ class OrderService {
   }) async {
     try {
       final response = await _apiClient.post(
-        'https://difwa-backend.vercel.app/app/orders',
+        '${ApiClient.baseUrl}/orders',
         data: {
           'deliveryAddress': deliveryAddress,
           'paymentMethod': paymentMethod,
@@ -36,64 +37,38 @@ class OrderService {
     }
   }
 
-  Future<List<dynamic>> getMyOrders() async {
+  Future<List<UserOrder>> getMyOrders() async {
     try {
       final response = await _apiClient.get(
         '${ApiClient.baseUrl}/orders/history',
         requiresAuth: true,
       );
 
-      debugPrint('OrderHistory Response Type: ${response.runtimeType}');
-
+      final List<dynamic> rawData;
       if (response is List) {
-        return response;
-      }
-
-      if (response is Map) {
-        debugPrint('OrderHistory Keys: ${response.keys.toList()}');
-
-        // Check various common keys
-        final directList = response['orders'] ??
+        rawData = response;
+      } else if (response is Map) {
+        rawData = response['orders'] ??
+            response['data']?['orders'] ??
             response['data'] ??
             response['history'] ??
-            response['items'];
-        if (directList is List) return directList;
-
-        // Handle nested data: { "data": { "orders": [...] } }
-        if (response['data'] is Map) {
-          final nestedList = response['data']['orders'] ??
-              response['data']['history'] ??
-              response['data']['items'];
-          if (nestedList is List) return nestedList;
-        }
-
-        // If the map itself looks like a single order or doesn't have list keys
-        return [];
+            [];
+      } else {
+        rawData = [];
       }
 
-      return [];
-    } catch (e, stack) {
-      debugPrint('Error fetching orders from /orders/history: $e');
-      debugPrint('Stack trace: $stack');
-
-      // Attempt fallback to /orders/my if /orders/history failed or was empty
-      try {
-        final fallback = await _apiClient.get(
-          '${ApiClient.baseUrl}/orders/my',
-          requiresAuth: true,
-        );
-        if (fallback is List) return fallback;
-        if (fallback is Map)
-          return fallback['orders'] ??
-              fallback['data'] ??
-              fallback['history'] ??
-              [];
-      } catch (e2) {
-        debugPrint('Fallback /orders/my also failed: $e2');
-      }
-
+      // Senior Dev: Use isolate for mapping large lists of orders
+      return await compute(_parseOrders, rawData);
+    } catch (e) {
+      debugPrint('Error fetching orders: $e');
       return [];
     }
+  }
+
+  static List<UserOrder> _parseOrders(List<dynamic> data) {
+    return data
+        .map((e) => UserOrder.fromJson(e as Map<String, dynamic>))
+        .toList();
   }
 
   Future<Map<String, dynamic>> placeSpotOrder({
@@ -228,17 +203,17 @@ final orderServiceProvider = Provider<OrderService>((ref) {
   return OrderService(ref.watch(apiClientProvider));
 });
 
-final myOrdersProvider = FutureProvider.autoDispose<List<dynamic>>((ref) {
+final myOrdersProvider = FutureProvider.autoDispose<List<UserOrder>>((ref) {
   return ref.watch(orderServiceProvider).getMyOrders();
 });
 
 final activeOrdersProvider =
-    AsyncNotifierProvider<ActiveOrdersNotifier, List<dynamic>>(
+    AsyncNotifierProvider<ActiveOrdersNotifier, List<UserOrder>>(
         ActiveOrdersNotifier.new);
 
-class ActiveOrdersNotifier extends AsyncNotifier<List<dynamic>> {
+class ActiveOrdersNotifier extends AsyncNotifier<List<UserOrder>> {
   @override
-  Future<List<dynamic>> build() async {
+  Future<List<UserOrder>> build() async {
     // Listen for real-time order status updates from socket
     final socket = ref.watch(socketServiceProvider);
     socket.onOrderUpdate((data) {
@@ -253,18 +228,16 @@ class ActiveOrdersNotifier extends AsyncNotifier<List<dynamic>> {
     return _fetchActiveOrders();
   }
 
-  Future<List<dynamic>> _fetchActiveOrders() async {
+  Future<List<UserOrder>> _fetchActiveOrders() async {
     final service = ref.read(orderServiceProvider);
 
     try {
-      // Fetch full history to ensure we include everything "not delivered"
       final history = await service.getMyOrders();
 
       if (history.isEmpty) return [];
 
       return history.where((o) {
-        final status = (o['status'] ?? '').toString().toLowerCase();
-        // The user specifically wants orders that are NOT "delivered"
+        final status = o.status.toLowerCase();
         return status != 'delivered';
       }).toList();
     } catch (e) {

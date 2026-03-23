@@ -50,38 +50,85 @@ class Restaurant {
 
 class UserOrder {
   final String id;
-  final String restaurantName;
-  final String date;
-  final String? deliveryDate; // For upcoming subscription deliveries
-  final double total;
   final String status;
-  final List<String> items;
-  final bool isSubscription;
+  final double total;
+  final DateTime date;
+  final List<UserOrderItem> items;
+  final Map<String, dynamic>? rider;
+  final Map<String, dynamic>? deliveryAddressMap;
 
   const UserOrder({
     required this.id,
-    required this.restaurantName,
-    required this.date,
-    this.deliveryDate,
-    required this.total,
     required this.status,
+    required this.total,
+    required this.date,
     required this.items,
-    this.isSubscription = false,
+    this.rider,
+    this.deliveryAddressMap,
   });
 
+  String get riderName => rider?['fullName'] ?? rider?['name'] ?? '';
+  String get riderPhone => rider?['phoneNumber'] ?? rider?['phone'] ?? '';
+  String get deliveryAddress => deliveryAddressMap?['fullAddress'] ?? 
+      deliveryAddressMap?['address'] ?? 'Your delivery address';
+
   factory UserOrder.fromJson(Map<String, dynamic> json) {
-    // Backend returns orderId, createdAt, totalAmount, status, items
+    final rawItems = (json['items'] ?? json['products']) as List? ?? [];
+    final items = rawItems
+        .map((i) => UserOrderItem.fromJson(i as Map<String, dynamic>))
+        .toList();
+
+    double totalAmt =
+        (json['totalAmount'] ?? json['total'] ?? json['bill'] as num?)
+                ?.toDouble() ??
+            0.0;
+    if (totalAmt == 0.0 && items.isNotEmpty) {
+      totalAmt = items.fold(0.0, (sum, i) => sum + (i.price * i.quantity));
+    }
+
     return UserOrder(
-      id: json['orderId'] ?? '',
-      restaurantName: 'Difwabite Retailer', // Placeholder as it's not directly in Order model top level
-      date: json['createdAt'] != null 
-          ? DateTime.parse(json['createdAt']).toLocal().toString().split('.').first
-          : '',
-      total: double.tryParse(json['totalAmount']?.toString() ?? '0') ?? 0.0,
-      status: json['paymentStatus'] == 'Paid' ? 'Accepted' : 'Pending',
-      items: (json['items'] as List<dynamic>?)?.map((item) => 
-          "${item['quantity']}x ${item['product']?['name'] ?? 'Product'}"
-      ).toList() ?? [],
+      id: (json['_id'] ?? json['orderId'] ?? json['id'] ?? '').toString(),
+      status: (json['status'] ?? json['paymentStatus'] ?? 'Pending').toString(),
+      total: totalAmt,
+      date: DateTime.tryParse(json['updatedAt'] ?? json['createdAt'] ?? json['orderDate'] ?? '')
+              ?.toLocal() ??
+          DateTime.now(),
+      items: items,
+      rider: json['rider'] is Map ? json['rider'] : null,
+      deliveryAddressMap: json['deliveryAddress'] is Map ? json['deliveryAddress'] : null,
+    );
+  }
+}
+
+class UserOrderItem {
+  final String name;
+  final int quantity;
+  final double price;
+  final String image;
+
+  const UserOrderItem({
+    required this.name,
+    required this.quantity,
+    required this.price,
+    required this.image,
+  });
+
+  factory UserOrderItem.fromJson(Map<String, dynamic> json) {
+    final p = json['product'] is Map ? json['product'] : json;
+    String img = '';
+    if (p['image'] != null) {
+      img = p['image'].toString();
+    } else if (p['images'] is List && (p['images'] as List).isNotEmpty) {
+      img = p['images'][0].toString();
+    }
+
+    return UserOrderItem(
+      name: (p['name'] ?? p['productName'] ?? 'Item').toString(),
+      quantity: (json['quantity'] as num?)?.toInt() ?? 1,
+      price: (json['price'] as num?)?.toDouble() ??
+          (p['price'] as num?)?.toDouble() ??
+          0.0,
+      image: img,
     );
   }
 }

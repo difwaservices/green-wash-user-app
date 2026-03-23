@@ -52,11 +52,16 @@ class _SplashPageState extends ConsumerState<SplashPage>
     
     if (authState.status == AuthStatus.authenticated) {
       debugPrint('[Splash] Session found. Navigating to Home.');
-       if (authState.user?.role == 'rider') {
-         Navigator.pushReplacementNamed(context, AppRoutes.riderHome);
-       } else {
-         Navigator.pushReplacementNamed(context, AppRoutes.home);
-       }
+      final role = (authState.user?.role ?? 'customer').toLowerCase();
+      debugPrint('[Splash] Initializing for user role: $role');
+      // Case-insensitive check for 'rider' variants (e.g. shop_rider, delivery_partner, etc.)
+      if (role.contains('rider') || role.contains('delivery') || role.contains('driver')) {
+        debugPrint('[Splash] Navigating to Rider Dashboard');
+        Navigator.pushReplacementNamed(context, AppRoutes.riderHome);
+      } else {
+        debugPrint('[Splash] Navigating to Customer Home');
+        Navigator.pushReplacementNamed(context, AppRoutes.home);
+      }
     } else {
       debugPrint('[Splash] No session. Navigating to Sign Up.');
       Navigator.pushReplacementNamed(context, AppRoutes.signup);

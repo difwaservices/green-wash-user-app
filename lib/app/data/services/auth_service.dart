@@ -64,6 +64,38 @@ class AuthService {
     }
   }
 
+  // ── Login ─────────────────────────────────────────────────────────────────
+  Future<AuthResponseModel> login({
+    required String identifier,
+    required String password,
+  }) async {
+    try {
+      bool isPhone = RegExp(r'^[0-9+]+$').hasMatch(identifier.trim());
+      final Map<String, dynamic> dataPayload = {
+        'password': password,
+      };
+      if (isPhone) {
+        dataPayload['phoneNumber'] = identifier;
+      } else {
+        dataPayload['email'] = identifier;
+      }
+
+      final data = await _client.post(
+        '${ApiClient.baseUrl}/login',
+        data: dataPayload,
+      );
+      final response = AuthResponseModel.fromJson(data);
+      if (response.success && response.token != null && response.token!.isNotEmpty) {
+        await ApiClient.saveToken(response.token!);
+      }
+      return response;
+    } on ApiException catch (e) {
+      return AuthResponseModel(success: false, message: e.message);
+    } catch (e) {
+      return AuthResponseModel(success: false, message: e.toString());
+    }
+  }
+
   Future<AuthResponseModel> sendOtp({
     required String phoneNumber,
   }) async {
@@ -174,7 +206,7 @@ class AuthService {
     required String email,
   }) async {
     try {
-      final data = await _client.post(
+      final data = await _client.put(
         '${ApiClient.baseUrl}/profile',
         data: {
           'fullName': fullName,

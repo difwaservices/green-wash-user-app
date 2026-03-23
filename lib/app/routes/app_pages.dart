@@ -23,6 +23,8 @@ import '../modules/orders/view/track_order_page.dart';
 import '../modules/rider/view/rider_order_details_page.dart';
 import '../modules/location/view/location_picker_screen.dart';
 import '../modules/cart/view/payment_page.dart';
+import '../modules/wallet/view/top_up_page.dart';
+import '../modules/orders/view/active_orders_page.dart';
 
 class AppPages {
   static Map<String, WidgetBuilder> get routes => {
@@ -67,5 +69,7 @@ class AppPages {
         },
         AppRoutes.locationPicker: (context) => const LocationPickerScreen(),
         AppRoutes.payment: (context) => const PaymentPage(),
+        AppRoutes.topUp: (context) => const TopUpPage(),
+        AppRoutes.activeOrders: (context) => const ActiveOrdersPage(),
       };
 }

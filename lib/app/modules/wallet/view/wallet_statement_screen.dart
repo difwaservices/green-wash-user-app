@@ -364,9 +364,9 @@ class _TransactionItemWidget extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      transaction.category == 'Top-up'
-                          ? 'Wallet Top-up'
-                          : 'Order Payment',
+                      transaction.description.isNotEmpty 
+                          ? transaction.description 
+                          : (isCredit ? 'Wallet Top-up' : 'Order Payment'),
                       style: const TextStyle(
                           fontWeight: FontWeight.bold, fontSize: 14),
                     ),
