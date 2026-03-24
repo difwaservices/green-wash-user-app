@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter/foundation.dart';
 import '../network/api_client.dart';
 import '../models/product_model.dart';
 
@@ -43,9 +44,9 @@ class CartService {
 
   // ── Add to Cart ──────────────────────────────────────────────────────────
   /// POST /api/app/cart/add (requires auth token)
-  Future<void> addToCart(String productId, int quantity) async {
+  Future<bool> addToCart(String productId, int quantity) async {
     try {
-      await _client.post(
+      final response = await _client.post(
         '${ApiClient.baseUrl}/cart/add',
         data: {
           'productId': productId,
@@ -53,8 +54,10 @@ class CartService {
         },
         requiresAuth: true,
       );
+      return response != null;
     } catch (e) {
-      print('CartService: Error adding to cart: $e');
+      debugPrint('CartService: Error adding to cart (Backend rejected it): $e');
+      throw Exception('Backend failed to add item: $e');
     }
   }
 
@@ -62,8 +65,8 @@ class CartService {
   /// PUT /api/app/cart/update (requires auth token)
   Future<void> updateQuantity(String productId, int quantity) async {
     try {
-      await _client.post(
-        '${ApiClient.baseUrl}/cart/add',
+      await _client.put(
+        '${ApiClient.baseUrl}/cart/update',
         data: {
           'productId': productId,
           'quantity': quantity,

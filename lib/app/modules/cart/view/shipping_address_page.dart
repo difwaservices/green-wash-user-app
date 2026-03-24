@@ -72,7 +72,9 @@ class _ShippingAddressPageState extends ConsumerState<ShippingAddressPage> {
       );
 
       if (result['success']) {
+        // Reload addresses AND re-sync cart so backend total is correct
         await cart.loadAddresses();
+        await cart.loadCartFromApi(); // Ensures backend cart = UI cart
         if (mounted) {
           setState(() {
             _showAddForm = false;
@@ -654,6 +656,17 @@ class _ShippingAddressPageState extends ConsumerState<ShippingAddressPage> {
         height: 56,
         child: ElevatedButton(
           onPressed: () {
+            final selected = cart.selectedAddress;
+            if (selected == null) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Please select a delivery address first.'),
+                  backgroundColor: Colors.redAccent,
+                  behavior: SnackBarBehavior.floating,
+                ),
+              );
+              return;
+            }
             Navigator.push(context,
                 MaterialPageRoute(builder: (_) => const PaymentMethodPage()));
           },

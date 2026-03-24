@@ -6,7 +6,6 @@ import '../../../data/services/subscription_service.dart';
 import '../../../data/models/subscription_model.dart';
 import '../../../data/models/food_models.dart';
 import '../../../core/constants/app_colors.dart';
-import '../../../core/constants/app_images.dart';
 import 'address_form_page.dart';
 import '../widgets/review_dialog.dart';
 
@@ -21,7 +20,6 @@ class ProfileDetailPage extends ConsumerStatefulWidget {
 
 class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
   int? _expandedOrderIndex = 0; // Default first one expanded as in Image 3
-  bool _makeDefaultCard = true;
 
   // ── Subscriptions state ───────────────────────────────────────────────────
   final SubscriptionService _subscriptionService = SubscriptionService();
@@ -523,7 +521,7 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
         return _buildNotificationCard(
           key,
           'Get real-time updates for $key.',
-          _notificationSettings[key] ?? false,
+          _notificationSettings[key]!,
         );
       }).toList() + [
         const SizedBox(height: 60),
@@ -532,133 +530,19 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
     );
   }
 
-  // --- MY CARDS DESIGN (Image 5) ---
   Widget _buildCardsDetail(CartProvider provider) {
+    if (provider.payments.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.only(top: 40),
+        child: Center(
+            child: Text('No credit cards saved yet.',
+                style: TextStyle(color: Colors.grey, fontSize: 16))),
+      );
+    }
+    
     return Column(
       children: [
-        // MasterCard expanded
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.3),
-                blurRadius: 15,
-                spreadRadius: 0,
-                offset: const Offset(0, 8),
-              ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFCFFAFE),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: const Text(
-                  'DEFAULT',
-                  style: TextStyle(
-                    color: Color(0xFF06B6D4),
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  CircleAvatar(
-                    radius: 30,
-                    backgroundColor: const Color(0xFFF7F8FA),
-                    child: Icon(Icons.credit_card, color: Colors.orange),
-                  ),
-                  const SizedBox(width: 16),
-                  const Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Master Card',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
-                        ),
-                        Text(
-                          'XXXX XXXX XXXX 5678',
-                          style: TextStyle(color: Colors.grey, fontSize: 12),
-                        ),
-                        Text(
-                          'Expiry: 01/22  CVV: 908',
-                          style: TextStyle(color: Colors.grey, fontSize: 12),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const Icon(Icons.expand_less, color: Color(0xFF06B6D4)),
-                ],
-              ),
-              const SizedBox(height: 24),
-              _buildIconTextField(Icons.person_outline, 'Russell Austin'),
-              const SizedBox(height: 12),
-              _buildIconTextField(
-                Icons.credit_card_outlined,
-                'XXXX XXXX XXXX 5678',
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildIconTextField(
-                      Icons.calendar_today_outlined,
-                      '01/22',
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _buildIconTextField(Icons.lock_outline, '908'),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Switch(
-                    value: _makeDefaultCard,
-                    onChanged: (v) => setState(() => _makeDefaultCard = v),
-                    activeThumbColor: const Color(0xFF06B6D4),
-                    activeTrackColor: const Color(0xFFCFFAFE),
-                  ),
-                  const Text(
-                    'Make default',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF1A1A1A),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 16),
-        _buildCardItem(
-          'Visa Card',
-          'XXXX XXXX XXXX 5678',
-          Icons.credit_card,
-          Colors.blue,
-        ),
-        _buildCardItem(
-          'Master Card',
-          'XXXX XXXX XXXX 5678',
-          Icons.payment,
-          Colors.orange,
-        ),
+        // Map over provider.payments here when ready
         const SizedBox(height: 32),
         _buildSaveButton('Save card'),
       ],
@@ -827,88 +711,29 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
     );
   }
 
-  Widget _buildCardItem(
-    String title,
-    String number,
-    IconData icon,
-    Color iconColor,
-  ) {
-    return Container(
-      margin: const EdgeInsets.only(top: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(
-        children: [
-          CircleAvatar(
-            radius: 24,
-            backgroundColor: const Color(0xFFF1F4F8),
-            child: Icon(icon, color: iconColor),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
-                  ),
-                ),
-                Text(
-                  number,
-                  style: const TextStyle(color: Colors.grey, fontSize: 11),
-                ),
-              ],
-            ),
-          ),
-          const Icon(Icons.expand_more, color: Color(0xFFD1D1D1)),
-        ],
-      ),
-    );
-  }
-
   // --- MY FAVORITES DESIGN (Image 5) ---
   Widget _buildFavoritesDetail(CartProvider provider) {
+    if (provider.favRestaurants.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.only(top: 40),
+        child: Center(
+          child: Text('No favorites yet.',
+              style: TextStyle(color: Colors.grey, fontSize: 16)),
+        ),
+      );
+    }
+
     return Column(
-      children: [
-        _buildFavoriteCard(
-          '20L Mineral Jar',
-          'Premium RO+UV',
-          '80',
+      children: provider.favRestaurants.map((fav) {
+        return _buildFavoriteCard(
+          fav.name,
+          fav.discount,
+          '—',
           1,
-          AppImages.water20L,
+          fav.image,
           const Color(0xFFE3F2FD),
-        ),
-        _buildFavoriteCard(
-          '1L Mineral Bottle',
-          'Pack of 12',
-          '240',
-          1,
-          AppImages.waterSmall,
-          const Color(0xFFE1F5FE),
-        ),
-        _buildFavoriteCard(
-          'Table Top Dispenser',
-          'Manual Tap',
-          '499',
-          1,
-          AppImages.bottleIcon,
-          const Color(0xFFF1F8E9),
-        ),
-        _buildFavoriteCard(
-          'Water Pump',
-          'Automatic USB',
-          '299',
-          1,
-          AppImages.water20L,
-          const Color(0xFFFFF3E0),
-        ),
-      ],
+        );
+      }).toList(),
     );
   }
 
@@ -1022,45 +847,30 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
 
   // --- TRANSACTIONS DESIGN ---
   Widget _buildTransactionsDetail() {
+    final cartProvider = CartProviderScope.of(context);
+    if (cartProvider.transactions.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.only(top: 40),
+        child: Center(
+          child: Text('No transactions found.',
+              style: TextStyle(color: Colors.grey, fontSize: 16)),
+        ),
+      );
+    }
+    
     return Column(
-      children: [
-        _buildTransactionItem(
-          'Order Payment',
-          'Oct 24, 2021',
-          '-₹34.50',
-          'Completed',
-          isNegative: true,
-        ),
-        _buildTransactionItem(
-          'Wallet Top-up',
-          'Oct 22, 2021',
-          '+₹50.00',
-          'Completed',
-          isNegative: false,
-        ),
-        _buildTransactionItem(
-          'Refund received',
-          'Oct 20, 2021',
-          '+₹12.00',
-          'Completed',
-          isNegative: false,
-        ),
-        _buildTransactionItem(
-          'Order Payment',
-          'Oct 19, 2021',
-          '-₹16.90',
-          'Completed',
-          isNegative: true,
-        ),
-        _buildTransactionItem(
-          'Order Payment',
-          'Oct 18, 2021',
-          '-₹22.10',
-          'Failed',
-          isNegative: true,
-          isFailed: true,
-        ),
-      ],
+      children: cartProvider.transactions.map((tx) {
+        final amount = tx['amount'] ?? 0;
+        final isNegative = tx['type'] == 'Debit';
+        return _buildTransactionItem(
+          tx['description'] ?? 'Transaction',
+          _formatDate(tx['createdAt'] ?? ''),
+          '${isNegative ? '-' : '+'}₹$amount',
+          tx['status'] ?? 'Completed',
+          isNegative: isNegative,
+          isFailed: tx['status'] == 'Failed',
+        );
+      }).toList(),
     );
   }
 

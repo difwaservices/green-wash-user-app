@@ -136,18 +136,15 @@ class CartPage extends StatelessWidget {
     return GestureDetector(
       onTap: () {
         // Find the full product object to pass to details page
-        final product = cart.recommendedProducts.firstWhere(
-          (p) => p.id == item.id,
-          orElse: () => Product(
-            id: item.id,
-            name: item.title,
-            image: item.image,
-            price: item.unitPrice,
-            weight: item.subtitle,
-            category: '', // Assuming a default empty category if not found
-            description: '',
-            whyChoose: [],
-          ),
+        final product = Product(
+          id: item.id,
+          name: item.title,
+          image: item.image,
+          price: item.unitPrice,
+          weight: item.subtitle,
+          category: '', 
+          description: '',
+          whyChoose: [],
         );
         Navigator.push(
           context,
@@ -180,7 +177,7 @@ class CartPage extends StatelessWidget {
                           fit: BoxFit.cover,
                           errorBuilder: (context, error, stackTrace) =>
                               const Icon(
-                            Icons.set_meal_outlined,
+                            Icons.water_drop_outlined,
                             color: Colors.grey,
                             size: 30,
                           ),
@@ -190,7 +187,7 @@ class CartPage extends StatelessWidget {
                           fit: BoxFit.cover,
                           errorBuilder: (context, error, stackTrace) =>
                               const Icon(
-                            Icons.set_meal_outlined,
+                            Icons.water_drop_outlined,
                             color: Colors.grey,
                             size: 30,
                           ),
@@ -242,18 +239,15 @@ class CartPage extends StatelessWidget {
                   const SizedBox(height: 8),
                   TextButton(
                     onPressed: () {
-                      final product = cart.recommendedProducts.firstWhere(
-                        (p) => p.id == item.id,
-                        orElse: () => Product(
-                          id: item.id,
-                          name: item.title,
-                          image: item.image,
-                          price: item.unitPrice,
-                          weight: item.subtitle,
-                          category: '',
-                          description: '',
-                          whyChoose: [],
-                        ),
+                      final product = Product(
+                        id: item.id,
+                        name: item.title,
+                        image: item.image,
+                        price: item.unitPrice,
+                        weight: item.subtitle,
+                        category: '',
+                        description: '',
+                        whyChoose: [],
                       );
                       showModalBottomSheet(
                         context: context,

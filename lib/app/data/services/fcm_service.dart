@@ -1,11 +1,14 @@
-import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import '../network/api_client.dart';
 import '../../../core/storage/secure_storage_service.dart';
 
-/// Stub FCMService without Firebase Cloud Messaging
-/// Uses local notifications only
+@pragma('vm:entry-point')
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  debugPrint("Handling a background message: ${message.messageId}");
+}
+
 class FCMService {
   static final FCMService _instance = FCMService._internal();
   factory FCMService() => _instance;
@@ -15,22 +18,22 @@ class FCMService {
       FlutterLocalNotificationsPlugin();
 
   static const _androidChannel = AndroidNotificationChannel(
-    'Difwabite_high_importance',
-    'Difwabite Notifications',
+    'difwa_high_importance',
+    'Difwa Notifications',
     description: 'Important notifications for orders, OTPs, and updates',
     importance: Importance.max,
   );
 
-  // ── Initialise (call once from main.dart) ────
-
   static Future<void> init() async {
+    // Background handler
+    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+
     // Create Android notification channel
     await _localNotifications
         .resolvePlatformSpecificImplementation<
             AndroidFlutterLocalNotificationsPlugin>()
         ?.createNotificationChannel(_androidChannel);
 
-    // Init local notifications plugin
     const androidSettings =
         AndroidInitializationSettings('@mipmap/ic_launcher');
     const iosSettings = DarwinInitializationSettings(
@@ -43,38 +46,57 @@ class FCMService {
           android: androidSettings, iOS: iosSettings),
     );
 
-    debugPrint('✅ FCMService initialized (Local notifications only)');
-  }
+    // Request permissions
+    await FCMService().requestPermission();
 
-  // ── Permission ─────────────────────────────────────────────────────────────
+    // Foreground listening
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      debugPrint('🔔 Got a message whilst in the foreground!');
+      debugPrint('Message data: ${message.data}');
+
+      if (message.notification != null) {
+        showNotification(
+          title: message.notification!.title ?? 'New Notification',
+          body: message.notification!.body ?? '',
+        );
+      }
+    });
+
+    listenToTokenRefresh();
+
+    debugPrint('✅ FCMService initialized (Real Firebase)');
+  }
 
   Future<void> requestPermission() async {
-    debugPrint('🔔 Local notifications permission granted');
+    FirebaseMessaging messaging = FirebaseMessaging.instance;
+    NotificationSettings settings = await messaging.requestPermission(
+      alert: true,
+      announcement: false,
+      badge: true,
+      carPlay: false,
+      criticalAlert: false,
+      provisional: false,
+      sound: true,
+    );
+    debugPrint('🔔 User granted permission: ${settings.authorizationStatus}');
   }
 
-  // ── Token ──────────────────────────────────────────────────────────────────
-
-  /// Returns a stub token for local notifications
   Future<String?> getToken() async {
     try {
-      final deviceId = '${Platform.operatingSystem}_${DateTime.now().millisecondsSinceEpoch}';
-      debugPrint('📱 Device Token (Local): $deviceId');
-      return deviceId;
+      final String? token = await FirebaseMessaging.instance.getToken();
+      debugPrint('📱 FCM Device Token: $token');
+      return token;
     } catch (e) {
-      debugPrint('❌ Error getting device token: $e');
+      debugPrint('❌ Error getting FCM token: $e');
       return null;
     }
   }
 
-  // ── Send token to backend ─────────────────────────────────────────────────
-
-  /// Call this after login/register to register the device token with the server.
   static Future<void> sendTokenToBackend() async {
     try {
       final token = await FCMService().getToken();
       if (token == null) return;
 
-      // Use the existing API client's token
       final storage = SecureStorageService();
       final authToken = await storage.getAccessToken();
       if (authToken == null) return;
@@ -88,16 +110,16 @@ class FCMService {
       debugPrint('✅ Device token sent to backend');
     } catch (e) {
       debugPrint('⚠️ Failed to send device token to backend: $e');
-      // Non-blocking — no rethrow
     }
   }
 
-  /// Listen to token refresh (stub - not used without FCM)
   static void listenToTokenRefresh() {
-    debugPrint('🔄 Token refresh listener initialized (local only)');
+    FirebaseMessaging.instance.onTokenRefresh.listen((newToken) async {
+       debugPrint('🔄 FCM Token refreshed!');
+       // Optional: Send to backend immediately if logged in
+       await sendTokenToBackend();
+    });
   }
-
-  // ── Show local notification ────────────────────────────────────────────────
 
   static Future<void> showNotification({
     required String title,
@@ -122,9 +144,9 @@ class FCMService {
         ),
         payload: payload,
       );
-      debugPrint('🔔 Local notification shown: $title');
     } catch (e) {
-      debugPrint('❌ Error showing notification: $e');
+      debugPrint('❌ Error showing local notification: $e');
     }
   }
 }
+

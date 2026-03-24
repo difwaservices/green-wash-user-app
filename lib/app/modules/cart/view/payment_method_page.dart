@@ -454,6 +454,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                             // Success path for all items
                             await cartProvider.syncWallet();
                             cartProvider.clearCart();
+                            if (!mounted) return;
                             navigator.pushAndRemoveUntil(
                                 MaterialPageRoute(
                                     builder: (_) => const OrderSuccessPage()),
@@ -467,6 +468,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                             if (response['success'] == true) {
                               await cartProvider.syncWallet();
                               cartProvider.clearCart();
+                              if (!mounted) return;
                               ref.invalidate(activeOrdersProvider);
                               ref.invalidate(myOrdersProvider);
                               navigator.pushAndRemoveUntil(

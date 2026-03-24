@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_images.dart';
-import '../../widgets/common_button.dart';
 import 'provider/auth_provider.dart';
 import 'widgets/input_field.dart';
 import '../../routes/app_routes.dart';
@@ -70,73 +67,66 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     // Listen for auth state changes
     ref.listen<ProviderAuthState>(authProvider, (previous, next) {
       if (next is AuthAuthenticated) {
-        Navigator.pushReplacementNamed(context, AppRoutes.home);
+        final role = (next.user.role).toLowerCase();
+        if (role.contains('rider') || role.contains('delivery') || role.contains('driver')) {
+          Navigator.pushReplacementNamed(context, AppRoutes.riderHome);
+        } else {
+          Navigator.pushReplacementNamed(context, AppRoutes.home);
+        }
       } else if (next is AuthError) {
         _showSnackBar(next.message, backgroundColor: Colors.red);
       }
     });
 
     return Scaffold(
-      backgroundColor: Colors.white,
-      body: SingleChildScrollView(
+      backgroundColor: const Color(0xFFE0F7FA), // Soft water-like cyan
+      body: SafeArea(
+        bottom: false,
+        child: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
         child: Column(
           children: [
-            // ── Premium Branding ──
-            Stack(
-              children: [
-                SizedBox(
-                  height: 340,
-                  width: double.infinity,
-                  child: Stack(
-                    children: [
-                      Positioned.fill(
-                        child: SvgPicture.asset(
-                          AppImages.splashBg,
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                      Center(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Image.asset(
-                              AppImages.difwaLogoPng,
-                              width: 180,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+            // ── Top Spacing ──
+            const SizedBox(height: 60),
 
             // ── Verification Form ──
             Container(
+              width: double.infinity,
+              constraints: BoxConstraints(
+                minHeight: MediaQuery.of(context).size.height - 120,
+              ),
               padding: const EdgeInsets.fromLTRB(28, 40, 28, 40),
               decoration: const BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(36),
-                  topRight: Radius.circular(36),
+                  topLeft: Radius.circular(40),
+                  topRight: Radius.circular(40),
                 ),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Logo inside card
+                  Center(
+                    child: Image.asset(
+                      AppImages.difwaLogoPng,
+                      width: 160,
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+
                   const Text(
                     'Welcome Back!',
                     style: TextStyle(
-                        fontSize: 30,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF1A1A1A)),
+                        fontSize: 28,
+                        fontWeight: FontWeight.w900,
+                        color: Color(0xFF1E293B)),
                   ),
                   const SizedBox(height: 10),
                   const Text(
                     'Enter your registered email or phone number and password to login.',
-                    style: TextStyle(fontSize: 15, color: Colors.grey, height: 1.5),
+                    style: TextStyle(
+                        fontSize: 14, color: Color(0xFF64748B), height: 1.5),
                   ),
                   const SizedBox(height: 38),
 
@@ -146,7 +136,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     hintText: 'user@example.com or 5000000000',
                     prefixIcon: Icons.person_outline,
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 24),
 
                   InputField(
                     controller: _passwordController,
@@ -160,22 +150,62 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   Align(
                     alignment: Alignment.centerRight,
                     child: GestureDetector(
-                      onTap: () => Navigator.pushNamed(context, AppRoutes.forgotPassword),
-                      child: const Text('Forgot Password?', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 13)),
+                      onTap: () =>
+                          Navigator.pushNamed(context, AppRoutes.forgotPassword),
+                      child: const Text('Forgot Password?',
+                          style: TextStyle(
+                              color: Color(0xFF06B6D4),
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13)),
                     ),
                   ),
                   const SizedBox(height: 32),
 
-                  // Login Button
-                  CommonButton(
-                    text: 'Login',
-                    onPressed: _handleLogin,
-                    backgroundColor: AppColors.primary,
-                    borderRadius: 16,
-                    isLoading: isLoading,
+                  // Gradient Login Button
+                  GestureDetector(
+                    onTap: isLoading ? null : _handleLogin,
+                    child: Container(
+                      width: double.infinity,
+                      height: 56,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(30),
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF006064), Color(0xFF00ACC1)],
+                          begin: Alignment.centerLeft,
+                          end: Alignment.centerRight,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFF00ACC1).withValues(alpha: 0.3),
+                            blurRadius: 15,
+                            spreadRadius: 2,
+                            offset: const Offset(0, 5),
+                          )
+                        ],
+                      ),
+                      child: Center(
+                        child: isLoading
+                            ? const SizedBox(
+                                height: 24,
+                                width: 24,
+                                child: CircularProgressIndicator(
+                                    color: Colors.white, strokeWidth: 2))
+                            : const Text(
+                                'Login',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
+                      ),
+                    ),
                   ),
 
                   const SizedBox(height: 32),
+
+
 
                   // Sign Up Link
                   Center(
@@ -183,7 +213,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       children: [
                         const Text(
                           "New to Difwa Water?",
-                          style: TextStyle(color: Colors.grey, fontSize: 13),
+                          style: TextStyle(color: Color(0xFF64748B), fontSize: 13),
                         ),
                         const SizedBox(height: 8),
                         GestureDetector(
@@ -192,12 +222,13 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                           child: const Text(
                             'Join Now / Signup',
                             style: TextStyle(
-                              color: AppColors.primary,
+                              color: Color(0xFF06B6D4),
                               fontWeight: FontWeight.bold,
                               fontSize: 15,
                             ),
                           ),
                         ),
+                        const SizedBox(height: 40),
                       ],
                     ),
                   ),
@@ -207,6 +238,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           ],
         ),
       ),
-    );
+    ));
   }
 }

@@ -10,6 +10,8 @@ import 'app/data/services/shop_service.dart';
 import 'app/data/services/order_service.dart';
 import 'app/data/services/db_service.dart';
 import 'app/core/theme/app_theme.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'app/data/services/fcm_service.dart';
 
 // Use a standard Provider and ListenableBuilder for reactivity
 final cartProviderManager = Provider<CartProvider>((ref) {
@@ -25,6 +27,9 @@ final cartProviderManager = Provider<CartProvider>((ref) {
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
+  await Firebase.initializeApp();
+  await FCMService.init();
+
   try {
     await dotenv.load(fileName: ".env");
   } catch (e) {
@@ -46,25 +51,19 @@ class DifwaWaterApp extends ConsumerWidget {
     // Watch the instance of CartProvider
     final cartProvider = ref.watch(cartProviderManager);
 
-    // ListenableBuilder ensures we react to notifyListeners() calls
-    return ListenableBuilder(
-      listenable: cartProvider,
-      builder: (context, _) {
-        return CartProviderScope(
-          provider: cartProvider,
-          child: MaterialApp(
-            title: 'Difwa Water',
-            debugShowCheckedModeBanner: false,
-            theme: AppTheme.lightTheme,
-            initialRoute: AppRoutes.splash,
-            routes: AppPages.routes,
-            scrollBehavior: const MaterialScrollBehavior().copyWith(
-              physics: const BouncingScrollPhysics(
-                  parent: AlwaysScrollableScrollPhysics()),
-            ),
-          ),
-        );
-      },
+    return CartProviderScope(
+      provider: cartProvider,
+      child: MaterialApp(
+        title: 'Difwa Water',
+        debugShowCheckedModeBanner: false,
+        theme: AppTheme.lightTheme,
+        initialRoute: AppRoutes.splash,
+        routes: AppPages.routes,
+        scrollBehavior: const MaterialScrollBehavior().copyWith(
+          physics: const BouncingScrollPhysics(
+              parent: AlwaysScrollableScrollPhysics()),
+        ),
+      ),
     );
   }
 }

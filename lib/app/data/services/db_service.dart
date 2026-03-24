@@ -42,7 +42,7 @@ class CartProvider extends ChangeNotifier {
   List<Restaurant> get restaurants => _restaurants;
   List<UserOrder> get orders => _orders;
   List<UserAddress> get addresses => _addresses;
-  List<Product> get recommendedProducts => _recommendedProducts;
+
   List<UserPaymentMethod> get payments => _payments;
 
   UserProfile _userProfile = const UserProfile(
@@ -115,73 +115,8 @@ class CartProvider extends ChangeNotifier {
         orElse: () => _addresses.first);
   }
 
-  final List<UserPaymentMethod> _payments = [
-    const UserPaymentMethod(
-      id: 'PAY001',
-      type: 'Visa',
-      lastFour: '4567',
-      expiry: '12/28',
-    ),
-    const UserPaymentMethod(
-      id: 'PAY002',
-      type: 'UPI',
-      lastFour: 'rajaji@upi',
-      expiry: '-',
-    ),
-  ];
+  final List<UserPaymentMethod> _payments = [];
 
-  final List<Product> _recommendedProducts = const [
-    Product(
-      id: 'p1',
-      name: 'Premium 20L Jar',
-      image: AppImages.water20L,
-      price: 80,
-      weight: '20L',
-      category: '20L Jar',
-      description:
-          'Our signature 20L water jar, purified with a 7-stage filtration process including UV and RO. Perfect for homes and offices. Pure, chilled, and refreshing.',
-      whyChoose: [
-        '7-Stage Purification Process',
-        'Rich in Essential Minerals',
-        'Hygienically Packed & Sealed',
-        'BPA-Free Food Grade Jar',
-        'Doorstep Delivery within 20 mins',
-      ],
-    ),
-    Product(
-      id: 'p2',
-      name: '1L Mineral Bottle',
-      image: AppImages.waterSmall,
-      price: 20,
-      weight: '1L',
-      category: '1L Bottle',
-      isFavorite: true,
-      description:
-          'Convenient 1L mineral water bottle for on-the-go hydration. Balanced pH and enriched with electrolytes for a refreshing taste.',
-      whyChoose: [
-        'Balanced pH Level (7.0 - 7.5)',
-        'Enriched with Magnesium & Calcium',
-        'Easy-grip bottle design',
-        'Perfect for travel and gym',
-      ],
-    ),
-    Product(
-      id: 'p3',
-      name: 'Table Top Dispenser',
-      image: AppImages.bottleIcon,
-      price: 499,
-      weight: '1 Unit',
-      category: 'Dispenser',
-      description:
-          'Elegant table-top water dispenser with an easy-press tap. Suitable for any 20L water jar. Manual operation, no electricity required.',
-      whyChoose: [
-        'High-quality Food Grade Plastic',
-        'Durable and Easy to Clean',
-        'Sleek Space-saving Design',
-        'Zero Maintenance cost',
-      ],
-    ),
-  ];
 
   void updateUserProfile(UserProfile profile) {
     _userProfile = profile;
@@ -197,6 +132,11 @@ class CartProvider extends ChangeNotifier {
     );
     _items.clear();
     _favoriteIds.clear();
+    _addresses.clear();
+    _orders.clear();
+    _transactions.clear();
+    _walletBalance = 0.0;
+    _selectedAddressIndex = 0;
     notifyListeners();
   }
 
@@ -246,7 +186,7 @@ class CartProvider extends ChangeNotifier {
     }
   }
 
-  final List<String> _favoriteIds = ['1', 'p2'];
+  final List<String> _favoriteIds = [];
 
   List<Restaurant> get favRestaurants {
     if (_restaurants.isEmpty) return [];

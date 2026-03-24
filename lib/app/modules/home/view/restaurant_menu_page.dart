@@ -712,7 +712,7 @@ class _ProductCardState extends ConsumerState<_ProductCard> {
       height: 110,
       color: Colors.grey.shade100,
       child: const Center(
-        child: Icon(Icons.set_meal_outlined, size: 36, color: Colors.grey),
+        child: Icon(Icons.water_drop_outlined, size: 36, color: Colors.grey),
       ),
     );
   }
@@ -929,7 +929,7 @@ class _ProductsErrorState extends StatelessWidget {
             const Text('Failed to load products',
                 style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
             const SizedBox(height: 6),
-            Text('Login required to view menu.',
+            Text('Login required to view the catalogue.',
                 style: TextStyle(color: Colors.grey.shade600, fontSize: 13)),
             const SizedBox(height: 16),
             ElevatedButton.icon(
@@ -960,12 +960,12 @@ class _ProductsEmptyState extends StatelessWidget {
       child: Center(
         child: Column(
           children: [
-            Icon(Icons.no_meals_outlined, size: 48, color: Colors.grey),
-            SizedBox(height: 12),
-            Text('No products available',
+            const Icon(Icons.water_drop_outlined, size: 48, color: Colors.grey),
+            const SizedBox(height: 12),
+            const Text('No products available',
                 style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
-            SizedBox(height: 6),
-            Text('This restaurant has no products yet.',
+            const SizedBox(height: 6),
+            const Text('This source has no water products yet.',
                 style: TextStyle(color: Colors.grey, fontSize: 13)),
           ],
         ),

@@ -188,7 +188,11 @@ class AuthStore extends Notifier<AuthState> {
       String phoneNumber, String otp) async {
     try {
       // Preserve current state (like verificationId) while moving to loading
-      state = state.copyWith(status: AuthStatus.loading);
+      state = AuthState(
+        status: AuthStatus.loading,
+        verificationId: state.verificationId,
+        otp: state.otp,
+      );
 
       // Verify OTP on backend and get JWT token
       final response = await ref.read(authServiceProvider).verifyOtp(
@@ -205,13 +209,13 @@ class AuthStore extends Notifier<AuthState> {
         unawaited(syncFcmToken());
       } else {
         debugPrint('AuthStore: OTP verified but insufficient data for login. Success: ${response.success}, User: ${response.data != null}, Token: ${response.token != null}');
-        // If it failed (or succeeded without login data), clear successMessage and set error/message
-        state = state.copyWith(
+        // If it failed (or succeeded without login data), clear successMessage by making a fresh state
+        state = AuthState(
           status: AuthStatus.unauthenticated,
           error: response.message.isNotEmpty 
               ? response.message 
               : 'Verification successful but login failed. No user data returned.',
-          successMessage: null, // CRITICAL: Clear successMessage so AuthNotifier doesn't return AuthSuccess
+          verificationId: state.verificationId,
         );
       }
     } catch (e) {
@@ -272,8 +276,8 @@ class AuthStore extends Notifier<AuthState> {
       return;
     }
 
-    // 3. Verify OTP with backend
-    await _verifyOtpWithBackend(phoneNumber, otp);
+    // 3. Verify OTP with backend using the safely stored verificationId
+    await _verifyOtpWithBackend(verificationId, otp);
   }
 
   Future<void> forgotPassword({required String email}) async {
