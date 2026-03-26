@@ -47,6 +47,7 @@ class AuthService {
     required String confirmPassword,
   }) async {
     try {
+      final fcmToken = await FirebaseMessaging.instance.getToken();
       final data = await _client.post(
         '${ApiClient.baseUrl}/register',
         data: {
@@ -55,6 +56,7 @@ class AuthService {
           'phoneNumber': phoneNumber,
           'password': password,
           'confirmPassword': confirmPassword,
+          'fcmToken': fcmToken,
         },
       );
       return AuthResponseModel.fromJson(data);
@@ -95,7 +97,9 @@ class AuthService {
         data: dataPayload,
       );
       final response = AuthResponseModel.fromJson(data);
-      if (response.success && response.token != null && response.token!.isNotEmpty) {
+      if (response.success &&
+          response.token != null &&
+          response.token!.isNotEmpty) {
         await ApiClient.saveToken(response.token!);
       }
       return response;
@@ -143,7 +147,9 @@ class AuthService {
         },
       );
       final response = AuthResponseModel.fromJson(data);
-      if (response.success && response.token != null && response.token!.isNotEmpty) {
+      if (response.success &&
+          response.token != null &&
+          response.token!.isNotEmpty) {
         _logger.i('OTP Verified successfully. Token obtained.');
         await ApiClient.saveToken(response.token!);
       }
