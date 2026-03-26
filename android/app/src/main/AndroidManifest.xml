@@ -4,6 +4,10 @@
         android:name="android.permission.INTERNET"/>
     <uses-permission
         android:name="android.permission.ACCESS_NETWORK_STATE"/>
+
+    <!-- Android 13+ (API 33+): REQUIRED for push notifications -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+
     <application
         android:label="difwa"
         android:name="${applicationName}"
@@ -42,6 +46,16 @@
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="${MAPS_API_KEY}"/>
+
+        <!-- FCM: Tells Android which notification channel to use by default -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="difwa_high_importance"/>
+
+        <!-- FCM: Default notification icon shown in system tray -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@mipmap/ic_launcher"/>
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and

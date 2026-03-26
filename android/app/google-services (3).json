@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "318884564100",
+    "project_id": "difwa-water",
+    "storage_bucket": "difwa-water.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:318884564100:android:81e4e3e8e88b6e8d0586d1",
+        "android_client_info": {
+          "package_name": "com.difmo.difwa"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC42MMuG3Srmh68RxlnT5tJd90_tTClAsc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:318884564100:android:f10cdba1b47648940586d1",
+        "android_client_info": {
+          "package_name": "com.difmo.diwa"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC42MMuG3Srmh68RxlnT5tJd90_tTClAsc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

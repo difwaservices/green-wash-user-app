@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/auth_models.dart';
 import '../network/api_client.dart';
 import 'package:logger/logger.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 final authServiceProvider = Provider<AuthService>((ref) {
   return AuthService(client: ref.watch(apiClientProvider));
@@ -78,6 +79,15 @@ class AuthService {
         dataPayload['phoneNumber'] = identifier;
       } else {
         dataPayload['email'] = identifier;
+      }
+
+      try {
+        final fcmToken = await FirebaseMessaging.instance.getToken();
+        if (fcmToken != null) {
+          dataPayload['fcmToken'] = fcmToken;
+        }
+      } catch (e) {
+        _logger.w('Could not fetch FCM Token for login: $e');
       }
 
       final data = await _client.post(

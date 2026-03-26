@@ -102,6 +102,9 @@ class AuthStore extends Notifier<AuthState> {
           debugPrint(
               'AuthStore: Session restored successfully for ${response.data!.phoneNumber}');
           state = AuthState.authenticated(response.data!);
+          // CRITICAL: Re-sync FCM token on every app open so backend always
+          // has the latest device token (tokens can change after reinstall).
+          unawaited(syncFcmToken());
         } else {
           debugPrint('AuthStore: Profile fetch failed: ${response.message}');
           // If the profile fetch failed, the interceptor might have already tried
