@@ -2,10 +2,9 @@ import 'package:flutter/material.dart';
 import 'app_routes.dart';
 import '../modules/splash/splash_page.dart';
 import '../modules/auth/deals_page.dart';
-import '../modules/auth/login_page.dart';
-import '../modules/auth/register_page.dart';
 import '../modules/auth/forgot_password_page.dart';
-import '../modules/auth/otp_verification_page.dart';
+import '../modules/auth/mobile_login_page.dart';
+import '../modules/auth/mock_otp_verification_page.dart';
 import '../modules/home/view/main_page.dart';
 import '../modules/home/view/search_page.dart';
 import '../modules/categories/view/vegetables_page.dart';
@@ -29,16 +28,17 @@ import '../modules/orders/view/active_orders_page.dart';
 class AppPages {
   static Map<String, WidgetBuilder> get routes => {
         AppRoutes.splash: (context) => const SplashPage(),
-        AppRoutes.initialRoute: (context) => const RegisterPage(),
+        AppRoutes.initialRoute: (context) => const MobileLoginPage(),
         AppRoutes.deals: (context) => const DealsPage(),
-        AppRoutes.welcome: (context) => const LoginPage(),
-        AppRoutes.login: (context) => const LoginPage(),
-        AppRoutes.signup: (context) => const RegisterPage(),
+        AppRoutes.welcome: (context) => const MobileLoginPage(),
+        AppRoutes.login: (context) => const MobileLoginPage(),
+        AppRoutes.signup: (context) => const MobileLoginPage(),
         AppRoutes.otp: (context) {
-          final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
-          return OtpVerificationPage(
+          final args = ModalRoute.of(context)?.settings.arguments
+              as Map<String, dynamic>?;
+          return MockOtpVerificationPage(
             phoneNumber: args?['phoneNumber'] ?? '',
-            otp: args?['otp'],
+            initialOtp: args?['initialOtp'] ?? '',
           );
         },
         AppRoutes.forgotPassword: (context) => const ForgotPasswordPage(),
@@ -51,12 +51,14 @@ class AppPages {
         AppRoutes.orderHistory: (context) => const OrdersPage(), // Fixed
         AppRoutes.profile: (context) => const ProfilePage(),
         AppRoutes.riderHome: (context) => const RiderMainPage(),
-        AppRoutes.riderOrders: (context) => const RiderHomePage(), // Point to dashboard
+        AppRoutes.riderOrders: (context) =>
+            const RiderHomePage(), // Point to dashboard
         AppRoutes.riderHistory: (context) => const RiderHistoryPage(),
         AppRoutes.wallet: (context) => const WalletPage(), // Fixed
         AppRoutes.walletStatement: (context) => const WalletStatementScreen(),
         AppRoutes.trackOrder: (context) {
-          final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+          final args = ModalRoute.of(context)?.settings.arguments
+              as Map<String, dynamic>?;
           return TrackOrderPage(
             orderId: args?['orderId'] ?? '',
             deliveryAddress: args?['address'],
@@ -64,7 +66,8 @@ class AppPages {
           );
         },
         AppRoutes.riderOrderDetails: (context) {
-          final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+          final args = ModalRoute.of(context)?.settings.arguments
+              as Map<String, dynamic>?;
           return RiderOrderDetailsPage(order: args?['order'] ?? {});
         },
         AppRoutes.locationPicker: (context) => const LocationPickerScreen(),

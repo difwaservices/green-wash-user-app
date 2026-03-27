@@ -174,7 +174,8 @@ class AuthStore extends Notifier<AuthState> {
         state = state.copyWith(
           status: AuthStatus.initial,
           successMessage: response.message,
-          verificationId: rawPhone, // Use phone number as verification ID
+          verificationId: rawPhone,
+          otp: response.otp, // Capture OTP for testing
         );
       } else {
         state = AuthState.unauthenticated(

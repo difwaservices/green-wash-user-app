@@ -24,15 +24,17 @@ class _HomeHeaderState extends State<HomeHeader> {
         children: [
           // Location Picker Row
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Icon(Icons.location_on, color: AppColors.textPrimary, size: 18),
-              const SizedBox(width: 4),
               const Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
                       children: [
+                        Icon(Icons.location_on,
+                            color: AppColors.textPrimary, size: 18),
+                        SizedBox(width: 4),
                         Text(
                           'Vibhav Khand -4',
                           style: TextStyle(
@@ -44,6 +46,7 @@ class _HomeHeaderState extends State<HomeHeader> {
                         Icon(Icons.keyboard_arrow_down, size: 20),
                       ],
                     ),
+                    SizedBox(height: 2),
                     Text(
                       'Vibhav Khand, Gomti Nagar, L...',
                       style: TextStyle(fontSize: 10.2, color: Colors.grey),
@@ -54,20 +57,28 @@ class _HomeHeaderState extends State<HomeHeader> {
               // Header Buttons
               const SizedBox(width: 8),
 
-              // Cart Icon removed from here
               BounceWidget(
                 onTap: () {
                   MainControllerScope.of(context).changePage(4);
                 },
                 child: Hero(
                   tag: 'profile_pic',
-                  child: CircleAvatar(
-                    radius: 18,
-                    backgroundColor: AppColors.secondary,
-                    child: const Icon(
-                      Icons.person,
-                      color: AppColors.primary,
-                      size: 20,
+                  child: Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.grey.shade200),
+                    ),
+                    child: ClipOval(
+                      child: Padding(
+                        padding: const EdgeInsets.all(4.0),
+                        child: Image.asset(
+                          'assets/images/app_icon.png',
+                          fit: BoxFit.contain,
+                        ),
+                      ),
                     ),
                   ),
                 ),

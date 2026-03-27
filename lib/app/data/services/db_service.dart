@@ -117,7 +117,6 @@ class CartProvider extends ChangeNotifier {
 
   final List<UserPaymentMethod> _payments = [];
 
-
   void updateUserProfile(UserProfile profile) {
     _userProfile = profile;
     notifyListeners();
@@ -219,8 +218,11 @@ class CartProvider extends ChangeNotifier {
   void addAddress(UserAddress address) async {
     if (_addressService != null) {
       final addressParts = address.details.split(',');
-      final cityName = addressParts.isNotEmpty ? addressParts.first.trim() : 'City';
+      final cityName =
+          addressParts.isNotEmpty ? addressParts.first.trim() : 'City';
       final result = await _addressService!.saveAddress(
+        fullName: address.fullName,
+        email: address.email,
         label: address.title,
         fullAddress: address.street,
         city: cityName,
@@ -273,6 +275,8 @@ class CartProvider extends ChangeNotifier {
                   street: json['fullAddress'] ?? '',
                   details:
                       '${json['city'] ?? ''}, ${json['state'] ?? ''} ${json['pincode'] ?? ''}',
+                  fullName: json['fullName'] ?? '',
+                  email: json['email'] ?? '',
                   isDefault: json['isDefault'] ?? false,
                 ))
             .toList();
@@ -393,17 +397,22 @@ class CartProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<Map<String, dynamic>> checkout({String paymentMethod = 'Wallet'}) async {
-    if (_orderService == null) return {'success': false, 'message': 'Order service not available'};
-    if (selectedAddress == null) return {'success': false, 'message': 'Please select a delivery address'};
-    
+  Future<Map<String, dynamic>> checkout(
+      {String paymentMethod = 'Wallet'}) async {
+    if (_orderService == null)
+      return {'success': false, 'message': 'Order service not available'};
+    if (selectedAddress == null)
+      return {'success': false, 'message': 'Please select a delivery address'};
+
     final addr = selectedAddress!;
     // Parse address details back to parts for the API
     final detailsParts = addr.details.split(',');
     final city = detailsParts.isNotEmpty ? detailsParts[0].trim() : '';
     final statePin = detailsParts.length > 1 ? detailsParts[1].trim() : '';
     final pin = statePin.contains(' ') ? statePin.split(' ').last : '';
-    final state = statePin.contains(' ') ? statePin.substring(0, statePin.lastIndexOf(' ')).trim() : statePin;
+    final state = statePin.contains(' ')
+        ? statePin.substring(0, statePin.lastIndexOf(' ')).trim()
+        : statePin;
 
     final deliveryAddress = {
       'address': addr.street,

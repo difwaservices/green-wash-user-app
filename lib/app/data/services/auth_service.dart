@@ -114,9 +114,8 @@ class AuthService {
     required String phoneNumber,
   }) async {
     try {
-      _logger.i('Sending OTP request for $phoneNumber');
       final data = await _client.post(
-        '${ApiClient.otpBaseUrl}/send',
+        '/app/auth/send-otp',
         data: {
           'phoneNumber': phoneNumber,
         },
@@ -138,12 +137,13 @@ class AuthService {
     required String otp,
   }) async {
     try {
-      _logger.i('Verifying OTP $otp for $phoneNumber');
+      final fcmToken = await FirebaseMessaging.instance.getToken();
       final data = await _client.post(
-        '${ApiClient.otpBaseUrl}/verify',
+        '/app/auth/verify-otp',
         data: {
           'phoneNumber': phoneNumber,
           'otp': otp,
+          'fcmToken': fcmToken,
         },
       );
       final response = AuthResponseModel.fromJson(data);

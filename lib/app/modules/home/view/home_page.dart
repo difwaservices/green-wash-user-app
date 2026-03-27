@@ -21,39 +21,40 @@ class HomePage extends ConsumerWidget {
         statusBarBrightness: Brightness.light,
       ),
       child: Scaffold(
-        backgroundColor: const Color(0xFFF7F8FA),
+        backgroundColor: Colors.white,
         body: SafeArea(
           bottom: false,
-          child: RefreshIndicator(
-            onRefresh: () async {
-              await ref.read(shopsListProvider.notifier).refresh();
-              // Proactively refresh other related data if needed
-              CartProviderScope.of(context).loadAddresses();
-              CartProviderScope.of(context).syncWallet();
-            },
-            color: AppColors.primary,
-            child: CustomScrollView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              slivers: [
-                // Header: Location & Search
-                const SliverToBoxAdapter(child: HomeHeader()),
+          child: Container(
+            color: const Color(0xFFF7F8FA),
+            child: RefreshIndicator(
+              onRefresh: () async {
+                await ref.read(shopsListProvider.notifier).refresh();
+                // Proactively refresh other related data if needed
+                CartProviderScope.of(context).loadAddresses();
+                CartProviderScope.of(context).syncWallet();
+              },
+              color: AppColors.primary,
+              child: CustomScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                slivers: [
+                  // Header: Location & Search
+                  const SliverToBoxAdapter(child: HomeHeader()),
 
-                const SliverToBoxAdapter(child: SizedBox(height: 16)),
+                  // Banner (Horizontal Scrolling Carousel)
+                  const SliverToBoxAdapter(child: HomeBanner()),
 
-                // Banner (Horizontal Scrolling Carousel)
-                const SliverToBoxAdapter(child: HomeBanner()),
+                  const SliverToBoxAdapter(child: SizedBox(height: 8)),
 
-                const SliverToBoxAdapter(child: SizedBox(height: 8)),
+                  // Restaurants Section
+                  const SliverToBoxAdapter(child: RestaurantListSection()),
 
-                // Restaurants Section
-                const SliverToBoxAdapter(child: RestaurantListSection()),
+                  // Footer
+                  const SliverToBoxAdapter(child: AnimatedFooterText()),
 
-                // Footer
-                const SliverToBoxAdapter(child: AnimatedFooterText()),
-
-                // Bottom Spacing for Navigation Bar
-                const SliverPadding(padding: EdgeInsets.only(bottom: 100)),
-              ],
+                  // Bottom Spacing for Navigation Bar
+                  const SliverPadding(padding: EdgeInsets.only(bottom: 100)),
+                ],
+              ),
             ),
           ),
         ),

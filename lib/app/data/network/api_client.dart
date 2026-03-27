@@ -25,10 +25,14 @@ class ApiException implements Exception {
 /// Provider for ApiClient
 final apiClientProvider = Provider<ApiClient>((ref) {
   final dio = Dio(BaseOptions(
-    baseUrl: dotenv.env['API_BASE_URL'] ?? 'https://difwa-backend.vercel.app/api',
+    baseUrl:
+        dotenv.env['API_BASE_URL'] ?? 'https://difwa-backend.vercel.app/api',
     connectTimeout: const Duration(seconds: 60),
     receiveTimeout: const Duration(seconds: 60),
     contentType: Headers.jsonContentType,
+    headers: {
+      'ngrok-skip-browser-warning': 'true',
+    },
   ));
 
   final storage = ref.watch(storageServiceProvider);
@@ -64,10 +68,14 @@ class ApiClient {
 
   static Dio _createDefaultDio() {
     final dio = Dio(BaseOptions(
-      baseUrl: dotenv.env['API_BASE_URL'] ?? 'https://difwa-backend.vercel.app/api',
+      baseUrl:
+          dotenv.env['API_BASE_URL'] ?? 'https://difwa-backend.vercel.app/api',
       connectTimeout: const Duration(seconds: 60),
       receiveTimeout: const Duration(seconds: 60),
       contentType: Headers.jsonContentType,
+      headers: {
+        'ngrok-skip-browser-warning': 'true',
+      },
     ));
 
     final storage = SecureStorageService();
@@ -86,7 +94,8 @@ class ApiClient {
 
   String _buildUrl(String path) {
     if (path.startsWith('http')) return path;
-    var base = dotenv.env['API_BASE_URL'] ?? 'https://difwa-backend.vercel.app/api';
+    var base =
+        dotenv.env['API_BASE_URL'] ?? 'https://difwa-backend.vercel.app/api';
     if (base.endsWith('/')) base = base.substring(0, base.length - 1);
     var p = path;
     if (!p.startsWith('/')) p = '/$p';

@@ -18,7 +18,9 @@ class FoodCategory {
       id: json['id']?.toString() ?? '',
       name: json['name']?.toString() ?? '',
       image: json['image']?.toString() ?? '',
-      colorValue: json['colorValue'] != null ? int.tryParse(json['colorValue'].toString()) ?? 0xFFF7F8FA : 0xFFF7F8FA,
+      colorValue: json['colorValue'] != null
+          ? int.tryParse(json['colorValue'].toString()) ?? 0xFFF7F8FA
+          : 0xFFF7F8FA,
       iconPath: json['iconPath']?.toString(),
     );
   }
@@ -69,8 +71,10 @@ class UserOrder {
 
   String get riderName => rider?['fullName'] ?? rider?['name'] ?? '';
   String get riderPhone => rider?['phoneNumber'] ?? rider?['phone'] ?? '';
-  String get deliveryAddress => deliveryAddressMap?['fullAddress'] ?? 
-      deliveryAddressMap?['address'] ?? 'Your delivery address';
+  String get deliveryAddress =>
+      deliveryAddressMap?['fullAddress'] ??
+      deliveryAddressMap?['address'] ??
+      'Your delivery address';
 
   factory UserOrder.fromJson(Map<String, dynamic> json) {
     final rawItems = (json['items'] ?? json['products']) as List? ?? [];
@@ -90,12 +94,16 @@ class UserOrder {
       id: (json['_id'] ?? json['orderId'] ?? json['id'] ?? '').toString(),
       status: (json['status'] ?? json['paymentStatus'] ?? 'Pending').toString(),
       total: totalAmt,
-      date: DateTime.tryParse(json['updatedAt'] ?? json['createdAt'] ?? json['orderDate'] ?? '')
+      date: DateTime.tryParse(json['updatedAt'] ??
+                  json['createdAt'] ??
+                  json['orderDate'] ??
+                  '')
               ?.toLocal() ??
           DateTime.now(),
       items: items,
       rider: json['rider'] is Map ? json['rider'] : null,
-      deliveryAddressMap: json['deliveryAddress'] is Map ? json['deliveryAddress'] : null,
+      deliveryAddressMap:
+          json['deliveryAddress'] is Map ? json['deliveryAddress'] : null,
     );
   }
 }
@@ -138,6 +146,8 @@ class UserAddress {
   final String title;
   final String street;
   final String details;
+  final String fullName;
+  final String email;
   final bool isDefault;
 
   const UserAddress({
@@ -145,6 +155,8 @@ class UserAddress {
     required this.title,
     required this.street,
     required this.details,
+    this.fullName = '',
+    this.email = '',
     this.isDefault = false,
   });
 }
@@ -233,7 +245,10 @@ class Product {
       badgeText: json['badgeText']?.toString() ?? '',
       isFavorite: json['isFavorite'] == true || json['isFavorite'] == 'true',
       description: json['description']?.toString() ?? '',
-      whyChoose: (json['whyChoose'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? const [],
+      whyChoose: (json['whyChoose'] as List<dynamic>?)
+              ?.map((e) => e.toString())
+              .toList() ??
+          const [],
       isShopActive: json['isShopActive'] ?? json['isActive'] ?? true,
       shopId: json['shopId']?.toString() ?? '',
       shopName: json['shopName']?.toString() ?? '',
@@ -271,10 +286,13 @@ class WalletTransaction {
       type: json['type']?.toString() ?? 'Debit',
       category: json['category']?.toString() ?? 'Payment',
       amount: double.tryParse(json['amount']?.toString() ?? '0') ?? 0.0,
-      balanceAfter: double.tryParse(json['balanceAfter']?.toString() ?? '0') ?? 0.0,
+      balanceAfter:
+          double.tryParse(json['balanceAfter']?.toString() ?? '0') ?? 0.0,
       description: json['description']?.toString() ?? '',
       status: json['status']?.toString() ?? 'Success',
-      createdAt: json['createdAt'] != null ? DateTime.parse(json['createdAt']) : DateTime.now(),
+      createdAt: json['createdAt'] != null
+          ? DateTime.parse(json['createdAt'])
+          : DateTime.now(),
     );
   }
 }

@@ -7,6 +7,8 @@ class AddressService {
   AddressService(this._client);
 
   Future<dynamic> saveAddress({
+    required String fullName,
+    required String email,
     required String label,
     required String fullAddress,
     required String city,
@@ -17,6 +19,8 @@ class AddressService {
     return await _client.post(
       '${ApiClient.baseUrl}/address',
       data: {
+        "fullName": fullName,
+        "email": email,
         "label": label,
         "fullAddress": fullAddress,
         "city": city,

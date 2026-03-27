@@ -22,20 +22,6 @@ const List<String> _cuisineTypes = [
   'Domestic · Supply',
 ];
 
-// ── Placeholder hero images (local assets as fallback) ───────────────────────
-const List<String> _heroImages = [
-  'assets/images/Difwa_dish_1.png',
-  'assets/images/Difwa_dish_2.png',
-  'assets/images/Difwa_dish_3.png',
-  'assets/images/Difwa_dish_4.png',
-  'assets/images/Difwa_dish_5.png',
-  'assets/images/Difwa_dish_6.png',
-  'assets/images/Difwa_fresh_pile.png',
-  'assets/images/Difwa_lemon_herb.png',
-  'assets/images/Difwa_tiger_trio.png',
-  'assets/images/Difwa_cooked_duo.png',
-];
-
 // ── Offer cycling logic ───────────────────────────────────────────────────────
 String _offerText(int index) {
   switch (index % 3) {
@@ -178,7 +164,6 @@ class _ShopCard extends StatelessWidget {
     return const Color(0xFF06B6D4);
   }
 
-  String get _heroImage => _heroImages[index % _heroImages.length];
   String get _cuisine => _cuisineTypes[index % _cuisineTypes.length];
 
   // Generate a deterministic rating from shop ID
@@ -492,28 +477,32 @@ class _ShopCard extends StatelessWidget {
     // Prefer banner from API, then local asset fallback
     final networkUrl = shop.image;
     if (networkUrl.length > 5) {
-      return Image.network(
-        networkUrl,
-        height: 180,
-        width: double.infinity,
-        fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) => _localFallback(),
+      return Container(
+        color: Colors.white,
+        child: Image.network(
+          networkUrl,
+          height: 180,
+          width: double.infinity,
+          fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) => _localFallback(),
+        ),
       );
     }
     return _localFallback();
   }
 
   Widget _localFallback() {
-    return Image.asset(
-      _heroImage,
+    return Container(
       height: 180,
       width: double.infinity,
-      fit: BoxFit.cover,
-      errorBuilder: (_, __, ___) => Container(
-        height: 180,
-        color: Colors.grey.shade100,
-        child: const Center(
-          child: Icon(Icons.water_drop_outlined, size: 48, color: Colors.grey),
+      color: Colors.white,
+      child: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Image.asset(
+            AppImages.difwaLogoPng,
+            fit: BoxFit.contain,
+          ),
         ),
       ),
     );
