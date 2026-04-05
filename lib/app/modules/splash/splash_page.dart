@@ -40,31 +40,29 @@ class _SplashPageState extends ConsumerState<SplashPage>
 
   Future<void> _initializeApp() async {
     // 1. Give animations a moment to start
-    await Future.delayed(const Duration(milliseconds: 800));
-    
+    await Future.delayed(const Duration(milliseconds: 1200));
+
     // 2. Perform initialization check via AuthStore
     await ref.read(authStoreProvider.notifier).init();
-    
+
     if (!mounted) return;
-    
+
     // 3. Decide navigation based on Auth status
     final authState = ref.read(authStoreProvider);
-    
-    if (authState.status == AuthStatus.authenticated) {
-      debugPrint('[Splash] Session found. Navigating to Home.');
-      final role = (authState.user?.role ?? 'customer').toLowerCase();
-      debugPrint('[Splash] Initializing for user role: $role');
-      // Case-insensitive check for 'rider' variants (e.g. shop_rider, delivery_partner, etc.)
-      if (role.contains('rider') || role.contains('delivery') || role.contains('driver')) {
-        debugPrint('[Splash] Navigating to Rider Dashboard');
+
+    if (authState is AuthAuthenticated) {
+      final role = (authState.user.role).toLowerCase();
+
+      if (role.contains('rider') ||
+          role.contains('delivery') ||
+          role.contains('driver') ||
+          role.contains('staff')) {
         Navigator.pushReplacementNamed(context, AppRoutes.riderHome);
       } else {
-        debugPrint('[Splash] Navigating to Customer Home');
         Navigator.pushReplacementNamed(context, AppRoutes.home);
       }
     } else {
-      debugPrint('[Splash] No session. Navigating to Sign Up.');
-      Navigator.pushReplacementNamed(context, AppRoutes.signup);
+      Navigator.pushReplacementNamed(context, AppRoutes.login);
     }
   }
 

@@ -35,19 +35,6 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage> {
   void initState() {
     super.initState();
     _startTimer();
-    // Pre-fill OTP if development mode (provided from registration)
-    if (widget.otp != null && widget.otp!.length == _otpLength) {
-      for (int i = 0; i < _otpLength; i++) {
-        _controllers[i].text = widget.otp![i];
-      }
-      
-      // ── AUTO-VERIFY FEATURE ──
-      // If OTP is provided, auto-trigger the verification to save user time
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        debugPrint('[OTP] Auto-verifying from backend code: ${widget.otp}');
-        Future.delayed(const Duration(milliseconds: 1500), () => _verifyOtp());
-      });
-    }
   }
 
   void _startTimer() {
@@ -121,7 +108,8 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage> {
   Widget build(BuildContext context) {
     ref.listen<ProviderAuthState>(authProvider, (previous, next) {
       if (next is AuthAuthenticated) {
-        debugPrint('[OTP] Authentication successful! Navigating home.');
+        final role = (next.user.role).toLowerCase();
+        
         try {
           final cartProvider = CartProviderScope.of(context);
           cartProvider.updateUserProfile(
@@ -134,17 +122,19 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage> {
           );
           cartProvider.loadCartFromApi();
         } catch (e) {
-          debugPrint('Failed to update CartProvider profile: $e');
+          // Silent catch in production
         }
 
-        final role = (next.user.role).toLowerCase();
-        if (role.contains('rider') || role.contains('delivery') || role.contains('driver')) {
+        // ── ROLE-BASED NAVIGATION ──
+        if (role.contains('rider') || 
+            role.contains('delivery') || 
+            role.contains('driver') ||
+            role.contains('staff')) {
           Navigator.pushNamedAndRemoveUntil(context, AppRoutes.riderHome, (route) => false);
         } else {
           Navigator.pushNamedAndRemoveUntil(context, AppRoutes.home, (route) => false);
         }
       } else if (next is AuthError) {
-        debugPrint('[OTP] Verification failed: ${next.message}');
         _showSnackBar(next.message, backgroundColor: Colors.red);
       }
     });

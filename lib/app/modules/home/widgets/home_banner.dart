@@ -57,12 +57,12 @@ class _HomeBannerState extends State<HomeBanner> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Colors.white,
-      padding: const EdgeInsets.only(top: 16, bottom: 16), // Added to replace external SizedBox and provide white background matching appbar
+      color: const Color(0xFFF7F8FA),
+      padding: const EdgeInsets.only(top: 16, bottom: 20),
       child: Column(
         children: [
           SizedBox(
-            height: 180,
+            height: 200,
             child: PageView.builder(
               controller: _pageController,
               onPageChanged: (int page) {
@@ -74,7 +74,7 @@ class _HomeBannerState extends State<HomeBanner> {
               physics: const BouncingScrollPhysics(),
               itemBuilder: (context, index) {
                 return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
                   child: BounceWidget(
                     onTap: () {
                       // Tap action for banner
@@ -83,7 +83,7 @@ class _HomeBannerState extends State<HomeBanner> {
                     child: Container(
                       decoration: BoxDecoration(
                         color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(20),
                         boxShadow: [
                           BoxShadow(
                             color: Colors.black.withOpacity(0.08),
@@ -93,7 +93,7 @@ class _HomeBannerState extends State<HomeBanner> {
                         ],
                       ),
                       child: ClipRRect(
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(20),
                         child: Image.asset(
                           _bannerImages[index],
                           width: double.infinity,
@@ -126,8 +126,8 @@ class _HomeBannerState extends State<HomeBanner> {
                 decoration: BoxDecoration(
                   color: _currentPage == index
                       ? const Color(0xFF06B6D4)
-                      : Colors.grey.withValues(alpha:  0.3),
-                  borderRadius: BorderRadius.circular(3),
+                      : const Color(0xFFE2E8F0),
+                  borderRadius: BorderRadius.circular(4),
                 ),
               ),
             ),

@@ -220,20 +220,25 @@ class CartProvider extends ChangeNotifier {
       final addressParts = address.details.split(',');
       final cityName =
           addressParts.isNotEmpty ? addressParts.first.trim() : 'City';
-      final result = await _addressService!.saveAddress(
-        fullName: address.fullName,
-        email: address.email,
-        label: address.title,
-        fullAddress: address.street,
-        city: cityName,
-        state: address.details.contains(',')
-            ? address.details.split(',')[1].trim()
-            : '',
-        pincode: address.details.split(' ').last,
-        isDefault: address.isDefault,
-      );
-      if (result['success']) {
-        loadAddresses();
+      try {
+        final result = await _addressService!.saveAddress(
+          fullName: address.fullName,
+          email: address.email,
+          label: address.title,
+          fullAddress: address.street,
+          city: cityName,
+          state: address.details.contains(',')
+              ? address.details.split(',')[1].trim()
+              : '',
+          pincode: address.details.split(' ').last,
+          isDefault: address.isDefault,
+        );
+        if (result['success']) {
+          loadAddresses();
+        }
+      } catch (e) {
+        debugPrint('CartProvider: Error adding address: $e');
+        // Prevent unhandled exception from crashing the app
       }
     } else {
       if (address.isDefault) {

@@ -14,6 +14,7 @@ import '../../../data/services/subscription_service.dart';
 import '../../home/view/favorites_page.dart';
 import '../../../routes/app_routes.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../../core/state/auth_store.dart';
 
 class ProfilePage extends ConsumerStatefulWidget {
   const ProfilePage({super.key});
@@ -25,8 +26,9 @@ class ProfilePage extends ConsumerStatefulWidget {
 class _ProfilePageState extends ConsumerState<ProfilePage> {
   @override
   Widget build(BuildContext context) {
-    final profileAsync = ref.watch(auth.userProfileProvider);
-
+    // ── Primary: use cached user from the unified source of truth ─────────
+    final coreState = ref.watch(authStoreProvider);
+    final user = coreState is AuthAuthenticated ? coreState.user : null;
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -40,11 +42,15 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                profileAsync.when(
-                  data: (user) => _ProfileHeader(user: user),
-                  loading: () => const _ProfileHeaderSkeleton(),
-                  error: (e, _) => Center(child: Text('Error: $e')),
-                ),
+                // Prefer cached user; fall back to network fetch for real sessions
+                if (user != null)
+                  _ProfileHeader(user: user)
+                else
+                  ref.watch(auth.userProfileProvider).when(
+                        data: (user) => _ProfileHeader(user: user),
+                        loading: () => const _ProfileHeaderSkeleton(),
+                        error: (e, _) => Center(child: Text('Error: $e')),
+                      ),
                 const SizedBox(height: 30),
                 const _ActiveOrdersAndSubscriptions(),
                 const SizedBox(height: 24),
@@ -120,13 +126,57 @@ class _ProfileHeader extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'Hello, ${name.split(' ').first}!',
-                style: const TextStyle(
-                  color: Color(0xFF0891B2),
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                ),
+              Row(
+                children: [
+                  Text(
+                    'Hello, ${name.isNotEmpty ? name.split(' ').first : 'User'}!',
+                    style: const TextStyle(
+                      color: Color(0xFF0891B2),
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  if (name.isEmpty || name.toLowerCase() == 'user')
+                    Padding(
+                      padding: const EdgeInsets.only(left: 12),
+                      child: GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => const EditProfilePage()),
+                          );
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF0891B2).withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: const Color(0xFF0891B2),
+                              width: 1,
+                            ),
+                          ),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.add, size: 14, color: Color(0xFF0891B2)),
+                              SizedBox(width: 4),
+                              Text(
+                                'Add Profile',
+                                style: TextStyle(
+                                  color: Color(0xFF0891B2),
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
               ),
               if (email.isNotEmpty)
                 Text(
@@ -155,9 +205,7 @@ class _ProfileHeader extends StatelessWidget {
                         : Colors.red.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: user.isShopActive
-                          ? AppColors.primary
-                          : Colors.red,
+                      color: user.isShopActive ? AppColors.primary : Colors.red,
                     ),
                   ),
                   child: Row(
@@ -167,8 +215,9 @@ class _ProfileHeader extends StatelessWidget {
                         width: 8,
                         height: 8,
                         decoration: BoxDecoration(
-                          color:
-                              user.isShopActive ? AppColors.primary : Colors.red,
+                          color: user.isShopActive
+                              ? AppColors.primary
+                              : Colors.red,
                           shape: BoxShape.circle,
                         ),
                       ),
@@ -278,8 +327,9 @@ class _ActiveOrdersAndSubscriptions extends ConsumerWidget {
             child: Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: const Color(0xFFE0F7FA), // Light Cyan
-                border: Border.all(color: const Color(0xFF00ACC1).withValues(alpha: 0.1)),
+                color: const Color(0xFFE0F7FA),
+                border: Border.all(
+                    color: const Color(0xFF00ACC1).withValues(alpha: 0.1)),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Column(
@@ -288,7 +338,7 @@ class _ActiveOrdersAndSubscriptions extends ConsumerWidget {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: const BoxDecoration(
-                      color: Color(0xFF00ACC1), // Primary Cyan
+                      color: Color(0xFF00ACC1),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(Icons.inventory_2_outlined,
@@ -314,8 +364,8 @@ class _ActiveOrdersAndSubscriptions extends ConsumerWidget {
                   ),
                   const SizedBox(height: 12),
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 10, vertical: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(20),
@@ -382,7 +432,8 @@ class _ActiveOrdersAndSubscriptions extends ConsumerWidget {
                     ),
                     child: Text(
                         activeSubsCount > 0 ? 'Managed Live' : 'View Plans',
-                        style: const TextStyle(color: Colors.white, fontSize: 10)),
+                        style:
+                            const TextStyle(color: Colors.white, fontSize: 10)),
                   ),
                 ],
               ),
@@ -587,7 +638,7 @@ class _SignOutButton extends ConsumerWidget {
       child: GestureDetector(
         onTap: () async {
           CartProviderScope.of(context).clearSession();
-          await ref.read(authProvider.notifier).logout();
+          await ref.read(authStoreProvider.notifier).logout();
           if (context.mounted) {
             Navigator.pushNamedAndRemoveUntil(
               context,
@@ -612,4 +663,3 @@ class _SignOutButton extends ConsumerWidget {
     );
   }
 }
-

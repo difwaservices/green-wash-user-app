@@ -17,7 +17,7 @@ class _HomeHeaderState extends State<HomeHeader> {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 16),
-      decoration: const BoxDecoration(color: Colors.white),
+      decoration: const BoxDecoration(color: Color(0xFFF7F8FA)),
       // decoration: const BoxDecoration(color: Color(0xFFF9FFF6)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

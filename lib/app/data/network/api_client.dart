@@ -30,9 +30,6 @@ final apiClientProvider = Provider<ApiClient>((ref) {
     connectTimeout: const Duration(seconds: 60),
     receiveTimeout: const Duration(seconds: 60),
     contentType: Headers.jsonContentType,
-    headers: {
-      'ngrok-skip-browser-warning': 'true',
-    },
   ));
 
   final storage = ref.watch(storageServiceProvider);
@@ -73,9 +70,6 @@ class ApiClient {
       connectTimeout: const Duration(seconds: 60),
       receiveTimeout: const Duration(seconds: 60),
       contentType: Headers.jsonContentType,
-      headers: {
-        'ngrok-skip-browser-warning': 'true',
-      },
     ));
 
     final storage = SecureStorageService();

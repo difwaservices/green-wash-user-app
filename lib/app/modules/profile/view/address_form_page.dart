@@ -15,35 +15,76 @@ class AddressFormPage extends StatefulWidget {
 class _AddressFormPageState extends State<AddressFormPage> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _titleCtrl;
+  late TextEditingController _nameCtrl;
+  late TextEditingController _emailCtrl;
   late TextEditingController _streetCtrl;
-  late TextEditingController _detailsCtrl;
+  late TextEditingController _cityCtrl;
+  late TextEditingController _stateCtrl;
+  late TextEditingController _pincodeCtrl;
   late bool _isDefault;
 
   @override
   void initState() {
     super.initState();
     _titleCtrl = TextEditingController(text: widget.address?.title ?? '');
+    _nameCtrl = TextEditingController(text: widget.address?.fullName ?? '');
+    _emailCtrl = TextEditingController(text: widget.address?.email ?? '');
     _streetCtrl = TextEditingController(text: widget.address?.street ?? '');
-    _detailsCtrl = TextEditingController(text: widget.address?.details ?? '');
+
+    // Parse details string back to discrete parts if editing
+    String city = '';
+    String state = '';
+    String pincode = '';
+    
+    if (widget.address != null) {
+      final details = widget.address!.details;
+      final parts = details.split(',');
+      if (parts.isNotEmpty) {
+        city = parts[0].trim();
+        if (parts.length > 1) {
+          final statePin = parts[1].trim();
+          if (statePin.contains(' ')) {
+            pincode = statePin.split(' ').last;
+            state = statePin.substring(0, statePin.lastIndexOf(' ')).trim();
+          } else {
+            state = statePin;
+          }
+        }
+      }
+    }
+
+    _cityCtrl = TextEditingController(text: city);
+    _stateCtrl = TextEditingController(text: state);
+    _pincodeCtrl = TextEditingController(text: pincode);
     _isDefault = widget.address?.isDefault ?? false;
   }
 
   @override
   void dispose() {
     _titleCtrl.dispose();
+    _nameCtrl.dispose();
+    _emailCtrl.dispose();
     _streetCtrl.dispose();
-    _detailsCtrl.dispose();
+    _cityCtrl.dispose();
+    _stateCtrl.dispose();
+    _pincodeCtrl.dispose();
     super.dispose();
   }
 
   void _save(BuildContext context) {
     if (_formKey.currentState!.validate()) {
       final provider = CartProviderScope.of(context);
+      
+      // Merge discrete fields into a single details string for UserAddress
+      final String details = '${_cityCtrl.text.trim()}, ${_stateCtrl.text.trim()} ${_pincodeCtrl.text.trim()}';
+
       final newAddress = UserAddress(
         id: widget.address?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
         title: _titleCtrl.text.trim(),
+        fullName: _nameCtrl.text.trim(),
+        email: _emailCtrl.text.trim(),
         street: _streetCtrl.text.trim(),
-        details: _detailsCtrl.text.trim(),
+        details: details,
         isDefault: _isDefault,
       );
 
@@ -85,11 +126,34 @@ class _AddressFormPageState extends State<AddressFormPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildField(
+                controller: _nameCtrl,
+                label: 'Full Name',
+                hint: 'John Doe',
+                icon: Icons.person_outline,
+                validator: (v) => v!.isEmpty ? 'Please enter your name' : null,
+              ),
+              const SizedBox(height: 16),
+              _buildField(
+                controller: _emailCtrl,
+                label: 'Email Address',
+                hint: 'john@example.com',
+                icon: Icons.mail_outline,
+                keyboardType: TextInputType.emailAddress,
+                validator: (v) {
+                  if (v!.isEmpty) return 'Please enter email';
+                  if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(v)) {
+                    return 'Please enter a valid email address';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+              _buildField(
                 controller: _titleCtrl,
-                label: 'Label',
-                hint: 'Home, Office, etc.',
+                label: 'Tag (e.g. Home, Office)',
+                hint: 'Home',
                 icon: Icons.label_outline,
-                validator: (v) => v!.isEmpty ? 'Please enter a label' : null,
+                validator: (v) => v!.isEmpty ? 'Please enter a tag' : null,
               ),
               const SizedBox(height: 16),
               _buildField(
@@ -100,21 +164,55 @@ class _AddressFormPageState extends State<AddressFormPage> {
                 validator: (v) => v!.isEmpty ? 'Please enter street info' : null,
               ),
               const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildField(
+                      controller: _cityCtrl,
+                      label: 'City',
+                      hint: 'Indore',
+                      icon: Icons.location_city_outlined,
+                      validator: (v) => v!.isEmpty ? 'Required' : null,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: _buildField(
+                      controller: _stateCtrl,
+                      label: 'State',
+                      hint: 'MP',
+                      icon: Icons.map_outlined,
+                      validator: (v) => v!.isEmpty ? 'Required' : null,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
               _buildField(
-                controller: _detailsCtrl,
-                label: 'City, State, Pincode',
-                hint: 'Lucknow, Uttar Pradesh 226001',
-                icon: Icons.location_city_outlined,
-                validator: (v) => v!.isEmpty ? 'Please enter details' : null,
+                controller: _pincodeCtrl,
+                label: 'Pincode',
+                hint: '123456',
+                icon: Icons.pin_drop_outlined,
+                keyboardType: TextInputType.number,
+                validator: (v) {
+                  if (v!.isEmpty) return 'Please enter pincode';
+                  if (!RegExp(r'^\d{6}$').hasMatch(v)) {
+                    return 'Please enter a valid 6-digit pincode';
+                  }
+                  return null;
+                },
               ),
               const SizedBox(height: 24),
               Row(
                 children: [
-                  Switch(
-                    value: _isDefault,
-                    onChanged: (v) => setState(() => _isDefault = v),
-                    activeThumbColor: AppColors.primary,
-                    activeTrackColor: AppColors.primaryLight,
+                   Transform.scale(
+                    scale: 0.9,
+                    child: Switch(
+                      value: _isDefault,
+                      onChanged: (v) => setState(() => _isDefault = v),
+                      activeThumbColor: AppColors.primary,
+                      activeTrackColor: AppColors.primaryLight,
+                    ),
                   ),
                   const Text(
                     'Set as default address',
@@ -157,6 +255,7 @@ class _AddressFormPageState extends State<AddressFormPage> {
     required String label,
     required String hint,
     required IconData icon,
+    TextInputType? keyboardType,
     String? Function(String?)? validator,
   }) {
     return Column(
@@ -174,11 +273,15 @@ class _AddressFormPageState extends State<AddressFormPage> {
         TextFormField(
           controller: controller,
           validator: validator,
+          keyboardType: keyboardType,
+          style: const TextStyle(fontWeight: FontWeight.w500),
           decoration: InputDecoration(
             hintText: hint,
+            hintStyle: TextStyle(color: Colors.grey.shade400, fontWeight: FontWeight.w400),
             prefixIcon: Icon(icon, size: 22, color: Colors.grey),
             filled: true,
             fillColor: Colors.white,
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(color: Colors.grey.shade200),
@@ -189,7 +292,11 @@ class _AddressFormPageState extends State<AddressFormPage> {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.primary),
+              borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+            ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Colors.redAccent, width: 1),
             ),
           ),
         ),
@@ -197,5 +304,3 @@ class _AddressFormPageState extends State<AddressFormPage> {
     );
   }
 }
-
-

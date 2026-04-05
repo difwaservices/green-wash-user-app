@@ -18,7 +18,8 @@ class _OnboardingPageState extends State<OnboardingPage> {
   final List<Map<String, dynamic>> _pages = [
     {
       'title': 'Pure Drinking Water\nAt Your Doorstep',
-      'subtitle': 'Fresh and filtered water delivered right to\nyour home or office.',
+      'subtitle':
+          'Fresh and filtered water delivered right to\nyour home or office.',
       'image': AppImages.difwaLogoPng,
       'layout': 'standard', // title top, image center
       'isSvg': false,
@@ -40,7 +41,8 @@ class _OnboardingPageState extends State<OnboardingPage> {
     },
     {
       'title': 'Fast Delivery\nStay Hydrated',
-      'subtitle': 'On-time delivery across the city\nto keep you and your family healthy.',
+      'subtitle':
+          'On-time delivery across the city\nto keep you and your family healthy.',
       'image': AppImages.waterBottle,
       'layout': 'bottom', // image top half, title+subtitle bottom, skip/next
       'isSvg': false,
@@ -379,9 +381,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
           height: 8,
           width: _currentPage == i ? 20 : 8,
           decoration: BoxDecoration(
-            color: _currentPage == i
-                ? AppColors.primary
-                : Colors.grey.shade300,
+            color: _currentPage == i ? AppColors.primary : Colors.grey.shade300,
             borderRadius: BorderRadius.circular(4),
           ),
         ),

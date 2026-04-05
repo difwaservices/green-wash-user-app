@@ -94,7 +94,8 @@ final riderStatsProvider = FutureProvider.autoDispose<_RiderStats>((ref) async {
     'totalEarninag',
   ]);
 
-  double rating = parseNum(['rating', 'avgRating', 'avg_rating', 'riderRating']);
+  double rating =
+      parseNum(['rating', 'avgRating', 'avg_rating', 'riderRating']);
 
   // ── Fallback Calculation from History ──────────────────────────────────────
   // If backend returns zeros (common with cold starts or unlinked tables),
@@ -463,36 +464,37 @@ class _RiderHomePageState extends ConsumerState<RiderHomePage> {
         ScaffoldMessenger.of(context).clearSnackBars();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-          content: Row(
-            children: [
-              Icon(
-                isSuccess ? Icons.check_circle_rounded : Icons.error_rounded,
-                color: Colors.white,
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  isSuccess
-                      ? '✅ Order Delivered Successfully!'
-                      : result['message'] ?? 'Failed to mark as delivered',
-                  style: const TextStyle(fontWeight: FontWeight.w600),
+            content: Row(
+              children: [
+                Icon(
+                  isSuccess ? Icons.check_circle_rounded : Icons.error_rounded,
+                  color: Colors.white,
                 ),
-              ),
-            ],
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    isSuccess
+                        ? '✅ Order Delivered Successfully!'
+                        : result['message'] ?? 'Failed to mark as delivered',
+                    style: const TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor:
+                isSuccess ? AppColors.accentGreen : Colors.redAccent,
+            behavior: SnackBarBehavior.floating,
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            duration: const Duration(seconds: 3),
           ),
-          backgroundColor: isSuccess ? AppColors.accentGreen : Colors.redAccent,
-          behavior: SnackBarBehavior.floating,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          duration: const Duration(seconds: 3),
-        ),
-      );
-      if (isSuccess) {
-        // Refresh assigned orders (removes this order) AND history tab
-        ref.invalidate(riderOrdersProvider);
-        ref.invalidate(deliveryHistoryProvider);
+        );
+        if (isSuccess) {
+          // Refresh assigned orders (removes this order) AND history tab
+          ref.invalidate(riderOrdersProvider);
+          ref.invalidate(deliveryHistoryProvider);
+        }
       }
-    }
     } finally {
       if (mounted) setState(() => _processingIds.remove(orderId));
     }
@@ -521,7 +523,6 @@ class _RiderHomePageState extends ConsumerState<RiderHomePage> {
         centerTitle: true,
         iconTheme: const IconThemeData(color: Color(0xFF1A1A1A)),
         actions: [
-
           IconButton(
             icon: const Icon(Icons.logout_rounded),
             onPressed: () async {
@@ -1020,8 +1021,9 @@ class _RiderHomePageState extends ConsumerState<RiderHomePage> {
                             : () =>
                                 _handleResponse(order['orderId'], 'Accepted'),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor:
-                              isProcessing ? Colors.grey : const Color(0xFF06B6D4),
+                          backgroundColor: isProcessing
+                              ? Colors.grey
+                              : const Color(0xFF06B6D4),
                           foregroundColor: Colors.white,
                           elevation: 0,
                           shape: RoundedRectangleBorder(
@@ -1040,7 +1042,8 @@ class _RiderHomePageState extends ConsumerState<RiderHomePage> {
                             : () =>
                                 _handleResponse(order['orderId'], 'Rejected'),
                         style: OutlinedButton.styleFrom(
-                          foregroundColor: isProcessing ? Colors.grey : Colors.red,
+                          foregroundColor:
+                              isProcessing ? Colors.grey : Colors.red,
                           side: BorderSide(
                               color: isProcessing ? Colors.grey : Colors.red),
                           shape: RoundedRectangleBorder(
@@ -1097,8 +1100,9 @@ class _RiderHomePageState extends ConsumerState<RiderHomePage> {
                             style: TextStyle(
                                 fontSize: 11, fontWeight: FontWeight.bold)),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor:
-                              isProcessing ? Colors.grey : const Color(0xFF06B6D4),
+                          backgroundColor: isProcessing
+                              ? Colors.grey
+                              : const Color(0xFF06B6D4),
                           foregroundColor: Colors.white,
                           elevation: 0,
                           shape: RoundedRectangleBorder(
@@ -1308,5 +1312,3 @@ class _NewOrderBanner extends StatelessWidget {
         .fadeIn(duration: 300.ms);
   }
 }
-
-

@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/constants/app_images.dart';
 import 'widgets/input_field.dart';
 import '../../routes/app_routes.dart';
-import 'provider/auth_provider.dart';
+import '../../../../core/state/auth_store.dart';
 
 class MobileLoginPage extends ConsumerStatefulWidget {
   const MobileLoginPage({super.key});
@@ -43,7 +43,7 @@ class _MobileLoginPageState extends ConsumerState<MobileLoginPage> {
       return;
     }
     
-    // High Priority: 10-digit Indian number validation as requested
+    // 10-digit Indian number validation
     final phoneRegex = RegExp(r'(^(?:[+0]9)?[0-9]{10}$)');
     if (!phoneRegex.hasMatch(phone)) {
       _showSnackBar('Please enter a valid 10-digit mobile number.', backgroundColor: Colors.red);
@@ -53,22 +53,25 @@ class _MobileLoginPageState extends ConsumerState<MobileLoginPage> {
     setState(() => _isSubmitting = true);
 
     try {
-      final notifier = ref.read(authProvider.notifier);
-      await notifier.sendOtp(phoneNumber: phone);
+      // ── SEND REAL OTP ──
+      // This calls the backend API to send an OTP
+      await ref.read(authStoreProvider.notifier).sendOtp(phoneNumber: phone);
       
-      final state = ref.read(authProvider);
-      if (state is AuthSuccess) {
+      final state = ref.read(authStoreProvider);
+      if (state is AuthOtpSent) {
         if (!mounted) return;
         Navigator.pushNamed(
           context, 
           AppRoutes.otp, 
           arguments: {
             'phoneNumber': phone,
-            'initialOtp': state.otp ?? '', 
+            'otp': state.otp, 
           }
         );
       } else if (state is AuthError) {
         _showSnackBar(state.message, backgroundColor: Colors.red);
+      } else {
+        _showSnackBar('Failed to send OTP. Please try again.', backgroundColor: Colors.red);
       }
     } catch (e) {
       _showSnackBar('An error occurred. Please try again.', backgroundColor: Colors.red);
@@ -80,9 +83,8 @@ class _MobileLoginPageState extends ConsumerState<MobileLoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFE0F7FA), // Soft water-like cyan
+      backgroundColor: const Color(0xFFE0F7FA),
       body: SafeArea(
-        bottom: false,
         child: SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
           child: Column(

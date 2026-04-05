@@ -561,7 +561,9 @@ class _ShippingAddressPageState extends ConsumerState<ShippingAddressPage> {
               keyboardType: TextInputType.emailAddress,
               validator: (v) {
                 if (v!.isEmpty) return 'Please enter your email';
-                if (!v.contains('@')) return 'Invalid email address';
+                if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(v)) {
+                  return 'Please enter a valid email address';
+                }
                 return null;
               },
             ),
@@ -593,7 +595,13 @@ class _ShippingAddressPageState extends ConsumerState<ShippingAddressPage> {
                     hint: '123456',
                     icon: Icons.pin_drop_rounded,
                     keyboardType: TextInputType.number,
-                    validator: (v) => v!.length < 6 ? 'Invalid pin' : null,
+                    validator: (v) {
+                      if (v!.isEmpty) return 'Required';
+                      if (!RegExp(r'^\d{6}$').hasMatch(v)) {
+                        return 'Invalid (6 digits)';
+                      }
+                      return null;
+                    },
                   ),
                 ),
               ],

@@ -46,7 +46,7 @@ class WelcomePage extends StatelessWidget {
                         begin: Alignment.topCenter,
                         end: Alignment.center,
                         colors: [
-                          Colors.black.withValues(alpha:  0.45),
+                          Colors.black.withValues(alpha: 0.45),
                           Colors.transparent,
                         ],
                       ),
@@ -71,7 +71,7 @@ class WelcomePage extends StatelessWidget {
                               width: 36,
                               height: 36,
                               decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha:  0.2),
+                                color: Colors.white.withValues(alpha: 0.2),
                                 shape: BoxShape.circle,
                               ),
                               child: const Icon(
@@ -132,8 +132,6 @@ class WelcomePage extends StatelessWidget {
                   ),
                   const SizedBox(height: 28),
 
-
-
                   // ── Create account button ──
                   _createAccountButton(context),
                   const SizedBox(height: 24),
@@ -153,7 +151,7 @@ class WelcomePage extends StatelessWidget {
                             TextSpan(
                               text: 'Login',
                               style: TextStyle(
-                              color: AppColors.primary,
+                                color: AppColors.primary,
                                 fontWeight: FontWeight.w700,
                               ),
                             ),
@@ -170,7 +168,6 @@ class WelcomePage extends StatelessWidget {
       ),
     );
   }
-
 
   Widget _createAccountButton(BuildContext context) {
     return SizedBox(

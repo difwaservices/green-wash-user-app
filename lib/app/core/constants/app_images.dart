@@ -21,10 +21,10 @@ class AppImages {
   static const String bannerBg       = 'assets/images/splashbg.svg';
   
   // ── Home Slider Crops ───────────────────────────────────────
-  static const String sliderSource   = 'assets/images/slider_source.jpg';
-  static const String sliderOrder    = 'assets/images/slider_order.jpg';
-  static const String sliderDrink    = 'assets/images/slider_drink.jpg';
-  static const String sliderRefresh  = 'assets/images/slider_refresh.jpg';
+  static const String sliderSource   = 'assets/images/banner_source.png';
+  static const String sliderOrder    = 'assets/images/banner_delivery.png';
+  static const String sliderDrink    = 'assets/images/banner_dispenser.png';
+  static const String sliderRefresh  = 'assets/images/banner_truck.png';
   
   // ── Onboarding / Auth ────────────────────────────────────────
   static const String splashBg       = 'assets/images/splashbg.svg';

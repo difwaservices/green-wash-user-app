@@ -43,7 +43,7 @@ class HomePage extends ConsumerWidget {
                   // Banner (Horizontal Scrolling Carousel)
                   const SliverToBoxAdapter(child: HomeBanner()),
 
-                  const SliverToBoxAdapter(child: SizedBox(height: 8)),
+                  const SliverToBoxAdapter(child: SizedBox(height: 24)),
 
                   // Restaurants Section
                   const SliverToBoxAdapter(child: RestaurantListSection()),

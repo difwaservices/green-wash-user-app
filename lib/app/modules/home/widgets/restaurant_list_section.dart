@@ -81,7 +81,7 @@ class _ShopsList extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 20, 16, 12),
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
           child: Row(
             children: [
               const Text(
