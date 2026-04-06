@@ -10,6 +10,8 @@ class OrderService {
   OrderService(this._apiClient);
 
   Future<Map<String, dynamic>> placeOrder({
+    required List<Map<String, dynamic>> items,
+    required double totalAmount,
     required Map<String, dynamic> deliveryAddress,
     required String paymentMethod,
   }) async {
@@ -17,6 +19,8 @@ class OrderService {
       final response = await _apiClient.post(
         '${ApiClient.baseUrl}/orders',
         data: {
+          'items': items,
+          'totalAmount': totalAmount,
           'deliveryAddress': deliveryAddress,
           'paymentMethod': paymentMethod,
           'orderType': 'One-time',
@@ -48,11 +52,14 @@ class OrderService {
       if (response is List) {
         rawData = response;
       } else if (response is Map) {
-        rawData = response['orders'] ??
-            response['data']?['orders'] ??
-            response['data'] ??
-            response['history'] ??
-            [];
+        final data = response['data'];
+        if (data is List) {
+          rawData = data;
+        } else if (data is Map) {
+          rawData = data['orders'] ?? data['history'] ?? [];
+        } else {
+          rawData = response['orders'] ?? response['history'] ?? [];
+        }
       } else {
         rawData = [];
       }

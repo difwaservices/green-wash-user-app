@@ -7,11 +7,101 @@ final subscriptionServiceProvider = Provider<SubscriptionService>((ref) {
   return SubscriptionService(client: ref.watch(apiClientProvider));
 });
 
-/// FutureProvider for fetching user subscriptions
+/// Notifier for fetching and managing user subscriptions with optimistic updates
 final mySubscriptionsProvider =
-    FutureProvider<List<UserSubscription>>((ref) async {
-  return ref.watch(subscriptionServiceProvider).getMySubscriptions();
-});
+    AsyncNotifierProvider<SubscriptionNotifier, List<UserSubscription>>(
+        SubscriptionNotifier.new);
+
+class SubscriptionNotifier extends AsyncNotifier<List<UserSubscription>> {
+  @override
+  Future<List<UserSubscription>> build() async {
+    return ref.watch(subscriptionServiceProvider).getMySubscriptions();
+  }
+
+  Future<void> refresh() async {
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(
+        () => ref.read(subscriptionServiceProvider).getMySubscriptions());
+  }
+
+  Future<bool> updateStatus(String subId, String status) async {
+    final oldState = state;
+    if (state.hasValue) {
+      state = AsyncValue.data(state.value!.map((s) {
+        if (s.id == subId) {
+          return s.copyWith(status: status);
+        }
+        return s;
+      }).toList());
+    }
+
+    final success =
+        await ref.read(subscriptionServiceProvider).updateStatus(subId, status);
+    if (!success) {
+      state = oldState; // Rollback on failure
+    } else {
+      refresh();
+    }
+    return success;
+  }
+
+  Future<Map<String, dynamic>> updateVacation({
+    required String subscriptionId,
+    required DateTime startDate,
+    required DateTime endDate,
+  }) async {
+    final oldState = state;
+    
+    // Optimistic update for instant visual feedback
+    if (state.hasValue) {
+      final now = DateTime.now();
+      final today = DateTime(now.year, now.month, now.day);
+      final isTurningOff = startDate.isBefore(today.subtract(const Duration(days: 1)));
+
+      state = AsyncValue.data(state.value!.map((s) {
+        if (s.id == subscriptionId) {
+          if (isTurningOff) {
+            return s.copyWith(vacationDates: []);
+          } else if (startDate == endDate) {
+            // Single day toggle (Pause/Resume Tomorrow)
+            final startDay = DateTime(startDate.year, startDate.month, startDate.day);
+            final existingIndex = s.vacationDates.indexWhere((vd) =>
+                DateTime(vd.year, vd.month, vd.day) == startDay);
+
+            if (existingIndex != -1) {
+              // OPTIMISTIC REMOVE (Resume)
+              final newList = List<DateTime>.from(s.vacationDates)
+                ..removeAt(existingIndex);
+              return s.copyWith(vacationDates: newList);
+            } else {
+              // OPTIMISTIC ADD (Pause)
+              return s.copyWith(
+                  vacationDates: [...s.vacationDates, startDate]);
+            }
+          } else {
+            // For range updates (Vacation Mode ON), we simplify for UI feedback
+            return s.copyWith(
+                vacationDates: [...s.vacationDates, startDate, endDate]);
+          }
+        }
+        return s;
+      }).toList());
+    }
+
+    final res = await ref.read(subscriptionServiceProvider).updateVacation(
+          subscriptionId: subscriptionId,
+          startDate: startDate,
+          endDate: endDate,
+        );
+
+    if (res['success'] == true) {
+      refresh();
+    } else {
+      state = oldState; // Rollback on failure
+    }
+    return res;
+  }
+}
 
 /// Service layer for subscriptions.
 class SubscriptionService {

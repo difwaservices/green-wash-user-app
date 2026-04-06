@@ -12,8 +12,8 @@ import 'app/data/services/db_service.dart';
 import 'app/core/theme/app_theme.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'app/data/services/fcm_service.dart';
+import 'firebase_options.dart';
 
-// Use a standard Provider and ListenableBuilder for reactivity
 final cartProviderManager = Provider<CartProvider>((ref) {
   return CartProvider(
     service: ref.watch(cartServiceProvider),
@@ -26,8 +26,10 @@ final cartProviderManager = Provider<CartProvider>((ref) {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
-  await Firebase.initializeApp();
+
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   await FCMService.init();
 
   try {
@@ -48,7 +50,6 @@ class DifwaWaterApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Watch the instance of CartProvider
     final cartProvider = ref.watch(cartProviderManager);
 
     return CartProviderScope(

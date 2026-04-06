@@ -129,4 +129,34 @@ class UserSubscription {
           [],
     );
   }
+
+  UserSubscription copyWith({
+    String? id,
+    String? productId,
+    String? productName,
+    String? productImage,
+    String? frequency,
+    int? quantity,
+    List<String>? customDays,
+    String? status,
+    DateTime? startDate,
+    DateTime? endDate,
+    String? retailerName,
+    List<DateTime>? vacationDates,
+  }) {
+    return UserSubscription(
+      id: id ?? this.id,
+      productId: productId ?? this.productId,
+      productName: productName ?? this.productName,
+      productImage: productImage ?? this.productImage,
+      frequency: frequency ?? this.frequency,
+      quantity: quantity ?? this.quantity,
+      customDays: customDays ?? this.customDays,
+      status: status ?? this.status,
+      startDate: startDate ?? this.startDate,
+      endDate: endDate ?? this.endDate,
+      retailerName: retailerName ?? this.retailerName,
+      vacationDates: vacationDates ?? this.vacationDates,
+    );
+  }
 }

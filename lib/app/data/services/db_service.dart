@@ -426,7 +426,16 @@ class CartProvider extends ChangeNotifier {
       'pincode': pin,
     };
 
+    final itemsMap = _items.map((item) => {
+      'product': item.id,
+      'retailer': item.shopId,
+      'quantity': item.quantity,
+      'price': item.unitPrice,
+    }).toList();
+
     final result = await _orderService!.placeOrder(
+      items: itemsMap,
+      totalAmount: total,
       deliveryAddress: deliveryAddress,
       paymentMethod: paymentMethod,
     );

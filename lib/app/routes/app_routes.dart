@@ -31,4 +31,9 @@ class AppRoutes {
   static const String trackOrder = '/track-order';
   static const String locationPicker = '/location-picker';
   static const String activeOrders = '/active-orders';
+  static const String notifications = '/notifications';
+  static const String about = '/about';
+  static const String contact = '/contact';
+  static const String help = '/help';
+  static const String faq = '/faq';
 }

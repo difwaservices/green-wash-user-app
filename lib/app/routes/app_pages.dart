@@ -23,6 +23,11 @@ import '../modules/location/view/location_picker_screen.dart';
 import '../modules/cart/view/payment_page.dart';
 import '../modules/wallet/view/top_up_page.dart';
 import '../modules/orders/view/active_orders_page.dart';
+import '../modules/notifications/view/notification_page.dart';
+import '../modules/support/view/about_page.dart';
+import '../modules/support/view/contact_us_page.dart';
+import '../modules/support/view/help_support_page.dart';
+import '../modules/support/view/faq_page.dart';
 
 class AppPages {
   static Map<String, WidgetBuilder> get routes => {
@@ -70,5 +75,10 @@ class AppPages {
         AppRoutes.payment: (context) => const PaymentPage(),
         AppRoutes.topUp: (context) => const TopUpPage(),
         AppRoutes.activeOrders: (context) => const ActiveOrdersPage(),
+        AppRoutes.notifications: (context) => const NotificationPage(),
+        AppRoutes.about: (context) => const AboutPage(),
+        AppRoutes.contact: (context) => const ContactUsPage(),
+        AppRoutes.help: (context) => const HelpSupportPage(),
+        AppRoutes.faq: (context) => const FaqPage(),
       };
 }

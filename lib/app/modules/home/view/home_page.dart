@@ -16,45 +16,49 @@ class HomePage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: const SystemUiOverlayStyle(
-        statusBarColor: Colors.white,
+        statusBarColor: Color(0xFFF7F8FA),
         statusBarIconBrightness: Brightness.dark,
         statusBarBrightness: Brightness.light,
       ),
       child: Scaffold(
         backgroundColor: Colors.white,
-        body: SafeArea(
-          bottom: false,
-          child: Container(
-            color: const Color(0xFFF7F8FA),
-            child: RefreshIndicator(
-              onRefresh: () async {
-                await ref.read(shopsListProvider.notifier).refresh();
-                // Proactively refresh other related data if needed
-                CartProviderScope.of(context).loadAddresses();
-                CartProviderScope.of(context).syncWallet();
-              },
-              color: AppColors.primary,
-              child: CustomScrollView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                slivers: [
-                  // Header: Location & Search
-                  const SliverToBoxAdapter(child: HomeHeader()),
+        body: Container(
+          color: const Color(0xFFF7F8FA),
+          child: RefreshIndicator(
+            onRefresh: () async {
+              await ref.read(shopsListProvider.notifier).refresh();
+              CartProviderScope.of(context).loadAddresses();
+              CartProviderScope.of(context).syncWallet();
+            },
+            color: AppColors.primary,
+            child: CustomScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              slivers: [
+                SliverToBoxAdapter(
+                  child: Container(
+                    height: MediaQuery.of(context).padding.top,
+                    color: const Color(
+                        0xFFF7F8FA), // Light grey blending with header
+                  ),
+                ),
 
-                  // Banner (Horizontal Scrolling Carousel)
-                  const SliverToBoxAdapter(child: HomeBanner()),
+                // Header: Location & Search
+                const SliverToBoxAdapter(child: HomeHeader()),
 
-                  const SliverToBoxAdapter(child: SizedBox(height: 24)),
+                // Banner (Horizontal Scrolling Carousel)
+                const SliverToBoxAdapter(child: HomeBanner()),
 
-                  // Restaurants Section
-                  const SliverToBoxAdapter(child: RestaurantListSection()),
+                const SliverToBoxAdapter(child: SizedBox(height: 24)),
 
-                  // Footer
-                  const SliverToBoxAdapter(child: AnimatedFooterText()),
+                // Restaurants Section
+                const SliverToBoxAdapter(child: RestaurantListSection()),
 
-                  // Bottom Spacing for Navigation Bar
-                  const SliverPadding(padding: EdgeInsets.only(bottom: 100)),
-                ],
-              ),
+                // Footer
+                const SliverToBoxAdapter(child: AnimatedFooterText()),
+
+                // Bottom Spacing for Navigation Bar
+                const SliverPadding(padding: EdgeInsets.only(bottom: 100)),
+              ],
             ),
           ),
         ),

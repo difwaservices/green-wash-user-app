@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
 import './profile_detail_page.dart';
 import './edit_profile_page.dart';
 import '../../../data/services/auth_service.dart' as auth;
@@ -579,8 +580,36 @@ class _ListTilesSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
-      children: const [
-        _ListTileItem(icon: Icons.notifications_none, title: 'Notifications'),
+      children: [
+        const _ListTileItem(
+          icon: Icons.notifications_none_rounded, 
+          title: 'Notifications', 
+          color: Color(0xFF0EA5E9),
+        ),
+        const SizedBox(height: 12),
+        const _ListTileItem(
+          icon: Icons.help_outline_rounded, 
+          title: 'Help & Support',
+          color: Color(0xFF8B5CF6),
+        ),
+        const SizedBox(height: 12),
+        const _ListTileItem(
+          icon: Icons.info_outline_rounded, 
+          title: 'About Difwa',
+          color: Color(0xFF10B981),
+        ),
+        const SizedBox(height: 12),
+        const _ListTileItem(
+          icon: Icons.contact_support_outlined, 
+          title: 'Contact Us',
+          color: Color(0xFFF59E0B),
+        ),
+        const SizedBox(height: 12),
+        const _ListTileItem(
+          icon: Icons.star_outline_rounded, 
+          title: 'Rate Us',
+          color: Color(0xFFEF4444),
+        ),
       ],
     );
   }
@@ -589,38 +618,77 @@ class _ListTilesSection extends StatelessWidget {
 class _ListTileItem extends StatelessWidget {
   final IconData icon;
   final String title;
+  final Color color;
 
-  const _ListTileItem({required this.icon, required this.title});
+  const _ListTileItem({required this.icon, required this.title, required this.color});
+
+  void _handleTap(BuildContext context) async {
+    if (title == 'Notifications') {
+      Navigator.pushNamed(context, AppRoutes.notifications);
+    } else if (title == 'About Difwa') {
+      Navigator.pushNamed(context, AppRoutes.about);
+    } else if (title == 'Contact Us') {
+      Navigator.pushNamed(context, AppRoutes.contact);
+    } else if (title == 'Help & Support') {
+      Navigator.pushNamed(context, AppRoutes.help);
+    } else if (title == 'Rate Us') {
+      final Uri url = Uri.parse('https://play.google.com/store/apps/details?id=com.difmo.difwa');
+      if (await canLaunchUrl(url)) {
+        await launchUrl(url, mode: LaunchMode.externalApplication);
+      }
+    } else {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (context) => ProfileDetailPage(title: title)),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-              builder: (context) => ProfileDetailPage(title: title)),
-        );
-      },
+      onTap: () => _handleTap(context),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
           color: Colors.white,
-          border: Border.all(color: Colors.grey.shade200),
-          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: const Color(0xFFE2E8F0)),
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.02),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
         child: Row(
           children: [
-            Icon(icon, color: AppColors.primaryDark, size: 24),
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Icon(icon, color: color, size: 22),
+            ),
             const SizedBox(width: 16),
             Expanded(
-                child: Text(title,
-                    style: const TextStyle(
-                        color: AppColors.primaryDark,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600))),
-            Icon(Icons.arrow_forward_ios_rounded,
-                color: AppColors.primary.withValues(alpha: 0.5), size: 16),
+              child: Text(
+                title,
+                style: const TextStyle(
+                  color: Color(0xFF1E293B),
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+            Icon(
+              Icons.arrow_forward_ios_rounded,
+              color: Colors.grey.shade300,
+              size: 14,
+            ),
           ],
         ),
       ),

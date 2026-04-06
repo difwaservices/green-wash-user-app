@@ -462,7 +462,16 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                           } else {
                             // ONE-TIME ORDER
                             final orderService = ref.read(orderServiceProvider);
+                            final itemsMap = cartProvider.items.map((item) => {
+                              'product': item.id,
+                              'retailer': item.shopId,
+                              'quantity': item.quantity,
+                              'price': item.unitPrice,
+                            }).toList();
+
                             final response = await orderService.placeOrder(
+                                items: itemsMap,
+                                totalAmount: cartProvider.total,
                                 deliveryAddress: deliveryAddressMap,
                                 paymentMethod: 'Wallet');
                             if (response['success'] == true) {
