@@ -264,6 +264,26 @@ class AuthStore extends Notifier<AuthState> {
       }
     } catch (_) {}
   }
+
+  Future<void> updateName({required String fullName}) async {
+    if (state is! AuthAuthenticated) return;
+    final current = state as AuthAuthenticated;
+    try {
+      final response = await ref.read(authServiceProvider).updateName(
+            fullName: fullName,
+          );
+      if (response.success && response.data != null) {
+        state = AuthAuthenticated(response.data!, isMock: current.isMock);
+      }
+    } catch (_) {}
+  }
+
+  void syncUser(UserModel user) {
+    if (state is AuthAuthenticated) {
+      final current = state as AuthAuthenticated;
+      state = AuthAuthenticated(user, isMock: current.isMock);
+    }
+  }
 }
 
 final authStoreProvider = NotifierProvider<AuthStore, AuthState>(() {

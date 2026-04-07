@@ -67,7 +67,10 @@ class UserOrder {
     required this.items,
     this.rider,
     this.deliveryAddressMap,
+    this.deliverySlot,
   });
+
+  final String? deliverySlot;
 
   String get riderName => rider?['fullName'] ?? rider?['name'] ?? '';
   String get riderPhone => rider?['phoneNumber'] ?? rider?['phone'] ?? '';
@@ -104,6 +107,7 @@ class UserOrder {
       rider: json['rider'] is Map ? json['rider'] : null,
       deliveryAddressMap:
           json['deliveryAddress'] is Map ? json['deliveryAddress'] : null,
+      deliverySlot: json['deliverySlot']?.toString(),
     );
   }
 }

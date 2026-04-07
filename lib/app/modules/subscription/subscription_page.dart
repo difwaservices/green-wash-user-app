@@ -8,6 +8,9 @@ import '../../data/services/order_service.dart';
 import '../../data/services/wallet_service.dart' show walletBalanceProvider;
 import '../orders/view/order_tracking_page.dart';
 
+import '../../core/utils/auth_helper.dart';
+import 'package:difwawaterapp/core/state/auth_store.dart';
+
 class SubscriptionPage extends ConsumerStatefulWidget {
   const SubscriptionPage({super.key});
 
@@ -73,6 +76,19 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isAuth = ref.watch(isAuthenticatedProvider);
+    if (!isAuth) {
+      return Scaffold(
+        backgroundColor: Colors.white,
+        body: AuthHelper.loginRequiredPlaceholder(
+          context: context,
+          featureName: 'Daily Deliveries',
+          description:
+              'Keep track of your scheduled water updates and pause your deliveries from here.',
+        ),
+      );
+    }
+
     final subscriptionsAsync = ref.watch(mySubscriptionsProvider);
     final ordersAsync = ref.watch(myOrdersProvider);
     final balanceAsync = ref.watch(walletBalanceProvider);
@@ -346,46 +362,7 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage> {
                       fontWeight: FontWeight.bold),
                 ),
               ),
-              if (ordersForDate.isNotEmpty) ...[
-                const SizedBox(width: 16),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'CURRENT STATUS',
-                      style: TextStyle(
-                        color: Color(0xFF8E99AF),
-                        fontSize: 9,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 0.8,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFCFFAFE),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: const Color(0xFF06B6D4).withValues(alpha: 0.2),
-                        ),
-                      ),
-                      child: Text(
-                        (ordersForDate.isNotEmpty
-                                ? ordersForDate.first.status
-                                : 'PENDING')
-                            .toUpperCase(),
-                        style: const TextStyle(
-                          color: Color(0xFF06B6D4),
-                          fontSize: 10,
-                          fontWeight: FontWeight.w900,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
+
               const Spacer(),
               if (hasDelivery)
                 Text('${deliveringSubs.length + ordersForDate.length} item(s)',
@@ -562,25 +539,7 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              GestureDetector(
-                onTap: () => _openTrackingForSubscription(sub),
-                child: const Row(
-                  children: [
-                    Icon(Icons.calendar_today_outlined,
-                        color: Color(0xFF06B6D4), size: 14),
-                    SizedBox(width: 2),
-                    Text(
-                      'PLANNED',
-                      style: TextStyle(
-                        color: Color(0xFF06B6D4),
-                        fontWeight: FontWeight.w900,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 4),
+
               GestureDetector(
                 onTap: () => _openTrackingForSubscription(sub),
                 child: const Text(
@@ -736,6 +695,16 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage> {
             value: isActive,
             activeThumbColor: const Color(0xFF06B6D4),
             onChanged: (val) async {
+              final confirmed = await _showConfirmationDialog(
+                title: val ? 'Resume Subscription?' : 'Pause Subscription?',
+                message: val
+                    ? 'Do you want to resume deliveries for ${sub.productName}?'
+                    : 'Do you want to pause deliveries for ${sub.productName}?',
+                confirmText: val ? 'Resume' : 'Pause',
+                confirmColor: val ? const Color(0xFF06B6D4) : Colors.orange,
+              );
+              if (!confirmed) return;
+
               final newStatus = val ? 'Active' : 'Paused';
               final ok = await ref
                   .read(mySubscriptionsProvider.notifier)
@@ -754,10 +723,10 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage> {
     final now = DateTime.now();
     final isAfterDeadline = now.hour >= 20; // 8 PM Deadline
 
+    final todayEnd = DateTime(now.year, now.month, now.day, 23, 59, 59);
     final isVacationOn = subs.any((s) =>
         s.status == 'Active' &&
-        s.vacationDates.any((vd) =>
-            vd.isAfter(DateTime.now().subtract(const Duration(days: 1)))));
+        s.vacationDates.any((vd) => vd.isAfter(todayEnd)));
 
     final tomorrow = DateTime.now().add(const Duration(days: 1));
     final isTomorrowPaused = subs.any((s) =>
@@ -821,13 +790,24 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage> {
   }
 
   void _pauseTomorrow(List<UserSubscription> subs) async {
-    final tomorrow = DateTime.now().add(const Duration(days: 1));
+    final now = DateTime.now();
+    final tomorrow = DateTime(now.year, now.month, now.day + 1);
     final activeSubs = subs.where((s) => s.status == 'Active').toList();
     if (activeSubs.isEmpty) return;
 
     final isTomorrowAlreadyPaused = activeSubs.first.vacationDates.any((vd) =>
         DateTime(vd.year, vd.month, vd.day) ==
         DateTime(tomorrow.year, tomorrow.month, tomorrow.day));
+
+    final confirmed = await _showConfirmationDialog(
+      title: isTomorrowAlreadyPaused ? 'Resume Delivery?' : 'Pause Delivery?',
+      message: isTomorrowAlreadyPaused
+          ? 'Are you sure you want to resume tomorrow\'s delivery?'
+          : 'Are you sure you want to pause tomorrow\'s delivery?',
+      confirmText: isTomorrowAlreadyPaused ? 'Resume' : 'Pause',
+      confirmColor: isTomorrowAlreadyPaused ? Colors.green : Colors.orange,
+    );
+    if (!confirmed) return;
 
     for (final sub in activeSubs) {
       await ref.read(mySubscriptionsProvider.notifier).updateVacation(
@@ -866,17 +846,33 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage> {
     if (activeSubs.isEmpty) return;
 
     if (isCurrentlyOn) {
-      // Turn Vacation Mode OFF but ensure today stays as vacation 
-      // Deliveries will explicitly resume from tomorrow.
+      final confirmed = await _showConfirmationDialog(
+        title: 'Turn Off Vacation?',
+        message:
+            'Are you sure you want to turn off vacation mode? Deliveries will resume from tomorrow.',
+        confirmText: 'Turn Off',
+        confirmColor: Colors.orange,
+      );
+      if (!confirmed) return;
+
+      // Turn Vacation Mode OFF - comprehensively clear from today onwards
       final todayStart = DateTime(now.year, now.month, now.day);
-      final pastStart = todayStart.subtract(const Duration(days: 1)); 
 
       for (final sub in activeSubs) {
-        await ref.read(mySubscriptionsProvider.notifier).updateVacation(
-              subscriptionId: sub.id,
-              startDate: pastStart,
-              endDate: todayStart,
-            );
+        // Find all active/upcoming vacation dates starting from today
+        final futureDates = sub.vacationDates.where((vd) => !vd.isBefore(todayStart)).toList();
+        
+        if (futureDates.isEmpty) continue; // Nothing to clear
+        
+        // Process dates concurrently so the UI updates flawlessly in a single frame
+        // without visual "popping", while preserving safe single-date transmissions.
+        final futures = futureDates.map((vd) =>
+            ref.read(mySubscriptionsProvider.notifier).updateVacation(
+                  subscriptionId: sub.id,
+                  startDate: vd,
+                  endDate: vd,
+                ));
+        await Future.wait(futures);
       }
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
@@ -910,6 +906,15 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage> {
       );
 
       if (picked != null) {
+        final confirmed = await _showConfirmationDialog(
+          title: 'Start Vacation?',
+          message:
+              'Are you sure you want to pause deliveries from ${DateFormat('MMM d').format(picked.start)} to ${DateFormat('MMM d').format(picked.end)}?',
+          confirmText: 'Start Vacation',
+          confirmColor: const Color(0xFF06B6D4),
+        );
+        if (!confirmed) return;
+
         for (final sub in activeSubs) {
           await ref.read(mySubscriptionsProvider.notifier).updateVacation(
                 subscriptionId: sub.id,
@@ -925,6 +930,40 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage> {
         }
       }
     }
+  }
+
+  Future<bool> _showConfirmationDialog({
+    required String title,
+    required String message,
+    String confirmText = 'Confirm',
+    String cancelText = 'Cancel',
+    Color? confirmColor,
+  }) async {
+    return await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            title: Text(title,
+                style: const TextStyle(fontWeight: FontWeight.bold)),
+            content: Text(message, style: const TextStyle(color: Colors.black87)),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: Text(cancelText,
+                    style: const TextStyle(color: Colors.grey)),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: Text(confirmText,
+                    style: TextStyle(
+                        color: confirmColor ?? const Color(0xFF06B6D4),
+                        fontWeight: FontWeight.bold)),
+              ),
+            ],
+          ),
+        ) ??
+        false;
   }
 }
 

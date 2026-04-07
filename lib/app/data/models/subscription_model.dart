@@ -64,6 +64,7 @@ class UserSubscription {
   final DateTime? endDate;
   final String retailerName;
   final List<DateTime> vacationDates;
+  final String? deliverySlot;
 
   UserSubscription({
     required this.id,
@@ -76,6 +77,7 @@ class UserSubscription {
     required this.customDays,
     required this.status,
     required this.startDate,
+    this.deliverySlot,
     this.endDate,
     this.vacationDates = const [],
   });
@@ -127,6 +129,7 @@ class UserSubscription {
               ?.map((e) => DateTime.tryParse(e.toString()) ?? DateTime.now())
               .toList() ??
           [],
+      deliverySlot: json['deliverySlot']?.toString(),
     );
   }
 
@@ -143,6 +146,7 @@ class UserSubscription {
     DateTime? endDate,
     String? retailerName,
     List<DateTime>? vacationDates,
+    String? deliverySlot,
   }) {
     return UserSubscription(
       id: id ?? this.id,
@@ -157,6 +161,7 @@ class UserSubscription {
       endDate: endDate ?? this.endDate,
       retailerName: retailerName ?? this.retailerName,
       vacationDates: vacationDates ?? this.vacationDates,
+      deliverySlot: deliverySlot ?? this.deliverySlot,
     );
   }
 }

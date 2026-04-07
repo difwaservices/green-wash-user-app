@@ -3,7 +3,7 @@ import 'app_routes.dart';
 import '../modules/splash/splash_page.dart';
 import '../modules/auth/mobile_login_page.dart';
 import '../modules/auth/otp_verification_page.dart';
-import '../modules/auth/welcome_page.dart';
+import '../modules/auth/onboarding_page.dart';
 import '../modules/home/view/main_page.dart';
 import '../modules/home/view/search_page.dart';
 import '../modules/categories/view/vegetables_page.dart';
@@ -32,8 +32,8 @@ import '../modules/support/view/faq_page.dart';
 class AppPages {
   static Map<String, WidgetBuilder> get routes => {
         AppRoutes.splash: (context) => const SplashPage(),
+        AppRoutes.onboarding: (context) => const OnboardingPage(),
         AppRoutes.initialRoute: (context) => const MobileLoginPage(),
-        AppRoutes.welcome: (context) => const WelcomePage(),
         AppRoutes.login: (context) => const MobileLoginPage(),
         AppRoutes.signup: (context) => const MobileLoginPage(),
         AppRoutes.otp: (context) {

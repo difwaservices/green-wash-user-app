@@ -3,12 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../data/network/api_client.dart';
-
-final notificationsProvider = FutureProvider.autoDispose<List<dynamic>>((ref) async {
-  final client = ref.read(apiClientProvider);
-  final data = await client.get('/app/notifications', requiresAuth: true);
-  return data['data'] as List<dynamic>;
-});
+import '../../../data/providers/notification_provider.dart';
+import '../../../data/models/notification_model.dart';
 
 class NotificationPage extends ConsumerStatefulWidget {
   const NotificationPage({super.key});
@@ -18,12 +14,24 @@ class NotificationPage extends ConsumerStatefulWidget {
 }
 
 class _NotificationPageState extends ConsumerState<NotificationPage> {
+  final Set<String> _deletedIds = {};
+
   Future<void> _deleteNotification(String id) async {
+    // Instantly mask it from the UI so Dismissible doesn't crash
+    setState(() {
+      _deletedIds.add(id);
+    });
+    
     try {
       final client = ref.read(apiClientProvider);
       await client.delete('/app/notifications/$id', requiresAuth: true);
+      // Wait for background refresh so the global model syncs silently
       ref.invalidate(notificationsProvider);
     } catch (e) {
+      // Revert if API fails
+      setState(() {
+        _deletedIds.remove(id);
+      });
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Error deleting notification')));
       }
@@ -55,7 +63,10 @@ class _NotificationPageState extends ConsumerState<NotificationPage> {
       body: RefreshIndicator(
         onRefresh: () => ref.refresh(notificationsProvider.future),
         child: notificationsAsync.when(
-          data: (notifications) {
+          data: (allNotifications) {
+            // Filter out items that are optimistically deleted locally
+            final notifications = allNotifications.where((n) => !_deletedIds.contains(n.id)).toList();
+            
             if (notifications.isEmpty) {
               return _buildEmptyState();
             }
@@ -66,7 +77,7 @@ class _NotificationPageState extends ConsumerState<NotificationPage> {
               itemBuilder: (context, index) {
                 final notification = notifications[index];
                 return Dismissible(
-                  key: Key(notification['_id']),
+                  key: Key(notification.id),
                   direction: DismissDirection.endToStart,
                   background: Container(
                     padding: const EdgeInsets.only(right: 20),
@@ -74,13 +85,13 @@ class _NotificationPageState extends ConsumerState<NotificationPage> {
                     decoration: BoxDecoration(color: Colors.red, borderRadius: BorderRadius.circular(20)),
                     child: const Icon(Icons.delete_outline_rounded, color: Colors.white, size: 28),
                   ),
-                  onDismissed: (direction) => _deleteNotification(notification['_id']),
+                  onDismissed: (direction) => _deleteNotification(notification.id),
                   child: _NotificationItem(
-                    title: notification['title'],
-                    message: notification['message'],
-                    date: _formatDate(notification['createdAt']),
-                    isRead: notification['isRead'] ?? false,
-                    onTap: () => _markAsRead(notification['_id']),
+                    title: notification.title,
+                    message: notification.message,
+                    date: _formatDate(notification.createdAt),
+                    isRead: notification.isRead,
+                    onTap: () => _markAsRead(notification.id),
                   ),
                 );
               },
@@ -106,10 +117,10 @@ class _NotificationPageState extends ConsumerState<NotificationPage> {
     );
   }
 
-  String _formatDate(String iso) {
+  String _formatDate(DateTime dt) {
     try {
-      final dt = DateTime.parse(iso).toLocal();
-      return DateFormat('dd MMM, hh:mm a').format(dt);
+      final localDt = dt.toLocal();
+      return DateFormat('dd MMM, hh:mm a').format(localDt);
     } catch (_) {
       return '';
     }

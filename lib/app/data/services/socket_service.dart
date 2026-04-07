@@ -2,10 +2,12 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:socket_io_client/socket_io_client.dart' as io;
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+import '../../core/config/api_config.dart';
 import 'package:dio/dio.dart';
 import '../../../core/api/api_provider.dart';
 import '../../../core/storage/secure_storage_service.dart';
+import '../providers/notification_provider.dart';
+import 'fcm_service.dart';
 
 /// Singleton Socket.IO wrapper — connects once per session.
 /// Uses the auth token in headers so the server can authenticate the client.
@@ -19,6 +21,7 @@ class SocketService {
   bool _initialized = false;
   final List<Map<String, dynamic>> _emitQueue = [];
   final Dio _dio = Dio();
+  ProviderContainer? _container;
 
   // ── Connection ─────────────────────────────────────────────────────────────
 
@@ -34,12 +37,13 @@ class SocketService {
     }
   }
 
-  Future<void> connect(SecureStorageService storage) async {
+  Future<void> connect(SecureStorageService storage, [ProviderContainer? container]) async {
     if (_initialized && (_socket?.connected ?? false)) return;
+    if (container != null) _container = container;
 
     final token = await storage.getAccessToken();
-    final baseUrl = dotenv.env['SOCKET_URL'] ?? 'wss://difwa-continue-backend.vercel.app';
-    final apiBaseUrl = dotenv.env['API_BASE_URL'] ?? 'https://difwa-continue-backend.vercel.app/api';
+    final baseUrl = ApiConfig.socketUrl;
+    final apiBaseUrl = ApiConfig.baseUrl;
 
     // 1. Poke Render (both API and Socket URLs) to wake up
     unawaited(_wakeUpRender(baseUrl));
@@ -75,6 +79,23 @@ class SocketService {
     _socket!.onConnect((_) {
       debugPrint('✅ SocketService connected');
       _flushQueue();
+
+      // Setup global notification listener
+      onNotification((data) {
+        debugPrint('🔔 New Socket Notification: $data');
+        if (_container != null) {
+          _container!.invalidate(notificationsProvider);
+        }
+        
+        // Show local notification if the app is in foreground
+        try {
+          final title = data['title'] ?? 'New Notification';
+          final body = data['message'] ?? '';
+          FCMService.showNotification(title: title, body: body);
+        } catch (e) {
+          debugPrint('❌ Error showing socket notification: $e');
+        }
+      });
     });
     _socket!.onDisconnect((_) => debugPrint('🔌 SocketService disconnected'));
     _socket!.onConnectError((err) {
@@ -148,6 +169,18 @@ class SocketService {
     _emit('leave', 'order_$orderId');
   }
 
+  /// JOIN retailer notifications room — for real-time app notifications.
+  /// `socket.emit("join", "retailer_notifications_{userId}")`
+  void joinRetailerNotificationRoom(String userId) {
+    _emit('join', 'retailer_notifications_$userId');
+    debugPrint('🔔 Joined retailer notification room: retailer_notifications_$userId');
+  }
+
+  void leaveRetailerNotificationRoom(String userId) {
+    _emit('leave', 'retailer_notifications_$userId');
+    debugPrint('🔔 Left retailer notification room: retailer_notifications_$userId');
+  }
+
   // ── Rider location broadcasting ──────────────────────────────────────────
 
   /// Rider emits their GPS coordinates during active delivery.
@@ -219,6 +252,19 @@ class SocketService {
     }
   }
 
+  /// `notification` — fires when a new real-time notification is generated for the user.
+  void onNotification(void Function(dynamic) callback) {
+    _socket?.on('notification', callback);
+  }
+
+  void offNotification([void Function(dynamic)? callback]) {
+    if (callback != null) {
+      _socket?.off('notification', callback);
+    } else {
+      _socket?.off('notification');
+    }
+  }
+
   /// Generic remove listener.
   void offEvent(String event, [void Function(dynamic)? callback]) {
     if (callback != null) {
@@ -253,7 +299,7 @@ final socketServiceProvider = Provider<SocketService>((ref) {
 
   // Connect when the provider is first read
   final storage = ref.read(storageServiceProvider);
-  service.connect(storage);
+  service.connect(storage, ref.container);
 
   ref.onDispose(service.dispose);
   return service;

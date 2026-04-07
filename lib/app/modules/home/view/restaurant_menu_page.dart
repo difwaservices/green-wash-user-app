@@ -17,16 +17,6 @@ class RestaurantMenuPage extends ConsumerWidget {
   const RestaurantMenuPage({super.key, required this.shop});
 
   // Deterministic display metadata (same logic as the card)
-  double get _rating {
-    final code = shop.id.codeUnits.fold<int>(0, (a, b) => a + b);
-    return 3.8 + (code % 9) * 0.1;
-  }
-
-  String get _deliveryTime {
-    final code = shop.id.codeUnits.fold<int>(0, (a, b) => a + b);
-    final mins = 50 + (code % 40);
-    return '$mins–${mins + 15} mins';
-  }
 
   double get _distance {
     final code = shop.id.codeUnits.fold<int>(0, (a, b) => a + b);
@@ -88,16 +78,7 @@ class RestaurantMenuPage extends ConsumerWidget {
                         ),
                       ),
                     ),
-                    actions: [
-                      Padding(
-                        padding: const EdgeInsets.only(right: 12),
-                        child: CircleAvatar(
-                          backgroundColor: Colors.white.withValues(alpha: 0.9),
-                          child: const Icon(Icons.bookmark_border,
-                              color: Colors.black87, size: 20),
-                        ),
-                      ),
-                    ],
+                    actions: [],
                     flexibleSpace: FlexibleSpaceBar(
                       background: _buildHeroBanner(currentShop),
                     ),
@@ -116,63 +97,17 @@ class RestaurantMenuPage extends ConsumerWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      shop.deliveryTime.isNotEmpty
-                                          ? shop.deliveryTime
-                                          : _deliveryTime,
-                                      style: const TextStyle(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.w600,
-                                        color: Color(0xFF1A1A1A),
-                                      ),
-                                    ),
-                                    if (shop.location.isNotEmpty) ...[
-                                      const SizedBox(height: 3),
-                                      Text(
-                                        shop.location,
-                                        style: TextStyle(
-                                            fontSize: 12,
-                                            color: Colors.grey.shade600),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ],
-                                  ],
+                              if (shop.location.isNotEmpty) ...[
+                                const SizedBox(height: 3),
+                                Text(
+                                  shop.location,
+                                  style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey.shade600),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
-                              ),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 10, vertical: 6),
-                                decoration: BoxDecoration(
-                                  color: AppColors.primary,
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: Row(
-                                  children: [
-                                    const Icon(Icons.star,
-                                        size: 14, color: Colors.white),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      shop.rating > 0
-                                          ? shop.rating.toStringAsFixed(1)
-                                          : _rating.toStringAsFixed(1),
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 14,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
+                              ],
                           const SizedBox(height: 12),
                           // Delivery meta chips
                           Wrap(
@@ -180,18 +115,8 @@ class RestaurantMenuPage extends ConsumerWidget {
                             runSpacing: 6,
                             children: [
                               _MetaChip(
-                                icon: Icons.bolt,
-                                label: _deliveryTime,
-                                iconColor: AppColors.primary,
-                              ),
-                              _MetaChip(
                                 icon: Icons.location_on_outlined,
                                 label: '${_distance.toStringAsFixed(1)} km',
-                                iconColor: Colors.grey,
-                              ),
-                              _MetaChip(
-                                icon: Icons.delivery_dining_outlined,
-                                label: 'Free delivery',
                                 iconColor: Colors.grey,
                               ),
                             ],
@@ -223,30 +148,6 @@ class RestaurantMenuPage extends ConsumerWidget {
                             ),
                           ] else ...[
                             const SizedBox(height: 12),
-                            // Offer banner
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 12, vertical: 8),
-                              decoration: BoxDecoration(
-                                color: AppColors.primary.withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: Row(
-                                children: [
-                                  const Icon(Icons.local_offer,
-                                      size: 14, color: AppColors.primaryDark),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    'Flat ₹100 OFF above ₹499',
-                                    style: const TextStyle(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w700,
-                                      color: AppColors.primaryDark,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
                           ],
                         ],
                       ),
@@ -618,8 +519,8 @@ class _ProductCardState extends ConsumerState<_ProductCard> {
 
     return QuantitySelector(
       quantity: cartItem.quantity,
-      onIncrement: () => cart.increment(p.name),
-      onDecrement: () => cart.decrement(p.name),
+      onIncrement: () => cart.increment(p.id),
+      onDecrement: () => cart.decrement(p.id),
       size: 32,
     );
   }

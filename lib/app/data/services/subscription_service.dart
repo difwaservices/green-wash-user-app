@@ -49,19 +49,26 @@ class SubscriptionNotifier extends AsyncNotifier<List<UserSubscription>> {
     required String subscriptionId,
     required DateTime startDate,
     required DateTime endDate,
+    bool isReset = false,
   }) async {
     final oldState = state;
     
+    // Track if this is a single day resume action for the backend
+    bool isResume = false;
+
     // Optimistic update for instant visual feedback
     if (state.hasValue) {
-      final now = DateTime.now();
-      final today = DateTime(now.year, now.month, now.day);
-      final isTurningOff = startDate.isBefore(today.subtract(const Duration(days: 1)));
-
       state = AsyncValue.data(state.value!.map((s) {
         if (s.id == subscriptionId) {
-          if (isTurningOff) {
-            return s.copyWith(vacationDates: []);
+          if (isReset) {
+            // Complete reset from tomorrow onwards. Retain past and current day 
+            // if they were already part of the vacation.
+            final startDay = DateTime(startDate.year, startDate.month, startDate.day);
+            final retainedDates = s.vacationDates.where((vd) {
+              final vDay = DateTime(vd.year, vd.month, vd.day);
+              return vDay.isBefore(startDay);
+            }).toList();
+            return s.copyWith(vacationDates: retainedDates);
           } else if (startDate == endDate) {
             // Single day toggle (Pause/Resume Tomorrow)
             final startDay = DateTime(startDate.year, startDate.month, startDate.day);
@@ -70,6 +77,7 @@ class SubscriptionNotifier extends AsyncNotifier<List<UserSubscription>> {
 
             if (existingIndex != -1) {
               // OPTIMISTIC REMOVE (Resume)
+              isResume = true;
               final newList = List<DateTime>.from(s.vacationDates)
                 ..removeAt(existingIndex);
               return s.copyWith(vacationDates: newList);
@@ -79,13 +87,16 @@ class SubscriptionNotifier extends AsyncNotifier<List<UserSubscription>> {
                   vacationDates: [...s.vacationDates, startDate]);
             }
           } else {
-            // For range updates (Vacation Mode ON), we add all dates in range
+            // ADDS rangeDates to vacationDates (for setting new ranges)
             final rangeDates = <DateTime>[];
             var current = DateTime(startDate.year, startDate.month, startDate.day);
             final endDay = DateTime(endDate.year, endDate.month, endDate.day);
             
             while (!current.isAfter(endDay)) {
-              rangeDates.add(current);
+              if (!s.vacationDates.any((vd) => 
+                  vd.year == current.year && vd.month == current.month && vd.day == current.day)) {
+                rangeDates.add(current);
+              }
               current = current.add(const Duration(days: 1));
             }
 
@@ -101,6 +112,8 @@ class SubscriptionNotifier extends AsyncNotifier<List<UserSubscription>> {
           subscriptionId: subscriptionId,
           startDate: startDate,
           endDate: endDate,
+          isReset: isReset,
+          isResume: isResume,
         );
 
     if (res['success'] == true) {
@@ -165,6 +178,7 @@ class SubscriptionService {
     required int quantity,
     List<String> customDays = const [],
     DateTime? startDate,
+    String? deliverySlot,
   }) async {
     try {
       final payload = {
@@ -173,6 +187,7 @@ class SubscriptionService {
         'quantity': quantity,
         'customDays': customDays,
         'startDate': startDate?.toIso8601String(),
+        if (deliverySlot != null) 'deliverySlot': deliverySlot,
       };
 
       final json = await _client.post(
@@ -213,14 +228,24 @@ class SubscriptionService {
     required String subscriptionId,
     required DateTime startDate,
     required DateTime endDate,
+    bool isReset = false,
+    bool isResume = false,
   }) async {
     try {
+      // Normalize dates to midnight to avoid time-zone/comparison issues
+      final normalizedStart =
+          DateTime(startDate.year, startDate.month, startDate.day);
+      final normalizedEnd =
+          DateTime(endDate.year, endDate.month, endDate.day);
+
       final json = await _client.post(
         '${ApiClient.subscriptionBaseUrl}/vacation',
         data: {
           'subscriptionId': subscriptionId,
-          'startDate': startDate.toIso8601String(),
-          'endDate': endDate.toIso8601String(),
+          'startDate': normalizedStart.toIso8601String(),
+          'endDate': normalizedEnd.toIso8601String(),
+          if (isReset) 'isReset': true,
+          if (isResume) 'isResume': true,
         },
         requiresAuth: true,
       );

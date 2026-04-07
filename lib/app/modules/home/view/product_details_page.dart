@@ -8,6 +8,10 @@ import '../widgets/cart_summary_bar.dart';
 import '../widgets/quantity_selector.dart';
 
 import '../../../core/constants/app_colors.dart';
+import '../../../../core/state/auth_store.dart';
+import '../../../routes/app_routes.dart';
+import '../../../core/utils/auth_helper.dart';
+import '../../../data/services/shop_service.dart';
 
 class ProductDetailsPage extends ConsumerWidget {
   final Product product;
@@ -15,6 +19,11 @@ class ProductDetailsPage extends ConsumerWidget {
   const ProductDetailsPage({super.key, required this.product});
 
   void _showSubscriptionDrawer(BuildContext context, WidgetRef ref) {
+    if (!AuthHelper.checkAuth(
+      context: context,
+      ref: ref,
+      message: 'Please log in to set up daily deliveries.',
+    )) return;
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -323,16 +332,17 @@ class ProductDetailsPage extends ConsumerWidget {
   }
 }
 
-class SubscriptionConfigDrawer extends StatefulWidget {
+class SubscriptionConfigDrawer extends ConsumerStatefulWidget {
   final Product product;
   const SubscriptionConfigDrawer({super.key, required this.product});
 
   @override
-  State<SubscriptionConfigDrawer> createState() =>
+  ConsumerState<SubscriptionConfigDrawer> createState() =>
       _SubscriptionConfigDrawerState();
 }
 
-class _SubscriptionConfigDrawerState extends State<SubscriptionConfigDrawer> {
+class _SubscriptionConfigDrawerState
+    extends ConsumerState<SubscriptionConfigDrawer> {
   String _frequency = 'Daily';
   int _quantity = 1;
   List<String> _selectedDays = [];
@@ -346,6 +356,7 @@ class _SubscriptionConfigDrawerState extends State<SubscriptionConfigDrawer> {
     'Saturday',
     'Sunday'
   ];
+  String? _selectedSlot;
 
   @override
   void initState() {
@@ -376,6 +387,8 @@ class _SubscriptionConfigDrawerState extends State<SubscriptionConfigDrawer> {
 
   @override
   Widget build(BuildContext context) {
+    final shopDetailsAsync = ref.watch(shopDetailsProvider(widget.product.shopId));
+
     return Container(
       decoration: const BoxDecoration(
         color: Colors.white,
@@ -413,8 +426,7 @@ class _SubscriptionConfigDrawerState extends State<SubscriptionConfigDrawer> {
                         _frequency = freq;
                         if (freq != 'Weekly') _selectedDays = [];
                       }),
-                       selectedColor:
-                          AppColors.primary.withValues(alpha: 0.2),
+                      selectedColor: AppColors.primary.withValues(alpha: 0.2),
                       labelStyle: TextStyle(
                           color: _frequency == freq
                               ? AppColors.primaryDark
@@ -530,40 +542,99 @@ class _SubscriptionConfigDrawerState extends State<SubscriptionConfigDrawer> {
               ),
             ),
           ),
+          const SizedBox(height: 24),
+          const Text('Delivery Slot',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+          const SizedBox(height: 12),
+          shopDetailsAsync.when(
+            data: (shop) {
+              final slots = shop?.deliverySlots ?? [];
+              if (slots.isEmpty) {
+                return Text('No slots available',
+                    style: TextStyle(color: Colors.grey.shade500));
+              }
+              // Ensure selected slot remains valid if it's not in the new slots list
+              if (_selectedSlot != null && !slots.contains(_selectedSlot)) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  setState(() => _selectedSlot = null);
+                });
+              }
+              return SizedBox(
+                height: 48,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: slots.length,
+                  itemBuilder: (context, index) {
+                    final slot = slots[index];
+                    final isSelected = _selectedSlot == slot;
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: ChoiceChip(
+                        label: Text(slot),
+                        selected: isSelected,
+                        onSelected: (val) => setState(() => _selectedSlot = slot),
+                        selectedColor: AppColors.primary.withValues(alpha: 0.2),
+                        labelStyle: TextStyle(
+                            color: isSelected
+                                ? AppColors.primaryDark
+                                : Colors.black87,
+                            fontWeight: isSelected
+                                ? FontWeight.bold
+                                : FontWeight.normal),
+                      ),
+                    );
+                  },
+                ),
+              );
+            },
+            loading: () => const Center(
+                child: SizedBox(
+                    width: 20, height: 20, child: CircularProgressIndicator())),
+            error: (_, __) => const Text('Error loading slots'),
+          ),
           const SizedBox(height: 28),
-          Consumer(builder: (context, ref, child) {
-            return ElevatedButton(
-              onPressed: () async {
-                final subService = ref.read(subscriptionServiceProvider);
-                final messenger = ScaffoldMessenger.of(context);
-                final navigator = Navigator.of(context);
-                final res = await subService.subscribeToProduct(
-                  productId: widget.product.id,
-                  frequency: _frequency,
-                  quantity: _quantity,
-                  customDays: _frequency == 'Weekly' ? _selectedDays : [],
-                  startDate: _startDate,
-                );
-                if (mounted) {
-                  navigator.pop();
-                  messenger.showSnackBar(SnackBar(
-                    content: Text(res['message'] ?? 'Subscribed successfully!'),
-                    backgroundColor:
-                        res['success'] == true ? AppColors.primary : Colors.red,
-                  ));
-                }
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primaryDark,
-                foregroundColor: Colors.white,
-                minimumSize: const Size(double.infinity, 56),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16)),
-              ),
-              child: const Text('Confirm Subscription',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            );
-          }),
+          ElevatedButton(
+            onPressed: () async {
+              if (_selectedSlot == null) {
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                    content: Text('Please select a delivery slot')));
+                return;
+              }
+              final isAuth = ref.read(isAuthenticatedProvider);
+              if (!isAuth) {
+                Navigator.pushNamed(context, AppRoutes.login);
+                return;
+              }
+              final subService = ref.read(subscriptionServiceProvider);
+              final messenger = ScaffoldMessenger.of(context);
+              final navigatorState = Navigator.of(context);
+              final res = await subService.subscribeToProduct(
+                productId: widget.product.id,
+                frequency: _frequency,
+                quantity: _quantity,
+                customDays: _frequency == 'Weekly' ? _selectedDays : [],
+                startDate: _startDate,
+                deliverySlot: _selectedSlot!,
+              );
+              if (mounted) {
+                navigatorState.pop();
+                messenger.showSnackBar(SnackBar(
+                  content: Text(res['message'] ?? 'Subscribed successfully!'),
+                  backgroundColor:
+                      res['success'] == true ? AppColors.primary : Colors.red,
+                ));
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primaryDark,
+              foregroundColor: Colors.white,
+              minimumSize: const Size(double.infinity, 56),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16)),
+            ),
+            child: const Text('Confirm Subscription',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          ),
         ],
       ),
     );

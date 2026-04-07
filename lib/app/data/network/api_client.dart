@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+import '../../core/config/api_config.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 import '../../../core/api/auth_interceptor.dart';
 import '../../../core/api/api_provider.dart'; // Added for storageServiceProvider
@@ -24,8 +24,7 @@ class ApiException implements Exception {
 
 /// Provider for ApiClient - The single source of truth for Dio configuration
 final apiClientProvider = Provider<ApiClient>((ref) {
-  final rawBaseUrl =
-      dotenv.env['API_BASE_URL'] ?? 'https://difwa-continue-backend.vercel.app/api';
+  final rawBaseUrl = ApiConfig.baseUrl;
 
   // Normalize base URL: ensure it doesn't have a trailing slash
   final normalizedBaseUrl = rawBaseUrl.endsWith('/')
@@ -75,8 +74,7 @@ class ApiClient {
   /// Standard factory for non-DI contexts (like static services).
   /// Strictly follows the rule: only the ApiClient class knows how its Dio should be configured.
   factory ApiClient.createDefault() {
-    final rawBaseUrl =
-        dotenv.env['API_BASE_URL'] ?? 'https://difwa-continue-backend.vercel.app/api';
+    final rawBaseUrl = ApiConfig.baseUrl;
     final normalizedBaseUrl = rawBaseUrl.endsWith('/')
         ? rawBaseUrl.substring(0, rawBaseUrl.length - 1)
         : rawBaseUrl;

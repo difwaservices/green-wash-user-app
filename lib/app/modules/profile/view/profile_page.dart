@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import './profile_detail_page.dart';
 import './edit_profile_page.dart';
+import 'package:difwawaterapp/app/core/utils/auth_helper.dart';
+import 'package:difwawaterapp/core/state/auth_store.dart';
 import '../../../data/services/auth_service.dart' as auth;
 import '../../../data/models/auth_models.dart' as models;
 import '../../../data/services/db_service.dart';
@@ -15,7 +17,7 @@ import '../../../data/services/subscription_service.dart';
 import '../../home/view/favorites_page.dart';
 import '../../../routes/app_routes.dart';
 import '../../../core/constants/app_colors.dart';
-import '../../../../core/state/auth_store.dart';
+import '../../../data/providers/notification_provider.dart';
 
 class ProfilePage extends ConsumerStatefulWidget {
   const ProfilePage({super.key});
@@ -27,6 +29,19 @@ class ProfilePage extends ConsumerStatefulWidget {
 class _ProfilePageState extends ConsumerState<ProfilePage> {
   @override
   Widget build(BuildContext context) {
+    final isAuth = ref.watch(isAuthenticatedProvider);
+    if (!isAuth) {
+      return Scaffold(
+        backgroundColor: Colors.white,
+        body: AuthHelper.loginRequiredPlaceholder(
+          context: context,
+          featureName: 'Your Profile',
+          description:
+              'Manage your addresses, view order history, and personalize your experience.',
+        ),
+      );
+    }
+
     // ── Primary: use cached user from the unified source of truth ─────────
     final coreState = ref.watch(authStoreProvider);
     final user = coreState is AuthAuthenticated ? coreState.user : null;
@@ -574,17 +589,19 @@ class _QuickActionBtn extends StatelessWidget {
   }
 }
 
-class _ListTilesSection extends StatelessWidget {
+class _ListTilesSection extends ConsumerWidget {
   const _ListTilesSection();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final unreadCount = ref.watch(unreadNotificationsCountProvider);
     return Column(
       children: [
-        const _ListTileItem(
+        _ListTileItem(
           icon: Icons.notifications_none_rounded, 
           title: 'Notifications', 
-          color: Color(0xFF0EA5E9),
+          color: const Color(0xFF0EA5E9),
+          badgeCount: unreadCount,
         ),
         const SizedBox(height: 12),
         const _ListTileItem(
@@ -619,8 +636,14 @@ class _ListTileItem extends StatelessWidget {
   final IconData icon;
   final String title;
   final Color color;
+  final int badgeCount;
 
-  const _ListTileItem({required this.icon, required this.title, required this.color});
+  const _ListTileItem({
+    required this.icon, 
+    required this.title, 
+    required this.color,
+    this.badgeCount = 0,
+  });
 
   void _handleTap(BuildContext context) async {
     if (title == 'Notifications') {
@@ -675,13 +698,35 @@ class _ListTileItem extends StatelessWidget {
             ),
             const SizedBox(width: 16),
             Expanded(
-              child: Text(
-                title,
-                style: const TextStyle(
-                  color: Color(0xFF1E293B),
-                  fontSize: 15,
-                  fontWeight: FontWeight.w700,
-                ),
+              child: Row(
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      color: Color(0xFF1E293B),
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  if (badgeCount > 0) ...[
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: Colors.red,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(
+                        '$badgeCount',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
               ),
             ),
             Icon(

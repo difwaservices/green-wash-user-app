@@ -1,6 +1,7 @@
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:socket_io_client/socket_io_client.dart' as io;
+import '../../app/core/config/api_config.dart';
 import '../state/auth_store.dart';
 
 class SocketClient {
@@ -63,6 +64,6 @@ class SocketClient {
 
 final socketClientProvider = Provider<SocketClient>((ref) {
   // Production socket URL
-  const socketUrl = 'https://difwa-continue-backend.vercel.app'; 
+  final socketUrl = ApiConfig.socketUrl; 
   return SocketClient(ref, socketUrl);
 });

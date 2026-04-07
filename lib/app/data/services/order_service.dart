@@ -14,6 +14,7 @@ class OrderService {
     required double totalAmount,
     required Map<String, dynamic> deliveryAddress,
     required String paymentMethod,
+    String? deliverySlot,
   }) async {
     try {
       final response = await _apiClient.post(
@@ -24,6 +25,7 @@ class OrderService {
           'deliveryAddress': deliveryAddress,
           'paymentMethod': paymentMethod,
           'orderType': 'One-time',
+          if (deliverySlot != null) 'deliverySlot': deliverySlot,
         },
         requiresAuth: true,
       );

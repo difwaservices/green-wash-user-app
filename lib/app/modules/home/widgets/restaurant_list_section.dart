@@ -6,6 +6,8 @@ import '../view/restaurant_menu_page.dart';
 import 'filter_bottom_sheet.dart';
 import '../../../core/constants/app_images.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import '../provider/search_provider.dart';
+import '../../../routes/app_routes.dart';
 
 // ── Cuisine types to cycle through for display ───────────────────────────────
 const List<String> _cuisineTypes = [
@@ -22,28 +24,6 @@ const List<String> _cuisineTypes = [
   'Domestic · Supply',
 ];
 
-// ── Offer cycling logic ───────────────────────────────────────────────────────
-String _offerText(int index) {
-  switch (index % 3) {
-    case 0:
-      return 'Flat ₹100 OFF above ₹499';
-    case 1:
-      return 'Flat ₹150 OFF above ₹799';
-    default:
-      return 'Flat ₹200 OFF above ₹999';
-  }
-}
-
-int _offerAbove(int index) {
-  switch (index % 3) {
-    case 0:
-      return 499;
-    case 1:
-      return 799;
-    default:
-      return 999;
-  }
-}
 
 class RestaurantListSection extends ConsumerWidget {
   const RestaurantListSection({super.key});
@@ -71,12 +51,12 @@ class RestaurantListSection extends ConsumerWidget {
 
 // ── Shops List ────────────────────────────────────────────────────────────────
 
-class _ShopsList extends StatelessWidget {
+class _ShopsList extends ConsumerWidget {
   final List<ShopModel> shops;
   const _ShopsList({required this.shops});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -103,7 +83,26 @@ class _ShopsList extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               InkWell(
-                onTap: () => FilterBottomSheet.show(context),
+                onTap: () async {
+                  final searchState = ref.read(searchProvider);
+                  final initialResult = searchState.priceRange != null || searchState.selectedCategoryIds.isNotEmpty
+                      ? FilterResult(
+                          priceRange: searchState.priceRange ?? const RangeValues(10, 2000),
+                          selectedCategoryIds: searchState.selectedCategoryIds,
+                        )
+                      : null;
+                  
+                  final result = await FilterBottomSheet.show(context, initialResult: initialResult);
+                  if (result != null) {
+                    ref.read(searchProvider.notifier).applyAdvancedFilters(
+                      priceRange: result.priceRange,
+                      selectedCategoryIds: result.selectedCategoryIds,
+                    );
+                    if (context.mounted) {
+                      Navigator.pushNamed(context, AppRoutes.search);
+                    }
+                  }
+                },
                 borderRadius: BorderRadius.circular(8),
                 child: Container(
                   padding:
@@ -157,37 +156,19 @@ class _ShopCard extends StatelessWidget {
 
   const _ShopCard({required this.shop, required this.index});
 
-  Color get _offerColor {
-    final above = _offerAbove(index);
-    if (above >= 999) return const Color(0xFF7B2FF7);
-    if (above >= 799) return const Color(0xFF1565C0);
-    return const Color(0xFF06B6D4);
-  }
 
   String get _cuisine => _cuisineTypes[index % _cuisineTypes.length];
 
   // Generate a deterministic rating from shop ID
-  double get _rating {
-    final code = shop.id.codeUnits.fold<int>(0, (a, b) => a + b);
-    return 3.8 + (code % 9) * 0.1; // 3.8 – 4.6
-  }
 
-  int get _reviews {
-    final code = shop.id.codeUnits.fold<int>(0, (a, b) => a + b);
-    return 600 + (code % 40) * 100; // realistic range
-  }
 
-  String get _deliveryTime {
-    final mins = 50 + (index * 5) % 40;
-    return '$mins–${mins + 15} mins';
-  }
 
   double get _distance {
     final code = shop.id.codeUnits.fold<int>(0, (a, b) => a + b);
     return ((code % 50) + 5) / 10.0; // 0.5 – 5.4 km
   }
 
-  bool get _isFeatured => index < 3;
+  bool get _isFeatured => shop.isFeatured;
 
   @override
   Widget build(BuildContext context) {
@@ -294,20 +275,6 @@ class _ShopCard extends StatelessWidget {
                       ),
                     ),
                   ),
-                  // Bookmark
-                  Positioned(
-                    top: 10,
-                    right: 12,
-                    child: Container(
-                      padding: const EdgeInsets.all(6),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.9),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(Icons.bookmark_border,
-                          size: 16, color: Colors.black54),
-                    ),
-                  ),
                   // Featured badge
                   if (_isFeatured)
                     Positioned(
@@ -363,36 +330,6 @@ class _ShopCard extends StatelessWidget {
                         ],
                       ),
                     ),
-                    // Rating badge
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF06B6D4),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.star, size: 12, color: Colors.white),
-                          const SizedBox(width: 3),
-                          Text(
-                            shop.rating > 0
-                                ? shop.rating.toStringAsFixed(1)
-                                : _rating.toStringAsFixed(1),
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      _formatReviews(_reviews),
-                      style: const TextStyle(fontSize: 11, color: Colors.grey),
-                    ),
                   ],
                 ),
               ),
@@ -400,72 +337,13 @@ class _ShopCard extends StatelessWidget {
               // ── Delivery Meta ────────────────────────────────────────────
               Padding(
                 padding: const EdgeInsets.fromLTRB(14, 6, 14, 0),
-                child: Wrap(
-                  spacing: 8,
-                  runSpacing: 4,
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  children: [
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(Icons.bolt,
-                            size: 14, color: Color(0xFF06B6D4)),
-                        const SizedBox(width: 3),
-                        Text(
-                          shop.deliveryTime.isNotEmpty
-                              ? shop.deliveryTime
-                              : _deliveryTime,
-                          style: const TextStyle(
-                              fontSize: 12, color: Colors.black87),
-                        ),
-                      ],
-                    ),
-                    Text('·', style: TextStyle(color: Colors.grey.shade400)),
-                    Text(
-                      '${_distance.toStringAsFixed(1)} km',
-                      style:
-                          const TextStyle(fontSize: 12, color: Colors.black87),
-                    ),
-                    Text('·', style: TextStyle(color: Colors.grey.shade400)),
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(Icons.delivery_dining_outlined,
-                            size: 14, color: Colors.grey),
-                        const SizedBox(width: 3),
-                        const Text(
-                          'Free',
-                          style: TextStyle(fontSize: 12, color: Colors.black87),
-                        ),
-                      ],
-                    ),
-                  ],
+                child: Text(
+                  '${_distance.toStringAsFixed(1)} km',
+                  style: const TextStyle(fontSize: 12, color: Colors.black87),
                 ),
               ),
 
-              // ── Offer Strip ──────────────────────────────────────────────
-              Padding(
-                padding: const EdgeInsets.fromLTRB(14, 8, 14, 14),
-                child: Row(
-                  children: [
-                    Icon(Icons.local_offer_outlined,
-                        size: 14, color: _offerColor),
-                    const SizedBox(width: 5),
-                    Expanded(
-                      child: Text(
-                        _offerText(index),
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: _offerColor,
-                          fontWeight: FontWeight.w600,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              const SizedBox(height: 12),
             ]),
           ),
         ),
@@ -508,12 +386,6 @@ class _ShopCard extends StatelessWidget {
     );
   }
 
-  String _formatReviews(int count) {
-    if (count >= 1000) {
-      return '${(count / 1000).toStringAsFixed(1)}K+';
-    }
-    return '$count+';
-  }
 }
 
 // ── Loading State ─────────────────────────────────────────────────────────────

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../data/models/subscription_model.dart';
 import '../../../data/services/subscription_service.dart';
-import '../../../data/services/order_service.dart';
 import '../../../core/constants/app_colors.dart';
 
 class SubscriptionDashboardPage extends ConsumerWidget {
@@ -127,6 +126,33 @@ class SubscriptionDashboardPage extends ConsumerWidget {
                   value: isActive,
                   activeThumbColor: AppColors.accentGreen,
                   onChanged: (val) async {
+                    final confirmed = await showDialog<bool>(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            title: Text(
+                                val ? 'Resume Subscription?' : 'Pause Subscription?'),
+                            content: Text(val
+                                ? 'Do you want to resume deliveries for ${sub.productName}?'
+                                : 'Do you want to pause deliveries for ${sub.productName}?'),
+                            actions: [
+                              TextButton(
+                                  onPressed: () => Navigator.pop(context, false),
+                                  child: const Text('Cancel')),
+                              TextButton(
+                                  onPressed: () => Navigator.pop(context, true),
+                                  child: Text(val ? 'Resume' : 'Pause',
+                                      style: TextStyle(
+                                          color: val
+                                              ? AppColors.primaryDark
+                                              : Colors.orange,
+                                          fontWeight: FontWeight.bold))),
+                            ],
+                          ),
+                        ) ??
+                        false;
+
+                    if (!confirmed) return;
+
                     final newStatus = val ? 'Active' : 'Paused';
                     final success = await ref
                         .read(subscriptionServiceProvider)
@@ -169,24 +195,7 @@ class SubscriptionDashboardPage extends ConsumerWidget {
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    if (isActive)
-                      ElevatedButton(
-                        onPressed: () => _placeSpotOrder(context, ref, sub),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.orange.shade50,
-                          foregroundColor: Colors.orange.shade900,
-                          elevation: 0,
-                          padding: const EdgeInsets.symmetric(horizontal: 10),
-                          minimumSize: Size.zero,
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12)),
-                        ),
-                        child: const Text('Deliver Today',
-                            style: TextStyle(
-                                fontSize: 11, fontWeight: FontWeight.bold)),
-                      ),
-                    const SizedBox(width: 4),
+
                     TextButton.icon(
                       onPressed: () {
                         final now = DateTime.now();
@@ -219,43 +228,6 @@ class SubscriptionDashboardPage extends ConsumerWidget {
         ],
       ),
     );
-  }
-
-  Future<void> _placeSpotOrder(
-      BuildContext context, WidgetRef ref, UserSubscription sub) async {
-    // Logic to place a one-time order for today
-    final success = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Deliver Today?'),
-        content: Text(
-            'Would you like an extra delivery of ${sub.productName} today?'),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text('Cancel')),
-          TextButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: const Text('Yes, Order')),
-        ],
-      ),
-    );
-
-    if (success == true) {
-      // For now, using default address and wallet as payment
-      // In a real app, you might want to confirm these
-      final res = await ref.read(orderServiceProvider).placeSpotOrder(
-        deliveryAddress: {}, // Backend should handle if empty or use user default
-        paymentMethod: 'Wallet',
-      );
-
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text(res['message'] ?? 'Spot order placed successfully'),
-          backgroundColor: res['success'] == true ? Colors.green : Colors.red,
-        ));
-      }
-    }
   }
 
   void _showVacationPicker(
@@ -291,6 +263,31 @@ class SubscriptionDashboardPage extends ConsumerWidget {
     );
 
     if (picked != null) {
+      if (context.mounted) {
+        final confirmed = await showDialog<bool>(
+              context: context,
+              builder: (context) => AlertDialog(
+                title: const Text('Start Vacation?'),
+                content: Text(
+                    'Are you sure you want to pause deliveries from ${picked.start.day}/${picked.start.month} to ${picked.end.day}/${picked.end.month}?'),
+                actions: [
+                  TextButton(
+                      onPressed: () => Navigator.pop(context, false),
+                      child: const Text('Cancel')),
+                  TextButton(
+                      onPressed: () => Navigator.pop(context, true),
+                      child: const Text('Confirm',
+                          style: TextStyle(
+                              color: AppColors.primaryDark,
+                              fontWeight: FontWeight.bold))),
+                ],
+              ),
+            ) ??
+            false;
+
+        if (!confirmed) return;
+      }
+
       final res = await ref.read(subscriptionServiceProvider).updateVacation(
             subscriptionId: sub.id,
             startDate: picked.start,

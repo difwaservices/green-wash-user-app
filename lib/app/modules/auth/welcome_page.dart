@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_images.dart';
+import '../../routes/app_routes.dart';
 
 class WelcomePage extends StatelessWidget {
   const WelcomePage({super.key});
@@ -139,7 +140,7 @@ class WelcomePage extends StatelessWidget {
                   // ── Login link ──
                   Center(
                     child: GestureDetector(
-                      onTap: () => Navigator.pushNamed(context, '/login'),
+                      onTap: () => Navigator.pushNamed(context, AppRoutes.login),
                       child: RichText(
                         text: const TextSpan(
                           text: 'Already have an account ? ',
@@ -174,7 +175,7 @@ class WelcomePage extends StatelessWidget {
       width: double.infinity,
       height: 54,
       child: ElevatedButton(
-        onPressed: () => Navigator.pushNamed(context, '/signup'),
+        onPressed: () => Navigator.pushNamed(context, AppRoutes.signup),
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primary,
           foregroundColor: Colors.white,

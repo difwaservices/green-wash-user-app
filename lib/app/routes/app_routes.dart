@@ -4,7 +4,7 @@ class AppRoutes {
   static const String initialRoute = '/';
   static const String deals = '/deals';
 
-  static const String welcome = '/welcome';
+
   static const String forgotPassword = '/forgot-password';
   static const String login = '/login';
   static const String signup = '/signup';

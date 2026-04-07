@@ -43,17 +43,19 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  await FCMService.init();
-
   try {
     await dotenv.load(fileName: ".env");
   } catch (e) {
     debugPrint("Warning: Could not load .env file: $e");
   }
 
+  final container = ProviderContainer();
+  await FCMService.init(container);
+
   runApp(
-    const ProviderScope(
-      child: DifwaWaterApp(),
+    UncontrolledProviderScope(
+      container: container,
+      child: const DifwaWaterApp(),
     ),
   );
 }

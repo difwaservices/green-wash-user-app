@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../data/providers/notification_provider.dart';
 import '../../../core/constants/app_colors.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../controller/main_controller.dart';
@@ -6,15 +8,16 @@ import '../../../widgets/bounce_widget.dart';
 import '../../../routes/app_routes.dart';
 import '../../../data/services/db_service.dart';
 import '../../profile/view/profile_detail_page.dart';
+import '../../../../core/state/auth_store.dart';
 
-class HomeHeader extends StatefulWidget {
+class HomeHeader extends ConsumerStatefulWidget {
   const HomeHeader({super.key});
 
   @override
-  State<HomeHeader> createState() => _HomeHeaderState();
+  ConsumerState<HomeHeader> createState() => _HomeHeaderState();
 }
 
-class _HomeHeaderState extends State<HomeHeader> {
+class _HomeHeaderState extends ConsumerState<HomeHeader> {
   @override
   Widget build(BuildContext context) {
     final cart = CartProviderScope.of(context);
@@ -32,13 +35,20 @@ class _HomeHeaderState extends State<HomeHeader> {
             children: [
               Expanded(
                 child: GestureDetector(
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          const ProfileDetailPage(title: 'My Address'),
-                    ),
-                  ),
+                  onTap: () {
+                    final isAuth = ref.read(isAuthenticatedProvider);
+                    if (!isAuth) {
+                      Navigator.pushNamed(context, AppRoutes.login);
+                      return;
+                    }
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            const ProfileDetailPage(title: 'My Address'),
+                      ),
+                    );
+                  },
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -74,6 +84,11 @@ class _HomeHeaderState extends State<HomeHeader> {
               const SizedBox(width: 8),
               BounceWidget(
                 onTap: () {
+                  final isAuth = ref.read(isAuthenticatedProvider);
+                  if (!isAuth) {
+                    Navigator.pushNamed(context, AppRoutes.login);
+                    return;
+                  }
                   MainControllerScope.of(context).changePage(4);
                 },
                 child: Hero(
@@ -97,6 +112,52 @@ class _HomeHeaderState extends State<HomeHeader> {
                     ),
                   ),
                 ),
+              ),
+              const SizedBox(width: 12),
+              // Notification Button
+              Consumer(
+                builder: (context, ref, child) {
+                  final unreadCount = ref.watch(unreadNotificationsCountProvider);
+                  return BounceWidget(
+                    onTap: () {
+                      final isAuth = ref.read(isAuthenticatedProvider);
+                      if (!isAuth) {
+                        Navigator.pushNamed(context, AppRoutes.login);
+                        return;
+                      }
+                      Navigator.pushNamed(context, AppRoutes.notifications);
+                    },
+                    child: Stack(
+                      children: [
+                        Container(
+                          width: 36,
+                          height: 36,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.grey.shade200),
+                          ),
+                          child: const Icon(Icons.notifications_none_rounded, size: 20, color: AppColors.textPrimary),
+                        ),
+                        if (unreadCount > 0)
+                          Positioned(
+                            right: 0,
+                            top: 0,
+                            child: Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
+                              constraints: const BoxConstraints(minWidth: 14, minHeight: 14),
+                              child: Text(
+                                unreadCount > 9 ? '9+' : unreadCount.toString(),
+                                style: const TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.bold),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  );
+                },
               ),
             ],
           ),
@@ -135,14 +196,6 @@ class _HomeHeaderState extends State<HomeHeader> {
                 prefixIcon: const Icon(
                   Icons.search,
                   color: AppColors.primary,
-                ),
-                suffixIcon: const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    VerticalDivider(indent: 10, endIndent: 10),
-                    Icon(Icons.mic, color: AppColors.primary),
-                    SizedBox(width: 8),
-                  ],
                 ),
               ),
             ),

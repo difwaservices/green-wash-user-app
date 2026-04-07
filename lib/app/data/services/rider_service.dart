@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+import '../../core/config/api_config.dart';
 import '../network/api_client.dart';
 class RiderService {
   final ApiClient _apiClient;
@@ -110,7 +110,7 @@ class RiderService {
 
       // Step 2: notify socket server (fire-and-forget)
       try {
-        final socketUrl = dotenv.env['SOCKET_URL'] ?? 'https://difwa-continue-backend.vercel.app';
+        final socketUrl = ApiConfig.socketUrl;
         final dio = Dio(BaseOptions(baseUrl: socketUrl));
         await dio.post(
           '/api/order/delivered',

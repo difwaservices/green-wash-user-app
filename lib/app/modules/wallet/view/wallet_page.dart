@@ -3,11 +3,27 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../routes/app_routes.dart';
 import '../../../data/services/wallet_service.dart';
 
+import 'package:difwawaterapp/app/core/utils/auth_helper.dart';
+import 'package:difwawaterapp/core/state/auth_store.dart';
+
 class WalletPage extends ConsumerWidget {
   const WalletPage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final isAuth = ref.watch(isAuthenticatedProvider);
+    if (!isAuth) {
+      return Scaffold(
+        backgroundColor: Colors.white,
+        body: AuthHelper.loginRequiredPlaceholder(
+          context: context,
+          featureName: 'My Wallet',
+          description:
+              'Top up your balance, view order credits, and manage your payments securely.',
+        ),
+      );
+    }
+
     final balanceAsync = ref.watch(walletBalanceProvider);
     final historyAsync = ref.watch(walletHistoryProvider);
 

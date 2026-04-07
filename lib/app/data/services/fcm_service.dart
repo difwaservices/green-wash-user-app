@@ -1,8 +1,11 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import '../network/api_client.dart';
 import '../../../core/storage/secure_storage_service.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../providers/notification_provider.dart';
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -14,7 +17,8 @@ class FCMService {
   factory FCMService() => _instance;
   FCMService._internal();
 
-  static final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+  static final GlobalKey<NavigatorState> navigatorKey =
+      GlobalKey<NavigatorState>();
 
   static final FlutterLocalNotificationsPlugin _localNotifications =
       FlutterLocalNotificationsPlugin();
@@ -26,7 +30,10 @@ class FCMService {
     importance: Importance.max,
   );
 
-  static Future<void> init() async {
+  static ProviderContainer? _container;
+
+  static Future<void> init(ProviderContainer container) async {
+    _container = container;
     // Background handler
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
@@ -44,8 +51,17 @@ class FCMService {
       requestSoundPermission: false,
     );
     await _localNotifications.initialize(
-      const InitializationSettings(
-          android: androidSettings, iOS: iosSettings),
+      const InitializationSettings(android: androidSettings, iOS: iosSettings),
+      onDidReceiveNotificationResponse: (response) {
+        if (response.payload != null) {
+          try {
+            final data = jsonDecode(response.payload!) as Map<String, dynamic>;
+            _handleNavigationFromData(data);
+          } catch (e) {
+            debugPrint('❌ Error parsing local notification payload: $e');
+          }
+        }
+      },
     );
 
     // Request permissions
@@ -56,11 +72,16 @@ class FCMService {
       debugPrint('🔔 Got a message whilst in the foreground!');
       debugPrint('Message data: ${message.data}');
 
+      // Live update the notification list
+      if (_container != null) {
+        _container!.invalidate(notificationsProvider);
+      }
+
       if (message.notification != null) {
         showNotification(
           title: message.notification!.title ?? 'New Notification',
           body: message.notification!.body ?? '',
-          payload: message.data.toString(),
+          data: message.data,
         );
       }
     });
@@ -68,14 +89,16 @@ class FCMService {
     // Handle interaction when app is in background but not terminated
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
       debugPrint('🔔 Notification caused app to open from background!');
-      _handleNotificationClick(message);
+      _handleNavigationFromMessage(message);
     });
 
     // Handle interaction when app is terminated
-    FirebaseMessaging.instance.getInitialMessage().then((RemoteMessage? message) {
+    FirebaseMessaging.instance
+        .getInitialMessage()
+        .then((RemoteMessage? message) {
       if (message != null) {
         debugPrint('🔔 Notification caused app to open from terminated state!');
-        _handleNotificationClick(message);
+        _handleNavigationFromMessage(message);
       }
     });
 
@@ -87,20 +110,28 @@ class FCMService {
     debugPrint('✅ FCMService initialized (Real Firebase)');
   }
 
-  static void _handleNotificationClick(RemoteMessage message) {
-    debugPrint('🔔 Navigating from notification: ${message.data}');
-    
+  static void _handleNavigationFromMessage(RemoteMessage message) {
+    _handleNavigationFromData(Map<String, dynamic>.from(message.data));
+  }
+
+  static void _handleNavigationFromData(Map<String, dynamic> data) {
+    debugPrint('🔔 Navigating from notification data: $data');
+
     final context = navigatorKey.currentContext;
-    if (context == null) return;
+    if (context == null) {
+      debugPrint('⚠️ Navigator context is null, cannot redirect');
+      return;
+    }
 
     // Example based on common FCM payloads
-    final type = message.data['type'];
-    final id = message.data['id'] ?? message.data['orderId'];
+    final type = data['type'];
+    final id = data['id'] ?? data['orderId'];
 
     if (type == 'ORDER' || type == 'NEW_ORDER') {
       Navigator.pushNamed(context, '/track-order', arguments: {'orderId': id});
     } else if (type == 'RIDER_ORDER') {
-      Navigator.pushNamed(context, '/rider-order-details', arguments: {'orderId': id});
+      Navigator.pushNamed(context, '/rider-order-details',
+          arguments: {'orderId': id});
     } else if (type == 'WALLET') {
       Navigator.pushNamed(context, '/wallet');
     }
@@ -138,14 +169,27 @@ class FCMService {
 
       final storage = SecureStorageService();
       final authToken = await storage.getAccessToken();
-      if (authToken == null) return;
+      if (authToken == null) {
+        debugPrint('ℹ️ Skip sending FCM token: User not logged in');
+        return;
+      }
 
-      final client = ApiClient.createDefault();
-      await client.post(
-        '${ApiClient.baseUrl}/update-fcm-token',
-        data: {'fcmToken': token},
-        requiresAuth: true,
-      );
+      if (_container != null) {
+        final client = _container!.read(apiClientProvider);
+        await client.put(
+          '${ApiClient.baseUrl}/profile',
+          data: {'fcmToken': token},
+          requiresAuth: true,
+        );
+      } else {
+        // Fallback for cases where container is not yet available
+        final client = ApiClient.createDefault();
+        await client.put(
+          '${ApiClient.baseUrl}/profile',
+          data: {'fcmToken': token},
+          requiresAuth: true,
+        );
+      }
       debugPrint('✅ Device token sent to backend');
     } catch (e) {
       debugPrint('⚠️ Failed to send device token to backend: $e');
@@ -154,18 +198,19 @@ class FCMService {
 
   static void listenToTokenRefresh() {
     FirebaseMessaging.instance.onTokenRefresh.listen((newToken) async {
-       debugPrint('🔄 FCM Token refreshed!');
-       // Optional: Send to backend immediately if logged in
-       await sendTokenToBackend();
+      debugPrint('🔄 FCM Token refreshed!');
+      // Optional: Send to backend immediately if logged in
+      await sendTokenToBackend();
     });
   }
 
   static Future<void> showNotification({
     required String title,
     required String body,
-    String? payload,
+    Map<String, dynamic>? data,
   }) async {
     try {
+      final String? payload = data != null ? jsonEncode(data) : null;
       await _localNotifications.show(
         title.hashCode,
         title,
@@ -188,4 +233,3 @@ class FCMService {
     }
   }
 }
-

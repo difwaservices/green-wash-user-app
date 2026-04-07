@@ -1,16 +1,21 @@
 import 'package:flutter/material.dart';
 import '../../../data/services/db_service.dart';
 import '../../../data/models/food_models.dart';
+import '../../../data/models/product_model.dart';
 import '../../home/view/product_details_page.dart';
 import '../../home/controller/main_controller.dart';
 import '../../home/widgets/quantity_selector.dart';
 import 'shipping_address_page.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/state/auth_store.dart';
+import '../../../routes/app_routes.dart';
+import '../../../core/utils/auth_helper.dart';
 
-class CartPage extends StatelessWidget {
+class CartPage extends ConsumerWidget {
   const CartPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     // ... items ...
     final cart = CartProviderScope.of(context);
     final items = cart.items;
@@ -59,7 +64,7 @@ class CartPage extends StatelessWidget {
                   bottom: 0,
                   left: 0,
                   right: 0,
-                  child: _buildSummarySection(context, cart),
+                  child: _buildSummarySection(context, ref, cart),
                 ),
               ],
             ),
@@ -232,8 +237,8 @@ class CartPage extends StatelessWidget {
                 children: [
                   QuantitySelector(
                     quantity: item.quantity,
-                    onIncrement: () => cart.increment(item.title),
-                    onDecrement: () => cart.decrement(item.title),
+                    onIncrement: () => cart.increment(item.id),
+                    onDecrement: () => cart.decrement(item.id),
                     size: 34, // Slightly smaller for list view
                   ),
                   const SizedBox(height: 8),
@@ -281,7 +286,7 @@ class CartPage extends StatelessWidget {
     );
   }
 
-  Widget _buildSummarySection(BuildContext context, CartProvider cart) {
+  Widget _buildSummarySection(BuildContext context, WidgetRef ref, CartProvider cart) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -329,6 +334,12 @@ class CartPage extends StatelessWidget {
             height: 56,
             child: ElevatedButton(
               onPressed: () {
+                if (!AuthHelper.checkAuth(
+                  context: context,
+                  ref: ref,
+                  message: 'Please log in to proceed with your order.',
+                )) return;
+                
                 Navigator.push(
                   context,
                   MaterialPageRoute(

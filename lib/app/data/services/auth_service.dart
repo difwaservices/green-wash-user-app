@@ -248,12 +248,12 @@ class AuthService {
   // ── Update FCM Token ─────────────────────────────────────────────────────
   Future<AuthResponseModel> updateFcmToken({required String fcmToken}) async {
     try {
-      final data = await _client.post(
-        '${ApiClient.baseUrl}/update-fcm-token',
+      final json = await _client.put(
+        '${ApiClient.baseUrl}/profile',
         data: {'fcmToken': fcmToken},
         requiresAuth: true,
       );
-      return AuthResponseModel.fromJson(data);
+      return AuthResponseModel.fromJson(json);
     } on ApiException catch (e) {
       return AuthResponseModel(success: false, message: e.message);
     } catch (e) {
