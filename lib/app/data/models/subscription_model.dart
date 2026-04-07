@@ -64,6 +64,7 @@ class UserSubscription {
   final DateTime? endDate;
   final String retailerName;
   final List<DateTime> vacationDates;
+  final String? deliverySlot;
 
   UserSubscription({
     required this.id,
@@ -76,6 +77,7 @@ class UserSubscription {
     required this.customDays,
     required this.status,
     required this.startDate,
+    this.deliverySlot,
     this.endDate,
     this.vacationDates = const [],
   });
@@ -127,6 +129,39 @@ class UserSubscription {
               ?.map((e) => DateTime.tryParse(e.toString()) ?? DateTime.now())
               .toList() ??
           [],
+      deliverySlot: json['deliverySlot']?.toString(),
+    );
+  }
+
+  UserSubscription copyWith({
+    String? id,
+    String? productId,
+    String? productName,
+    String? productImage,
+    String? frequency,
+    int? quantity,
+    List<String>? customDays,
+    String? status,
+    DateTime? startDate,
+    DateTime? endDate,
+    String? retailerName,
+    List<DateTime>? vacationDates,
+    String? deliverySlot,
+  }) {
+    return UserSubscription(
+      id: id ?? this.id,
+      productId: productId ?? this.productId,
+      productName: productName ?? this.productName,
+      productImage: productImage ?? this.productImage,
+      frequency: frequency ?? this.frequency,
+      quantity: quantity ?? this.quantity,
+      customDays: customDays ?? this.customDays,
+      status: status ?? this.status,
+      startDate: startDate ?? this.startDate,
+      endDate: endDate ?? this.endDate,
+      retailerName: retailerName ?? this.retailerName,
+      vacationDates: vacationDates ?? this.vacationDates,
+      deliverySlot: deliverySlot ?? this.deliverySlot,
     );
   }
 }

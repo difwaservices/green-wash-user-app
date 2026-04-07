@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/constants/app_images.dart';
 import 'provider/auth_provider.dart';
 import '../../data/models/food_models.dart';
 import '../../data/services/db_service.dart';
+import '../../data/services/fcm_service.dart';
+import '../../data/services/socket_service.dart';
 import '../../routes/app_routes.dart';
 
 class OtpVerificationPage extends ConsumerStatefulWidget {
@@ -35,6 +38,13 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage> {
   void initState() {
     super.initState();
     _startTimer();
+    // Show initial OTP from navigation arguments
+    if (widget.otp != null && widget.otp!.isNotEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _showSnackBar("Test OTP: ${widget.otp}",
+            backgroundColor: const Color(0xFF06B6D4));
+      });
+    }
   }
 
   void _startTimer() {
@@ -107,7 +117,10 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage> {
   @override
   Widget build(BuildContext context) {
     ref.listen<ProviderAuthState>(authProvider, (previous, next) {
-      if (next is AuthAuthenticated) {
+      if (next is AuthOtpSent && next.otp != null) {
+        _showSnackBar("New OTP: ${next.otp}",
+            backgroundColor: const Color(0xFF06B6D4));
+      } else if (next is AuthAuthenticated) {
         final role = (next.user.role).toLowerCase();
         
         try {
@@ -120,12 +133,22 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage> {
               profileImage: AppImages.defaultAvatar,
             ),
           );
-          cartProvider.loadCartFromApi();
+          cartProvider.syncLocalCartToServer();
+          cartProvider.syncOrders();
+          cartProvider.syncWallet();
+          cartProvider.loadAddresses();
+          
+          // Send FCM token to backend after login
+          FCMService.sendTokenToBackend();
+
+          // Join notification room for real-time updates
+          ref.read(socketServiceProvider).joinRetailerNotificationRoom(next.user.id);
         } catch (e) {
           // Silent catch in production
         }
 
         // ── ROLE-BASED NAVIGATION ──
+        
         if (role.contains('rider') || 
             role.contains('delivery') || 
             role.contains('driver') ||
@@ -172,7 +195,6 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage> {
               ),
               const SizedBox(height: 16),
               
-              // ── White Card Form ──
               Container(
                 width: double.infinity,
                 constraints: BoxConstraints(
@@ -256,6 +278,7 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage> {
                                 controller: _controllers[index],
                                 focusNode: _focusNodes[index],
                                 keyboardType: TextInputType.number,
+                                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                                 textAlign: TextAlign.center,
                                 textAlignVertical: TextAlignVertical.center,
                                 maxLength: 1,

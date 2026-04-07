@@ -9,6 +9,11 @@ final shopServiceProvider = Provider<ShopService>((ref) {
   return ShopService(client: ref.watch(apiClientProvider));
 });
 
+/// Reactive Provider for a specific shop's details
+final shopDetailsProvider = FutureProvider.family<ShopModel?, String>((ref, id) {
+  return ref.watch(shopServiceProvider).getShopDetails(id);
+});
+
 /// Service layer for shops.
 
 class ShopService {
@@ -20,7 +25,7 @@ class ShopService {
     try {
       final json = await _client.get(
         '${ApiClient.baseUrl}/shops',
-        requiresAuth: true,
+        requiresAuth: false,
       );
 
       final raw = json['data'] as List<dynamic>? ?? [];
@@ -43,7 +48,7 @@ class ShopService {
     try {
       final json = await _client.get(
         '${ApiClient.baseUrl}/shops/$shopId/products',
-        requiresAuth: true,
+        requiresAuth: false,
       );
       final raw = (json['data'] ?? json['products']) as List<dynamic>? ?? [];
       
@@ -68,7 +73,7 @@ class ShopService {
     try {
       final json = await _client.get(
         '${ApiClient.baseUrl}/categories',
-        requiresAuth: true,
+        requiresAuth: false,
       );
       final raw = json['data'] as List<dynamic>? ?? [];
       
@@ -84,5 +89,19 @@ class ShopService {
     return data
         .map((e) => FoodCategory.fromJson(e as Map<String, dynamic>))
         .toList();
+  }
+
+  Future<ShopModel?> getShopDetails(String shopId) async {
+    try {
+      final json = await _client.get(
+        '${ApiClient.baseUrl}/shops/$shopId',
+        requiresAuth: false,
+      );
+      final data = json['data'] ?? json;
+      return ShopModel.fromJson(data as Map<String, dynamic>);
+    } catch (e) {
+      debugPrint('ShopService: Error fetching shop details for $shopId: $e');
+      return null;
+    }
   }
 }

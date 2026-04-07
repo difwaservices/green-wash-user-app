@@ -72,7 +72,7 @@ class AuthInterceptor extends QueuedInterceptor {
             debugPrint('AuthInterceptor: Refreshing access token...');
             // Using relative path to allow ApiClient/BaseOptions to handle /api prefix
             final response = await _refreshDio.post(
-              'https://difwa-backend.vercel.app/app/refresh', 
+              '/app/refresh', 
               data: {
                 'refreshToken': refreshToken,
               },

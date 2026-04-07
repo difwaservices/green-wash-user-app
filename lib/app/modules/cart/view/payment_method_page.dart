@@ -4,7 +4,10 @@ import 'package:difwawaterapp/app/data/services/db_service.dart';
 import '../../../data/services/order_service.dart';
 import '../../../data/services/subscription_service.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../data/services/wallet_service.dart';
 import 'order_success_page.dart';
+
+import '../../../data/services/shop_service.dart';
 
 class PaymentMethodPage extends ConsumerStatefulWidget {
   const PaymentMethodPage({super.key});
@@ -18,6 +21,29 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
   int _orderType = 0; // 0: One-time, 1: Scheduled
   String _frequency = 'Daily';
   List<String> _selectedDays = [];
+  String? _selectedSlot;
+  
+  Future<void> _refreshAfterPurchase(WidgetRef ref, CartProvider cartProvider) async {
+    // 1. Sync the CartProvider's internal wallet and orders state
+    await cartProvider.syncWallet();
+    await cartProvider.syncOrders();
+    
+    // 2. Invalidate Riverpod providers to force global UI updates
+    ref.invalidate(walletBalanceProvider);
+    ref.invalidate(walletHistoryProvider);
+    ref.invalidate(walletTransactionsProvider);
+    ref.invalidate(activeOrdersProvider);
+    ref.invalidate(myOrdersProvider);
+    
+    // 3. Refresh subscriptions list notifier
+    if (mounted) {
+      ref.invalidate(mySubscriptionsProvider);
+    }
+    
+    // 4. Clear the cart
+    cartProvider.clearCart();
+  }
+
   late DateTime _startDate;
   final List<String> _frequencies = [
     'Daily',
@@ -385,6 +411,62 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                     ),
                     const SizedBox(height: 24),
                   ],
+                  const Text('Delivery Slot',
+                      style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF1F2937))),
+                  const SizedBox(height: 12),
+                  ref.watch(shopDetailsProvider(cartProvider.cartShopId ?? '')).when(
+                        data: (shop) {
+                          final slots = shop?.deliverySlots ?? [];
+                          if (slots.isEmpty) {
+                            return Text('No slots available',
+                                style: TextStyle(color: Colors.grey.shade500));
+                          }
+                          // Verify current slot is still valid
+                          if (_selectedSlot != null && !slots.contains(_selectedSlot)) {
+                            WidgetsBinding.instance.addPostFrameCallback((_) {
+                              setState(() => _selectedSlot = null);
+                            });
+                          }
+                          return SizedBox(
+                            height: 50,
+                            child: ListView.builder(
+                              scrollDirection: Axis.horizontal,
+                              itemCount: slots.length,
+                              itemBuilder: (context, index) {
+                                final slot = slots[index];
+                                final isSelected = _selectedSlot == slot;
+                                return Padding(
+                                  padding: const EdgeInsets.only(right: 8),
+                                  child: ChoiceChip(
+                                    label: Text(slot),
+                                    selected: isSelected,
+                                    onSelected: (val) =>
+                                        setState(() => _selectedSlot = slot),
+                                    selectedColor: AppColors.primary,
+                                    labelStyle: TextStyle(
+                                        color: isSelected
+                                            ? Colors.white
+                                            : Colors.black,
+                                        fontWeight: isSelected
+                                            ? FontWeight.bold
+                                            : FontWeight.normal),
+                                  ),
+                                );
+                              },
+                            ),
+                          );
+                        },
+                        loading: () => const Center(
+                            child: SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator())),
+                        error: (_, __) => const Text('Error loading slots'),
+                      ),
+                  const SizedBox(height: 32),
                 ],
               ),
             ),
@@ -419,6 +501,10 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                                 'Please select at least one day for your weekly subscription.');
                           }
 
+                          if (_selectedSlot == null) {
+                            throw Exception('Please select a delivery slot.');
+                          }
+
                           final deliveryAddressMap = {
                             'address': selectedAddr.street,
                             'city':
@@ -435,50 +521,52 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
 
                           if (_orderType == 1) {
                             // SCHEDULED ORDER
-                            final subService =
-                                ref.read(subscriptionServiceProvider);
+                            final subService = ref.read(subscriptionServiceProvider);
                             for (final item in cartProvider.items) {
                               final res = await subService.subscribeToProduct(
                                 productId: item.id,
                                 frequency: _frequency,
                                 quantity: item.quantity,
-                                customDays:
-                                    _frequency == 'Weekly' ? _selectedDays : [],
+                                customDays: _frequency == 'Weekly' ? _selectedDays : [],
                                 startDate: _startDate,
+                                deliverySlot: _selectedSlot,
                               );
                               if (res['success'] != true) {
-                                throw Exception(res['message'] ??
-                                    'Failed to subscribe ${item.title}');
+                                throw Exception(res['message'] ?? 'Failed to subscribe ${item.title}');
                               }
                             }
-                            // Success path for all items
-                            await cartProvider.syncWallet();
-                            cartProvider.clearCart();
+                            // ALL SUCCESS
+                            await _refreshAfterPurchase(ref, cartProvider);
                             if (!mounted) return;
                             navigator.pushAndRemoveUntil(
-                                MaterialPageRoute(
-                                    builder: (_) => const OrderSuccessPage()),
+                                MaterialPageRoute(builder: (_) => const OrderSuccessPage()),
                                 (route) => route.isFirst);
                           } else {
                             // ONE-TIME ORDER
                             final orderService = ref.read(orderServiceProvider);
+                            final itemsMap = cartProvider.items.map((item) => {
+                                'product': item.id,
+                                'retailer': item.shopId,
+                                'quantity': item.quantity,
+                                'price': item.unitPrice,
+                              }).toList();
+
                             final response = await orderService.placeOrder(
+                                items: itemsMap,
+                                totalAmount: cartProvider.total,
                                 deliveryAddress: deliveryAddressMap,
-                                paymentMethod: 'Wallet');
+                                paymentMethod: 'Wallet',
+                                deliverySlot: _selectedSlot);
+
                             if (response['success'] == true) {
-                              await cartProvider.syncWallet();
-                              cartProvider.clearCart();
+                              await _refreshAfterPurchase(ref, cartProvider);
                               if (!mounted) return;
-                              ref.invalidate(activeOrdersProvider);
-                              ref.invalidate(myOrdersProvider);
                               navigator.pushAndRemoveUntil(
                                   MaterialPageRoute(
-                                      builder: (_) => OrderSuccessPage(
-                                          order: response['order'])),
+                                      builder: (_) => OrderSuccessPage(order: response['order'])),
                                   (route) => route.isFirst);
                             } else {
-                              throw Exception(response['message'] ??
-                                  'Failed to place order');
+                              throw Exception(response['message'] ?? 'Failed to place order');
                             }
                           }
                         } catch (e) {

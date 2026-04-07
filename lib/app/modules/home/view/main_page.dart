@@ -9,15 +9,18 @@ import '../controller/main_controller.dart';
 import '../../../data/services/db_service.dart';
 import '../../../core/constants/app_colors.dart';
 import '../widgets/cart_summary_bar.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/state/auth_store.dart';
+import '../../../routes/app_routes.dart';
 
-class MainPage extends StatefulWidget {
+class MainPage extends ConsumerStatefulWidget {
   const MainPage({super.key});
-
+  
   @override
-  State<MainPage> createState() => _MainPageState();
+  ConsumerState<MainPage> createState() => _MainPageState();
 }
 
-class _MainPageState extends State<MainPage> {
+class _MainPageState extends ConsumerState<MainPage> {
   final MainController _controller = MainController();
   DateTime? _lastPressedAt;
 
@@ -52,6 +55,14 @@ class _MainPageState extends State<MainPage> {
     final cart = CartProviderScope.of(context);
     final bool showSummary =
         cart.itemCount > 0 && _controller.currentIndex != 2;
+
+    // Global Auth Listener to redirect on logout/session expiry
+    ref.listen(isAuthenticatedProvider, (previous, next) {
+      if (next == false) {
+        Navigator.pushNamedAndRemoveUntil(
+          context, AppRoutes.login, (route) => false);
+      }
+    });
 
     return MainControllerScope(
       controller: _controller,
@@ -147,7 +158,10 @@ class _MainPageState extends State<MainPage> {
           Positioned(
             top: 5,
             child: GestureDetector(
-              onTap: () => _controller.changePage(2),
+              onTap: () {
+                // Anyone can see the cart, but they must login to checkout (handled in CartPage)
+                _controller.changePage(2);
+              },
               child: Container(
                 width: 68,
                 height: 68,
@@ -181,7 +195,9 @@ class _MainPageState extends State<MainPage> {
   Widget _buildNavItem(int index, IconData icon, String label) {
     bool isSelected = _controller.currentIndex == index;
     return GestureDetector(
-      onTap: () => _controller.changePage(index),
+      onTap: () {
+        _controller.changePage(index);
+      },
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [

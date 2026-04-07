@@ -135,6 +135,8 @@ class ShopModel {
   final double rating;
   final String deliveryTime;
   final bool isShopActive;
+  final bool isFeatured;
+  final List<String> deliverySlots;
 
   const ShopModel({
     required this.id,
@@ -145,6 +147,8 @@ class ShopModel {
     this.rating = 4.5,
     this.deliveryTime = '30-45 mins',
     this.isShopActive = true,
+    this.isFeatured = false,
+    this.deliverySlots = const [],
   });
 
   ShopModel copyWith({
@@ -156,6 +160,8 @@ class ShopModel {
     double? rating,
     String? deliveryTime,
     bool? isShopActive,
+    bool? isFeatured,
+    List<String>? deliverySlots,
   }) {
     return ShopModel(
       id: id ?? this.id,
@@ -166,6 +172,8 @@ class ShopModel {
       rating: rating ?? this.rating,
       deliveryTime: deliveryTime ?? this.deliveryTime,
       isShopActive: isShopActive ?? this.isShopActive,
+      isFeatured: isFeatured ?? this.isFeatured,
+      deliverySlots: deliverySlots ?? this.deliverySlots,
     );
   }
 
@@ -179,6 +187,14 @@ class ShopModel {
       rating: (json['rating'] as num?)?.toDouble() ?? 4.5,
       deliveryTime: (json['deliveryTime'] ?? '30-45 mins').toString(),
       isShopActive: json['isShopActive'] ?? json['isActive'] ?? true,
+      isFeatured: json['isFeatured'] ?? json['featured'] ?? false,
+      deliverySlots: (json['deliverySlots'] as List?)
+              ?.map((e) => e.toString())
+              .toList() ??
+          (json['businessDetails']?['deliverySlots'] as List?)
+              ?.map((e) => e.toString())
+              .toList() ??
+          [],
     );
   }
 }

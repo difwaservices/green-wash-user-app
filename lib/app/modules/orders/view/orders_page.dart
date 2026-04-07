@@ -244,13 +244,17 @@ class _OrdersPageState extends ConsumerState<OrdersPage> {
                     )
                   : SliverPadding(
                       padding: const EdgeInsets.all(16),
-                      sliver: SliverList(
-                        delegate: SliverChildBuilderDelegate(
-                          (context, index) =>
-                              _LiveOrderCard(order: orders[index]),
-                          childCount: orders.length,
-                        ),
-                      ),
+                      sliver: Builder(builder: (context) {
+                        final sortedOrders = List<UserOrder>.from(orders)
+                          ..sort((a, b) => b.date.compareTo(a.date));
+                        return SliverList(
+                          delegate: SliverChildBuilderDelegate(
+                            (context, index) =>
+                                _LiveOrderCard(order: sortedOrders[index]),
+                            childCount: sortedOrders.length,
+                          ),
+                        );
+                      }),
                     ),
               loading: () => const SliverFillRemaining(
                 child: Center(

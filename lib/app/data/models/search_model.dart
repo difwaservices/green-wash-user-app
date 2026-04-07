@@ -44,6 +44,8 @@ class SearchProduct {
   final String stockStatus;
   final String shopId;
   final String shopName;
+  final String categoryId;
+  final String categoryName;
   final bool isShopActive;
 
   const SearchProduct({
@@ -55,6 +57,8 @@ class SearchProduct {
     this.stockStatus = 'In Stock',
     required this.shopId,
     required this.shopName,
+    this.categoryId = '',
+    this.categoryName = '',
     this.isShopActive = true,
   });
 
@@ -62,13 +66,6 @@ class SearchProduct {
 
   String get displayImage {
     if (image.length > 5) return image;
-    final lower = name.toLowerCase();
-    if (lower.contains('tiger') || lower.contains('Difwa') || lower.contains('prawn')) {
-      return 'https://images.unsplash.com/photo-1559737558-2f5a35f4523b?q=80&w=800&auto=format&fit=crop';
-    }
-    if (lower.contains('fish') || lower.contains('rohu')) {
-      return 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?q=80&w=800&auto=format&fit=crop';
-    }
     return '';
   }
 
@@ -82,6 +79,16 @@ class SearchProduct {
       shopId = (shopData['id'] ?? shopData['_id'] ?? '').toString();
       shopName = (shopData['name'] ?? '').toString();
       isShopActiveRetailer = shopData['isShopActive'] ?? true;
+    }
+
+    final categoryData = json['category'];
+    String categoryId = '';
+    String categoryName = '';
+    if (categoryData is Map<String, dynamic>) {
+      categoryId = (categoryData['id'] ?? categoryData['_id'] ?? '').toString();
+      categoryName = (categoryData['name'] ?? '').toString();
+    } else if (categoryData != null) {
+      categoryId = categoryData.toString();
     }
 
     // Resolve image from various possible fields
@@ -104,7 +111,52 @@ class SearchProduct {
       stockStatus: (json['stockStatus'] ?? 'In Stock').toString(),
       shopId: shopId,
       shopName: shopName,
+      categoryId: categoryId,
+      categoryName: categoryName,
       isShopActive: isShopActiveRetailer,
+    );
+  }
+}
+
+/// Model for the pagination metadata.
+class SearchPagination {
+  final int totalItems;
+  final int currentPage;
+  final int totalPages;
+
+  const SearchPagination({
+    this.totalItems = 0,
+    this.currentPage = 1,
+    this.totalPages = 1,
+  });
+
+  factory SearchPagination.fromJson(Map<String, dynamic> json) {
+    return SearchPagination(
+      totalItems: (json['totalItems'] as num?)?.toInt() ?? 0,
+      currentPage: (json['currentPage'] as num?)?.toInt() ?? 1,
+      totalPages: (json['totalPages'] as num?)?.toInt() ?? 1,
+    );
+  }
+}
+
+/// Paginated result container for products.
+class PaginatedSearchProducts {
+  final List<SearchProduct> products;
+  final SearchPagination pagination;
+
+  const PaginatedSearchProducts({
+    this.products = const [],
+    this.pagination = const SearchPagination(),
+  });
+
+  factory PaginatedSearchProducts.fromJson(Map<String, dynamic> json) {
+    final list = (json['products'] as List? ?? [])
+        .map((e) => SearchProduct.fromJson(e as Map<String, dynamic>))
+        .toList();
+    
+    return PaginatedSearchProducts(
+      products: list,
+      pagination: SearchPagination.fromJson(json['pagination'] ?? {}),
     );
   }
 }

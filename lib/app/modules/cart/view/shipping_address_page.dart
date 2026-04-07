@@ -118,10 +118,12 @@ class _ShippingAddressPageState extends ConsumerState<ShippingAddressPage> {
     final cart = CartProviderScope.of(context);
     final addresses = cart.addresses;
 
-    // Auto-show form if no addresses exist and loading has finished
     if (addresses.isEmpty && !_showAddForm && !cart.isAddressesLoading) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) setState(() => _showAddForm = true);
+        // Double check after callback to avoid race conditions
+        if (mounted && !_showAddForm && cart.addresses.isEmpty && !cart.isAddressesLoading) {
+          setState(() => _showAddForm = true);
+        }
       });
     }
 

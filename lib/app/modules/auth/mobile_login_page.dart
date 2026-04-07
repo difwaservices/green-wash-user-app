@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/constants/app_images.dart';
 import 'widgets/input_field.dart';
@@ -43,8 +44,8 @@ class _MobileLoginPageState extends ConsumerState<MobileLoginPage> {
       return;
     }
     
-    // 10-digit Indian number validation
-    final phoneRegex = RegExp(r'(^(?:[+0]9)?[0-9]{10}$)');
+    // 10-digit mobile number validation (Starts with 6-9)
+    final phoneRegex = RegExp(r'^[6-9]\d{9}$');
     if (!phoneRegex.hasMatch(phone)) {
       _showSnackBar('Please enter a valid 10-digit mobile number.', backgroundColor: Colors.red);
       return;
@@ -133,6 +134,8 @@ class _MobileLoginPageState extends ConsumerState<MobileLoginPage> {
                       hintText: 'e.g. 9876543210',
                       prefixIcon: Icons.phone_android,
                       keyboardType: TextInputType.phone,
+                      maxLength: 10,
+                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                     ),
                     const SizedBox(height: 32),
                     GestureDetector(

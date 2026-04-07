@@ -62,4 +62,46 @@ class SearchService {
 
     return SearchResult(shops: shops, products: products);
   }
+
+  /// Advanced product filtering: GET /api/app/search/products
+  Future<PaginatedSearchProducts> searchProducts({
+    double? minPrice,
+    double? maxPrice,
+    String? category,
+    String? search,
+    int page = 1,
+  }) async {
+    try {
+      final Map<String, dynamic> queryParams = {
+        if (minPrice != null) 'minPrice': minPrice,
+        if (maxPrice != null) 'maxPrice': maxPrice,
+        if (category != null && category.isNotEmpty) 'category': category,
+        if (search != null && search.isNotEmpty) 'search': search,
+        'page': page,
+      };
+
+      final json = await _client.get(
+        '${ApiClient.baseUrl}/search/products',
+        queryParameters: queryParams,
+        requiresAuth: false,
+      );
+
+      final data = json['data'];
+      if (data == null) {
+        return const PaginatedSearchProducts();
+      }
+
+      // Senior Dev: Use compute for parsing to keep UI responsive
+      return await compute(_parsePaginatedProducts, data as Map<String, dynamic>);
+    } on ApiException catch (e) {
+      throw ApiException(
+          message: 'Product filtering failed: ${e.message}', statusCode: e.statusCode);
+    } catch (e) {
+      throw ApiException(message: 'Product filtering failed: ${e.toString()}');
+    }
+  }
+
+  static PaginatedSearchProducts _parsePaginatedProducts(Map<String, dynamic> data) {
+    return PaginatedSearchProducts.fromJson(data);
+  }
 }

@@ -67,7 +67,10 @@ class UserOrder {
     required this.items,
     this.rider,
     this.deliveryAddressMap,
+    this.deliverySlot,
   });
+
+  final String? deliverySlot;
 
   String get riderName => rider?['fullName'] ?? rider?['name'] ?? '';
   String get riderPhone => rider?['phoneNumber'] ?? rider?['phone'] ?? '';
@@ -104,6 +107,7 @@ class UserOrder {
       rider: json['rider'] is Map ? json['rider'] : null,
       deliveryAddressMap:
           json['deliveryAddress'] is Map ? json['deliveryAddress'] : null,
+      deliverySlot: json['deliverySlot']?.toString(),
     );
   }
 }
@@ -236,11 +240,11 @@ class Product {
 
   factory Product.fromJson(Map<String, dynamic> json) {
     return Product(
-      id: json['id']?.toString() ?? '',
+      id: (json['id'] ?? json['_id'])?.toString() ?? '',
       name: json['name']?.toString() ?? '',
-      image: json['image']?.toString() ?? '',
+      image: (json['image'] ?? (json['images'] is List && (json['images'] as List).isNotEmpty ? json['images'][0] : ''))?.toString() ?? '',
       price: double.tryParse(json['price']?.toString() ?? '0') ?? 0.0,
-      weight: json['weight']?.toString() ?? '',
+      weight: (json['weight'] ?? json['description']?.toString().split('\n').first ?? '')?.toString() ?? '',
       category: json['category']?.toString() ?? '',
       badgeText: json['badgeText']?.toString() ?? '',
       isFavorite: json['isFavorite'] == true || json['isFavorite'] == 'true',
@@ -250,7 +254,7 @@ class Product {
               .toList() ??
           const [],
       isShopActive: json['isShopActive'] ?? json['isActive'] ?? true,
-      shopId: json['shopId']?.toString() ?? '',
+      shopId: (json['shopId'] ?? json['retailer'])?.toString() ?? '',
       shopName: json['shopName']?.toString() ?? '',
     );
   }

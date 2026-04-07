@@ -161,135 +161,188 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
 
     return Column(
       children: [
-        ...addresses.map((addr) {
-          return Container(
-            margin: const EdgeInsets.only(bottom: 16),
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.05),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
+        ...addresses.asMap().entries.map((entry) {
+          final int index = entry.key;
+          final addr = entry.value;
+          final isSelected = provider.selectedAddressIndex == index;
+
+          return GestureDetector(
+            onTap: () {
+              provider.selectAddress(index);
+            },
+            child: Container(
+              margin: const EdgeInsets.only(bottom: 16),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: isSelected
+                      ? const Color(0xFF06B6D4)
+                      : Colors.transparent,
+                  width: 2,
                 ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (addr.isDefault)
-                  Container(
-                    margin: const EdgeInsets.only(bottom: 12),
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFCFFAFE),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: const Text(
-                      'DEFAULT',
-                      style: TextStyle(
-                        color: Color(0xFF06B6D4),
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                boxShadow: [
+                  BoxShadow(
+                    color: isSelected
+                        ? const Color(0xFF06B6D4).withValues(alpha: 0.1)
+                        : Colors.black.withValues(alpha: 0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
                   ),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    CircleAvatar(
-                      radius: 24,
-                      backgroundColor: const Color(0xFFCFFAFE),
-                      child: Icon(
-                        addr.title == 'Home'
-                            ? Icons.home_rounded
-                            : addr.title == 'Work'
-                                ? Icons.work_rounded
-                                : Icons.location_on_rounded,
-                        color: const Color(0xFF06B6D4),
-                        size: 20,
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                addr.title,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.w800,
-                                  fontSize: 16,
-                                  color: Color(0xFF1A1A1A),
-                                ),
-                              ),
-                              Row(
-                                children: [
-                                  IconButton(
-                                    icon: const Icon(Icons.edit_outlined,
-                                        size: 18, color: Colors.grey),
-                                    onPressed: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (_) =>
-                                              AddressFormPage(address: addr),
-                                        ),
-                                      );
-                                    },
-                                    constraints: const BoxConstraints(),
-                                    padding: EdgeInsets.zero,
-                                  ),
-                                  const SizedBox(width: 8),
-                                  IconButton(
-                                    icon: const Icon(Icons.delete_outline,
-                                        size: 18, color: Colors.redAccent),
-                                    onPressed: () {
-                                      provider.removeAddress(addr.id);
-                                    },
-                                    constraints: const BoxConstraints(),
-                                    padding: EdgeInsets.zero,
-                                  ),
-                                ],
-                              ),
-                            ],
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      if (addr.isDefault)
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFCFFAFE),
+                            borderRadius: BorderRadius.circular(4),
                           ),
-                          const SizedBox(height: 4),
-                          Text(
-                            profile.name,
-                            style: const TextStyle(
+                          child: const Text(
+                            'DEFAULT',
+                            style: TextStyle(
+                              color: Color(0xFF06B6D4),
+                              fontSize: 10,
                               fontWeight: FontWeight.bold,
-                              fontSize: 14,
-                              color: Color(0xFF4B5563),
                             ),
                           ),
-                          const SizedBox(height: 2),
-                          Text(
-                            '${addr.street}\n${addr.details}',
-                            style: const TextStyle(
-                                color: Colors.grey, fontSize: 13, height: 1.4),
+                        )
+                      else
+                        const SizedBox.shrink(),
+                      // Selection Indicator (Radio Button style)
+                      Container(
+                        width: 20,
+                        height: 20,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: isSelected
+                                ? const Color(0xFF06B6D4)
+                                : Colors.grey.shade300,
+                            width: 2,
                           ),
-                          const SizedBox(height: 8),
-                          Text(
-                            profile.phone,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 13,
-                              color: Color(0xFF1A1A1A),
-                            ),
-                          ),
-                        ],
+                        ),
+                        child: isSelected
+                            ? Center(
+                                child: Container(
+                                  width: 10,
+                                  height: 10,
+                                  decoration: const BoxDecoration(
+                                    color: Color(0xFF06B6D4),
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                              )
+                            : null,
                       ),
-                    ),
-                  ],
-                ),
-              ],
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      CircleAvatar(
+                        radius: 24,
+                        backgroundColor: const Color(0xFFCFFAFE),
+                        child: Icon(
+                          addr.title.toLowerCase() == 'home'
+                              ? Icons.home_rounded
+                              : addr.title.toLowerCase() == 'office' ||
+                                      addr.title.toLowerCase() == 'work'
+                                  ? Icons.work_rounded
+                                  : Icons.location_on_rounded,
+                          color: const Color(0xFF06B6D4),
+                          size: 20,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  addr.title,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w800,
+                                    fontSize: 16,
+                                    color: Color(0xFF1A1A1A),
+                                  ),
+                                ),
+                                Row(
+                                  children: [
+                                    IconButton(
+                                      icon: const Icon(Icons.edit_outlined,
+                                          size: 18, color: Colors.grey),
+                                      onPressed: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (_) =>
+                                                AddressFormPage(address: addr),
+                                          ),
+                                        );
+                                      },
+                                      constraints: const BoxConstraints(),
+                                      padding: EdgeInsets.zero,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    IconButton(
+                                      icon: const Icon(Icons.delete_outline,
+                                          size: 18, color: Colors.redAccent),
+                                      onPressed: () {
+                                        provider.removeAddress(addr.id);
+                                      },
+                                      constraints: const BoxConstraints(),
+                                      padding: EdgeInsets.zero,
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              profile.name,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                                color: Color(0xFF4B5563),
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              '${addr.street}\n${addr.details}',
+                              style: const TextStyle(
+                                  color: Colors.grey,
+                                  fontSize: 13,
+                                  height: 1.4),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              profile.phone,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 13,
+                                color: Color(0xFF1A1A1A),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           );
         }),

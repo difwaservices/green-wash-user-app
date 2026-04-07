@@ -7,17 +7,129 @@ final subscriptionServiceProvider = Provider<SubscriptionService>((ref) {
   return SubscriptionService(client: ref.watch(apiClientProvider));
 });
 
-/// FutureProvider for fetching user subscriptions
+/// Notifier for fetching and managing user subscriptions with optimistic updates
 final mySubscriptionsProvider =
-    FutureProvider<List<UserSubscription>>((ref) async {
-  return ref.watch(subscriptionServiceProvider).getMySubscriptions();
-});
+    AsyncNotifierProvider<SubscriptionNotifier, List<UserSubscription>>(
+        SubscriptionNotifier.new);
+
+class SubscriptionNotifier extends AsyncNotifier<List<UserSubscription>> {
+  @override
+  Future<List<UserSubscription>> build() async {
+    return ref.watch(subscriptionServiceProvider).getMySubscriptions();
+  }
+
+  Future<void> refresh() async {
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(
+        () => ref.read(subscriptionServiceProvider).getMySubscriptions());
+  }
+
+  Future<bool> updateStatus(String subId, String status) async {
+    final oldState = state;
+    if (state.hasValue) {
+      state = AsyncValue.data(state.value!.map((s) {
+        if (s.id == subId) {
+          return s.copyWith(status: status);
+        }
+        return s;
+      }).toList());
+    }
+
+    final success =
+        await ref.read(subscriptionServiceProvider).updateStatus(subId, status);
+    if (!success) {
+      state = oldState; // Rollback on failure
+    } else {
+      refresh();
+    }
+    return success;
+  }
+
+  Future<Map<String, dynamic>> updateVacation({
+    required String subscriptionId,
+    required DateTime startDate,
+    required DateTime endDate,
+    bool isReset = false,
+  }) async {
+    final oldState = state;
+    
+    // Track if this is a single day resume action for the backend
+    bool isResume = false;
+
+    // Optimistic update for instant visual feedback
+    if (state.hasValue) {
+      state = AsyncValue.data(state.value!.map((s) {
+        if (s.id == subscriptionId) {
+          if (isReset) {
+            // Complete reset from tomorrow onwards. Retain past and current day 
+            // if they were already part of the vacation.
+            final startDay = DateTime(startDate.year, startDate.month, startDate.day);
+            final retainedDates = s.vacationDates.where((vd) {
+              final vDay = DateTime(vd.year, vd.month, vd.day);
+              return vDay.isBefore(startDay);
+            }).toList();
+            return s.copyWith(vacationDates: retainedDates);
+          } else if (startDate == endDate) {
+            // Single day toggle (Pause/Resume Tomorrow)
+            final startDay = DateTime(startDate.year, startDate.month, startDate.day);
+            final existingIndex = s.vacationDates.indexWhere((vd) =>
+                DateTime(vd.year, vd.month, vd.day) == startDay);
+
+            if (existingIndex != -1) {
+              // OPTIMISTIC REMOVE (Resume)
+              isResume = true;
+              final newList = List<DateTime>.from(s.vacationDates)
+                ..removeAt(existingIndex);
+              return s.copyWith(vacationDates: newList);
+            } else {
+              // OPTIMISTIC ADD (Pause)
+              return s.copyWith(
+                  vacationDates: [...s.vacationDates, startDate]);
+            }
+          } else {
+            // ADDS rangeDates to vacationDates (for setting new ranges)
+            final rangeDates = <DateTime>[];
+            var current = DateTime(startDate.year, startDate.month, startDate.day);
+            final endDay = DateTime(endDate.year, endDate.month, endDate.day);
+            
+            while (!current.isAfter(endDay)) {
+              if (!s.vacationDates.any((vd) => 
+                  vd.year == current.year && vd.month == current.month && vd.day == current.day)) {
+                rangeDates.add(current);
+              }
+              current = current.add(const Duration(days: 1));
+            }
+
+            return s.copyWith(
+                vacationDates: [...s.vacationDates, ...rangeDates]);
+          }
+        }
+        return s;
+      }).toList());
+    }
+
+    final res = await ref.read(subscriptionServiceProvider).updateVacation(
+          subscriptionId: subscriptionId,
+          startDate: startDate,
+          endDate: endDate,
+          isReset: isReset,
+          isResume: isResume,
+        );
+
+    if (res['success'] == true) {
+      refresh();
+    } else {
+      state = oldState; // Rollback on failure
+    }
+    return res;
+  }
+}
 
 /// Service layer for subscriptions.
 class SubscriptionService {
   final ApiClient _client;
 
-  SubscriptionService({ApiClient? client}) : _client = client ?? ApiClient();
+  SubscriptionService({ApiClient? client}) : _client = client ?? ApiClient.createDefault();
 
   /// Fetch all available subscription plans.
   Future<List<SubscriptionPlan>> getSubscriptions() async {
@@ -66,6 +178,7 @@ class SubscriptionService {
     required int quantity,
     List<String> customDays = const [],
     DateTime? startDate,
+    String? deliverySlot,
   }) async {
     try {
       final payload = {
@@ -74,6 +187,7 @@ class SubscriptionService {
         'quantity': quantity,
         'customDays': customDays,
         'startDate': startDate?.toIso8601String(),
+        if (deliverySlot != null) 'deliverySlot': deliverySlot,
       };
 
       final json = await _client.post(
@@ -114,14 +228,24 @@ class SubscriptionService {
     required String subscriptionId,
     required DateTime startDate,
     required DateTime endDate,
+    bool isReset = false,
+    bool isResume = false,
   }) async {
     try {
+      // Normalize dates to midnight to avoid time-zone/comparison issues
+      final normalizedStart =
+          DateTime(startDate.year, startDate.month, startDate.day);
+      final normalizedEnd =
+          DateTime(endDate.year, endDate.month, endDate.day);
+
       final json = await _client.post(
         '${ApiClient.subscriptionBaseUrl}/vacation',
         data: {
           'subscriptionId': subscriptionId,
-          'startDate': startDate.toIso8601String(),
-          'endDate': endDate.toIso8601String(),
+          'startDate': normalizedStart.toIso8601String(),
+          'endDate': normalizedEnd.toIso8601String(),
+          if (isReset) 'isReset': true,
+          if (isResume) 'isResume': true,
         },
         requiresAuth: true,
       );

@@ -62,7 +62,7 @@ class _SplashPageState extends ConsumerState<SplashPage>
         Navigator.pushReplacementNamed(context, AppRoutes.home);
       }
     } else {
-      Navigator.pushReplacementNamed(context, AppRoutes.login);
+      Navigator.pushReplacementNamed(context, AppRoutes.home);
     }
   }
 

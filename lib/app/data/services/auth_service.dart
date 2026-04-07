@@ -2,7 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/auth_models.dart';
 import '../network/api_client.dart';
 import 'package:logger/logger.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
+import 'fcm_service.dart';
 
 final authServiceProvider = Provider<AuthService>((ref) {
   return AuthService(client: ref.watch(apiClientProvider));
@@ -21,7 +21,7 @@ class AuthService {
   final ApiClient _client;
   final Logger _logger = Logger();
 
-  AuthService({ApiClient? client}) : _client = client ?? ApiClient();
+  AuthService({required ApiClient client}) : _client = client;
 
   // ── Update Name (Requested Endpoint) ──────────────────────────────────────
   Future<AuthResponseModel> updateName({required String fullName}) async {
@@ -47,7 +47,7 @@ class AuthService {
     required String confirmPassword,
   }) async {
     try {
-      final fcmToken = await FirebaseMessaging.instance.getToken();
+      final fcmToken = await FCMService().getToken();
       final data = await _client.post(
         '${ApiClient.baseUrl}/register',
         data: {
@@ -84,7 +84,7 @@ class AuthService {
       }
 
       try {
-        final fcmToken = await FirebaseMessaging.instance.getToken();
+        final fcmToken = await FCMService().getToken();
         if (fcmToken != null) {
           dataPayload['fcmToken'] = fcmToken;
         }
@@ -137,7 +137,13 @@ class AuthService {
     required String otp,
   }) async {
     try {
-      final fcmToken = await FirebaseMessaging.instance.getToken();
+      String? fcmToken;
+      try {
+        fcmToken = await FCMService().getToken();
+      } catch (e) {
+        _logger.w('Could not fetch FCM Token for verifyOtp: $e');
+      }
+
       final data = await _client.post(
         '/app/auth/verify-otp',
         data: {
@@ -242,12 +248,12 @@ class AuthService {
   // ── Update FCM Token ─────────────────────────────────────────────────────
   Future<AuthResponseModel> updateFcmToken({required String fcmToken}) async {
     try {
-      final data = await _client.post(
-        '${ApiClient.baseUrl}/update-fcm-token',
+      final json = await _client.put(
+        '${ApiClient.baseUrl}/profile',
         data: {'fcmToken': fcmToken},
         requiresAuth: true,
       );
-      return AuthResponseModel.fromJson(data);
+      return AuthResponseModel.fromJson(json);
     } on ApiException catch (e) {
       return AuthResponseModel(success: false, message: e.message);
     } catch (e) {

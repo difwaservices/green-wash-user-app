@@ -23,15 +23,22 @@ class CartProvider extends ChangeNotifier {
     AddressService? addressService,
     ShopService? shopService,
     OrderService? orderService,
+    UserProfile? user,
   })  : _service = service,
         _walletService = walletService,
         _addressService = addressService,
         _shopService = shopService,
         _orderService = orderService {
+    if (user != null) {
+      _userProfile = user;
+    }
     loadCategories();
     loadAddresses();
     syncWallet();
     loadShops();
+    if (isLoggedIn) {
+      loadCartFromApi();
+    }
   }
 
   // ── Getters ───────────────────────────────────────────────────────────────
@@ -52,7 +59,7 @@ class CartProvider extends ChangeNotifier {
     profileImage: AppImages.defaultAvatar,
   );
 
-  bool get isLoggedIn => _userProfile.email.isNotEmpty;
+  bool get isLoggedIn => _userProfile.email.isNotEmpty || _userProfile.phone.isNotEmpty;
 
   List<FoodCategory> _foodCategories = [];
   final List<Restaurant> _restaurants = [];
@@ -78,18 +85,32 @@ class CartProvider extends ChangeNotifier {
   double get walletBalance => _walletBalance;
   List<dynamic> get transactions => _transactions;
 
+  bool _isWalletSyncing = false;
   Future<void> syncWallet() async {
-    if (_walletService == null) return;
+    if (_walletService == null || _isWalletSyncing) return;
+    _isWalletSyncing = true;
     try {
       final result = await _walletService!.getBalance();
       if (result['success']) {
         _walletBalance = (result['balance'] as num).toDouble();
-        notifyListeners();
       }
       _transactions = await _walletService!.getTransactionHistory();
       notifyListeners();
     } catch (e) {
       debugPrint('CartProvider: Error syncing wallet: $e');
+    } finally {
+      _isWalletSyncing = false;
+    }
+  }
+
+  Future<void> syncOrders() async {
+    if (_orderService == null) return;
+    try {
+      final history = await _orderService!.getMyOrders();
+      _orders = history;
+      notifyListeners();
+    } catch (e) {
+      debugPrint('CartProvider: Error syncing orders: $e');
     }
   }
 
@@ -137,6 +158,22 @@ class CartProvider extends ChangeNotifier {
     _walletBalance = 0.0;
     _selectedAddressIndex = 0;
     notifyListeners();
+  }
+
+  /// Syncs local guest cart items to the server after login.
+  Future<void> syncLocalCartToServer() async {
+    if (!isLoggedIn || _service == null || _items.isEmpty) return;
+    
+    debugPrint('🛒 Syncing ${_items.length} local items to server...');
+    for (final item in _items) {
+      try {
+        await _service!.addToCart(item.id, item.quantity);
+      } catch (e) {
+        debugPrint('⚠️ Failed to sync item ${item.title} to server: $e');
+      }
+    }
+    // After syncing, reload the full cart from API to ensure everything is in sync
+    await loadCartFromApi();
   }
 
   // ── API Integration ───────────────────────────────────────────────────────
@@ -327,8 +364,8 @@ class CartProvider extends ChangeNotifier {
 
   int get itemCount => _items.fold(0, (sum, item) => sum + item.quantity);
   double get subtotal => _items.fold(0.0, (sum, item) => sum + item.totalPrice);
-  double get shippingCharges => _items.isEmpty ? 0.0 : 1.6;
-  double get total => subtotal + shippingCharges;
+  double get shippingCharges => 0.0;
+  double get total => subtotal;
 
   bool isInCart(String title) {
     return _items.any((item) => item.title == title);
@@ -340,48 +377,49 @@ class CartProvider extends ChangeNotifier {
   bool isSameShop(String? shopId) {
     if (_items.isEmpty) return true;
     if (shopId == null) return true;
-    return cartShopId == shopId;
+    // Check if any item in cart belongs to a different shop
+    return _items.every((item) => item.shopId == shopId);
   }
 
   void addToCart(CartItem cartItem) {
-    final idx = _items.indexWhere((item) => item.title == cartItem.title);
+    final idx = _items.indexWhere((item) => item.id == cartItem.id);
     if (idx >= 0) {
       _items[idx].quantity += cartItem.quantity;
-      if (_service != null) {
+      if (isLoggedIn && _service != null) {
         _service!.updateQuantity(_items[idx].id, _items[idx].quantity);
       }
     } else {
       _items.add(cartItem);
-      if (_service != null) {
+      if (isLoggedIn && _service != null) {
         _service!.addToCart(cartItem.id, cartItem.quantity);
       }
     }
     notifyListeners();
   }
 
-  void increment(String title) {
-    final idx = _items.indexWhere((item) => item.title == title);
+  void increment(String id) {
+    final idx = _items.indexWhere((item) => item.id == id);
     if (idx >= 0) {
       _items[idx].quantity++;
-      if (_service != null) {
+      if (isLoggedIn && _service != null) {
         _service!.updateQuantity(_items[idx].id, _items[idx].quantity);
       }
       notifyListeners();
     }
   }
 
-  void decrement(String title) {
-    final idx = _items.indexWhere((item) => item.title == title);
+  void decrement(String id) {
+    final idx = _items.indexWhere((item) => item.id == id);
     if (idx >= 0) {
       final itemId = _items[idx].id;
       if (_items[idx].quantity > 1) {
         _items[idx].quantity--;
-        if (_service != null) {
+        if (isLoggedIn && _service != null) {
           _service!.updateQuantity(itemId, _items[idx].quantity);
         }
       } else {
         _items.removeAt(idx);
-        if (_service != null) {
+        if (isLoggedIn && _service != null) {
           _service!.removeFromCart(itemId);
         }
       }
@@ -389,9 +427,16 @@ class CartProvider extends ChangeNotifier {
     }
   }
 
-  void removeItem(String title) {
-    _items.removeWhere((item) => item.title == title);
-    notifyListeners();
+  void removeItem(String id) {
+    final idx = _items.indexWhere((item) => item.id == id);
+    if (idx >= 0) {
+      final itemId = _items[idx].id;
+      _items.removeAt(idx);
+      if (isLoggedIn && _service != null) {
+        _service!.removeFromCart(itemId);
+      }
+      notifyListeners();
+    }
   }
 
   void clearCart() {
@@ -402,8 +447,10 @@ class CartProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<Map<String, dynamic>> checkout(
-      {String paymentMethod = 'Wallet'}) async {
+  Future<Map<String, dynamic>> checkout({
+    String paymentMethod = 'Wallet',
+    String? deliverySlot,
+  }) async {
     if (_orderService == null)
       return {'success': false, 'message': 'Order service not available'};
     if (selectedAddress == null)
@@ -426,9 +473,19 @@ class CartProvider extends ChangeNotifier {
       'pincode': pin,
     };
 
+    final itemsMap = _items.map((item) => {
+      'product': item.id,
+      'retailer': item.shopId,
+      'quantity': item.quantity,
+      'price': item.unitPrice,
+    }).toList();
+
     final result = await _orderService!.placeOrder(
+      items: itemsMap,
+      totalAmount: total,
       deliveryAddress: deliveryAddress,
       paymentMethod: paymentMethod,
+      deliverySlot: deliverySlot,
     );
 
     if (result['success']) {

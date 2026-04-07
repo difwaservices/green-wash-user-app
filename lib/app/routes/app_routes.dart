@@ -1,9 +1,10 @@
 class AppRoutes {
   static const String splash = '/splash';
+  static const String onboarding = '/onboarding';
   static const String initialRoute = '/';
   static const String deals = '/deals';
 
-  static const String welcome = '/welcome';
+
   static const String forgotPassword = '/forgot-password';
   static const String login = '/login';
   static const String signup = '/signup';
@@ -31,4 +32,9 @@ class AppRoutes {
   static const String trackOrder = '/track-order';
   static const String locationPicker = '/location-picker';
   static const String activeOrders = '/active-orders';
+  static const String notifications = '/notifications';
+  static const String about = '/about';
+  static const String contact = '/contact';
+  static const String help = '/help';
+  static const String faq = '/faq';
 }

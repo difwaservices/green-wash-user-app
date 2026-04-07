@@ -8,11 +8,6 @@ class FilterPage extends StatefulWidget {
 }
 
 class _FilterPageState extends State<FilterPage> {
-  int _selectedRating = 4;
-  bool _discount = false;
-  bool _freeShipping = true;
-  bool _sameDayDelivery = true;
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -37,12 +32,7 @@ class _FilterPageState extends State<FilterPage> {
           IconButton(
             icon: const Icon(Icons.refresh, color: Color(0xFF1A1A1A)),
             onPressed: () {
-              setState(() {
-                _selectedRating = 4;
-                _discount = false;
-                _freeShipping = true;
-                _sameDayDelivery = true;
-              });
+              setState(() {});
             },
           ),
         ],
@@ -62,76 +52,6 @@ class _FilterPageState extends State<FilterPage> {
             ),
           ),
           const SizedBox(height: 24),
-          _buildSectionCard(
-            title: 'Star Rating',
-            child: Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 12,
-              ),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF1F4F8),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Row(
-                children: [
-                  Row(
-                    children: List.generate(5, (index) {
-                      return GestureDetector(
-                        onTap: () =>
-                            setState(() => _selectedRating = index + 1),
-                        child: Icon(
-                          index < _selectedRating
-                              ? Icons.star
-                              : Icons.star_border,
-                          color: index < _selectedRating
-                              ? Colors.amber
-                              : Colors.grey,
-                          size: 24,
-                        ),
-                      );
-                    }),
-                  ),
-                  const Spacer(),
-                  Text(
-                    '$_selectedRating stars',
-                    style: const TextStyle(
-                      color: Colors.grey,
-                      fontSize: 13,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 24),
-          _buildSectionCard(
-            title: 'Others',
-            child: Column(
-              children: [
-                _buildFilterRow(
-                  Icons.local_offer_outlined,
-                  'Discount',
-                  _discount,
-                  (v) => setState(() => _discount = v),
-                ),
-                const Divider(height: 24),
-                _buildFilterRow(
-                  Icons.local_shipping_outlined,
-                  'Free shipping',
-                  _freeShipping,
-                  (v) => setState(() => _freeShipping = v),
-                ),
-                const Divider(height: 24),
-                _buildFilterRow(
-                  Icons.access_time_outlined,
-                  'Same day delivery',
-                  _sameDayDelivery,
-                  (v) => setState(() => _sameDayDelivery = v),
-                ),
-              ],
-            ),
-          ),
         ],
       ),
       bottomNavigationBar: Container(
@@ -216,46 +136,6 @@ class _FilterPageState extends State<FilterPage> {
         ),
         keyboardType: TextInputType.number,
       ),
-    );
-  }
-
-  Widget _buildFilterRow(
-    IconData icon,
-    String label,
-    bool value,
-    Function(bool) onChanged,
-  ) {
-    return Row(
-      children: [
-        Icon(icon, color: Colors.grey, size: 20),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Text(
-            label,
-            style: const TextStyle(color: Colors.grey, fontSize: 14),
-          ),
-        ),
-        GestureDetector(
-          onTap: () => onChanged(!value),
-          child: Container(
-            padding: const EdgeInsets.all(4),
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: value ? const Color(0xFF06B6D4) : Colors.transparent,
-              border: Border.all(
-                color: value
-                    ? const Color(0xFF06B6D4)
-                    : Colors.grey.withValues(alpha: 0.3),
-              ),
-            ),
-            child: Icon(
-              Icons.check,
-              size: 14,
-              color: value ? Colors.white : Colors.transparent,
-            ),
-          ),
-        ),
-      ],
     );
   }
 }

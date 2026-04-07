@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../data/services/auth_service.dart';
 import '../../../data/models/auth_models.dart';
+import '../../../../core/state/auth_store.dart' as auth_store;
 
 class EditProfilePage extends ConsumerStatefulWidget {
   const EditProfilePage({super.key});
@@ -61,6 +62,10 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
       if (response.success) {
         // Refresh the profile provider to update UI everywhere
         ref.invalidate(userProfileProvider);
+        // Sync with AuthStore
+        if (response.data != null) {
+          ref.read(auth_store.authStoreProvider.notifier).syncUser(response.data!);
+        }
         
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -110,26 +115,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
           icon: const Icon(Icons.arrow_back, color: Color(0xFF1A1A1A)),
           onPressed: () => Navigator.pop(context),
         ),
-        actions: [
-          if (profileAsync.hasValue)
-            TextButton(
-              onPressed: _isSaving ? null : _saveProfile,
-              child: _isSaving
-                  ? const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(
-                          strokeWidth: 2, color: Color(0xFF06B6D4)),
-                    )
-                  : const Text(
-                      'SAVE',
-                      style: TextStyle(
-                        color: Color(0xFF06B6D4),
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-            ),
-        ],
+        actions: [],
       ),
       body: profileAsync.when(
         data: (user) {
@@ -153,23 +139,6 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                             fontSize: 48,
                             fontWeight: FontWeight.bold,
                             color: Color(0xFF0891B2),
-                          ),
-                        ),
-                      ),
-                      Positioned(
-                        bottom: 0,
-                        right: 0,
-                        child: Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF06B6D4),
-                            shape: BoxShape.circle,
-                            border: Border.all(color: Colors.white, width: 2),
-                          ),
-                          child: const Icon(
-                            Icons.camera_alt,
-                            color: Colors.white,
-                            size: 18,
                           ),
                         ),
                       ),
