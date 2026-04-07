@@ -1,8 +1,9 @@
 import '../../data/models/auth_models.dart';
 import '../../data/services/auth_service.dart';
+import '../network/api_client.dart';
 
 class AuthRepository {
-  final AuthService _authService = AuthService();
+  final AuthService _authService = AuthService(client: ApiClient.createDefault());
 
   Future<AuthResponseModel> register({
     required String fullName,

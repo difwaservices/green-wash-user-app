@@ -188,7 +188,18 @@ class SubscriptionDashboardPage extends ConsumerWidget {
                       ),
                     const SizedBox(width: 4),
                     TextButton.icon(
-                      onPressed: () => _showVacationPicker(context, ref, sub),
+                      onPressed: () {
+                        final now = DateTime.now();
+                        if (now.hour >= 20) {
+                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                            content: Text(
+                                'Deadline passed (8 PM). Vacation settings are locked for tonight.'),
+                            backgroundColor: Colors.orange,
+                          ));
+                          return;
+                        }
+                        _showVacationPicker(context, ref, sub);
+                      },
                       icon: const Icon(Icons.calendar_month, size: 16),
                       label: const Text('Manage'),
                       style: TextButton.styleFrom(
@@ -249,9 +260,20 @@ class SubscriptionDashboardPage extends ConsumerWidget {
 
   void _showVacationPicker(
       BuildContext context, WidgetRef ref, UserSubscription sub) async {
+    final now = DateTime.now();
+    final isAfterDeadline = now.hour >= 20;
+
+    // Start from Tomorrow or Day After based on 8 PM
+    final firstPossibleDate = isAfterDeadline
+        ? now.add(const Duration(days: 2))
+        : now.add(const Duration(days: 1));
+
     final DateTimeRange? picked = await showDateRangePicker(
       context: context,
-      firstDate: DateTime.now(),
+      firstDate: firstPossibleDate,
+      initialDateRange: DateTimeRange(
+          start: firstPossibleDate,
+          end: firstPossibleDate.add(const Duration(days: 6))),
       lastDate: DateTime.now().add(const Duration(days: 90)),
       builder: (context, child) {
         return Theme(

@@ -4,6 +4,8 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../controller/main_controller.dart';
 import '../../../widgets/bounce_widget.dart';
 import '../../../routes/app_routes.dart';
+import '../../../data/services/db_service.dart';
+import '../../profile/view/profile_detail_page.dart';
 
 class HomeHeader extends StatefulWidget {
   const HomeHeader({super.key});
@@ -15,10 +17,12 @@ class HomeHeader extends StatefulWidget {
 class _HomeHeaderState extends State<HomeHeader> {
   @override
   Widget build(BuildContext context) {
+    final cart = CartProviderScope.of(context);
+    final address = cart.selectedAddress;
+
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 16),
       decoration: const BoxDecoration(color: Color(0xFFF7F8FA)),
-      // decoration: const BoxDecoration(color: Color(0xFFF9FFF6)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -26,37 +30,48 @@ class _HomeHeaderState extends State<HomeHeader> {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Icon(Icons.location_on,
-                            color: AppColors.textPrimary, size: 18),
-                        SizedBox(width: 4),
-                        Text(
-                          'Vibhav Khand -4',
-                          style: TextStyle(
-                            fontSize: 14.6,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.textPrimary,
+              Expanded(
+                child: GestureDetector(
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          const ProfileDetailPage(title: 'My Address'),
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(Icons.location_on,
+                              color: AppColors.textPrimary, size: 18),
+                          const SizedBox(width: 4),
+                          Text(
+                            address?.title ?? 'Add Address',
+                            style: const TextStyle(
+                              fontSize: 14.6,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.textPrimary,
+                            ),
                           ),
-                        ),
-                        Icon(Icons.keyboard_arrow_down, size: 20),
-                      ],
-                    ),
-                    SizedBox(height: 2),
-                    Text(
-                      'Vibhav Khand, Gomti Nagar, L...',
-                      style: TextStyle(fontSize: 10.2, color: Colors.grey),
-                    ),
-                  ],
+                          const Icon(Icons.keyboard_arrow_down, size: 20),
+                        ],
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        address?.street ?? 'Tap to set your delivery location',
+                        style:
+                            const TextStyle(fontSize: 10.2, color: Colors.grey),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
                 ),
               ),
-              // Header Buttons
+              // Profile Button
               const SizedBox(width: 8),
-
               BounceWidget(
                 onTap: () {
                   MainControllerScope.of(context).changePage(4);
@@ -87,56 +102,50 @@ class _HomeHeaderState extends State<HomeHeader> {
           ),
           const SizedBox(height: 20),
           // Search Bar Row
-          Row(
-            children: [
-              Expanded(
-                child: Container(
-                  height: 50,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.grey.shade200),
-                  ),
-                  child: TextField(
-                    readOnly: true,
-                    onTap: () => Navigator.pushNamed(context, AppRoutes.search),
-                    decoration: InputDecoration(
-                      hintText: 'Search for water...',
-                      fillColor: Colors.white,
-                      filled: true,
-                      contentPadding: const EdgeInsets.symmetric(vertical: 0),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide.none,
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide.none,
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(
-                          color: AppColors.primary,
-                          width: 1.5,
-                        ),
-                      ),
-                      prefixIcon: const Icon(
-                        Icons.search,
-                        color: AppColors.primary,
-                      ),
-                      suffixIcon: const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          VerticalDivider(indent: 10, endIndent: 10),
-                          Icon(Icons.mic, color: AppColors.primary),
-                          SizedBox(width: 8),
-                        ],
-                      ),
-                    ),
+          Container(
+            height: 50,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.grey.shade200),
+            ),
+            child: TextField(
+              readOnly: true,
+              onTap: () => Navigator.pushNamed(context, AppRoutes.search),
+              decoration: InputDecoration(
+                hintText: 'Search for water...',
+                fillColor: Colors.white,
+                filled: true,
+                contentPadding: const EdgeInsets.symmetric(vertical: 0),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(
+                    color: AppColors.primary,
+                    width: 1.5,
                   ),
                 ),
+                prefixIcon: const Icon(
+                  Icons.search,
+                  color: AppColors.primary,
+                ),
+                suffixIcon: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    VerticalDivider(indent: 10, endIndent: 10),
+                    Icon(Icons.mic, color: AppColors.primary),
+                    SizedBox(width: 8),
+                  ],
+                ),
               ),
-            ],
+            ),
           ),
         ],
       ),

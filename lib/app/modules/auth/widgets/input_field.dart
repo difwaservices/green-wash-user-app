@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class InputField extends StatefulWidget {
   final String label;
@@ -8,6 +9,9 @@ class InputField extends StatefulWidget {
   final TextInputType keyboardType;
   final TextEditingController? controller;
 
+  final int? maxLength;
+  final List<TextInputFormatter>? inputFormatters;
+
   const InputField({
     super.key,
     required this.label,
@@ -16,6 +20,8 @@ class InputField extends StatefulWidget {
     this.isPassword = false,
     this.keyboardType = TextInputType.text,
     this.controller,
+    this.maxLength,
+    this.inputFormatters,
   });
 
   @override
@@ -87,12 +93,15 @@ class _InputFieldState extends State<InputField> {
               focusNode: _focusNode,
               obscureText: _obscureText,
               keyboardType: widget.keyboardType,
+              maxLength: widget.maxLength,
+              inputFormatters: widget.inputFormatters,
               style: const TextStyle(fontSize: 15, color: Color(0xFF1E293B)),
               decoration: InputDecoration(
                 hintText: widget.hintText,
                 hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 14),
                 prefixIcon: Icon(widget.prefixIcon, size: 20, color: const Color(0xFF94A3B8)),
                 border: InputBorder.none,
+                counterText: '', // Hide default character counter
                 contentPadding: const EdgeInsets.symmetric(vertical: 16),
                 suffixIcon: widget.isPassword
                     ? GestureDetector(

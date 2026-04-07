@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../../data/models/food_models.dart';
 import '../../../data/services/db_service.dart';
 import '../../../core/constants/app_colors.dart';
@@ -194,6 +195,8 @@ class _AddressFormPageState extends State<AddressFormPage> {
                 hint: '123456',
                 icon: Icons.pin_drop_outlined,
                 keyboardType: TextInputType.number,
+                maxLength: 6,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 validator: (v) {
                   if (v!.isEmpty) return 'Please enter pincode';
                   if (!RegExp(r'^\d{6}$').hasMatch(v)) {
@@ -256,6 +259,8 @@ class _AddressFormPageState extends State<AddressFormPage> {
     required String hint,
     required IconData icon,
     TextInputType? keyboardType,
+    int? maxLength,
+    List<TextInputFormatter>? inputFormatters,
     String? Function(String?)? validator,
   }) {
     return Column(
@@ -274,8 +279,11 @@ class _AddressFormPageState extends State<AddressFormPage> {
           controller: controller,
           validator: validator,
           keyboardType: keyboardType,
+          maxLength: maxLength,
+          inputFormatters: inputFormatters,
           style: const TextStyle(fontWeight: FontWeight.w500),
           decoration: InputDecoration(
+            counterText: '',
             hintText: hint,
             hintStyle: TextStyle(color: Colors.grey.shade400, fontWeight: FontWeight.w400),
             prefixIcon: Icon(icon, size: 22, color: Colors.grey),

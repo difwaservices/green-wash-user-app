@@ -12,15 +12,28 @@ import 'app/data/services/db_service.dart';
 import 'app/core/theme/app_theme.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'app/data/services/fcm_service.dart';
+import 'app/data/models/food_models.dart';
+import 'app/core/constants/app_images.dart';
+import 'app/modules/auth/provider/auth_provider.dart';
 import 'firebase_options.dart';
 
 final cartProviderManager = Provider<CartProvider>((ref) {
+  final user = ref.watch(currentUserProvider);
+
   return CartProvider(
     service: ref.watch(cartServiceProvider),
     walletService: ref.watch(walletServiceProvider),
     addressService: ref.watch(addressServiceProvider),
     shopService: ref.watch(shopServiceProvider),
     orderService: ref.watch(orderServiceProvider),
+    user: user != null
+        ? UserProfile(
+            name: user.fullName,
+            email: user.email,
+            phone: user.phoneNumber,
+            profileImage: AppImages.defaultAvatar,
+          )
+        : null,
   );
 });
 
@@ -56,6 +69,7 @@ class DifwaWaterApp extends ConsumerWidget {
       provider: cartProvider,
       child: MaterialApp(
         title: 'Difwa Water',
+        navigatorKey: FCMService.navigatorKey,
         debugShowCheckedModeBanner: false,
         theme: AppTheme.lightTheme,
         initialRoute: AppRoutes.splash,

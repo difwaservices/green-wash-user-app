@@ -28,7 +28,7 @@ class _ContactUsPageState extends ConsumerState<ContactUsPage> {
         'type': 'Contact',
         'subject': _subjectController.text,
         'message': _messageController.text,
-      });
+      }, requiresAuth: true);
 
       if (mounted) {
         if (data['success']) {

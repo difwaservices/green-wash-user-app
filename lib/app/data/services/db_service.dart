@@ -23,15 +23,22 @@ class CartProvider extends ChangeNotifier {
     AddressService? addressService,
     ShopService? shopService,
     OrderService? orderService,
+    UserProfile? user,
   })  : _service = service,
         _walletService = walletService,
         _addressService = addressService,
         _shopService = shopService,
         _orderService = orderService {
+    if (user != null) {
+      _userProfile = user;
+    }
     loadCategories();
     loadAddresses();
     syncWallet();
     loadShops();
+    if (isLoggedIn) {
+      loadCartFromApi();
+    }
   }
 
   // ── Getters ───────────────────────────────────────────────────────────────
@@ -78,18 +85,32 @@ class CartProvider extends ChangeNotifier {
   double get walletBalance => _walletBalance;
   List<dynamic> get transactions => _transactions;
 
+  bool _isWalletSyncing = false;
   Future<void> syncWallet() async {
-    if (_walletService == null) return;
+    if (_walletService == null || _isWalletSyncing) return;
+    _isWalletSyncing = true;
     try {
       final result = await _walletService!.getBalance();
       if (result['success']) {
         _walletBalance = (result['balance'] as num).toDouble();
-        notifyListeners();
       }
       _transactions = await _walletService!.getTransactionHistory();
       notifyListeners();
     } catch (e) {
       debugPrint('CartProvider: Error syncing wallet: $e');
+    } finally {
+      _isWalletSyncing = false;
+    }
+  }
+
+  Future<void> syncOrders() async {
+    if (_orderService == null) return;
+    try {
+      final history = await _orderService!.getMyOrders();
+      _orders = history;
+      notifyListeners();
+    } catch (e) {
+      debugPrint('CartProvider: Error syncing orders: $e');
     }
   }
 
@@ -327,8 +348,8 @@ class CartProvider extends ChangeNotifier {
 
   int get itemCount => _items.fold(0, (sum, item) => sum + item.quantity);
   double get subtotal => _items.fold(0.0, (sum, item) => sum + item.totalPrice);
-  double get shippingCharges => _items.isEmpty ? 0.0 : 1.6;
-  double get total => subtotal + shippingCharges;
+  double get shippingCharges => 0.0;
+  double get total => subtotal;
 
   bool isInCart(String title) {
     return _items.any((item) => item.title == title);

@@ -20,7 +20,7 @@ class LocationTaskHandler extends TaskHandler {
     if (!dotenv.isInitialized) {
       await dotenv.load();
     }
-    final apiClient = ApiClient();
+    final apiClient = ApiClient.createDefault();
     _riderService = RiderService(apiClient);
   }
 

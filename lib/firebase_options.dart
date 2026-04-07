@@ -41,48 +41,48 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyDBkIEDcdXJgHvjc9PWgu1NB8EfPTr4EmU',
-    appId: '1:318884564100:web:ea8cc6c6a23be63b0586d1',
-    messagingSenderId: '318884564100',
-    projectId: 'difwa-water',
-    authDomain: 'difwa-water.firebaseapp.com',
-    storageBucket: 'difwa-water.firebasestorage.app',
-    measurementId: 'G-NQBLS027XM',
+    apiKey: 'AIzaSyBGx-JoxvVU6Ag-GoJyZd--IjjsJbOEpvQ',
+    appId: '1:501607990708:web:c4843b280e0e57da07dee1',
+    messagingSenderId: '501607990708',
+    projectId: 'difwa-continue',
+    authDomain: 'difwa-continue.firebaseapp.com',
+    storageBucket: 'difwa-continue.firebasestorage.app',
+    measurementId: 'G-S2CK0RM7NZ',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyC42MMuG3Srmh68RxlnT5tJd90_tTClAsc',
-    appId: '1:318884564100:android:b533204c5a0d62aa0586d1',
-    messagingSenderId: '318884564100',
-    projectId: 'difwa-water',
-    storageBucket: 'difwa-water.firebasestorage.app',
+    apiKey: 'AIzaSyAERIRnyuyZtBJZbqmzrHfoL8ewuCwCULM',
+    appId: '1:501607990708:android:93b6d3018a2652bb07dee1',
+    messagingSenderId: '501607990708',
+    projectId: 'difwa-continue',
+    storageBucket: 'difwa-continue.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyChRrBg6dDlq5mGZRq4WcmOr2V2JRveowQ',
-    appId: '1:318884564100:ios:f5cff5ff42c1cece0586d1',
-    messagingSenderId: '318884564100',
-    projectId: 'difwa-water',
-    storageBucket: 'difwa-water.firebasestorage.app',
+    apiKey: 'AIzaSyC-ITSfCWmUzloO_5nLad5DietFjZVNoHk',
+    appId: '1:501607990708:ios:934f13181fd41c3a07dee1',
+    messagingSenderId: '501607990708',
+    projectId: 'difwa-continue',
+    storageBucket: 'difwa-continue.firebasestorage.app',
     iosBundleId: 'com.difmo.difwa',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyChRrBg6dDlq5mGZRq4WcmOr2V2JRveowQ',
-    appId: '1:318884564100:ios:215bb2797a1c57330586d1',
-    messagingSenderId: '318884564100',
-    projectId: 'difwa-water',
-    storageBucket: 'difwa-water.firebasestorage.app',
+    apiKey: 'AIzaSyC-ITSfCWmUzloO_5nLad5DietFjZVNoHk',
+    appId: '1:501607990708:ios:6181875979b85f5b07dee1',
+    messagingSenderId: '501607990708',
+    projectId: 'difwa-continue',
+    storageBucket: 'difwa-continue.firebasestorage.app',
     iosBundleId: 'com.example.liciusApplication',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'AIzaSyDBkIEDcdXJgHvjc9PWgu1NB8EfPTr4EmU',
-    appId: '1:318884564100:web:3d9df80a6e4521060586d1',
-    messagingSenderId: '318884564100',
-    projectId: 'difwa-water',
-    authDomain: 'difwa-water.firebaseapp.com',
-    storageBucket: 'difwa-water.firebasestorage.app',
-    measurementId: 'G-DZ6ZQRLNQN',
+    apiKey: 'AIzaSyBGx-JoxvVU6Ag-GoJyZd--IjjsJbOEpvQ',
+    appId: '1:501607990708:web:b9abbafe55ef43f907dee1',
+    messagingSenderId: '501607990708',
+    projectId: 'difwa-continue',
+    authDomain: 'difwa-continue.firebaseapp.com',
+    storageBucket: 'difwa-continue.firebasestorage.app',
+    measurementId: 'G-QWNW1VW9BV',
   );
 }

@@ -21,7 +21,7 @@ class AuthService {
   final ApiClient _client;
   final Logger _logger = Logger();
 
-  AuthService({ApiClient? client}) : _client = client ?? ApiClient();
+  AuthService({required ApiClient client}) : _client = client;
 
   // ── Update Name (Requested Endpoint) ──────────────────────────────────────
   Future<AuthResponseModel> updateName({required String fullName}) async {

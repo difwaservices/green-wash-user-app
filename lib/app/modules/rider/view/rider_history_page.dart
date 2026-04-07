@@ -171,11 +171,6 @@ class _DeliveryHistoryCard extends StatelessWidget {
           }).join(', ')
         : 'No items info';
 
-    // ── Financials ───────────────────────────────────────────────────────────
-    final double total =
-        (item['totalAmount'] ?? item['grandTotal'] ?? item['total'] ?? 0)
-            .toDouble();
-
     Future<void> launchCall(String phone) async {
       if (phone.isEmpty) return;
       final uri = Uri.parse('tel:$phone');
@@ -308,33 +303,7 @@ class _DeliveryHistoryCard extends StatelessWidget {
               maxLines: 2,
             ),
 
-            const SizedBox(height: 20),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF9FBF8),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'Total Amount',
-                    style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.grey),
-                  ),
-                  Text(
-                    '₹${total.toStringAsFixed(0)}',
-                    style: const TextStyle(
-                        fontWeight: FontWeight.w900,
-                        fontSize: 22,
-                        color: Color(0xFF1B2D1F)),
-                  ),
-                ],
-              ),
-            ),
+            const SizedBox(height: 8),
           ],
         ),
       ),

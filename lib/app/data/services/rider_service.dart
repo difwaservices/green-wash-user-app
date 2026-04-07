@@ -110,7 +110,7 @@ class RiderService {
 
       // Step 2: notify socket server (fire-and-forget)
       try {
-        final socketUrl = dotenv.env['SOCKET_URL'] ?? 'https://difwa-backend.vercel.app';
+        final socketUrl = dotenv.env['SOCKET_URL'] ?? 'https://difwa-continue-backend.vercel.app';
         final dio = Dio(BaseOptions(baseUrl: socketUrl));
         await dio.post(
           '/api/order/delivered',

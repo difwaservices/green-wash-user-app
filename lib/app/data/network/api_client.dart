@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 import '../../../core/api/auth_interceptor.dart';
-import '../../../core/api/api_provider.dart';
+import '../../../core/api/api_provider.dart'; // Added for storageServiceProvider
 import '../../../core/storage/secure_storage_service.dart';
 
 /// Thrown when the server returns a non-2xx status or an error occurs.
@@ -22,17 +22,26 @@ class ApiException implements Exception {
   }
 }
 
-/// Provider for ApiClient
+/// Provider for ApiClient - The single source of truth for Dio configuration
 final apiClientProvider = Provider<ApiClient>((ref) {
+  final rawBaseUrl =
+      dotenv.env['API_BASE_URL'] ?? 'https://difwa-continue-backend.vercel.app/api';
+
+  // Normalize base URL: ensure it doesn't have a trailing slash
+  final normalizedBaseUrl = rawBaseUrl.endsWith('/')
+      ? rawBaseUrl.substring(0, rawBaseUrl.length - 1)
+      : rawBaseUrl;
+
   final dio = Dio(BaseOptions(
-    baseUrl:
-        dotenv.env['API_BASE_URL'] ?? 'https://difwa-backend.vercel.app/api',
+    baseUrl: normalizedBaseUrl,
     connectTimeout: const Duration(seconds: 60),
     receiveTimeout: const Duration(seconds: 60),
     contentType: Headers.jsonContentType,
   ));
 
+  // Inject storage service directly from Riverpod
   final storage = ref.watch(storageServiceProvider);
+
   dio.interceptors.addAll([
     AuthInterceptor(dio, storage),
     PrettyDioLogger(
@@ -50,7 +59,7 @@ final apiClientProvider = Provider<ApiClient>((ref) {
 });
 
 class ApiClient {
-  // ── Production Base URLs (Relative to API_BASE_URL) ────────────────────────
+  // ── Module Base Paths ──────────────────────────────────────────────────
   static const String baseUrl = '/app';
   static const String riderBaseUrl = '/rider';
   static const String otpBaseUrl = '/otp';
@@ -61,12 +70,19 @@ class ApiClient {
 
   final Dio _dio;
 
-  ApiClient([Dio? dio]) : _dio = dio ?? _createDefaultDio();
+  ApiClient(this._dio);
 
-  static Dio _createDefaultDio() {
+  /// Standard factory for non-DI contexts (like static services).
+  /// Strictly follows the rule: only the ApiClient class knows how its Dio should be configured.
+  factory ApiClient.createDefault() {
+    final rawBaseUrl =
+        dotenv.env['API_BASE_URL'] ?? 'https://difwa-continue-backend.vercel.app/api';
+    final normalizedBaseUrl = rawBaseUrl.endsWith('/')
+        ? rawBaseUrl.substring(0, rawBaseUrl.length - 1)
+        : rawBaseUrl;
+
     final dio = Dio(BaseOptions(
-      baseUrl:
-          dotenv.env['API_BASE_URL'] ?? 'https://difwa-backend.vercel.app/api',
+      baseUrl: normalizedBaseUrl,
       connectTimeout: const Duration(seconds: 60),
       receiveTimeout: const Duration(seconds: 60),
       contentType: Headers.jsonContentType,
@@ -75,37 +91,24 @@ class ApiClient {
     final storage = SecureStorageService();
     dio.interceptors.addAll([
       AuthInterceptor(dio, storage),
-      PrettyDioLogger(
-        requestHeader: true,
-        requestBody: true,
-        responseBody: true,
-        error: true,
-        compact: true,
-      ),
     ]);
-    return dio;
+
+    return ApiClient(dio);
   }
 
-  String _buildUrl(String path) {
-    if (path.startsWith('http')) return path;
-    var base =
-        dotenv.env['API_BASE_URL'] ?? 'https://difwa-backend.vercel.app/api';
-    if (base.endsWith('/')) base = base.substring(0, base.length - 1);
-    var p = path;
-    if (!p.startsWith('/')) p = '/$p';
-    final fullUrl = base + p;
-    // debugPrint('📡 Raw Request URL: $fullUrl');
-    return fullUrl;
-  }
+  // ── Helper to ensure leading slash ──────────────────────────────────────
+  String _normalizePath(String path) => path.startsWith('/') ? path : '/$path';
 
-  // ── HTTP Methods (Bypassed) ────────────────────────────────────────────────
+  // ── HTTP Methods ────────────────────────────────────────────────────────
 
-  Future<dynamic> get(String path,
-      {Map<String, dynamic>? queryParameters,
-      bool requiresAuth = false}) async {
+  Future<dynamic> get(
+    String path, {
+    Map<String, dynamic>? queryParameters,
+    bool requiresAuth = false,
+  }) async {
     try {
       final response = await _dio.get(
-        _buildUrl(path),
+        _normalizePath(path),
         queryParameters: queryParameters,
         options: Options(extra: {'requiresAuth': requiresAuth}),
       );
@@ -115,11 +118,14 @@ class ApiClient {
     }
   }
 
-  Future<dynamic> post(String path,
-      {dynamic data, bool requiresAuth = false}) async {
+  Future<dynamic> post(
+    String path, {
+    dynamic data,
+    bool requiresAuth = false,
+  }) async {
     try {
       final response = await _dio.post(
-        _buildUrl(path),
+        _normalizePath(path),
         data: data,
         options: Options(extra: {'requiresAuth': requiresAuth}),
       );
@@ -129,11 +135,14 @@ class ApiClient {
     }
   }
 
-  Future<dynamic> put(String path,
-      {dynamic data, bool requiresAuth = false}) async {
+  Future<dynamic> put(
+    String path, {
+    dynamic data,
+    bool requiresAuth = false,
+  }) async {
     try {
       final response = await _dio.put(
-        _buildUrl(path),
+        _normalizePath(path),
         data: data,
         options: Options(extra: {'requiresAuth': requiresAuth}),
       );
@@ -143,11 +152,14 @@ class ApiClient {
     }
   }
 
-  Future<dynamic> patch(String path,
-      {dynamic data, bool requiresAuth = false}) async {
+  Future<dynamic> patch(
+    String path, {
+    dynamic data,
+    bool requiresAuth = false,
+  }) async {
     try {
       final response = await _dio.patch(
-        _buildUrl(path),
+        _normalizePath(path),
         data: data,
         options: Options(extra: {'requiresAuth': requiresAuth}),
       );
@@ -157,11 +169,14 @@ class ApiClient {
     }
   }
 
-  Future<dynamic> delete(String path,
-      {dynamic data, bool requiresAuth = false}) async {
+  Future<dynamic> delete(
+    String path, {
+    dynamic data,
+    bool requiresAuth = false,
+  }) async {
     try {
       final response = await _dio.delete(
-        _buildUrl(path),
+        _normalizePath(path),
         data: data,
         options: Options(extra: {'requiresAuth': requiresAuth}),
       );
@@ -172,25 +187,40 @@ class ApiClient {
   }
 
   ApiException _handleError(DioException e) {
+    // 1. Handle Timeouts
+    if (e.type == DioExceptionType.connectionTimeout ||
+        e.type == DioExceptionType.receiveTimeout ||
+        e.type == DioExceptionType.sendTimeout) {
+      return const ApiException(
+          message:
+              'Connection timed out. Please check your internet connection.');
+    }
+
+    // 2. Handle Response Errors
     if (e.response != null) {
       final data = e.response?.data;
-      String message = e.message ?? 'Server error';
+      String message = 'An unexpected server error occurred.';
+
       if (data is Map) {
-        message = data['message']?.toString() ?? message;
-      } else if (data is String && data.isNotEmpty) {
-        // If it's a string but doesn't look like HTML, use it
-        if (!data.contains('<html')) {
-          message = data;
-        }
+        // Extract message from common keys
+        message =
+            data['message']?.toString() ?? data['error']?.toString() ?? message;
+      } else if (data is String && data.isNotEmpty && !data.contains('<html')) {
+        message = data;
       }
+
       return ApiException(statusCode: e.response?.statusCode, message: message);
     }
-    return ApiException(message: e.message ?? 'Network error');
+
+    // 3. Handle Other Errors (Network, etc.)
+    return ApiException(
+        message: e.message ?? 'A network error occurred. Please try again.');
   }
 
   // ── Helper static methods for token access ──────────────────────────────
   static Future<String?> getToken() async =>
       await SecureStorageService().getAccessToken();
+
   static Future<void> saveToken(String token) async {
     final storage = SecureStorageService();
     final refresh = await storage.getRefreshToken();

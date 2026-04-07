@@ -5,13 +5,6 @@ import '../../../data/services/wallet_service.dart';
 import 'package:intl/intl.dart';
 import '../../../core/constants/app_colors.dart';
 
-// Provider for filtered wallet transactions
-final walletTransactionsProvider =
-    FutureProvider.autoDispose<List<WalletTransaction>>((ref) async {
-  final rawData = await ref.read(walletServiceProvider).getTransactionHistory();
-  return rawData.map((json) => WalletTransaction.fromJson(json)).toList();
-});
-
 class WalletStatementScreen extends ConsumerStatefulWidget {
   const WalletStatementScreen({super.key});
 

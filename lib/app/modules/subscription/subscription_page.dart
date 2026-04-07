@@ -5,7 +5,7 @@ import '../../data/models/food_models.dart';
 import '../../data/models/subscription_model.dart';
 import '../../data/services/subscription_service.dart';
 import '../../data/services/order_service.dart';
-import '../../modules/wallet/view/wallet_page.dart' show walletBalanceProvider;
+import '../../data/services/wallet_service.dart' show walletBalanceProvider;
 import '../orders/view/order_tracking_page.dart';
 
 class SubscriptionPage extends ConsumerStatefulWidget {
@@ -296,16 +296,27 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage> {
           orderDate.year == _selectedDate.year;
     }).toList();
 
+    final anySubOnVacation = subs.any((s) =>
+        s.status == 'Active' &&
+        s.vacationDates.any((vd) =>
+            vd.day == _selectedDate.day &&
+            vd.month == _selectedDate.month &&
+            vd.year == _selectedDate.year));
+
     final hasDelivery = deliveringSubs.isNotEmpty || ordersForDate.isNotEmpty;
 
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: const Color(0xFFCFFAFE).withValues(alpha: 0.5),
+        color: anySubOnVacation
+            ? Colors.blue.withValues(alpha: 0.05)
+            : const Color(0xFFCFFAFE).withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(24),
-        border:
-            Border.all(color: const Color(0xFF06B6D4).withValues(alpha: 0.2)),
+        border: Border.all(
+            color: anySubOnVacation
+                ? Colors.blue.withValues(alpha: 0.2)
+                : const Color(0xFF06B6D4).withValues(alpha: 0.2)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -316,11 +327,19 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage> {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
-                  color: hasDelivery ? const Color(0xFF06B6D4) : Colors.grey,
+                  color: hasDelivery
+                      ? const Color(0xFF06B6D4)
+                      : anySubOnVacation
+                          ? Colors.blue
+                          : Colors.grey,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
-                  hasDelivery ? 'SCHEDULED' : 'NO DELIVERY',
+                  hasDelivery
+                      ? 'SCHEDULED'
+                      : anySubOnVacation
+                          ? 'ON VACATION'
+                          : 'NO DELIVERY',
                   style: const TextStyle(
                       color: Colors.white,
                       fontSize: 10,
@@ -376,11 +395,14 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage> {
           ),
           const SizedBox(height: 16),
           if (!hasDelivery)
-            const Center(
+            Center(
               child: Padding(
-                padding: EdgeInsets.symmetric(vertical: 12),
-                child: Text('No deliveries scheduled for this day.',
-                    style: TextStyle(color: Colors.grey)),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                child: Text(
+                    anySubOnVacation
+                        ? 'Deliveries are paused for this day.'
+                        : 'No deliveries scheduled for this day.',
+                    style: const TextStyle(color: Colors.grey)),
               ),
             )
           else ...[
@@ -730,7 +752,7 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage> {
 
   Widget _buildQuickActions(List<UserSubscription> subs) {
     final now = DateTime.now();
-    final isAfterDeadline = now.hour >= 23; // 11 PM Test Deadline
+    final isAfterDeadline = now.hour >= 20; // 8 PM Deadline
 
     final isVacationOn = subs.any((s) =>
         s.status == 'Active' &&
@@ -756,7 +778,7 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'Deadline passed (11 PM). Tomorrow\'s delivery is locked.',
+                    'Deadline passed (8 PM). Tomorrow\'s delivery is locked.',
                     style: TextStyle(
                       color: Colors.orange[800],
                       fontSize: 12,
@@ -787,9 +809,7 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage> {
                 icon: Icons.flight_takeoff,
                 label: isVacationOn ? 'Vacation: ON' : 'Vacation: OFF',
                 color: isVacationOn ? Colors.blue : Colors.redAccent,
-                // Allow clicking even after deadline IF they want to turn it OFF
-                // OR if they want to turn it ON for dates beyond tomorrow.
-                onTap: (subs.isEmpty)
+                onTap: (subs.isEmpty || isAfterDeadline)
                     ? null
                     : () => _toggleVacationMode(subs, isVacationOn),
               ),
@@ -829,30 +849,43 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage> {
 
   void _toggleVacationMode(
       List<UserSubscription> subs, bool isCurrentlyOn) async {
+    final now = DateTime.now();
+    final isAfterDeadline = now.hour >= 20; // 8 PM Deadline
+
+    if (isAfterDeadline && !isCurrentlyOn) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Cannot start vacation for tomorrow after 8 PM.'),
+          backgroundColor: Colors.orange,
+        ));
+      }
+      return;
+    }
+
     final activeSubs = subs.where((s) => s.status == 'Active').toList();
     if (activeSubs.isEmpty) return;
 
     if (isCurrentlyOn) {
-      // Turn Vacation Mode OFF by setting dates in the past (or clearing via API logic)
-      final past = DateTime.now().subtract(const Duration(days: 2));
+      // Turn Vacation Mode OFF but ensure today stays as vacation 
+      // Deliveries will explicitly resume from tomorrow.
+      final todayStart = DateTime(now.year, now.month, now.day);
+      final pastStart = todayStart.subtract(const Duration(days: 1)); 
+
       for (final sub in activeSubs) {
         await ref.read(mySubscriptionsProvider.notifier).updateVacation(
               subscriptionId: sub.id,
-              startDate: past,
-              endDate: past,
+              startDate: pastStart,
+              endDate: todayStart,
             );
       }
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('Vacation mode turned OFF!'),
+          content: Text('Vacation Mode OFF! Deliveries resume from tomorrow.'),
           backgroundColor: Colors.orange,
         ));
       }
     } else {
-      final now = DateTime.now();
-      final isAfterDeadline = now.hour >= 12; // Test Deadline
-
-      // Calculate first selectable date based on deadline
+      // First possible date depends on 8 PM deadline
       DateTime firstPossibleDate = now.add(const Duration(days: 1));
       if (isAfterDeadline) {
         firstPossibleDate = now.add(const Duration(days: 2));

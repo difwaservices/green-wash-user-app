@@ -3,18 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../routes/app_routes.dart';
 import '../../../data/services/wallet_service.dart';
 
-// Provider for wallet balance
-final walletBalanceProvider = FutureProvider.autoDispose<double>((ref) async {
-  final result = await ref.read(walletServiceProvider).getBalance();
-  return (result['balance'] as num?)?.toDouble() ?? 0.0;
-});
-
-// Provider for transaction history
-final walletHistoryProvider =
-    FutureProvider.autoDispose<List<dynamic>>((ref) async {
-  return ref.read(walletServiceProvider).getTransactionHistory();
-});
-
 class WalletPage extends ConsumerWidget {
   const WalletPage({super.key});
 

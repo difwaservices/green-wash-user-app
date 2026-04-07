@@ -3,6 +3,7 @@ import '../../../core/constants/app_colors.dart';
 import 'package:flutter/services.dart';
 import '../../../data/services/db_service.dart';
 import '../widgets/home_header.dart';
+import '../../../data/services/wallet_service.dart';
 import '../widgets/home_banner.dart';
 import '../widgets/restaurant_list_section.dart';
 
@@ -29,6 +30,8 @@ class HomePage extends ConsumerWidget {
               await ref.read(shopsListProvider.notifier).refresh();
               CartProviderScope.of(context).loadAddresses();
               CartProviderScope.of(context).syncWallet();
+              ref.invalidate(walletBalanceProvider);
+              ref.invalidate(walletHistoryProvider);
             },
             color: AppColors.primary,
             child: CustomScrollView(

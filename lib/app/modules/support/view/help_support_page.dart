@@ -38,7 +38,7 @@ class _HelpSupportPageState extends ConsumerState<HelpSupportPage> {
         'type': 'Help',
         'subject': '[$_selectedCategory] ${_subjectController.text}',
         'message': _messageController.text,
-      });
+      }, requiresAuth: true);
 
       if (mounted) {
         if (data['success']) {

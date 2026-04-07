@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "501607990708",
+    "project_id": "difwa-continue",
+    "storage_bucket": "difwa-continue.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:501607990708:android:0f892efd606166ca07dee1",
+        "android_client_info": {
+          "package_name": "com.difmo.difwa"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAERIRnyuyZtBJZbqmzrHfoL8ewuCwCULM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

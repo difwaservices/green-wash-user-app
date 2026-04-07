@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import '../network/api_client.dart';
@@ -13,6 +13,8 @@ class FCMService {
   static final FCMService _instance = FCMService._internal();
   factory FCMService() => _instance;
   FCMService._internal();
+
+  static final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
   static final FlutterLocalNotificationsPlugin _localNotifications =
       FlutterLocalNotificationsPlugin();
@@ -58,13 +60,50 @@ class FCMService {
         showNotification(
           title: message.notification!.title ?? 'New Notification',
           body: message.notification!.body ?? '',
+          payload: message.data.toString(),
         );
+      }
+    });
+
+    // Handle interaction when app is in background but not terminated
+    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+      debugPrint('🔔 Notification caused app to open from background!');
+      _handleNotificationClick(message);
+    });
+
+    // Handle interaction when app is terminated
+    FirebaseMessaging.instance.getInitialMessage().then((RemoteMessage? message) {
+      if (message != null) {
+        debugPrint('🔔 Notification caused app to open from terminated state!');
+        _handleNotificationClick(message);
       }
     });
 
     listenToTokenRefresh();
 
+    // Initial token send (if user is already logged in)
+    await sendTokenToBackend();
+
     debugPrint('✅ FCMService initialized (Real Firebase)');
+  }
+
+  static void _handleNotificationClick(RemoteMessage message) {
+    debugPrint('🔔 Navigating from notification: ${message.data}');
+    
+    final context = navigatorKey.currentContext;
+    if (context == null) return;
+
+    // Example based on common FCM payloads
+    final type = message.data['type'];
+    final id = message.data['id'] ?? message.data['orderId'];
+
+    if (type == 'ORDER' || type == 'NEW_ORDER') {
+      Navigator.pushNamed(context, '/track-order', arguments: {'orderId': id});
+    } else if (type == 'RIDER_ORDER') {
+      Navigator.pushNamed(context, '/rider-order-details', arguments: {'orderId': id});
+    } else if (type == 'WALLET') {
+      Navigator.pushNamed(context, '/wallet');
+    }
   }
 
   Future<void> requestPermission() async {
@@ -101,7 +140,7 @@ class FCMService {
       final authToken = await storage.getAccessToken();
       if (authToken == null) return;
 
-      final client = ApiClient();
+      final client = ApiClient.createDefault();
       await client.post(
         '${ApiClient.baseUrl}/update-fcm-token',
         data: {'fcmToken': token},

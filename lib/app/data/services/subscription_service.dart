@@ -79,9 +79,18 @@ class SubscriptionNotifier extends AsyncNotifier<List<UserSubscription>> {
                   vacationDates: [...s.vacationDates, startDate]);
             }
           } else {
-            // For range updates (Vacation Mode ON), we simplify for UI feedback
+            // For range updates (Vacation Mode ON), we add all dates in range
+            final rangeDates = <DateTime>[];
+            var current = DateTime(startDate.year, startDate.month, startDate.day);
+            final endDay = DateTime(endDate.year, endDate.month, endDate.day);
+            
+            while (!current.isAfter(endDay)) {
+              rangeDates.add(current);
+              current = current.add(const Duration(days: 1));
+            }
+
             return s.copyWith(
-                vacationDates: [...s.vacationDates, startDate, endDate]);
+                vacationDates: [...s.vacationDates, ...rangeDates]);
           }
         }
         return s;
@@ -107,7 +116,7 @@ class SubscriptionNotifier extends AsyncNotifier<List<UserSubscription>> {
 class SubscriptionService {
   final ApiClient _client;
 
-  SubscriptionService({ApiClient? client}) : _client = client ?? ApiClient();
+  SubscriptionService({ApiClient? client}) : _client = client ?? ApiClient.createDefault();
 
   /// Fetch all available subscription plans.
   Future<List<SubscriptionPlan>> getSubscriptions() async {

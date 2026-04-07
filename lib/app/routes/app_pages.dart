@@ -69,7 +69,10 @@ class AppPages {
         AppRoutes.riderOrderDetails: (context) {
           final args = ModalRoute.of(context)?.settings.arguments
               as Map<String, dynamic>?;
-          return RiderOrderDetailsPage(order: args?['order'] ?? {});
+          return RiderOrderDetailsPage(
+            order: args?['order'] ?? {},
+            orderId: args?['orderId'],
+          );
         },
         AppRoutes.locationPicker: (context) => const LocationPickerScreen(),
         AppRoutes.payment: (context) => const PaymentPage(),

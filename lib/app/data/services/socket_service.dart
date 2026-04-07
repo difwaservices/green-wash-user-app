@@ -12,7 +12,8 @@ import '../../../core/storage/secure_storage_service.dart';
 class SocketService {
   static const String _orderUpdateEvent = 'orderUpdate';
   static const String _riderAssignedEvent = 'riderAssigned';
-  static const String _newOrderEvent = 'newOrderAssigned'; // rider receives new order
+  static const String _newOrderEvent =
+      'newOrderAssigned'; // rider receives new order
 
   io.Socket? _socket;
   bool _initialized = false;
@@ -34,15 +35,11 @@ class SocketService {
   }
 
   Future<void> connect(SecureStorageService storage) async {
-    // TEMPORARILY DISABLED
-    debugPrint('🔌 SocketService: Connection is temporarily disabled.');
-    return;
-    
     if (_initialized && (_socket?.connected ?? false)) return;
 
     final token = await storage.getAccessToken();
-    final baseUrl = dotenv.env['SOCKET_URL'] ?? 'wss://difwa-backend.vercel.app';
-    final apiBaseUrl = dotenv.env['API_BASE_URL'] ?? 'https://difwa-backend.vercel.app/api';
+    final baseUrl = dotenv.env['SOCKET_URL'] ?? 'wss://difwa-continue-backend.vercel.app';
+    final apiBaseUrl = dotenv.env['API_BASE_URL'] ?? 'https://difwa-continue-backend.vercel.app/api';
 
     // 1. Poke Render (both API and Socket URLs) to wake up
     unawaited(_wakeUpRender(baseUrl));
