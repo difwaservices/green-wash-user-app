@@ -26,7 +26,28 @@ class SubscriptionDashboardPage extends ConsumerWidget {
             : _buildSubscriptionList(context, ref, subscriptions),
         loading: () => const Center(
             child: CircularProgressIndicator(color: AppColors.accentGreen)),
-        error: (err, stack) => Center(child: Text('Error: $err')),
+        error: (err, stack) => Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.cloud_off_rounded, size: 64, color: Colors.grey.shade300),
+              const SizedBox(height: 16),
+              const Text('Could not load subscriptions',
+                  style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey, fontSize: 16)),
+              const SizedBox(height: 8),
+              const Text('Check your connection and try again',
+                  style: TextStyle(color: Colors.grey, fontSize: 13)),
+              const SizedBox(height: 20),
+              ElevatedButton.icon(
+                onPressed: () => ref.invalidate(mySubscriptionsProvider),
+                icon: const Icon(Icons.refresh, size: 18),
+                label: const Text('Retry'),
+                style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primaryDark, foregroundColor: Colors.white),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -92,7 +113,7 @@ class SubscriptionDashboardPage extends ConsumerWidget {
                 ClipRRect(
                   borderRadius: BorderRadius.circular(12),
                   child: sub.productImage.isNotEmpty
-                      ? Image.asset(sub.productImage,
+                      ? Image.network(sub.productImage,
                           width: 60,
                           height: 60,
                           fit: BoxFit.cover,
@@ -116,7 +137,8 @@ class SubscriptionDashboardPage extends ConsumerWidget {
                           style: const TextStyle(
                               fontWeight: FontWeight.bold, fontSize: 16)),
                       const SizedBox(height: 4),
-                      Text('${sub.frequency} • Qty: ${sub.quantity}',
+                      Text(
+                          '${sub.frequency} • ₹${sub.price.toStringAsFixed(0)} / bottle • Total: ₹${(sub.price * sub.quantity).toStringAsFixed(0)}',
                           style: TextStyle(
                               color: Colors.grey.shade600, fontSize: 13)),
                     ],
@@ -182,7 +204,9 @@ class SubscriptionDashboardPage extends ConsumerWidget {
                               fontWeight: FontWeight.bold)),
                       const SizedBox(height: 2),
                       Text(
-                        isActive ? "Tomorrow, 7:00 AM" : "Paused",
+                        isActive 
+                            ? "Tomorrow, ${sub.deliverySlot ?? 'Morning Slot'}" 
+                            : "Paused",
                         style: TextStyle(
                           color: isActive ? AppColors.accentGreen : Colors.red,
                           fontWeight: FontWeight.bold,

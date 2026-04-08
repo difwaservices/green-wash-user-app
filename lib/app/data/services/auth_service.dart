@@ -9,6 +9,10 @@ final authServiceProvider = Provider<AuthService>((ref) {
 });
 
 final userProfileProvider = FutureProvider.autoDispose<UserModel>((ref) async {
+  // keepAlive: Profile page prefers authStoreProvider (no network call).
+  // This provider is only a fallback — cache it for the session to avoid
+  // re-fetching every time the user navigates away from Profile and returns.
+  ref.keepAlive();
   final response = await ref.watch(authServiceProvider).getProfile();
   if (response.success && response.data != null) {
     return response.data!;
@@ -39,76 +43,6 @@ class AuthService {
     }
   }
 
-  Future<AuthResponseModel> register({
-    required String fullName,
-    required String email,
-    required String phoneNumber,
-    required String password,
-    required String confirmPassword,
-  }) async {
-    try {
-      final fcmToken = await FCMService().getToken();
-      final data = await _client.post(
-        '${ApiClient.baseUrl}/register',
-        data: {
-          'fullName': fullName,
-          'email': email,
-          'phoneNumber': phoneNumber,
-          'password': password,
-          'confirmPassword': confirmPassword,
-          'fcmToken': fcmToken,
-        },
-      );
-      return AuthResponseModel.fromJson(data);
-    } on ApiException catch (e) {
-      return AuthResponseModel(success: false, message: e.message);
-    } catch (e) {
-      return AuthResponseModel(success: false, message: e.toString());
-    }
-  }
-
-  // ── Login ─────────────────────────────────────────────────────────────────
-  Future<AuthResponseModel> login({
-    required String identifier,
-    required String password,
-  }) async {
-    try {
-      bool isPhone = RegExp(r'^[0-9+]+$').hasMatch(identifier.trim());
-      final Map<String, dynamic> dataPayload = {
-        'password': password,
-      };
-      if (isPhone) {
-        dataPayload['phoneNumber'] = identifier;
-      } else {
-        dataPayload['email'] = identifier;
-      }
-
-      try {
-        final fcmToken = await FCMService().getToken();
-        if (fcmToken != null) {
-          dataPayload['fcmToken'] = fcmToken;
-        }
-      } catch (e) {
-        _logger.w('Could not fetch FCM Token for login: $e');
-      }
-
-      final data = await _client.post(
-        '${ApiClient.baseUrl}/login',
-        data: dataPayload,
-      );
-      final response = AuthResponseModel.fromJson(data);
-      if (response.success &&
-          response.token != null &&
-          response.token!.isNotEmpty) {
-        await ApiClient.saveToken(response.token!);
-      }
-      return response;
-    } on ApiException catch (e) {
-      return AuthResponseModel(success: false, message: e.message);
-    } catch (e) {
-      return AuthResponseModel(success: false, message: e.toString());
-    }
-  }
 
   Future<AuthResponseModel> sendOtp({
     required String phoneNumber,
@@ -164,46 +98,6 @@ class AuthService {
       return AuthResponseModel(success: false, message: e.message);
     } catch (e) {
       return AuthResponseModel(success: false, message: e.toString());
-    }
-  }
-
-  // ── Forgot / Change Password ───────────────────────────────────────────────
-  Future<AuthResponseModel> forgotPassword({
-    required String email,
-  }) async {
-    try {
-      final data = await _client.post(
-        '${ApiClient.baseUrl}/forgot-password',
-        data: {'email': email},
-      );
-      return AuthResponseModel.fromJson(data);
-    } on ApiException catch (e) {
-      return AuthResponseModel(success: false, message: e.message);
-    } catch (e) {
-      return AuthResponseModel(
-          success: false, message: 'Unexpected error: ${e.toString()}');
-    }
-  }
-
-  Future<AuthResponseModel> changePassword({
-    required String oldPassword,
-    required String newPassword,
-  }) async {
-    try {
-      final data = await _client.put(
-        '${ApiClient.baseUrl}/change-password',
-        data: {
-          'oldPassword': oldPassword,
-          'newPassword': newPassword,
-        },
-        requiresAuth: true,
-      );
-      return AuthResponseModel.fromJson(data);
-    } on ApiException catch (e) {
-      return AuthResponseModel(success: false, message: e.message);
-    } catch (e) {
-      return AuthResponseModel(
-          success: false, message: 'Unexpected error: ${e.toString()}');
     }
   }
 

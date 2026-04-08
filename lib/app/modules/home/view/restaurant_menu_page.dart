@@ -58,9 +58,16 @@ class RestaurantMenuPage extends ConsumerWidget {
                 : const ColorFilter.mode(Colors.grey, BlendMode.saturation),
             child: Opacity(
               opacity: isShopActive ? 1.0 : 0.8,
-              child: CustomScrollView(
-                physics: const BouncingScrollPhysics(),
-                slivers: [
+              child: RefreshIndicator(
+                color: AppColors.primary,
+                onRefresh: () async {
+                  ref.invalidate(shopsListProvider);
+                  ref.invalidate(shopProductsProvider(currentShop.id));
+                  await ref.read(shopProductsProvider(currentShop.id).future);
+                },
+                child: CustomScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  slivers: [
                   // ── Hero App Bar ──────────────────────────────────────────────────
                   SliverAppBar(
                     expandedHeight: 220,
@@ -220,20 +227,9 @@ class RestaurantMenuPage extends ConsumerWidget {
               ),
             ),
           ),
+        ),
 
-          // ── Floating Back Button (Above Grayscale) ────────────────────────
-          Positioned(
-            top: MediaQuery.of(context).padding.top + 10,
-            left: 12,
-            child: CircleAvatar(
-              backgroundColor: Colors.white.withValues(alpha: 0.9),
-              child: IconButton(
-                icon: const Icon(Icons.arrow_back,
-                    color: Colors.black87, size: 20),
-                onPressed: () => Navigator.pop(context),
-              ),
-            ),
-          ),
+          // ── Floating Back Button removed (handled by SliverAppBar) ────────
 
           if (cart.itemCount > 0 && isShopActive)
             Positioned(

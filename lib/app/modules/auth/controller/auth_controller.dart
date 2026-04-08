@@ -8,36 +8,6 @@ class AuthController extends ChangeNotifier {
   bool _isLoading = false;
   bool get isLoading => _isLoading;
 
-  Future<AuthResponseModel> register({
-    required String fullName,
-    required String email,
-    required String phoneNumber,
-    required String password,
-    required String confirmPassword,
-  }) async {
-    _setLoading(true);
-    final response = await _authRepository.register(
-      fullName: fullName,
-      email: email,
-      phoneNumber: phoneNumber,
-      password: password,
-      confirmPassword: confirmPassword,
-    );
-    _setLoading(false);
-    return response;
-  }
-
-  Future<AuthResponseModel> login({
-    required String phoneNumber,
-  }) async {
-    _setLoading(true);
-    final response = await _authRepository.login(
-      phoneNumber: phoneNumber,
-    );
-    _setLoading(false);
-    return response;
-  }
-
   Future<AuthResponseModel> sendOtp({required String phoneNumber}) async {
     _setLoading(true);
     final response = await _authRepository.sendOtp(phoneNumber: phoneNumber);

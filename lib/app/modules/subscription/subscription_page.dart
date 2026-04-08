@@ -127,13 +127,22 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage> {
                     loading: () => const Center(
                         child: CircularProgressIndicator(
                             color: Color(0xFF06B6D4))),
-                    error: (e, _) =>
-                        Center(child: Text('Error loading orders: $e')),
+                    error: (e, _) => const Center(
+                      child: Text(
+                        'Could not load orders. Pull down to refresh.',
+                        style: TextStyle(color: Colors.grey, fontSize: 13),
+                      ),
+                    ),
                   ),
                   loading: () => const Center(
                       child:
                           CircularProgressIndicator(color: Color(0xFF06B6D4))),
-                  error: (e, _) => Center(child: Text('Error: $e')),
+                  error: (e, _) => const Center(
+                    child: Text(
+                      'Could not load subscriptions. Pull down to refresh.',
+                      style: TextStyle(color: Colors.grey, fontSize: 13),
+                    ),
+                  ),
                 ),
               ),
             ],
@@ -405,10 +414,11 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage> {
 
   Widget _buildRealOrderItem(UserOrder order) {
     if (order.items.isEmpty) return const SizedBox();
-    final item = order.items.first;
-    final name = item.name;
-    final image = item.image;
-    final qty = item.quantity.toString();
+    
+    // Combine all item names into a single string for summary
+    final itemsNames = order.items.map((i) => i.name).join(', ');
+    final image = order.items.first.image;
+    final totalQty = order.items.fold(0, (sum, i) => sum + i.quantity);
     final status = order.status;
     final isDelivered = status.toLowerCase() == 'delivered';
 
@@ -431,10 +441,47 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(name, style: const TextStyle(fontWeight: FontWeight.bold)),
+                Text(
+                  itemsNames, 
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
                 const SizedBox(height: 2),
-                Text('Qty $qty • Subscription Order',
-                    style: TextStyle(color: Colors.grey[600], fontSize: 11)),
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 4,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    Text('Qty $totalQty • ₹${order.total.toStringAsFixed(0)}',
+                        style: TextStyle(color: Colors.grey[600], fontSize: 11)),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: order.isSubscription
+                            ? const Color(0xFF06B6D4).withValues(alpha: 0.1)
+                            : Colors.grey.shade100,
+                        borderRadius: BorderRadius.circular(4),
+                        border: Border.all(
+                            color: order.isSubscription
+                                ? const Color(0xFF06B6D4).withValues(alpha: 0.3)
+                                : Colors.grey.shade300),
+                      ),
+                      child: Text(
+                        (order.orderType ?? 'ONE-TIME').toUpperCase() ==
+                                'SUBSCRIPTION'
+                            ? 'SUBS'
+                            : (order.orderType ?? 'ONE-TIME').toUpperCase(),
+                        style: TextStyle(
+                            fontSize: 8,
+                            color: order.isSubscription
+                                ? const Color(0xFF06B6D4)
+                                : Colors.grey.shade600,
+                            fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ],
+                ),
               ],
             ),
           ),
@@ -530,8 +577,45 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage> {
                           color: const Color(0xFF0891B2).withValues(alpha: 0.7),
                           fontSize: 11,
                           fontWeight: FontWeight.w600)),
-                Text('Qty ${sub.quantity} • ${sub.frequency}',
-                    style: TextStyle(color: Colors.grey[600], fontSize: 12)),
+                const SizedBox(height: 4),
+                // Quantity + Frequency chips
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 4,
+                      children: [
+                        _infoChip(
+                          icon: Icons.water_drop,
+                          label: 'Qty ${sub.quantity}',
+                          color: const Color(0xFF06B6D4),
+                        ),
+                        _infoChip(
+                          icon: Icons.repeat,
+                          label: sub.frequency,
+                          color: Colors.indigo,
+                        ),
+                        if (sub.deliverySlot != null && sub.deliverySlot!.isNotEmpty)
+                          _infoChip(
+                            icon: Icons.schedule,
+                            label: sub.deliverySlot!,
+                            color: Colors.teal,
+                          ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF06B6D4).withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(4),
+                            border: Border.all(
+                                color: const Color(0xFF06B6D4).withValues(alpha: 0.3)),
+                          ),
+                          child: const Text('SUBS',
+                              style: TextStyle(
+                                  fontSize: 8,
+                                  color: Color(0xFF06B6D4),
+                                  fontWeight: FontWeight.bold)),
+                        ),
+                      ],
+                    ),
               ],
             ),
           ),
@@ -539,7 +623,6 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-
               GestureDetector(
                 onTap: () => _openTrackingForSubscription(sub),
                 child: const Text(
@@ -623,8 +706,8 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage> {
       if (!mounted) return;
       messenger.hideCurrentSnackBar();
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Could not load order: $e'),
+        const SnackBar(
+          content: Text('Unable to load order details. Please try again.'),
           backgroundColor: Colors.red,
         ),
       );
@@ -635,8 +718,35 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage> {
         width: 50,
         height: 50,
         color: const Color(0xFFE8F5E9),
-        child: const Icon(Icons.set_meal, color: Color(0xFF06B6D4), size: 24),
+        child: const Icon(Icons.water_drop, color: Color(0xFF06B6D4), size: 24),
       );
+
+  /// Small compact chip used inside delivery items
+  Widget _infoChip(
+      {required IconData icon,
+      required String label,
+      required Color color}) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: color.withValues(alpha: 0.25)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 10, color: color),
+          const SizedBox(width: 3),
+          Text(label,
+              style: TextStyle(
+                  fontSize: 10,
+                  color: color,
+                  fontWeight: FontWeight.w600)),
+        ],
+      ),
+    );
+  }
 
   Widget _buildYourPlans(List<UserSubscription> subs) {
     return Column(
@@ -656,9 +766,13 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage> {
 
   Widget _buildPlanItem(UserSubscription sub) {
     final isActive = sub.status == 'Active';
+    final addressStr = sub.deliveryAddressString;
+    final hasSlot =
+        sub.deliverySlot != null && sub.deliverySlot!.isNotEmpty;
+    final hasAddress = addressStr.isNotEmpty;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
@@ -670,49 +784,268 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage> {
               offset: const Offset(0, 2))
         ],
       ),
-      child: Row(
+      child: Column(
         children: [
-          CircleAvatar(
-            backgroundColor: (isActive ? const Color(0xFF06B6D4) : Colors.grey)
-                .withValues(alpha: 0.12),
-            child: Icon(isActive ? Icons.check : Icons.pause,
-                color: isActive ? const Color(0xFF06B6D4) : Colors.grey),
+          // ── Main row ─────────────────────────────────────────────────────
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                CircleAvatar(
+                  backgroundColor:
+                      (isActive ? const Color(0xFF06B6D4) : Colors.grey)
+                          .withValues(alpha: 0.12),
+                  child: Icon(isActive ? Icons.check : Icons.pause,
+                      color:
+                          isActive ? const Color(0xFF06B6D4) : Colors.grey),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(sub.productName,
+                          style:
+                              const TextStyle(fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 4),
+                      // Chips: qty • frequency • slot
+                      Wrap(
+                        spacing: 6,
+                        runSpacing: 4,
+                        children: [
+                          _infoChip(
+                            icon: Icons.water_drop,
+                            label: 'Qty ${sub.quantity}',
+                            color: const Color(0xFF06B6D4),
+                          ),
+                          _infoChip(
+                            icon: Icons.repeat,
+                            label: sub.frequency,
+                            color: Colors.indigo,
+                          ),
+                          if (hasSlot)
+                            _infoChip(
+                              icon: Icons.schedule,
+                              label: sub.deliverySlot!,
+                              color: Colors.teal,
+                            ),
+                          _infoChip(
+                            icon: Icons.currency_rupee,
+                            label: '₹${(sub.price * sub.quantity).toStringAsFixed(0)}',
+                            color: Colors.orange,
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                // Pause / Resume toggle
+                Switch(
+                  value: isActive,
+                  activeThumbColor: const Color(0xFF06B6D4),
+                  onChanged: (val) async {
+                    final confirmed = await _showConfirmationDialog(
+                      title: val
+                          ? 'Resume Subscription?'
+                          : 'Pause Subscription?',
+                      message: val
+                          ? 'Do you want to resume deliveries for ${sub.productName}?'
+                          : 'Do you want to pause deliveries for ${sub.productName}?',
+                      confirmText: val ? 'Resume' : 'Pause',
+                      confirmColor:
+                          val ? const Color(0xFF06B6D4) : Colors.orange,
+                    );
+                    if (!confirmed) return;
+
+                    final newStatus = val ? 'Active' : 'Paused';
+                    await ref
+                        .read(mySubscriptionsProvider.notifier)
+                        .updateStatus(sub.id, newStatus);
+                  },
+                ),
+              ],
+            ),
           ),
-          const SizedBox(width: 14),
+
+          // ── Delivery address row (only if address is available) ──────────
+          if (hasAddress || sub.customDays.isNotEmpty)
+            Container(
+              decoration: BoxDecoration(
+                color: const Color(0xFFF0FDFF),
+                borderRadius: const BorderRadius.only(
+                  bottomLeft: Radius.circular(16),
+                  bottomRight: Radius.circular(16),
+                ),
+                border: Border(
+                    top: BorderSide(
+                        color:
+                            const Color(0xFF06B6D4).withValues(alpha: 0.1))),
+              ),
+              child: Column(
+                children: [
+                  // Custom days (for weekly plans)
+                  if (sub.customDays.isNotEmpty && sub.frequency == 'Weekly')
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 10, 16, 4),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.calendar_today,
+                              size: 13, color: Color(0xFF0891B2)),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              'Scheduled: ${sub.customDays.join(', ')}',
+                              style: const TextStyle(
+                                  fontSize: 11,
+                                  color: Color(0xFF0891B2),
+                                  fontWeight: FontWeight.w600),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  // Address row
+                  if (hasAddress)
+                    GestureDetector(
+                      onTap: () => _showAddressSheet(sub),
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 6, 16, 10),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.location_on,
+                                size: 13, color: Color(0xFF0891B2)),
+                            const SizedBox(width: 6),
+                            Expanded(
+                              child: Text(
+                                addressStr,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                    fontSize: 11,
+                                    color: Color(0xFF0891B2),
+                                    fontWeight: FontWeight.w500),
+                              ),
+                            ),
+                            const Icon(Icons.chevron_right,
+                                size: 14, color: Color(0xFF06B6D4)),
+                          ],
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  /// Shows a bottom sheet with full delivery address details for the subscription
+  void _showAddressSheet(UserSubscription sub) {
+    final m = sub.deliveryAddress ?? {};
+    final fullName = m['fullName']?.toString() ?? '';
+    final label = m['label']?.toString() ?? '';
+    final fullAddress = (m['fullAddress'] ?? m['address'] ?? m['street'] ?? '').toString();
+    final city = m['city']?.toString() ?? '';
+    final state = m['state']?.toString() ?? '';
+    final pincode = m['pincode']?.toString() ?? '';
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        padding: const EdgeInsets.all(24),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Handle
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: 20),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF06B6D4).withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(Icons.location_on,
+                      color: Color(0xFF06B6D4), size: 22),
+                ),
+                const SizedBox(width: 12),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Delivery Address',
+                        style: TextStyle(
+                            fontSize: 17, fontWeight: FontWeight.w800)),
+                    Text(sub.productName,
+                        style: const TextStyle(
+                            fontSize: 12, color: Colors.grey)),
+                  ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            _addressRow(Icons.person_outline, fullName.isNotEmpty ? fullName : '—', 'Recipient'),
+            if (label.isNotEmpty)
+              _addressRow(Icons.label_outline, label, 'Label'),
+            if (fullAddress.isNotEmpty)
+              _addressRow(Icons.home_outlined, fullAddress, 'Street'),
+            if (city.isNotEmpty)
+              _addressRow(Icons.location_city_outlined, city, 'City'),
+            if (state.isNotEmpty)
+              _addressRow(Icons.map_outlined, state, 'State'),
+            if (pincode.isNotEmpty)
+              _addressRow(Icons.pin_drop_outlined, pincode, 'Pincode'),
+            if (sub.deliverySlot != null && sub.deliverySlot!.isNotEmpty) ...
+              [
+                const Divider(height: 24),
+                _addressRow(Icons.schedule, sub.deliverySlot!, 'Delivery Slot'),
+              ],
+            const SizedBox(height: 16),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _addressRow(IconData icon, String value, String label) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 16, color: const Color(0xFF06B6D4)),
+          const SizedBox(width: 10),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(sub.productName,
-                    style: const TextStyle(fontWeight: FontWeight.bold)),
-                Text(sub.frequency,
-                    style: TextStyle(color: Colors.grey[600], fontSize: 12)),
+                Text(label,
+                    style: const TextStyle(
+                        fontSize: 10,
+                        color: Colors.grey,
+                        fontWeight: FontWeight.w500)),
+                Text(value,
+                    style: const TextStyle(
+                        fontSize: 14, fontWeight: FontWeight.w600)),
               ],
             ),
-          ),
-          // Pause / Resume toggle
-          Switch(
-            value: isActive,
-            activeThumbColor: const Color(0xFF06B6D4),
-            onChanged: (val) async {
-              final confirmed = await _showConfirmationDialog(
-                title: val ? 'Resume Subscription?' : 'Pause Subscription?',
-                message: val
-                    ? 'Do you want to resume deliveries for ${sub.productName}?'
-                    : 'Do you want to pause deliveries for ${sub.productName}?',
-                confirmText: val ? 'Resume' : 'Pause',
-                confirmColor: val ? const Color(0xFF06B6D4) : Colors.orange,
-              );
-              if (!confirmed) return;
-
-              final newStatus = val ? 'Active' : 'Paused';
-              final ok = await ref
-                  .read(mySubscriptionsProvider.notifier)
-                  .updateStatus(sub.id, newStatus);
-              if (ok) {
-                // Notifier handles refresh/rollback
-              }
-            },
           ),
         ],
       ),

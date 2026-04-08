@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:geolocator/geolocator.dart';
 import '../../../data/services/socket_service.dart';
-import '../../../data/services/notification_service.dart';
 import '../../../data/services/order_service.dart';
 
 /// Maps every backend status string → a 0-based step index (0 = just placed).
@@ -64,16 +61,10 @@ class TrackOrderPage extends ConsumerStatefulWidget {
 
 class _TrackOrderPageState extends ConsumerState<TrackOrderPage>
     with TickerProviderStateMixin {
-  GoogleMapController? _mapController;
-  final Set<Marker> _markers = {};
-  LatLng? _riderLocation;
-  LatLng? _deliveryLocation;
-
   // Live order state
   late String _currentStatus;
   String _riderName = '';
   String _riderPhone = '';
-  bool _hasNotifiedProximity = false;
   bool _isLoading = true;
 
   // Socket callbacks
@@ -94,7 +85,6 @@ class _TrackOrderPageState extends ConsumerState<TrackOrderPage>
     _pulseAnim = Tween<double>(begin: 0.6, end: 1.0)
         .animate(CurvedAnimation(parent: _pulseCtrl, curve: Curves.easeInOut));
 
-    _setupLocations();
     _fetchOrderDetails();
     _connectSocket();
   }
@@ -121,45 +111,6 @@ class _TrackOrderPageState extends ConsumerState<TrackOrderPage>
     }
   }
 
-  void _setupLocations() {
-    final addr = widget.deliveryAddress;
-    if (addr != null) {
-      final lat = (addr['lat'] ??
-          addr['latitude'] ??
-          addr['coordinates']?['lat'] ??
-          26.8467) as num;
-      final lng = (addr['lng'] ??
-          addr['longitude'] ??
-          addr['coordinates']?['lng'] ??
-          80.9462) as num;
-      _deliveryLocation = LatLng(lat.toDouble(), lng.toDouble());
-    } else {
-      _deliveryLocation = const LatLng(26.8467, 80.9462); // Lucknow default
-    }
-    _updateMarkers();
-  }
-
-  void _updateMarkers() {
-    _markers.clear();
-    if (_deliveryLocation != null) {
-      _markers.add(Marker(
-        markerId: const MarkerId('delivery'),
-        position: _deliveryLocation!,
-        infoWindow: const InfoWindow(title: 'Delivery Location'),
-        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
-      ));
-    }
-    if (_riderLocation != null) {
-      _markers.add(Marker(
-        markerId: const MarkerId('rider'),
-        position: _riderLocation!,
-        infoWindow: const InfoWindow(title: 'Delivery Rider'),
-        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
-      ));
-    }
-    if (mounted) setState(() {});
-  }
-
   void _connectSocket() {
     final socketService = ref.read(socketServiceProvider);
     socketService.joinOrderRoom(widget.orderId);
@@ -169,20 +120,8 @@ class _TrackOrderPageState extends ConsumerState<TrackOrderPage>
       final String statusStr = (data['status'] ?? '').toString();
       final payload = data['data'];
 
-      // Handle Rider Location Change specifically
+      // Handle Rider Location Change specifically (no-op since map is removed)
       if (statusStr == 'RIDER_LOCATION_UPDATE') {
-        if (payload is Map &&
-            payload['lat'] != null &&
-            payload['lng'] != null) {
-          final lat = (payload['lat'] as num).toDouble();
-          final lng = (payload['lng'] as num).toDouble();
-          debugPrint('📍 Rider moving: $lat, $lng');
-          setState(() {
-            _riderLocation = LatLng(lat, lng);
-            _updateMarkers();
-          });
-          _checkProximity(_riderLocation!);
-        }
         return;
       }
 
@@ -221,24 +160,6 @@ class _TrackOrderPageState extends ConsumerState<TrackOrderPage>
 
     socketService.onOrderUpdate(_onOrderUpdate);
     socketService.onRiderAssigned(_onRiderAssigned);
-  }
-
-  void _checkProximity(LatLng riderPos) {
-    if (_deliveryLocation == null || _hasNotifiedProximity) return;
-    final double distance = Geolocator.distanceBetween(
-      riderPos.latitude,
-      riderPos.longitude,
-      _deliveryLocation!.latitude,
-      _deliveryLocation!.longitude,
-    );
-    if (distance < 500) {
-      _hasNotifiedProximity = true;
-      NotificationService.showNotification(
-        id: widget.orderId.hashCode,
-        title: '🛵 Rider is nearby!',
-        body: 'Your order will arrive in a few minutes. Get ready!',
-      );
-    }
   }
 
   void _showDeliverySuccess() {
@@ -292,7 +213,6 @@ class _TrackOrderPageState extends ConsumerState<TrackOrderPage>
     socketService.leaveOrderRoom(widget.orderId);
     socketService.offOrderUpdate(_onOrderUpdate);
     socketService.offRiderAssigned(_onRiderAssigned);
-    _mapController?.dispose();
     super.dispose();
   }
 
@@ -304,15 +224,16 @@ class _TrackOrderPageState extends ConsumerState<TrackOrderPage>
         : '#${widget.orderId.toUpperCase()}';
 
     return Scaffold(
-      extendBodyBehindAppBar: true,
+      backgroundColor: const Color(0xFFF7F8FA),
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
+        backgroundColor: Colors.white,
         elevation: 0,
-        systemOverlayStyle: SystemUiOverlayStyle.light,
+        surfaceTintColor: Colors.transparent,
+        systemOverlayStyle: SystemUiOverlayStyle.dark,
         leading: Padding(
           padding: const EdgeInsets.only(left: 16),
           child: CircleAvatar(
-            backgroundColor: Colors.white,
+            backgroundColor: const Color(0xFFF0F4EC),
             child: IconButton(
               icon: const Icon(Icons.arrow_back, color: Colors.black, size: 20),
               onPressed: () => Navigator.pop(context),
@@ -320,163 +241,132 @@ class _TrackOrderPageState extends ConsumerState<TrackOrderPage>
           ),
         ),
         title: const Text('Track Order',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
         centerTitle: true,
       ),
-      body: Stack(
-        children: [
-          // ── Map ─────────────────────────────────────────────────────────
-          GoogleMap(
-            initialCameraPosition: CameraPosition(
-              target: _deliveryLocation ?? const LatLng(26.8467, 80.9462),
-              zoom: 15,
-            ),
-            markers: _markers,
-            onMapCreated: (c) => _mapController = c,
-            myLocationEnabled: false,
-            zoomControlsEnabled: false,
-            mapToolbarEnabled: false,
-          ),
-
-          if (_isLoading)
-            const Positioned(
-              top: 0,
-              left: 0,
-              right: 0,
-              child: LinearProgressIndicator(
-                backgroundColor: Colors.transparent,
+      body: _isLoading
+          ? const Center(
+              child: CircularProgressIndicator(
                 valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF0891B2)),
               ),
-            ),
-
-          // ── Bottom Sheet ────────────────────────────────────────────────
-          DraggableScrollableSheet(
-            initialChildSize: 0.52,
-            minChildSize: 0.18,
-            maxChildSize: 0.88,
-            builder: (context, scrollController) {
-              return Container(
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
-                  boxShadow: [
-                    BoxShadow(
-                        color: Colors.black12, blurRadius: 20, spreadRadius: 5)
-                  ],
-                ),
-                child: ListView(
-                  controller: scrollController,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-                  children: [
-                    // Handle bar
-                    Center(
-                      child: Container(
-                        width: 40,
-                        height: 4,
-                        margin: const EdgeInsets.symmetric(vertical: 12),
-                        decoration: BoxDecoration(
-                          color: Colors.grey.shade200,
-                          borderRadius: BorderRadius.circular(2),
-                        ),
-                      ),
-                    ),
-
-                    // ── Live Status Header ─────────────────────────────────
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  // Live pulse dot
-                                  AnimatedBuilder(
-                                    animation: _pulseAnim,
-                                    builder: (_, __) => Container(
-                                      width: 10,
-                                      height: 10,
-                                      decoration: BoxDecoration(
-                                        color: Colors.green.withValues(
-                                            alpha: _pulseAnim.value),
-                                        shape: BoxShape.circle,
-                                      ),
+            )
+          : ListView(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+              children: [
+                // ── Live Status Header ─────────────────────────────────
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(24),
+                    boxShadow: const [
+                      BoxShadow(
+                          color: Colors.black12,
+                          blurRadius: 10,
+                          spreadRadius: 0)
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                // Live pulse dot
+                                AnimatedBuilder(
+                                  animation: _pulseAnim,
+                                  builder: (_, __) => Container(
+                                    width: 10,
+                                    height: 10,
+                                    decoration: BoxDecoration(
+                                      color: Colors.green
+                                          .withValues(alpha: _pulseAnim.value),
+                                      shape: BoxShape.circle,
                                     ),
                                   ),
-                                  const SizedBox(width: 8),
-                                  const Text('LIVE',
-                                      style: TextStyle(
-                                          color: Colors.green,
-                                          fontSize: 10,
-                                          fontWeight: FontWeight.bold,
-                                          letterSpacing: 1)),
-                                ],
-                              ),
-                              const SizedBox(height: 6),
-                              Text(
-                                _stepLabel(_currentStatus),
-                                style: const TextStyle(
-                                    fontWeight: FontWeight.w900,
-                                    fontSize: 22,
-                                    letterSpacing: -0.5),
-                              ),
-                              Text(
-                                _getStatusSubtitle(_currentStatus),
-                                style: TextStyle(
-                                    color: Colors.grey.shade500, fontSize: 13),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(12),
-                              decoration: const BoxDecoration(
-                                color: Color(0xFFF0F4EC),
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(Icons.timer_outlined,
-                                  color: Color(0xFF0891B2), size: 20),
+                                ),
+                                const SizedBox(width: 8),
+                                const Text('LIVE',
+                                    style: TextStyle(
+                                        color: Colors.green,
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.bold,
+                                        letterSpacing: 1)),
+                              ],
                             ),
-                            const SizedBox(height: 4),
-                            Text(shortId,
-                                style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 11,
-                                    color: Colors.grey.shade400)),
+                            const SizedBox(height: 6),
+                            Text(
+                              _stepLabel(_currentStatus),
+                              style: const TextStyle(
+                                  fontWeight: FontWeight.w900,
+                                  fontSize: 22,
+                                  letterSpacing: -0.5),
+                            ),
+                            Text(
+                              _getStatusSubtitle(_currentStatus),
+                              style: TextStyle(
+                                  color: Colors.grey.shade500, fontSize: 13),
+                            ),
                           ],
                         ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 28),
-
-                    // ── Stepper ────────────────────────────────────────────
-                    _buildStepper(step),
-
-                    const SizedBox(height: 28),
-                    Divider(color: Colors.grey.shade100, thickness: 1.5),
-                    const SizedBox(height: 20),
-
-                    // ── Delivery Address ───────────────────────────────────
-                    _buildAddressCard(),
-
-                    const SizedBox(height: 16),
-
-                    // ── Rider Info ─────────────────────────────────────────
-                    if (step >= 1) _buildRiderCard(),
-
-                    const SizedBox(height: 40),
-                  ],
+                      ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: const BoxDecoration(
+                              color: Color(0xFFF0F4EC),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(Icons.timer_outlined,
+                                color: Color(0xFF0891B2), size: 20),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(shortId,
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 11,
+                                  color: Colors.grey.shade400)),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
-              );
-            },
-          ),
-        ],
-      ),
+
+                const SizedBox(height: 24),
+
+                // ── Delivery Address ───────────────────────────────────
+                _buildAddressCard(),
+
+                const SizedBox(height: 24),
+
+                // ── Stepper ────────────────────────────────────────────
+                Container(
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(24),
+                    boxShadow: const [
+                      BoxShadow(
+                          color: Colors.black12,
+                          blurRadius: 10,
+                          spreadRadius: 0)
+                    ],
+                  ),
+                  child: _buildStepper(step),
+                ),
+
+                const SizedBox(height: 24),
+
+                // ── Rider Info ─────────────────────────────────────────
+                if (step >= 1) _buildRiderCard(),
+
+                const SizedBox(height: 40),
+              ],
+            ),
     );
   }
 
@@ -576,22 +466,41 @@ class _TrackOrderPageState extends ConsumerState<TrackOrderPage>
 
   Widget _buildAddressCard() {
     final addr = widget.deliveryAddress;
-    final String displayAddr = addr != null
-        ? (addr['fullAddress'] ??
-                addr['address'] ??
-                addr['street'] ??
-                'Your delivery address')
-            .toString()
-        : 'Your delivery address';
+
+    String displayAddr = 'Your delivery address';
+    String receiverName = '';
+
+    if (addr != null) {
+      receiverName = (addr['fullName'] ?? addr['name'] ?? '').toString();
+
+      final street =
+          addr['fullAddress'] ?? addr['address'] ?? addr['street'] ?? '';
+      final city = addr['city'] ?? '';
+      final state = addr['state'] ?? '';
+      final pincode = addr['pincode'] ?? '';
+
+      List<String> parts = [];
+      if (street.toString().isNotEmpty) parts.add(street.toString());
+      if (city.toString().isNotEmpty) parts.add(city.toString());
+      if (state.toString().isNotEmpty) parts.add(state.toString());
+      if (pincode.toString().isNotEmpty) parts.add(pincode.toString());
+
+      if (parts.isNotEmpty) {
+        displayAddr = parts.join(', ');
+      }
+    }
 
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFFF7F8FA),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE8E8E8)),
+        boxShadow: const [
+          BoxShadow(color: Colors.black12, blurRadius: 10, spreadRadius: 0)
+        ],
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
             padding: const EdgeInsets.all(8),
@@ -609,11 +518,20 @@ class _TrackOrderPageState extends ConsumerState<TrackOrderPage>
               children: [
                 const Text('Delivery Address',
                     style: TextStyle(fontSize: 11, color: Colors.grey)),
-                const SizedBox(height: 2),
+                const SizedBox(height: 4),
+                if (receiverName.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 2),
+                    child: Text(receiverName,
+                        style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                            color: Colors.black87)),
+                  ),
                 Text(displayAddr,
                     style: const TextStyle(
-                        fontWeight: FontWeight.w600, fontSize: 13),
-                    maxLines: 2,
+                        fontWeight: FontWeight.w500, fontSize: 13, height: 1.4),
+                    maxLines: 4,
                     overflow: TextOverflow.ellipsis),
               ],
             ),
@@ -630,7 +548,9 @@ class _TrackOrderPageState extends ConsumerState<TrackOrderPage>
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE8E8E8)),
+        boxShadow: const [
+          BoxShadow(color: Colors.black12, blurRadius: 10, spreadRadius: 0)
+        ],
       ),
       child: Row(
         children: [
@@ -735,4 +655,3 @@ class _IconBtn extends StatelessWidget {
     );
   }
 }
-

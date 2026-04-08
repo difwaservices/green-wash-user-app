@@ -111,27 +111,6 @@ class AuthStore extends Notifier<AuthState> {
     }
   }
 
-  Future<void> login({required String identifier, required String password}) async {
-    state = const AuthLoading();
-    try {
-      final response = await ref.read(authServiceProvider).login(
-            identifier: identifier,
-            password: password,
-          );
-      if (response.success && response.data != null) {
-        await _storage.saveTokens(
-          access: response.token ?? '',
-          refresh: response.refreshToken ?? '',
-        );
-        state = AuthAuthenticated(response.data!);
-        unawaited(syncFcmToken());
-      } else {
-        state = AuthError(response.message);
-      }
-    } catch (e) {
-      state = AuthError(e.toString());
-    }
-  }
 
   Future<void> sendOtp({required String phoneNumber}) async {
     state = const AuthLoading();
@@ -177,49 +156,6 @@ class AuthStore extends Notifier<AuthState> {
     }
   }
 
-  Future<void> register({
-    required String fullName,
-    required String email,
-    required String phoneNumber,
-    required String password,
-    required String confirmPassword,
-  }) async {
-    state = const AuthLoading();
-    try {
-      final response = await ref.read(authServiceProvider).register(
-            fullName: fullName,
-            email: email,
-            phoneNumber: phoneNumber,
-            password: password,
-            confirmPassword: confirmPassword,
-          );
-      if (response.success) {
-        state = AuthOtpSent(
-          phoneNumber: phoneNumber,
-          message: response.message,
-          otp: response.otp,
-        );
-      } else {
-        state = AuthError(response.message);
-      }
-    } catch (e) {
-      state = AuthError(e.toString());
-    }
-  }
-
-  Future<void> forgotPassword({required String email}) async {
-    state = const AuthLoading();
-    try {
-      final response = await ref.read(authServiceProvider).forgotPassword(email: email);
-      if (response.success) {
-        state = AuthSuccess(response.message);
-      } else {
-        state = AuthError(response.message);
-      }
-    } catch (e) {
-      state = AuthError(e.toString());
-    }
-  }
 
   Future<void> logout() async {
     final wasMock = state is AuthAuthenticated && (state as AuthAuthenticated).isMock;

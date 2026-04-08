@@ -98,15 +98,15 @@ class _RiderOrderDetailsPageState extends ConsumerState<RiderOrderDetailsPage> {
     }
   }
 
-  Future<void> _openMaps(dynamic address) async {
-    final addr = address?['address']?.toString() ?? '';
-    if (addr.isEmpty) {
+  Future<void> _openMaps(String address) async {
+    if (address.isEmpty || address == 'N/A') {
       ScaffoldMessenger.of(context)
           .showSnackBar(const SnackBar(content: Text('No address available')));
       return;
     }
+    // Using 'dir' action with destination automatically sets the rider's current location as the source
     final uri = Uri.parse(
-        'https://www.google.com/maps/search/?api=1&query=${Uri.encodeComponent(addr)}');
+        'https://www.google.com/maps/dir/?api=1&destination=${Uri.encodeComponent(address)}');
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     } else if (mounted) {
@@ -158,6 +158,7 @@ class _RiderOrderDetailsPageState extends ConsumerState<RiderOrderDetailsPage> {
     final deliveryAddressMap = order['deliveryAddress'];
     String deliveryAddress = 'N/A';
     if (deliveryAddressMap is Map) {
+      final name = deliveryAddressMap['fullName'] ?? deliveryAddressMap['name'] ?? '';
       final street = deliveryAddressMap['fullAddress'] ?? deliveryAddressMap['address'] ?? deliveryAddressMap['street'] ?? '';
       final city = deliveryAddressMap['city'] ?? '';
       final state = deliveryAddressMap['state'] ?? '';
@@ -170,6 +171,9 @@ class _RiderOrderDetailsPageState extends ConsumerState<RiderOrderDetailsPage> {
       if (pincode.toString().isNotEmpty) parts.add(pincode.toString());
       
       deliveryAddress = parts.isNotEmpty ? parts.join(', ') : 'N/A';
+      if (name.toString().isNotEmpty) {
+        deliveryAddress = '$name\n$deliveryAddress';
+      }
     } else if (deliveryAddressMap != null) {
       deliveryAddress = deliveryAddressMap.toString();
     }

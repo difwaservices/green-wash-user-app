@@ -150,9 +150,20 @@ class _DeliveryHistoryCard extends StatelessWidget {
     String addressStr = 'Address not available';
     final addrRaw = item['deliveryAddress'] ?? item['address'];
     if (addrRaw is Map) {
-      addressStr = addrRaw['fullAddress']?.toString() ??
-          addrRaw['address']?.toString() ??
-          'Address details unavailable';
+      final name = addrRaw['fullName'] ?? addrRaw['name'] ?? '';
+      final street = addrRaw['fullAddress'] ?? addrRaw['address'] ?? addrRaw['street'] ?? '';
+      final city = addrRaw['city'] ?? '';
+      final state = addrRaw['state'] ?? '';
+      final pincode = addrRaw['pincode'] ?? '';
+      List<String> parts = [];
+      if (street.toString().isNotEmpty) parts.add(street.toString());
+      if (city.toString().isNotEmpty) parts.add(city.toString());
+      if (state.toString().isNotEmpty) parts.add(state.toString());
+      if (pincode.toString().isNotEmpty) parts.add(pincode.toString());
+      addressStr = parts.isNotEmpty ? parts.join(', ') : 'Address details unavailable';
+      if (name.toString().isNotEmpty) {
+        addressStr = '$name\n$addressStr';
+      }
     } else if (addrRaw is String && addrRaw.isNotEmpty) {
       addressStr = addrRaw;
     }
@@ -294,6 +305,7 @@ class _DeliveryHistoryCard extends StatelessWidget {
               icon: Icons.location_on_outlined,
               label: 'Delivered to',
               value: addressStr,
+              maxLines: 4,
             ),
             const SizedBox(height: 12),
             _Row(

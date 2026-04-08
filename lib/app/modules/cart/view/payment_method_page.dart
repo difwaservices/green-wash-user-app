@@ -22,7 +22,28 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
   String _frequency = 'Daily';
   List<String> _selectedDays = [];
   String? _selectedSlot;
-  
+
+  /// Show a clean, user-friendly snackbar — no 'Exception:' prefix ever shown.
+  void _showError(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const Icon(Icons.info_outline, color: Colors.white, size: 18),
+            const SizedBox(width: 10),
+            Expanded(child: Text(message, style: const TextStyle(fontSize: 14))),
+          ],
+        ),
+        backgroundColor: const Color(0xFF0891B2),
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        duration: const Duration(seconds: 3),
+      ),
+    );
+  }
+
   Future<void> _refreshAfterPurchase(WidgetRef ref, CartProvider cartProvider) async {
     // 1. Sync the CartProvider's internal wallet and orders state
     await cartProvider.syncWallet();
@@ -464,7 +485,10 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                                 width: 20,
                                 height: 20,
                                 child: CircularProgressIndicator())),
-                        error: (_, __) => const Text('Error loading slots'),
+                        error: (_, __) => Text(
+                          'Could not load delivery slots. Pull to refresh.',
+                          style: TextStyle(color: Colors.grey.shade500, fontSize: 13),
+                        ),
                       ),
                   const SizedBox(height: 32),
                 ],
@@ -480,41 +504,33 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                 onPressed: _isLoading
                     ? null
                     : () async {
+                        // ── Validate user inputs BEFORE setting loading ────────
+                        final selectedAddr = cartProvider.selectedAddress;
+                        if (selectedAddr == null) {
+                          _showError('Please select a delivery address to continue.');
+                          return;
+                        }
+                        if (cartProvider.walletBalance < cartProvider.total) {
+                          _showError('Your wallet balance is low. Please top up to proceed.');
+                          return;
+                        }
+                        if (_orderType == 1 && _frequency == 'Weekly' && _selectedDays.isEmpty) {
+                          _showError('Please choose at least one day for your weekly delivery.');
+                          return;
+                        }
+                        if (_selectedSlot == null) {
+                          _showError('Please choose a delivery time slot.');
+                          return;
+                        }
+
                         setState(() => _isLoading = true);
-                        final messenger = ScaffoldMessenger.of(context);
                         final navigator = Navigator.of(context);
                         try {
-                          final selectedAddr = cartProvider.selectedAddress;
-                          if (selectedAddr == null) {
-                            throw Exception('Please select a delivery address');
-                          }
-
-                          if (cartProvider.walletBalance < cartProvider.total) {
-                            throw Exception(
-                                'Insufficient wallet balance. Please top up.');
-                          }
-
-                          if (_orderType == 1 &&
-                              _frequency == 'Weekly' &&
-                              _selectedDays.isEmpty) {
-                            throw Exception(
-                                'Please select at least one day for your weekly subscription.');
-                          }
-
-                          if (_selectedSlot == null) {
-                            throw Exception('Please select a delivery slot.');
-                          }
-
                           final deliveryAddressMap = {
                             'address': selectedAddr.street,
-                            'city':
-                                selectedAddr.details.split(',').first.trim(),
+                            'city': selectedAddr.details.split(',').first.trim(),
                             'state': selectedAddr.details.contains(',')
-                                ? selectedAddr.details
-                                    .split(',')[1]
-                                    .trim()
-                                    .split(' ')
-                                    .first
+                                ? selectedAddr.details.split(',')[1].trim().split(' ').first
                                 : 'Unknown',
                             'pincode': selectedAddr.details.split(' ').last,
                           };
@@ -532,10 +548,10 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                                 deliverySlot: _selectedSlot,
                               );
                               if (res['success'] != true) {
-                                throw Exception(res['message'] ?? 'Failed to subscribe ${item.title}');
+                                _showError(res['message'] ?? 'Could not subscribe to ${item.title}. Please try again.');
+                                return;
                               }
                             }
-                            // ALL SUCCESS
                             await _refreshAfterPurchase(ref, cartProvider);
                             if (!mounted) return;
                             navigator.pushAndRemoveUntil(
@@ -566,12 +582,12 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                                       builder: (_) => OrderSuccessPage(order: response['order'])),
                                   (route) => route.isFirst);
                             } else {
-                              throw Exception(response['message'] ?? 'Failed to place order');
+                              _showError(response['message'] ?? 'Order could not be placed. Please try again.');
                             }
                           }
-                        } catch (e) {
-                          messenger.showSnackBar(
-                              SnackBar(content: Text('Error: $e')));
+                        } catch (_) {
+                          // Unexpected network/server error — never show raw exception to user
+                          _showError('Something went wrong. Please check your connection and try again.');
                         } finally {
                           if (mounted) setState(() => _isLoading = false);
                         }

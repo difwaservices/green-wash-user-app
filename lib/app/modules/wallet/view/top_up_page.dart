@@ -18,6 +18,16 @@ class _TopUpPageState extends ConsumerState<TopUpPage> {
   bool _isLoading = false;
   // Cache service so we can call dispose() without using ref after unmount
   late PaymentService _paymentService;
+  // Cache messenger — Razorpay callbacks fire from native threads AFTER widget
+  // may have unmounted. Never call ScaffoldMessenger.of(context) inside them.
+  ScaffoldMessengerState? _messenger;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Safe to cache here — called every time dependencies change
+    _messenger = ScaffoldMessenger.of(context);
+  }
 
   @override
   void initState() {
@@ -70,16 +80,30 @@ class _TopUpPageState extends ConsumerState<TopUpPage> {
 
   void _handlePaymentFailure(PaymentFailureResponse response) {
     debugPrint('TopUpPage: Payment FAILED: Code=${response.code}, Message=${response.message}');
-    ScaffoldMessenger.of(context).showSnackBar(
+    // Use cached messenger — widget may already be unmounted at this point
+    if (!mounted) return;
+    _messenger?.showSnackBar(
       SnackBar(
-          content: Text('Payment Failed: ${response.message}'),
-          backgroundColor: AppColors.error),
+        content: const Row(
+          children: [
+            Icon(Icons.error_outline, color: Colors.white, size: 18),
+            SizedBox(width: 10),
+            Expanded(child: Text('Payment was not completed. Please try again.')),
+          ],
+        ),
+        backgroundColor: AppColors.error,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
     );
   }
 
   void _handleExternalWallet(ExternalWalletResponse response) {
     debugPrint('TopUpPage: External Wallet selected: ${response.walletName}');
-    ScaffoldMessenger.of(context).showSnackBar(
+    // Use cached messenger — safe after native callback
+    if (!mounted) return;
+    _messenger?.showSnackBar(
       SnackBar(
           content: Text('External Wallet: ${response.walletName}'),
           backgroundColor: const Color(0xFF06B6D4)),
@@ -168,8 +192,19 @@ class _TopUpPageState extends ConsumerState<TopUpPage> {
                           email: profile.email,
                         );
                       } catch (e) {
-                        messenger.showSnackBar(
-                            SnackBar(content: Text(e.toString())));
+                        messenger.showSnackBar(SnackBar(
+                          content: const Row(
+                            children: [
+                              Icon(Icons.error_outline, color: Colors.white, size: 18),
+                              SizedBox(width: 10),
+                              Expanded(child: Text('Could not open payment. Please try again.')),
+                            ],
+                          ),
+                          backgroundColor: AppColors.error,
+                          behavior: SnackBarBehavior.floating,
+                          margin: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ));
                       }
                     },
                     style: ElevatedButton.styleFrom(

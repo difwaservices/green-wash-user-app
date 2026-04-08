@@ -131,7 +131,19 @@ class _FaqPageState extends ConsumerState<FaqPage> {
             );
           },
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (e, _) => Center(child: Text('Error: $e')),
+          error: (e, _) => const Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.help_outline_rounded, size: 56, color: Colors.grey),
+                SizedBox(height: 12),
+                Text('Could not load questions',
+                    style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)),
+                SizedBox(height: 6),
+                Text('Pull down to refresh', style: TextStyle(color: Colors.grey, fontSize: 13)),
+              ],
+            ),
+          ),
         ),
       ),
     );

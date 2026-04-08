@@ -68,16 +68,44 @@ class UserOrder {
     this.rider,
     this.deliveryAddressMap,
     this.deliverySlot,
+    this.orderType,
   });
 
   final String? deliverySlot;
+  final String? orderType;
 
   String get riderName => rider?['fullName'] ?? rider?['name'] ?? '';
   String get riderPhone => rider?['phoneNumber'] ?? rider?['phone'] ?? '';
-  String get deliveryAddress =>
-      deliveryAddressMap?['fullAddress'] ??
-      deliveryAddressMap?['address'] ??
-      'Your delivery address';
+  bool get isSubscription => orderType?.toLowerCase() == 'subscription';
+
+  String get deliveryAddress {
+    if (deliveryAddressMap == null) return 'Your delivery address';
+    final name = deliveryAddressMap!['fullName'] ?? deliveryAddressMap!['name'] ?? '';
+    final street = deliveryAddressMap!['fullAddress'] ?? deliveryAddressMap!['address'] ?? deliveryAddressMap!['street'] ?? '';
+    final city = deliveryAddressMap!['city'] ?? '';
+    final state = deliveryAddressMap!['state'] ?? '';
+    final pincode = deliveryAddressMap!['pincode'] ?? '';
+    final label = deliveryAddressMap!['label'] ?? '';
+
+    List<String> parts = [];
+    if (street.toString().isNotEmpty) parts.add(street.toString());
+    if (city.toString().isNotEmpty) parts.add(city.toString());
+    if (state.toString().isNotEmpty) parts.add(state.toString());
+    if (pincode.toString().isNotEmpty) parts.add(pincode.toString());
+
+    String addrStr = parts.isNotEmpty ? parts.join(', ') : 'Your delivery address';
+    
+    String finalStr = '';
+    if (label.toString().isNotEmpty) {
+      finalStr += '[${label.toString().toUpperCase()}] ';
+    }
+    if (name.toString().isNotEmpty) {
+      finalStr += '${name.toString()}\n';
+    }
+    finalStr += addrStr;
+    
+    return finalStr;
+  }
 
   factory UserOrder.fromJson(Map<String, dynamic> json) {
     final rawItems = (json['items'] ?? json['products']) as List? ?? [];
@@ -108,17 +136,20 @@ class UserOrder {
       deliveryAddressMap:
           json['deliveryAddress'] is Map ? json['deliveryAddress'] : null,
       deliverySlot: json['deliverySlot']?.toString(),
+      orderType: json['orderType']?.toString() ?? 'One-time',
     );
   }
 }
 
 class UserOrderItem {
+  final String id;
   final String name;
   final int quantity;
   final double price;
   final String image;
 
   const UserOrderItem({
+    required this.id,
     required this.name,
     required this.quantity,
     required this.price,
@@ -135,6 +166,7 @@ class UserOrderItem {
     }
 
     return UserOrderItem(
+      id: (p['_id'] ?? p['id'] ?? '').toString(),
       name: (p['name'] ?? p['productName'] ?? 'Item').toString(),
       quantity: (json['quantity'] as num?)?.toInt() ?? 1,
       price: (json['price'] as num?)?.toDouble() ??

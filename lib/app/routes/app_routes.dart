@@ -2,16 +2,9 @@ class AppRoutes {
   static const String splash = '/splash';
   static const String onboarding = '/onboarding';
   static const String initialRoute = '/';
-  static const String deals = '/deals';
-
-
-  static const String forgotPassword = '/forgot-password';
   static const String login = '/login';
   static const String signup = '/signup';
   static const String home = '/home';
-  static const String productDetails = '/product_details';
-  static const String categories = '/categories';
-  static const String waterAccessories = '/water-accessories';
   static const String cart = '/cart';
   static const String wallet = '/wallet';
   static const String subscriptions = '/subscriptions';

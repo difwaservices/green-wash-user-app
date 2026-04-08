@@ -108,34 +108,47 @@ class OrderService {
     }
   }
 
-  Future<List<dynamic>> getActiveOrders() async {
+  Future<List<UserOrder>> getActiveOrders() async {
     try {
       final response = await _apiClient.get(
         '${ApiClient.baseUrl}/orders/active',
         requiresAuth: true,
       );
 
+      final List<dynamic> rawData;
       if (response is List) {
-        return response;
-      }
-
-      if (response is Map) {
+        rawData = response;
+      } else if (response is Map) {
+        // Robust checking for common list keys
         final directList = response['orders'] ??
             response['data'] ??
             response['activeOrders'] ??
-            response['items'];
-        if (directList is List) return directList;
-
-        if (response['data'] is Map) {
-          final nestedList =
-              response['data']['orders'] ?? response['data']['activeOrders'];
-          if (nestedList is List) return nestedList;
+            response['items'] ??
+            response['list'];
+            
+        if (directList is List) {
+           rawData = directList;
+        } else if (response['data'] is Map) {
+          rawData = response['data']['orders'] ?? 
+                    response['data']['activeOrders'] ?? 
+                    response['data']['items'] ?? 
+                    [];
+        } else if (response['activeOrders'] is Map) {
+          rawData = response['activeOrders']['orders'] ?? [];
+        } else {
+          // If response is a map but no list found, maybe the map itself is 
+          // a single order (though unlikely for this endpoint)
+          rawData = [];
         }
+      } else {
+        rawData = [];
       }
 
-      return [];
+      return rawData
+          .map((e) => UserOrder.fromJson(e as Map<String, dynamic>))
+          .toList();
     } catch (e) {
-      debugPrint('Error fetching active orders: $e');
+      debugPrint('OrderService: Error fetching active orders: $e');
       return [];
     }
   }
@@ -212,7 +225,10 @@ final orderServiceProvider = Provider<OrderService>((ref) {
   return OrderService(ref.watch(apiClientProvider));
 });
 
-final myOrdersProvider = FutureProvider.autoDispose<List<UserOrder>>((ref) {
+final myOrdersProvider = FutureProvider.autoDispose<List<UserOrder>>((ref) async {
+  // keepAlive: order history can be large; cache it for the session so
+  // navigating to/from My Orders page doesn't trigger a full re-fetch.
+  ref.keepAlive();
   return ref.watch(orderServiceProvider).getMyOrders();
 });
 
@@ -239,15 +255,17 @@ class ActiveOrdersNotifier extends AsyncNotifier<List<UserOrder>> {
 
   Future<List<UserOrder>> _fetchActiveOrders() async {
     final service = ref.read(orderServiceProvider);
-
     try {
+      // 1. Try dedicated active orders endpoint
+      final active = await service.getActiveOrders();
+      if (active.isNotEmpty) return active;
+
+      // 2. Fallback: Parse history for anything not delivered/cancelled
+      // This ensures orders show up even if the /active endpoint is inconsistent
       final history = await service.getMyOrders();
-
-      if (history.isEmpty) return [];
-
       return history.where((o) {
-        final status = o.status.toLowerCase();
-        return status != 'delivered';
+        final s = o.status.toLowerCase();
+        return s != 'delivered' && s != 'cancelled';
       }).toList();
     } catch (e) {
       debugPrint('Error in _fetchActiveOrders: $e');

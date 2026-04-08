@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:razorpay_flutter/razorpay_flutter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -27,27 +28,21 @@ class PaymentService {
     required String email,
   }) async {
     try {
-      final keyId = dotenv.env['RAZORPAY_KEY_ID'] ?? 'rzp_test_S7lSvWtu89c6zD';
-      print("Starting openCheckout...");
-      print("Razorpay Key ID being used: $keyId");
-      print("Amount: $amount, Contact: '$contact', Email: '$email'");
+      final keyId = dotenv.env['RAZORPAY_KEY_ID'] ?? '';
+      if (keyId.isEmpty) throw Exception('Razorpay key not configured');
 
-      if (contact.isEmpty && email.isEmpty) {
-        print("WARNING: Both contact and email are empty. Razorpay may require at least one.");
+      if (kDebugMode) {
+        debugPrint('PaymentService: Starting checkout, amount=$amount, key=${keyId.substring(0, 8)}...');
       }
 
-      print("Calling backend to create Razorpay Order ID...");
       final orderResponse = await _apiClient.post(
         '${ApiClient.paymentBaseUrl}/create-order',
         data: {'amount': amount},
         requiresAuth: true,
       );
 
-      print("orderResponse data: $orderResponse");
-
       String? orderId;
       if (orderResponse is Map) {
-        // Broad extraction logic for various backend response formats
         if (orderResponse.containsKey('order') && orderResponse['order'] is Map) {
           orderId = orderResponse['order']['id']?.toString();
         } else if (orderResponse.containsKey('id')) {
@@ -59,13 +54,10 @@ class PaymentService {
         }
       }
 
-      print("Extracted orderId: $orderId");
-
       if (orderId == null || orderId.isEmpty) {
-        throw Exception("Server returned success but no valid Razorpay Order ID found. Response: $orderResponse");
+        throw Exception('Could not create payment order. Please try again.');
       }
 
-      // 2. Open Razorpay Checkout
       var options = {
         'key': keyId,
         'amount': (amount * 100).toInt(),
@@ -81,14 +73,9 @@ class PaymentService {
         }
       };
 
-      print("Opening Razorpay with options: $options");
       _razorpay.open(options);
-      print("Razorpay open() called successfully.");
-    } catch (e, stacktrace) {
-      print("=====================================");
-      print("ERROR IN PAYMENT SERVICE: ${e.toString()}");
-      print("STACKTRACE: $stacktrace");
-      print("=====================================");
+    } catch (e) {
+      if (kDebugMode) debugPrint('PaymentService ERROR: $e');
       rethrow;
     }
   }

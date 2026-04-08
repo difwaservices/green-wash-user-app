@@ -12,7 +12,7 @@ import '../../../data/services/order_service.dart';
 import '../../../data/services/favorites_service.dart';
 import './my_orders_page.dart';
 import '../../auth/provider/auth_provider.dart';
-import '../../subscriptions/view/subscription_dashboard_page.dart';
+import '../../subscription/view/subscription_dashboard_page.dart';
 import '../../../data/services/subscription_service.dart';
 import '../../home/view/favorites_page.dart';
 import '../../../routes/app_routes.dart';
@@ -65,7 +65,16 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                   ref.watch(auth.userProfileProvider).when(
                         data: (user) => _ProfileHeader(user: user),
                         loading: () => const _ProfileHeaderSkeleton(),
-                        error: (e, _) => Center(child: Text('Error: $e')),
+                        error: (e, _) => const Center(
+                          child: Padding(
+                            padding: EdgeInsets.all(16),
+                            child: Text(
+                              'Could not load profile. Pull down to refresh.',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(color: Colors.grey, fontSize: 14),
+                            ),
+                          ),
+                        ),
                       ),
                 const SizedBox(height: 30),
                 const _ActiveOrdersAndSubscriptions(),

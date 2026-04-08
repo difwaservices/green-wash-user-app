@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/config/api_config.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
@@ -43,15 +44,17 @@ final apiClientProvider = Provider<ApiClient>((ref) {
 
   dio.interceptors.addAll([
     AuthInterceptor(dio, storage),
-    PrettyDioLogger(
-      requestHeader: true,
-      requestBody: true,
-      responseBody: true,
-      responseHeader: false,
-      error: true,
-      compact: true,
-      maxWidth: 90,
-    ),
+    // PrettyDioLogger only runs in debug mode — never in APKs shared externally
+    if (kDebugMode)
+      PrettyDioLogger(
+        requestHeader: true,
+        requestBody: true,
+        responseBody: true,
+        responseHeader: false,
+        error: true,
+        compact: true,
+        maxWidth: 90,
+      ),
   ]);
 
   return ApiClient(dio);

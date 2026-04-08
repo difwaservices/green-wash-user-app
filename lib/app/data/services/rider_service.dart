@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/config/api_config.dart';
 import '../network/api_client.dart';
+
 class RiderService {
   final ApiClient _apiClient;
 

@@ -53,7 +53,20 @@ class _WalletStatementScreenState extends ConsumerState<WalletStatementScreen> {
               },
               loading: () => const Center(
                   child: CircularProgressIndicator(color: AppColors.primary)),
-              error: (err, _) => Center(child: Text('Error: $err')),
+              error: (err, _) => Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.cloud_off_rounded, size: 56, color: Colors.grey.shade300),
+                    const SizedBox(height: 12),
+                    const Text('Could not load transactions',
+                        style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)),
+                    const SizedBox(height: 6),
+                    const Text('Pull down to try again',
+                        style: TextStyle(color: Colors.grey, fontSize: 13)),
+                  ],
+                ),
+              ),
             ),
           ),
         ],

@@ -37,12 +37,10 @@ final riderStatsProvider = FutureProvider.autoDispose<_RiderStats>((ref) async {
   double rating = 0.0;
 
   try {
+    // The /rider/history endpoint already returns ONLY delivered/completed orders
+    // so we just count whatever it returns — no status filter needed
     final history = await riderService.getDeliveryHistory();
-    // Count only orders that are marked as delivered
-    orders = history.where((item) {
-      final status = (item['status']?.toString() ?? '').toLowerCase();
-      return status == 'delivered' || status == 'completed';
-    }).length;
+    orders = history.length;
   } catch (e) {
     debugPrint('Error calculating orders from history: $e');
   }
@@ -433,9 +431,10 @@ class _RiderHomePageState extends ConsumerState<RiderHomePage> {
           ),
         );
         if (isSuccess) {
-          // Refresh assigned orders (removes this order) AND history tab
+          // Refresh assigned orders (removes this order), history tab, AND dashboard stats
           ref.invalidate(riderOrdersProvider);
           ref.invalidate(deliveryHistoryProvider);
+          ref.invalidate(riderStatsProvider);
         }
       }
     } finally {
@@ -595,7 +594,8 @@ class _RiderHomePageState extends ConsumerState<RiderHomePage> {
                           ),
                         ],
                       ),
-                      if (_isOnline) ...[
+                      // Stats always visible (not gated behind online status)
+                      ...[
                         const Divider(height: 32),
                         statsAsync.when(
                           loading: () => const Padding(
@@ -614,14 +614,14 @@ class _RiderHomePageState extends ConsumerState<RiderHomePage> {
                             mainAxisAlignment: MainAxisAlignment.spaceAround,
                             children: [
                               _buildStat(
-                                  'Total Orders', '—', Icons.delivery_dining),
+                                  'Total Delivered', '—', Icons.delivery_dining),
                               _buildStat('Rating', '—', Icons.star_rounded),
                             ],
                           ),
                           data: (stats) => Row(
                             mainAxisAlignment: MainAxisAlignment.spaceAround,
                             children: [
-                              _buildStat('Total Orders', '${stats.orders}',
+                              _buildStat('Total Delivered', '${stats.orders}',
                                   Icons.delivery_dining),
                               _buildStat(
                                   'Rating',
@@ -899,6 +899,7 @@ class _RiderHomePageState extends ConsumerState<RiderHomePage> {
                     (() {
                       final addrMap = order['deliveryAddress'];
                       if (addrMap is Map) {
+                        final name = addrMap['fullName'] ?? addrMap['name'] ?? '';
                         final street = addrMap['fullAddress'] ?? addrMap['address'] ?? addrMap['street'] ?? '';
                         final city = addrMap['city'] ?? '';
                         final state = addrMap['state'] ?? '';
@@ -908,7 +909,8 @@ class _RiderHomePageState extends ConsumerState<RiderHomePage> {
                         if (city.toString().isNotEmpty) parts.add(city.toString());
                         if (state.toString().isNotEmpty) parts.add(state.toString());
                         if (pincode.toString().isNotEmpty) parts.add(pincode.toString());
-                        return parts.isNotEmpty ? parts.join(', ') : 'No address provided';
+                        String addr = parts.isNotEmpty ? parts.join(', ') : 'No address provided';
+                        return name.toString().isNotEmpty ? '$name\n$addr' : addr;
                       }
                       return addrMap?.toString() ?? 'No address provided';
                     })(),

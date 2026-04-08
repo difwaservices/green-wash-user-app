@@ -64,7 +64,10 @@ class UserSubscription {
   final DateTime? endDate;
   final String retailerName;
   final List<DateTime> vacationDates;
+  final double price;
   final String? deliverySlot;
+  /// Raw delivery address map as returned by the API
+  final Map<String, dynamic>? deliveryAddress;
 
   UserSubscription({
     required this.id,
@@ -77,21 +80,84 @@ class UserSubscription {
     required this.customDays,
     required this.status,
     required this.startDate,
+    this.price = 0.0,
     this.deliverySlot,
     this.endDate,
     this.vacationDates = const [],
+    this.deliveryAddress,
   });
 
+  /// Human-readable delivery address string
+  String get deliveryAddressString {
+    final m = deliveryAddress;
+    if (m == null || m.isEmpty) return '';
+    
+    final label = m['label']?.toString() ?? '';
+    final name = m['fullName']?.toString() ?? m['name']?.toString() ?? '';
+    
+    final street = m['fullAddress'] ?? m['address'] ?? m['street'] ?? '';
+    final city = m['city'] ?? '';
+    final state = m['state'] ?? '';
+    final pincode = m['pincode'] ?? '';
+    
+    final parts = [street, city, state, pincode]
+        .where((p) => p.toString().isNotEmpty)
+        .toList();
+    
+    String addrStr = parts.join(', ');
+    String result = '';
+    
+    if (label.isNotEmpty) result += '[${label.toUpperCase()}] ';
+    if (name.isNotEmpty) result += '$name: ';
+    result += addrStr;
+    
+    return result;
+  }
+
   factory UserSubscription.fromJson(Map<String, dynamic> json) {
-    final product = json['product'];
+    // 1. Extract potentially multiple items (combinations)
+    final rawItems = (json['items'] ?? json['products']) as List? ?? [];
+    String combinedName = '';
     String imageUrl = '';
-    if (product is Map) {
-      // Backend returns 'images' as an array
-      final images = product['images'] as List<dynamic>?;
+    double totalPrice = 0.0;
+
+    if (rawItems.isNotEmpty) {
+      final names = <String>[];
+      for (final item in rawItems) {
+        final p = item['product'] is Map ? item['product'] : item;
+        names.add("${p['name'] ?? 'Product'} (${item['quantity'] ?? 1})");
+        
+        // Use first product's image for the card
+        if (imageUrl.isEmpty) {
+          final images = p['images'] as List?;
+          imageUrl = (images != null && images.isNotEmpty)
+              ? images.first.toString()
+              : p['image']?.toString() ?? '';
+        }
+        
+        final unitPrice = (item['price'] as num?)?.toDouble() ?? 
+                         (p['price'] as num?)?.toDouble() ?? 0.0;
+        totalPrice += unitPrice * (item['quantity'] ?? 1);
+      }
+      combinedName = names.join(" + ");
+    }
+
+    // 2. Fallback to single product if items is empty
+    final product = json['product'];
+    if (combinedName.isEmpty && product is Map) {
+      combinedName = product['name']?.toString() ?? 'Product';
+      final images = product['images'] as List?;
       imageUrl = (images != null && images.isNotEmpty)
           ? images.first.toString()
           : product['image']?.toString() ?? '';
+      
+      final pPrice = (product['price'] as num?)?.toDouble() ?? 0.0;
+      totalPrice = pPrice * ((json['quantity'] as num?)?.toInt() ?? 1);
     }
+
+    // Use top-level price if available
+    final topLevelPrice = (json['totalAmount'] ?? json['price'] as num?)?.toDouble() ?? 0.0;
+    if (topLevelPrice > 0) totalPrice = topLevelPrice;
 
     final retailer = json['retailer'] ?? (product is Map ? product['retailer'] : null);
     String retailerName = '';
@@ -109,12 +175,12 @@ class UserSubscription {
     return UserSubscription(
       id: json['_id']?.toString() ?? '',
       productId: product is Map ? product['_id']?.toString() ?? '' : '',
-      productName:
-          product is Map ? product['name']?.toString() ?? 'Product' : 'Product',
+      productName: combinedName.isEmpty ? 'Subscription' : combinedName,
       productImage: imageUrl,
       retailerName: retailerName,
       frequency: json['frequency']?.toString() ?? 'Daily',
       quantity: (json['quantity'] as num?)?.toInt() ?? 1,
+      price: totalPrice / ((json['quantity'] as num?)?.toInt() ?? 1), // Store unit price
       customDays: (json['customDays'] as List<dynamic>?)
               ?.map((e) => e.toString())
               .toList() ??
@@ -130,6 +196,9 @@ class UserSubscription {
               .toList() ??
           [],
       deliverySlot: json['deliverySlot']?.toString(),
+      deliveryAddress: json['deliveryAddress'] is Map
+          ? Map<String, dynamic>.from(json['deliveryAddress'])
+          : null,
     );
   }
 
@@ -140,6 +209,7 @@ class UserSubscription {
     String? productImage,
     String? frequency,
     int? quantity,
+    double? price,
     List<String>? customDays,
     String? status,
     DateTime? startDate,
@@ -147,6 +217,7 @@ class UserSubscription {
     String? retailerName,
     List<DateTime>? vacationDates,
     String? deliverySlot,
+    Map<String, dynamic>? deliveryAddress,
   }) {
     return UserSubscription(
       id: id ?? this.id,
@@ -155,6 +226,7 @@ class UserSubscription {
       productImage: productImage ?? this.productImage,
       frequency: frequency ?? this.frequency,
       quantity: quantity ?? this.quantity,
+      price: price ?? this.price,
       customDays: customDays ?? this.customDays,
       status: status ?? this.status,
       startDate: startDate ?? this.startDate,
@@ -162,6 +234,7 @@ class UserSubscription {
       retailerName: retailerName ?? this.retailerName,
       vacationDates: vacationDates ?? this.vacationDates,
       deliverySlot: deliverySlot ?? this.deliverySlot,
+      deliveryAddress: deliveryAddress ?? this.deliveryAddress,
     );
   }
 }

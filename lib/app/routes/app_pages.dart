@@ -6,7 +6,6 @@ import '../modules/auth/otp_verification_page.dart';
 import '../modules/auth/onboarding_page.dart';
 import '../modules/home/view/main_page.dart';
 import '../modules/home/view/search_page.dart';
-import '../modules/categories/view/vegetables_page.dart';
 import '../modules/cart/view/cart_page.dart';
 import '../modules/cart/view/shipping_address_page.dart';
 import '../modules/cart/view/order_success_page.dart';
@@ -46,7 +45,6 @@ class AppPages {
         },
         AppRoutes.home: (context) => const MainPage(),
         AppRoutes.search: (context) => const SearchPage(),
-        AppRoutes.waterAccessories: (context) => const VegetablesPage(),
         AppRoutes.cart: (context) => const CartPage(),
         AppRoutes.shippingAddress: (context) => const ShippingAddressPage(),
         AppRoutes.orderSuccess: (context) => const OrderSuccessPage(),

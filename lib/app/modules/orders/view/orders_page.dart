@@ -6,7 +6,10 @@ import '../../../data/services/order_service.dart';
 import '../../../data/services/socket_service.dart';
 import '../../auth/provider/auth_provider.dart';
 import '../../../core/constants/app_images.dart';
+import '../../../data/models/product_model.dart';
 
+import '../../../data/services/db_service.dart';
+import 'package:intl/intl.dart';
 // Local provider removed, using shared provider from order_service.dart
 
 
@@ -235,7 +238,12 @@ class _OrdersPageState extends ConsumerState<OrdersPage> {
               ),
             ),
             ordersAsync.when(
-              data: (orders) => orders.isEmpty
+              data: (orders) {
+                final deliveredOrders = orders
+                    .where((o) => o.status.toLowerCase() == 'delivered')
+                    .toList();
+                
+                return deliveredOrders.isEmpty
                   ? const SliverFillRemaining(
                       child: Center(
                         child: Text('No orders yet',
@@ -245,7 +253,7 @@ class _OrdersPageState extends ConsumerState<OrdersPage> {
                   : SliverPadding(
                       padding: const EdgeInsets.all(16),
                       sliver: Builder(builder: (context) {
-                        final sortedOrders = List<UserOrder>.from(orders)
+                        final sortedOrders = List<UserOrder>.from(deliveredOrders)
                           ..sort((a, b) => b.date.compareTo(a.date));
                         return SliverList(
                           delegate: SliverChildBuilderDelegate(
@@ -255,7 +263,8 @@ class _OrdersPageState extends ConsumerState<OrdersPage> {
                           ),
                         );
                       }),
-                    ),
+                    );
+              },
               loading: () => const SliverFillRemaining(
                 child: Center(
                     child: CircularProgressIndicator(color: Color(0xFF0891B2))),
@@ -343,12 +352,26 @@ class _LiveOrderCardState extends State<_LiveOrderCard>
   Widget build(BuildContext context) {
     return GestureDetector(
       onDoubleTap: () {
-        HapticFeedback.mediumImpact();
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('Added to cart for reorder!'),
-          backgroundColor: Color(0xFF0891B2),
-        ));
-        _controller.forward().then((_) => _controller.reverse());
+        if (_isDelivered) {
+          HapticFeedback.mediumImpact();
+          final cartProv = CartProviderScope.of(context);
+          for (var item in widget.order.items) {
+            cartProv.addToCart(CartItem(
+              id: item.id.isNotEmpty ? item.id : 'reorder_${item.name}',
+              title: item.name,
+              unitPrice: item.price,
+              subtitle: '1 Unit',
+              image: item.image,
+              category: 'Reorder',
+              quantity: item.quantity,
+            ));
+          }
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content: Text('Added to cart for reorder!'),
+            backgroundColor: Color(0xFF0891B2),
+          ));
+          _controller.forward().then((_) => _controller.reverse());
+        }
       },
       onTapDown: (_) => _controller.forward(),
       onTapUp: (_) => _controller.reverse(),
@@ -408,22 +431,55 @@ class _LiveOrderCardState extends State<_LiveOrderCard>
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 6, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: _statusBg,
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(
-                                  color: _statusColor.withValues(alpha: 0.4)),
-                            ),
-                            child: Text(
-                              _status,
-                              style: TextStyle(
-                                  color: _statusColor,
-                                  fontSize: 8,
-                                  fontWeight: FontWeight.bold),
-                            ),
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: _statusBg,
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(
+                                      color:
+                                          _statusColor.withValues(alpha: 0.4)),
+                                ),
+                                child: Text(
+                                  _status,
+                                  style: TextStyle(
+                                      color: _statusColor,
+                                      fontSize: 8,
+                                      fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: widget.order.isSubscription
+                                      ? const Color(0xFF0891B2)
+                                          .withValues(alpha: 0.1)
+                                      : Colors.grey.shade100,
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(
+                                      color: widget.order.isSubscription
+                                          ? const Color(0xFF0891B2)
+                                              .withValues(alpha: 0.3)
+                                          : Colors.grey.shade300),
+                                ),
+                                child: Text(
+                                  (widget.order.orderType ?? 'One-time')
+                                      .toUpperCase(),
+                                  style: TextStyle(
+                                      color: widget.order.isSubscription
+                                          ? const Color(0xFF0891B2)
+                                          : Colors.grey.shade600,
+                                      fontSize: 8,
+                                      fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
@@ -437,6 +493,21 @@ class _LiveOrderCardState extends State<_LiveOrderCard>
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
+                      const SizedBox(height: 6),
+                      Text(
+                        'Placed: ${DateFormat('dd MMM yyyy, hh:mm a').format(widget.order.date)}',
+                        style: TextStyle(color: Colors.grey.shade500, fontSize: 11),
+                      ),
+                      if (_isDelivered)
+                        Text(
+                          'Delivered: ${DateFormat('dd MMM yyyy, hh:mm a').format(widget.order.date.add(const Duration(hours: 1)))}',
+                          style: TextStyle(color: Colors.grey.shade500, fontSize: 11),
+                        ),
+                      if (widget.order.riderName.isNotEmpty)
+                        Text(
+                          'Rider: ${widget.order.riderName}',
+                          style: TextStyle(color: Colors.grey.shade500, fontSize: 11),
+                        ),
                       const SizedBox(height: 16),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -457,20 +528,43 @@ class _LiveOrderCardState extends State<_LiveOrderCard>
                               ),
                             ],
                           ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 6),
-                            decoration: BoxDecoration(
-                              border: Border.all(
-                                  color: const Color(0xFFE67E22), width: 1.5),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Text(
-                              _isDelivered ? 'Reorder' : 'Track',
-                              style: const TextStyle(
-                                  color: Color(0xFF2D3436),
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 12),
+                          GestureDetector(
+                            onTap: () {
+                              if (_isDelivered) {
+                                HapticFeedback.mediumImpact();
+                                final cartProv = CartProviderScope.of(context);
+                                for (var item in widget.order.items) {
+                                  cartProv.addToCart(CartItem(
+                                    id: item.id.isNotEmpty ? item.id : 'reorder_${item.name}',
+                                    title: item.name,
+                                    unitPrice: item.price,
+                                    subtitle: '1 Unit',
+                                    image: item.image,
+                                    category: 'Reorder',
+                                    quantity: item.quantity,
+                                  ));
+                                }
+                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                                  content: Text('Added to cart for reorder!'),
+                                  backgroundColor: Color(0xFF0891B2),
+                                ));
+                              }
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 6),
+                              decoration: BoxDecoration(
+                                border: Border.all(
+                                    color: const Color(0xFFE67E22), width: 1.5),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Text(
+                                _isDelivered ? 'Reorder' : 'Track',
+                                style: const TextStyle(
+                                    color: Color(0xFF2D3436),
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 12),
+                              ),
                             ),
                           ),
                         ],

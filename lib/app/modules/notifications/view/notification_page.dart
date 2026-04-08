@@ -98,7 +98,20 @@ class _NotificationPageState extends ConsumerState<NotificationPage> {
             );
           },
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (e, _) => Center(child: Text('Error: $e')),
+          error: (e, _) => Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.wifi_off_rounded, size: 56, color: Colors.grey.shade300),
+                const SizedBox(height: 12),
+                const Text('Could not load notifications',
+                    style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 6),
+                const Text('Pull down to try again',
+                    style: TextStyle(color: Colors.grey, fontSize: 13)),
+              ],
+            ),
+          ),
         ),
       ),
     );
