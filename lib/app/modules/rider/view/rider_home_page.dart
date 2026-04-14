@@ -769,12 +769,19 @@ class _RiderHomePageState extends ConsumerState<RiderHomePage> {
   }
 
   Widget _buildOrderCard(dynamic order) {
-    final assignmentStatus = order['riderAssignmentStatus'];
+    final rawAssignmentStatus = (order['riderAssignmentStatus'] ?? '').toString().toLowerCase();
     final orderStatus =
         (order['status']?.toString() ?? 'Pending').toLowerCase();
 
-    final isPending = assignmentStatus == 'Pending';
-    final isAccepted = assignmentStatus == 'Accepted';
+    // Support both specific assignment field and main order status
+    final isPending = rawAssignmentStatus == 'pending' || 
+                      orderStatus == 'rider assigned' || 
+                      orderStatus == 'rider_assigned';
+                      
+    final isAccepted = rawAssignmentStatus == 'accepted' || 
+                       orderStatus == 'accepted' ||
+                       ['out for delivery', 'out_for_delivery', 'pickedup', 'picked_up', 'arrived'].contains(orderStatus);
+
     final isDelivered =
         orderStatus == 'delivered' || orderStatus == 'completed';
     final bool isProcessing = _processingIds.contains(order['orderId']);

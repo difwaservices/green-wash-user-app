@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../data/services/socket_service.dart';
 import '../../../data/services/order_service.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 /// Maps every backend status string → a 0-based step index (0 = just placed).
 int _statusToStep(String status) {
@@ -65,6 +66,8 @@ class _TrackOrderPageState extends ConsumerState<TrackOrderPage>
   late String _currentStatus;
   String _riderName = '';
   String _riderPhone = '';
+  String _plantName = '';
+  String _plantPhone = '';
   bool _isLoading = true;
 
   // Socket callbacks
@@ -102,6 +105,16 @@ class _TrackOrderPageState extends ConsumerState<TrackOrderPage>
             _riderName = rider['fullName'] ?? rider['name'] ?? _riderName;
             _riderPhone = rider['phoneNumber'] ?? rider['phone'] ?? _riderPhone;
           }
+          
+          final items = orderData['items'] as List?;
+          final retailer = orderData['retailer'] ?? (items != null && items.isNotEmpty ? items.first['retailer'] : null);
+          if (retailer is Map) {
+            _plantName = retailer['businessDetails']?['storeDisplayName'] ?? 
+                         retailer['fullName'] ?? 
+                         retailer['name'] ?? 
+                         _plantName;
+            _plantPhone = retailer['phoneNumber'] ?? retailer['phone'] ?? _plantPhone;
+          }
           _isLoading = false;
         });
       }
@@ -132,11 +145,21 @@ class _TrackOrderPageState extends ConsumerState<TrackOrderPage>
         }
 
         if (payload is Map) {
-          // If the payload has the full order object, extract rider
+          // If the payload has the full order object, extract rider and retailer
           final rider = payload['rider'] ?? payload['riderId'];
           if (rider is Map) {
             _riderName = rider['fullName'] ?? rider['name'] ?? _riderName;
             _riderPhone = rider['phoneNumber'] ?? rider['phone'] ?? _riderPhone;
+          }
+          
+          final items = payload['items'] as List?;
+          final retailer = payload['retailer'] ?? (items != null && items.isNotEmpty ? items.first['retailer'] : null);
+          if (retailer is Map) {
+            _plantName = retailer['businessDetails']?['storeDisplayName'] ?? 
+                         retailer['fullName'] ?? 
+                         retailer['name'] ?? 
+                         _plantName;
+            _plantPhone = retailer['phoneNumber'] ?? retailer['phone'] ?? _plantPhone;
           }
         }
       });
@@ -361,8 +384,17 @@ class _TrackOrderPageState extends ConsumerState<TrackOrderPage>
 
                 const SizedBox(height: 24),
 
+                // ── Plant Info ─────────────────────────────────────────
+                if (_plantName.isNotEmpty) ...[
+                  _buildPlantCard(),
+                  const SizedBox(height: 24),
+                ],
+
                 // ── Rider Info ─────────────────────────────────────────
-                if (step >= 1) _buildRiderCard(),
+                if (step >= 1) ...[
+                  _buildRiderCard(),
+                  const SizedBox(height: 24),
+                ],
 
                 const SizedBox(height: 40),
               ],
@@ -541,6 +573,69 @@ class _TrackOrderPageState extends ConsumerState<TrackOrderPage>
     );
   }
 
+  Widget _buildPlantCard() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF0FDF4), // Very light green
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: const [
+          BoxShadow(color: Colors.black12, blurRadius: 10, spreadRadius: 0)
+        ],
+        border: Border.all(color: const Color(0xFFDCFCE7)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: const BoxDecoration(
+              color: Color(0xFFDCFCE7),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.factory_outlined,
+                color: Color(0xFF16A34A), size: 24),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Plant / Retailer',
+                  style: TextStyle(
+                      fontSize: 11,
+                      color: Color(0xFF16A34A),
+                      fontWeight: FontWeight.w600),
+                ),
+                Text(
+                  _plantName,
+                  style: const TextStyle(
+                      fontWeight: FontWeight.bold, fontSize: 16),
+                ),
+                if (_plantPhone.isNotEmpty)
+                  Text(
+                    _plantPhone,
+                    style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
+                  ),
+              ],
+            ),
+          ),
+          if (_plantPhone.isNotEmpty)
+            _IconBtn(
+              icon: Icons.call,
+              isPrimary: true,
+              onPressed: () async {
+                final Uri uri = Uri.parse('tel:$_plantPhone');
+                if (await canLaunchUrl(uri)) {
+                  await launchUrl(uri);
+                }
+              },
+            ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildRiderCard() {
     final hasRider = _riderName.isNotEmpty;
     return Container(
@@ -596,7 +691,12 @@ class _TrackOrderPageState extends ConsumerState<TrackOrderPage>
             _IconBtn(
               icon: Icons.call,
               isPrimary: true,
-              onPressed: () => HapticFeedback.lightImpact(),
+              onPressed: () async {
+                final Uri uri = Uri.parse('tel:$_riderPhone');
+                if (await canLaunchUrl(uri)) {
+                  await launchUrl(uri);
+                }
+              },
             ),
           const SizedBox(width: 10),
           _IconBtn(

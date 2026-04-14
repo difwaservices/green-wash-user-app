@@ -102,6 +102,11 @@ class _OrdersPageState extends ConsumerState<OrdersPage> {
     if (user == null) return;
     final socket = ref.read(socketServiceProvider);
     socket.joinUserRoom(user.id);
+    socket.onOrderUpdate((data) {
+      if (!mounted) return;
+      ref.invalidate(myOrdersProvider);
+    });
+
     socket.onRiderAssigned((data) {
       if (!mounted) return;
       HapticFeedback.heavyImpact();
@@ -239,11 +244,11 @@ class _OrdersPageState extends ConsumerState<OrdersPage> {
             ),
             ordersAsync.when(
               data: (orders) {
-                final deliveredOrders = orders
-                    .where((o) => o.status.toLowerCase() == 'delivered')
+                final filteredOrders = orders
+                    .where((o) => o.status.toLowerCase() != 'cancelled')
                     .toList();
                 
-                return deliveredOrders.isEmpty
+                return filteredOrders.isEmpty
                   ? const SliverFillRemaining(
                       child: Center(
                         child: Text('No orders yet',
@@ -253,7 +258,7 @@ class _OrdersPageState extends ConsumerState<OrdersPage> {
                   : SliverPadding(
                       padding: const EdgeInsets.all(16),
                       sliver: Builder(builder: (context) {
-                        final sortedOrders = List<UserOrder>.from(deliveredOrders)
+                        final sortedOrders = List<UserOrder>.from(filteredOrders)
                           ..sort((a, b) => b.date.compareTo(a.date));
                         return SliverList(
                           delegate: SliverChildBuilderDelegate(

@@ -88,73 +88,122 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage>
       });
     }
 
-    // Listen for clipboard on focus of first field (helpful on Android OTP autofill)
+    // Setup focus nodes with key event listeners for backspace support
     for (int i = 0; i < _otpLength; i++) {
-      _focusNodes[i].addListener(() {
-        if (_focusNodes[i].hasFocus && i == 0) {
-          _checkClipboard();
-        }
-      });
+      _focusNodes[i].onKeyEvent = (node, event) => _handleKeyEvent(i, event)
+          ? KeyEventResult.handled
+          : KeyEventResult.ignored;
     }
   }
 
   // ── Paste / Clipboard detection ──────────────────────────────────────────
   /// Called automatically when field 0 gains focus, and also via paste gesture.
   Future<void> _checkClipboard() async {
-    final data = await Clipboard.getData(Clipboard.kTextPlain);
-    final text = data?.text?.trim() ?? '';
-    final digits = text.replaceAll(RegExp(r'\D'), '');
-    if (digits.length == _otpLength) {
-      _fillOtp(digits);
+    try {
+      final data = await Clipboard.getData(Clipboard.kTextPlain);
+      final text = data?.text?.trim() ?? '';
+      final digits = text.replaceAll(RegExp(r'\D'), '');
+      if (digits.length == _otpLength) {
+        _fillOtp(digits);
+      } else if (digits.isNotEmpty && digits.length < _otpLength) {
+        // Option to help if user has a partial code
+        _fillOtp(digits);
+      }
+    } catch (e) {
+      debugPrint('Error checking clipboard: $e');
     }
   }
 
   void _fillOtp(String digits) {
-    for (int i = 0; i < _otpLength; i++) {
-      _controllers[i].text = digits[i];
+    if (!mounted) return;
+    
+    // Clear all first to be sure
+    for (var c in _controllers) {
+      c.clear();
     }
-    setState(() {
-      for (int i = 0; i < _otpLength; i++) {
-        _filled[i] = true;
-      }
-    });
-    _focusNodes[_otpLength - 1].unfocus();
-    // Auto-verify after brief delay so user can see the fill
-    Future.delayed(const Duration(milliseconds: 300), _verifyOtp);
+
+    final len = digits.length > _otpLength ? _otpLength : digits.length;
+    for (int i = 0; i < len; i++) {
+      _controllers[i].text = digits[i];
+      _filled[i] = true;
+    }
+    
+    setState(() {});
+
+    if (len == _otpLength) {
+      _focusNodes[_otpLength - 1].unfocus();
+      // Auto-verify after brief delay so user can see the fill
+      Future.delayed(const Duration(milliseconds: 400), () {
+        if (mounted) _verifyOtp();
+      });
+    } else {
+      _focusNodes[len.clamp(0, _otpLength - 1)].requestFocus();
+    }
   }
 
   // ── onChanged handler ────────────────────────────────────────────────────
   void _onDigitChanged(int index, String value) {
-    // Handle paste: if more than 1 character was somehow typed
-    if (value.length > 1) {
-      final digits = value.replaceAll(RegExp(r'\D'), '');
-      if (digits.length >= _otpLength) {
-        _fillOtp(digits.substring(0, _otpLength));
-        return;
+    // If user deleted the character
+    if (value.isEmpty) {
+      if (_filled[index]) {
+        setState(() => _filled[index] = false);
       }
-      // Partial paste: fill from this index
-      for (int i = index; i < _otpLength && (i - index) < digits.length; i++) {
-        _controllers[i].text = digits[i - index];
-        setState(() => _filled[i] = true);
+      if (index > 0) {
+        _focusNodes[index - 1].requestFocus();
       }
-      final nextIndex = (index + digits.length).clamp(0, _otpLength - 1);
-      _focusNodes[nextIndex].requestFocus();
       return;
     }
 
+    // Handle paste: if more than 1 character was typed/pasted
+    if (value.length > 1) {
+      final digits = value.replaceAll(RegExp(r'\D'), '');
+      if (digits.isEmpty) {
+        _controllers[index].clear();
+        return;
+      }
+
+      // If it's a full code, start from index 0 regardless of where they pasted
+      if (digits.length == _otpLength) {
+        _fillOtp(digits);
+        return;
+      }
+
+      // Partial paste: fill from this index onwards
+      int digitIdx = 0;
+      for (int i = index; i < _otpLength && digitIdx < digits.length; i++) {
+        _controllers[i].text = digits[digitIdx];
+        _filled[i] = true;
+        digitIdx++;
+      }
+      
+      setState(() {});
+
+      final nextFocus = (index + digits.length).clamp(0, _otpLength - 1);
+      _focusNodes[nextFocus].requestFocus();
+      
+      // If we filled till the end, auto verify
+      if (nextFocus == _otpLength - 1 && _controllers[nextFocus].text.isNotEmpty) {
+        Future.delayed(const Duration(milliseconds: 300), () {
+          if (mounted) _verifyOtp();
+        });
+      }
+      return;
+    }
+
+    // Normal single digit entry
     if (value.isNotEmpty) {
-      setState(() => _filled[index] = true);
+      if (!_filled[index]) {
+        setState(() => _filled[index] = true);
+      }
+      
       if (index < _otpLength - 1) {
         _focusNodes[index + 1].requestFocus();
       } else {
         _focusNodes[index].unfocus();
         // Auto-verify on last digit
-        Future.delayed(const Duration(milliseconds: 200), _verifyOtp);
-      }
-    } else {
-      setState(() => _filled[index] = false);
-      if (index > 0) {
-        _focusNodes[index - 1].requestFocus();
+        Future.delayed(const Duration(milliseconds: 300), () {
+          if (mounted) _verifyOtp();
+        });
       }
     }
   }
@@ -163,6 +212,7 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage>
   bool _handleKeyEvent(int index, KeyEvent event) {
     if (event is KeyDownEvent &&
         event.logicalKey == LogicalKeyboardKey.backspace) {
+      // If current field is empty, move back and clear previous
       if (_controllers[index].text.isEmpty && index > 0) {
         _controllers[index - 1].clear();
         setState(() => _filled[index - 1] = false);
@@ -185,10 +235,14 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage>
 
   // ── Network actions ───────────────────────────────────────────────────────
   Future<void> _sendOtp() async {
+    if (_isSendingOtp) return;
     setState(() => _isSendingOtp = true);
-    await ref
-        .read(authProvider.notifier)
-        .sendOtp(phoneNumber: widget.phoneNumber);
+    try {
+      await ref
+          .read(authProvider.notifier)
+          .sendOtp(phoneNumber: widget.phoneNumber);
+    } catch (_) {}
+    
     if (!mounted) return;
     setState(() {
       _isSendingOtp = false;
@@ -198,6 +252,8 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage>
   }
 
   Future<void> _verifyOtp() async {
+    if (_isVerifying) return;
+    
     final otp = _controllers.map((c) => c.text).join();
     if (otp.length < _otpLength) {
       _shakeCtrl.forward(from: 0);
@@ -205,24 +261,34 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage>
           backgroundColor: Colors.orange.shade700);
       return;
     }
-    if (!mounted) return;
+    
     setState(() => _isVerifying = true);
-    await ref.read(authProvider.notifier).verifyOtp(
-          phoneNumber: widget.phoneNumber,
-          otp: otp,
-        );
-    if (!mounted) return;
-    setState(() => _isVerifying = false);
+    try {
+      await ref.read(authProvider.notifier).verifyOtp(
+            phoneNumber: widget.phoneNumber,
+            otp: otp,
+          );
+    } catch (e) {
+      if (mounted) {
+        _showSnackBar(e.toString(), backgroundColor: Colors.red);
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isVerifying = false);
+      }
+    }
   }
 
   void _showSnackBar(String message, {Color backgroundColor = Colors.black87}) {
     if (!mounted) return;
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content:
-            Text(message, style: const TextStyle(fontWeight: FontWeight.w500)),
+        content: Text(message, 
+          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500)),
         backgroundColor: backgroundColor,
         behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(20),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         duration: const Duration(seconds: 3),
       ),
@@ -267,11 +333,6 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage>
           cartProvider.syncOrders();
           cartProvider.syncWallet();
           cartProvider.loadAddresses();
-
-          FCMService.sendTokenToBackend();
-          ref
-              .read(socketServiceProvider)
-              .joinRetailerNotificationRoom(next.user.id);
         } catch (_) {}
 
         if (role.contains('rider') ||
@@ -285,8 +346,10 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage>
               context, AppRoutes.home, (r) => false);
         }
       } else if (next is AuthError) {
-        _shakeCtrl.forward(from: 0);
-        _showSnackBar(next.message, backgroundColor: Colors.red);
+        if (mounted) {
+          _shakeCtrl.forward(from: 0);
+          _showSnackBar(next.message, backgroundColor: Colors.red);
+        }
       }
     });
 
@@ -479,54 +542,49 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage>
                                         : [],
                                   ),
                                   child: Center(
-                                    child: KeyboardListener(
-                                      focusNode: FocusNode(),
-                                      onKeyEvent: (event) =>
-                                          _handleKeyEvent(i, event),
-                                      child: TextField(
-                                        controller: _controllers[i],
-                                        focusNode: _focusNodes[i],
-                                        keyboardType: TextInputType.number,
-                                        inputFormatters: [
-                                          FilteringTextInputFormatter.digitsOnly,
-                                        ],
-                                        textAlign: TextAlign.center,
-                                        textAlignVertical:
-                                            TextAlignVertical.center,
-                                        maxLength: 1,
-                                        style: TextStyle(
-                                          fontSize: 22,
-                                          fontWeight: FontWeight.bold,
-                                          color: _filled[i]
-                                              ? const Color(0xFF06B6D4)
-                                              : const Color(0xFF1E293B),
-                                        ),
-                                        decoration: InputDecoration(
-                                          counterText: '',
-                                          contentPadding: EdgeInsets.zero,
-                                          enabledBorder: OutlineInputBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(16),
-                                            borderSide: const BorderSide(
-                                                color: Colors.transparent,
-                                                width: 0),
-                                          ),
-                                          focusedBorder: OutlineInputBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(16),
-                                            borderSide: const BorderSide(
-                                                color: Colors.transparent,
-                                                width: 0),
-                                          ),
-                                          border: OutlineInputBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(16),
-                                            borderSide: BorderSide.none,
-                                          ),
-                                        ),
-                                        onChanged: (v) =>
-                                            _onDigitChanged(i, v),
+                                    child: TextField(
+                                      controller: _controllers[i],
+                                      focusNode: _focusNodes[i],
+                                      keyboardType: TextInputType.number,
+                                      inputFormatters: [
+                                        FilteringTextInputFormatter.digitsOnly,
+                                      ],
+                                      textAlign: TextAlign.center,
+                                      textAlignVertical:
+                                          TextAlignVertical.center,
+                                      maxLength: 1,
+                                      style: TextStyle(
+                                        fontSize: 22,
+                                        fontWeight: FontWeight.bold,
+                                        color: _filled[i]
+                                            ? const Color(0xFF06B6D4)
+                                            : const Color(0xFF1E293B),
                                       ),
+                                      decoration: InputDecoration(
+                                        counterText: '',
+                                        contentPadding: EdgeInsets.zero,
+                                        enabledBorder: OutlineInputBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(16),
+                                          borderSide: const BorderSide(
+                                              color: Colors.transparent,
+                                              width: 0),
+                                        ),
+                                        focusedBorder: OutlineInputBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(16),
+                                          borderSide: const BorderSide(
+                                              color: Colors.transparent,
+                                              width: 0),
+                                        ),
+                                        border: OutlineInputBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(16),
+                                          borderSide: BorderSide.none,
+                                        ),
+                                      ),
+                                      onChanged: (v) =>
+                                          _onDigitChanged(i, v),
                                     ),
                                   ),
                                 );

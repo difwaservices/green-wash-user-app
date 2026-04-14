@@ -14,6 +14,7 @@ import 'fcm_service.dart';
 class SocketService {
   static const String _orderUpdateEvent = 'orderUpdate';
   static const String _riderAssignedEvent = 'riderAssigned';
+  static const String _orderDeliveredEvent = 'orderDelivered';
   static const String _newOrderEvent =
       'newOrderAssigned'; // rider receives new order
 
@@ -249,6 +250,20 @@ class SocketService {
       _socket?.off('shopStatusUpdate', callback);
     } else {
       _socket?.off('shopStatusUpdate');
+    }
+  }
+
+  /// `orderDelivered` — fires when an order is successfully delivered.
+  /// Payload: `{ orderId: "...", products: [...] }`
+  void onOrderDelivered(void Function(dynamic) callback) {
+    _socket?.on(_orderDeliveredEvent, callback);
+  }
+
+  void offOrderDelivered([void Function(dynamic)? callback]) {
+    if (callback != null) {
+      _socket?.off(_orderDeliveredEvent, callback);
+    } else {
+      _socket?.off(_orderDeliveredEvent);
     }
   }
 

@@ -12,10 +12,12 @@ import '../widgets/cart_summary_bar.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/state/auth_store.dart';
 import '../../../routes/app_routes.dart';
+import '../../../data/services/socket_service.dart';
+import '../../profile/widgets/review_dialog.dart';
 
 class MainPage extends ConsumerStatefulWidget {
   const MainPage({super.key});
-  
+
   @override
   ConsumerState<MainPage> createState() => _MainPageState();
 }
@@ -41,12 +43,52 @@ class _MainPageState extends ConsumerState<MainPage> {
     // Initial cart sync from API
     WidgetsBinding.instance.addPostFrameCallback((_) {
       CartProviderScope.of(context).loadCartFromApi();
+      _setupSocketListeners();
+    });
+  }
+
+  void _setupSocketListeners() {
+    final socket = ref.read(socketServiceProvider);
+    final user = ref.read(currentUserProvider);
+
+    if (user != null) {
+      socket.joinUserRoom(user.id);
+    }
+
+    socket.onOrderDelivered((data) {
+      if (!mounted) return;
+
+      // data: { orderId: "...", products: [{ _id, name, retailer }] }
+      final orderId = data['orderId']?.toString() ?? '';
+      final products = data['products'] as List? ?? [];
+
+      if (orderId.isNotEmpty) {
+        // Show order review dialog
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => ReviewDialog(
+            orderId: orderId,
+            items: products.map((e) => Map<String, dynamic>.from(e as Map)).toList(),
+            retailerId: products.isNotEmpty
+                ? (products[0] as Map)['retailer']?.toString() ?? ''
+                : '',
+            isOrderReview: true,
+          ),
+        );
+      }
     });
   }
 
   @override
   void dispose() {
     _controller.dispose();
+    final socket = ref.read(socketServiceProvider);
+    final user = ref.read(currentUserProvider);
+    if (user != null) {
+      socket.leaveUserRoom(user.id);
+    }
+    socket.offOrderDelivered();
     super.dispose();
   }
 
@@ -60,7 +102,7 @@ class _MainPageState extends ConsumerState<MainPage> {
     ref.listen(isAuthenticatedProvider, (previous, next) {
       if (next == false) {
         Navigator.pushNamedAndRemoveUntil(
-          context, AppRoutes.login, (route) => false);
+            context, AppRoutes.login, (route) => false);
       }
     });
 
@@ -140,8 +182,8 @@ class _MainPageState extends ConsumerState<MainPage> {
             decoration: BoxDecoration(
               color: AppColors.secondary,
               borderRadius: BorderRadius.circular(35),
-              border: Border.all(
-                  color: AppColors.primary.withValues(alpha: 0.1)),
+              border:
+                  Border.all(color: AppColors.primary.withValues(alpha: 0.1)),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -180,7 +222,7 @@ class _MainPageState extends ConsumerState<MainPage> {
                     Icons.shopping_cart_outlined,
                     color: isCartSelected
                         ? AppColors.primary
-                        : const Color(0xFFE6B347),
+                        : const Color.fromARGB(255, 69, 68, 66),
                     size: 34,
                   ),
                 ),
@@ -203,17 +245,14 @@ class _MainPageState extends ConsumerState<MainPage> {
         children: [
           Icon(
             icon,
-            color:
-                isSelected ? AppColors.primary : const Color(0xFF4A4A4A),
+            color: isSelected ? AppColors.primary : const Color(0xFF4A4A4A),
             size: 24,
           ),
           const SizedBox(height: 4),
           Text(
             label,
             style: TextStyle(
-              color: isSelected
-                  ? AppColors.primary
-                  : const Color(0xFF4A4A4A),
+              color: isSelected ? AppColors.primary : const Color(0xFF4A4A4A),
               fontSize: 10,
               fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
             ),
@@ -223,4 +262,3 @@ class _MainPageState extends ConsumerState<MainPage> {
     );
   }
 }
-

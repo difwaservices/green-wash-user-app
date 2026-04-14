@@ -69,7 +69,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
               hintStyle: const TextStyle(fontSize: 14, color: Colors.grey),
               prefixIcon:
                   Icon(Icons.search, color: AppColors.primary, size: 20),
-              suffixIcon: _searchController.text.isNotEmpty || searchState.priceRange != null || searchState.selectedCategoryIds.isNotEmpty
+              suffixIcon: _searchController.text.isNotEmpty || searchState.priceRange != null || searchState.selectedCategoryIds.isNotEmpty || searchState.selectedDeliverySlots.isNotEmpty
                   ? IconButton(
                       icon: const Icon(Icons.clear, size: 18),
                       onPressed: () {
@@ -122,10 +122,11 @@ class _SearchPageState extends ConsumerState<SearchPage> {
           const SizedBox(width: 8),
           GestureDetector(
             onTap: () async {
-               final initialResult = state.priceRange != null || state.selectedCategoryIds.isNotEmpty
+               final initialResult = state.priceRange != null || state.selectedCategoryIds.isNotEmpty || state.selectedDeliverySlots.isNotEmpty
                   ? FilterResult(
                       priceRange: state.priceRange ?? const RangeValues(10, 2000),
                       selectedCategoryIds: state.selectedCategoryIds,
+                      selectedDeliverySlots: state.selectedDeliverySlots,
                     )
                   : null;
                
@@ -134,6 +135,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                   ref.read(searchProvider.notifier).applyAdvancedFilters(
                     priceRange: result.priceRange,
                     selectedCategoryIds: result.selectedCategoryIds,
+                    selectedDeliverySlots: result.selectedDeliverySlots,
                   );
                }
             },
@@ -199,7 +201,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
     final products = state.result?.products ?? [];
     final filteredProducts = state.paginatedResult?.products ?? [];
 
-    if (state.priceRange != null || state.selectedCategoryIds.isNotEmpty) {
+    if (state.priceRange != null || state.selectedCategoryIds.isNotEmpty || state.selectedDeliverySlots.isNotEmpty) {
        // Filtered view (Product Grid)
        if (filteredProducts.isEmpty) {
           return _buildEmptyState('No products match these filters', Icons.filter_list_off);

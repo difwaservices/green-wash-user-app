@@ -84,6 +84,9 @@ class ProductDetailsPage extends ConsumerWidget {
       ),
     );
     final isInCart = cartItem.quantity > 0;
+    final isOutOfStock = product.stockStatus == 'Out of Stock';
+    final isLowStock = product.stockStatus == 'Low Stock';
+    final isAvailable = product.isShopActive && !isOutOfStock;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -126,27 +129,34 @@ class ProductDetailsPage extends ConsumerWidget {
                   ),
                 ],
                 flexibleSpace: FlexibleSpaceBar(
-                  background: Hero(
-                    tag: 'product_${product.id}',
-                    child: product.image.isEmpty
-                        ? const Center(
-                            child: Icon(Icons.water_drop_outlined,
-                                size: 64, color: Colors.grey))
-                        : product.image.startsWith('http')
-                            ? Image.network(
-                                product.image,
-                                fit: BoxFit.cover,
-                                errorBuilder: (_, __, ___) => const Center(
-                                    child: Icon(Icons.water_drop_outlined,
-                                        size: 64, color: Colors.grey)),
-                              )
-                            : Image.asset(
-                                product.image,
-                                fit: BoxFit.cover,
-                                errorBuilder: (_, __, ___) => const Center(
-                                    child: Icon(Icons.water_drop_outlined,
-                                        size: 64, color: Colors.grey)),
-                              ),
+                  background: ColorFiltered(
+                    colorFilter: isAvailable
+                        ? const ColorFilter.mode(
+                            Colors.transparent, BlendMode.multiply)
+                        : const ColorFilter.mode(
+                            Colors.grey, BlendMode.saturation),
+                    child: Hero(
+                      tag: 'product_${product.id}',
+                      child: product.image.isEmpty
+                          ? const Center(
+                              child: Icon(Icons.water_drop_outlined,
+                                  size: 64, color: Colors.grey))
+                          : product.image.startsWith('http')
+                              ? Image.network(
+                                  product.image,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, __, ___) => const Center(
+                                      child: Icon(Icons.water_drop_outlined,
+                                          size: 64, color: Colors.grey)),
+                                )
+                              : Image.asset(
+                                  product.image,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, __, ___) => const Center(
+                                      child: Icon(Icons.water_drop_outlined,
+                                          size: 64, color: Colors.grey)),
+                                ),
+                    ),
                   ),
                 ),
               ),
@@ -156,19 +166,31 @@ class ProductDetailsPage extends ConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      if (product.badgeText.isNotEmpty)
+                      if (product.badgeText.isNotEmpty || isOutOfStock || isLowStock)
                         Container(
                           padding: const EdgeInsets.symmetric(
                               horizontal: 10, vertical: 4),
                           margin: const EdgeInsets.only(bottom: 12),
                           decoration: BoxDecoration(
-                              color: Colors.red,
+                              color: isOutOfStock
+                                  ? Colors.black87
+                                  : (isLowStock
+                                      ? Colors.orange.shade700
+                                      : Colors.red),
                               borderRadius: BorderRadius.circular(6)),
-                          child: Text(product.badgeText,
-                              style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold)),
+                          child: Text(
+                            isOutOfStock
+                                ? 'OUT OF STOCK'
+                                : (isLowStock
+                                    ? (product.stock > 0
+                                        ? 'ONLY ${product.stock} LEFT!'
+                                        : 'SELLING FAST!')
+                                    : product.badgeText.toUpperCase()),
+                            style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold),
+                          ),
                         ),
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -265,15 +287,19 @@ class ProductDetailsPage extends ConsumerWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   OutlinedButton.icon(
-                    onPressed: () => _showSubscriptionDrawer(context, ref),
+                    onPressed: isAvailable
+                        ? () => _showSubscriptionDrawer(context, ref)
+                        : null,
                     icon: const Icon(Icons.calendar_month, size: 20),
                     label: const Text('Subscribe & Save',
                         style: TextStyle(
                             fontWeight: FontWeight.bold, fontSize: 16)),
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: AppColors.primary,
-                      side: const BorderSide(
-                          color: AppColors.primary, width: 1.5),
+                      foregroundColor:
+                          isAvailable ? AppColors.primary : Colors.grey,
+                      side: BorderSide(
+                          color: isAvailable ? AppColors.primary : Colors.grey,
+                          width: 1.5),
                       minimumSize: const Size(double.infinity, 50),
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12)),
@@ -282,20 +308,24 @@ class ProductDetailsPage extends ConsumerWidget {
                   const SizedBox(height: 12),
                       !isInCart
                         ? ElevatedButton(
-                            onPressed: () => _addToCart(
-                                context, cart, CartItem.fromProduct(product)),
+                            onPressed: isAvailable
+                                ? () => _addToCart(context, cart,
+                                    CartItem.fromProduct(product))
+                                : null,
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.primary,
-                            foregroundColor: Colors.white,
-                            minimumSize: const Size(double.infinity, 56),
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16)),
-                            elevation: 0,
-                          ),
-                          child: const Text('Add to Cart',
-                              style: TextStyle(
-                                  fontSize: 18, fontWeight: FontWeight.bold)),
-                        )
+                              backgroundColor:
+                                  isAvailable ? AppColors.primary : Colors.grey,
+                              foregroundColor: Colors.white,
+                              minimumSize: const Size(double.infinity, 56),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16)),
+                              elevation: 0,
+                            ),
+                            child: Text(
+                                isOutOfStock ? 'Out of Stock' : 'Add to Cart',
+                                style: const TextStyle(
+                                    fontSize: 18, fontWeight: FontWeight.bold)),
+                          )
                       : Container(
                           height: 56,
                           padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -315,8 +345,12 @@ class ProductDetailsPage extends ConsumerWidget {
                                       color: Color(0xFF1A1A1A))),
                               QuantitySelector(
                                 quantity: cartItem.quantity,
-                                onIncrement: () => cart.increment(product.name),
-                                onDecrement: () => cart.decrement(product.name),
+                                onIncrement: isAvailable
+                                    ? () => cart.increment(product.name)
+                                    : () {},
+                                onDecrement: isAvailable
+                                    ? () => cart.decrement(product.name)
+                                    : () {},
                                 size: 40,
                               ),
                             ],

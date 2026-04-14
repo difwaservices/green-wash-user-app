@@ -69,6 +69,7 @@ class SearchService {
     double? maxPrice,
     String? category,
     String? search,
+    String? deliverySlot,
     int page = 1,
   }) async {
     try {
@@ -77,6 +78,7 @@ class SearchService {
         if (maxPrice != null) 'maxPrice': maxPrice,
         if (category != null && category.isNotEmpty) 'category': category,
         if (search != null && search.isNotEmpty) 'search': search,
+        if (deliverySlot != null && deliverySlot.isNotEmpty) 'deliverySlot': deliverySlot,
         'page': page,
       };
 

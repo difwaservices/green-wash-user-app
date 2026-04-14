@@ -207,17 +207,25 @@ class _OrderTrackingPageState extends ConsumerState<OrderTrackingPage> {
     final status = _order['status'] ?? 'Pending';
     final items = _order['items'] as List<dynamic>? ?? [];
 
-    String itemName = 'Items';
-    String qty = '';
-    String shopName = '';
+    String subtitle = '';
+    if (items.isNotEmpty) {
+      if (items.length == 1) {
+        final item = items.first;
+        final product = item['product'];
+        final name = (product is Map && product['name'] != null)
+            ? product['name'].toString()
+            : 'Item';
+        final q = item['quantity']?.toString() ?? '1';
+        subtitle = '${q}x $name';
+      } else {
+        subtitle = '${items.length} items in this order';
+      }
+    }
     
+    // Get retailer name if possible
+    String shopName = '';
     if (items.isNotEmpty) {
       final item = items.first;
-      final product = item['product'];
-      itemName = (product is Map && product['name'] != null) ? product['name'].toString() : 'Item';
-      qty = item['quantity']?.toString() ?? '1';
-      
-      // Attempt to get retailer name
       final retailer = item['retailer'];
       if (retailer is Map) {
         final bizDetails = retailer['businessDetails'];
@@ -227,7 +235,6 @@ class _OrderTrackingPageState extends ConsumerState<OrderTrackingPage> {
         }
       }
     }
-    final subtitle = items.isNotEmpty ? '${qty}x $itemName' : '';
 
     final isSub =
         _order['orderType'] == 'Subscription' || _order['frequency'] != null;
@@ -407,6 +414,21 @@ class _OrderTrackingPageState extends ConsumerState<OrderTrackingPage> {
                 child: Divider(color: Color(0xFFEEEEEE), thickness: 1.5),
               ),
 
+              // ── Items List ────────────────────────────────────────────────
+              if (items.isNotEmpty) ...[
+                const Text('ITEMS',
+                    style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey)),
+                const SizedBox(height: 12),
+                _buildOrderItemsList(items),
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 20),
+                  child: Divider(color: Color(0xFFEEEEEE), thickness: 1.5),
+                ),
+              ],
+
               // ── Order Summary (Payment) ─────────────────────────────────────
               _buildOrderSummary(),
 
@@ -522,6 +544,74 @@ class _OrderTrackingPageState extends ConsumerState<OrderTrackingPage> {
                     fontSize: 13,
                     color: Colors.black87)),
       ],
+    );
+  }
+
+  Widget _buildOrderItemsList(List<dynamic> items) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF7F8FA),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFEEEEEE)),
+      ),
+      child: Column(
+        children: items.map((item) {
+          final product = item['product'];
+          final name = (product is Map)
+              ? (product['name']?.toString() ?? 'Item')
+              : (item['name']?.toString() ?? 'Item');
+          final qty = item['quantity']?.toString() ?? '1';
+          final price = item['price']?.toString() ?? '';
+          final isLast = items.indexOf(item) == items.length - 1;
+
+          return Padding(
+            padding: EdgeInsets.only(bottom: isLast ? 0 : 12),
+            child: Row(
+              children: [
+                Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF06B6D4).withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Center(
+                    child: Text(
+                      qty,
+                      style: const TextStyle(
+                        color: Color(0xFF0891B2),
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    name,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black87,
+                    ),
+                  ),
+                ),
+                if (price.isNotEmpty)
+                  Text(
+                    '₹$price',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w900,
+                      fontSize: 14,
+                      color: Color(0xFF0891B2),
+                    ),
+                  ),
+              ],
+            ),
+          );
+        }).toList(),
+      ),
     );
   }
 

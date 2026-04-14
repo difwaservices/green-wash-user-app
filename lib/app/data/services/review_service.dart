@@ -24,6 +24,7 @@ class ReviewService {
     try {
       final json = await _client.post(
         '${ApiClient.reviewBaseUrl}/reviews',
+        requiresAuth: true,
         data: {
           'product': productId,
           'retailer': retailerId,
@@ -35,6 +36,27 @@ class ReviewService {
       return json['success'] == true;
     } catch (e) {
       debugPrint('Review submit error: $e');
+      return false;
+    }
+  }
+
+  /// Submit a review for an entire order with multiple product ratings (Bulk Review)
+  Future<bool> submitOrderReview({
+    required String orderId,
+    required List<Map<String, dynamic>> productReviews,
+  }) async {
+    try {
+      final json = await _client.post(
+        '${ApiClient.reviewBaseUrl}/submit-order',
+        requiresAuth: true,
+        data: {
+          'orderId': orderId,
+          'productReviews': productReviews,
+        },
+      );
+      return json['success'] == true;
+    } catch (e) {
+      debugPrint('Order review submit error: $e');
       return false;
     }
   }

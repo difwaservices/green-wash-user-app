@@ -6,10 +6,12 @@ import '../../../data/models/food_models.dart';
 class FilterResult {
   final RangeValues priceRange;
   final List<String> selectedCategoryIds;
+  final List<String> selectedDeliverySlots;
 
   FilterResult({
     required this.priceRange,
     required this.selectedCategoryIds,
+    required this.selectedDeliverySlots,
   });
 }
 
@@ -35,8 +37,19 @@ class _FilterBottomSheetState extends ConsumerState<FilterBottomSheet> {
   // State variables for filters
   late RangeValues _priceRange;
   final List<String> _selectedCategoryIds = [];
+  final List<String> _selectedDeliverySlots = [];
   List<FoodCategory> _categories = [];
   bool _isLoadingCategories = true;
+
+  final List<String> _defaultDeliverySlots = [
+    '8-9 AM',
+    '9-10 AM',
+    '10-11 AM',
+    '11 AM-12 PM',
+    '4-5 PM',
+    '5-6 PM',
+    '6-7 PM'
+  ];
 
   final Color _primaryColor = const Color(0xFF06B6D4);
   final Color _bgColor = const Color(0xFFF8F9FA);
@@ -46,6 +59,7 @@ class _FilterBottomSheetState extends ConsumerState<FilterBottomSheet> {
     super.initState();
     _priceRange = widget.initialResult?.priceRange ?? const RangeValues(10, 2000);
     _selectedCategoryIds.addAll(widget.initialResult?.selectedCategoryIds ?? []);
+    _selectedDeliverySlots.addAll(widget.initialResult?.selectedDeliverySlots ?? []);
     _fetchCategories();
   }
 
@@ -69,13 +83,14 @@ class _FilterBottomSheetState extends ConsumerState<FilterBottomSheet> {
     setState(() {
       _priceRange = const RangeValues(10, 2000);
       _selectedCategoryIds.clear();
+      _selectedDeliverySlots.clear();
     });
   }
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: MediaQuery.of(context).size.height * 0.75, // Increased height
+      height: MediaQuery.of(context).size.height * 0.85, // Increased height for more content
       decoration: BoxDecoration(
         color: _bgColor,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
@@ -171,6 +186,46 @@ class _FilterBottomSheetState extends ConsumerState<FilterBottomSheet> {
                 ]),
                 const SizedBox(height: 16),
 
+                // Delivery Slots
+                _buildCard([
+                  _buildSectionTitle('Delivery Slots'),
+                  const SizedBox(height: 12),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: _defaultDeliverySlots.map((slot) {
+                      final isSelected = _selectedDeliverySlots.contains(slot);
+                      return FilterChip(
+                        label: Text(slot),
+                        selected: isSelected,
+                        onSelected: (selected) {
+                          setState(() {
+                            if (selected) {
+                              _selectedDeliverySlots.add(slot);
+                            } else {
+                              _selectedDeliverySlots.remove(slot);
+                            }
+                          });
+                        },
+                        backgroundColor: Colors.white,
+                        selectedColor: _primaryColor.withValues(alpha: 0.2),
+                        checkmarkColor: _primaryColor,
+                        labelStyle: TextStyle(
+                          color: isSelected ? _primaryColor : Colors.black87,
+                          fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          side: BorderSide(
+                            color: isSelected ? _primaryColor : Colors.grey.shade300,
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ]),
+                const SizedBox(height: 16),
+
                 // Categories
                 _buildCard([
                    _buildSectionTitle('Categories'),
@@ -237,6 +292,7 @@ class _FilterBottomSheetState extends ConsumerState<FilterBottomSheet> {
                 final result = FilterResult(
                   priceRange: _priceRange,
                   selectedCategoryIds: _selectedCategoryIds,
+                  selectedDeliverySlots: _selectedDeliverySlots,
                 );
                 Navigator.pop(context, result);
               },

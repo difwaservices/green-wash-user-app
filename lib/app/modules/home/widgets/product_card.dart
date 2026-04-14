@@ -38,12 +38,24 @@ class ProductCard extends ConsumerWidget {
     );
     final isInCart = cartItem.quantity > 0;
 
+    final isOutOfStock = product.stockStatus == 'Out of Stock';
+    final isLowStock = product.stockStatus == 'Low Stock';
+
     return BounceWidget(
       onTap: () {
         if (!product.isShopActive) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('This shop is currently closed.'),
+              backgroundColor: Colors.black87,
+            ),
+          );
+          return;
+        }
+        if (isOutOfStock) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('This product is currently out of stock.'),
               backgroundColor: Colors.black87,
             ),
           );
@@ -57,9 +69,9 @@ class ProductCard extends ConsumerWidget {
         );
       },
       child: Opacity(
-        opacity: product.isShopActive ? 1.0 : 0.8,
+        opacity: (product.isShopActive && !isOutOfStock) ? 1.0 : 0.8,
         child: ColorFiltered(
-          colorFilter: product.isShopActive
+          colorFilter: (product.isShopActive && !isOutOfStock)
               ? const ColorFilter.mode(Colors.transparent, BlendMode.multiply)
               : const ColorFilter.mode(Colors.grey, BlendMode.saturation),
           child: Container(
@@ -139,12 +151,12 @@ class ProductCard extends ConsumerWidget {
                               // Dynamic Cart Controls
                               if (!isInCart)
                                 BounceWidget(
-                                  onTap: product.isShopActive ? onAdd : () {},
+                                  onTap: (product.isShopActive && !isOutOfStock) ? onAdd : () {},
                                   scaleFactor: 0.9,
                                   child: Container(
                                     padding: const EdgeInsets.all(6),
                                     decoration: BoxDecoration(
-                                      color: product.isShopActive
+                                      color: (product.isShopActive && !isOutOfStock)
                                           ? AppColors.primary
                                           : Colors.grey,
                                       borderRadius: BorderRadius.circular(8),
@@ -159,10 +171,10 @@ class ProductCard extends ConsumerWidget {
                               else
                                 QuantitySelector(
                                   quantity: cartItem.quantity,
-                                  onIncrement: product.isShopActive
+                                  onIncrement: (product.isShopActive && !isOutOfStock)
                                       ? () => cart.increment(product.name)
                                       : () {},
-                                  onDecrement: product.isShopActive
+                                  onDecrement: (product.isShopActive && !isOutOfStock)
                                       ? () => cart.decrement(product.name)
                                       : () {},
                                   size: 32, // Compact size for grid card
@@ -205,8 +217,39 @@ class ProductCard extends ConsumerWidget {
                     ),
                   ),
 
-                // Badge (Offer/New)
-                if (product.badgeText.isNotEmpty && product.isShopActive)
+                // Out of Stock Badge
+                                if (isOutOfStock && product.isShopActive)
+                                  Positioned.fill(
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        color: Colors.black.withOpacity(0.3),
+                                        borderRadius: BorderRadius.circular(16),
+                                      ),
+                                      child: Center(
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 8, vertical: 4),
+                                          decoration: BoxDecoration(
+                                            color: Colors.red.withOpacity(0.9),
+                                            borderRadius: BorderRadius.circular(4),
+                                          ),
+                                          child: const Text(
+                                            'OUT OF STOCK',
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.w900,
+                                              letterSpacing: 1,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+
+                // Badge (Offer/New/Low Stock)
+                if ((product.badgeText.isNotEmpty || isLowStock) && 
+                    product.isShopActive && !isOutOfStock)
                   Positioned(
                     top: 8,
                     left: 8,
@@ -216,11 +259,13 @@ class ProductCard extends ConsumerWidget {
                         vertical: 4,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.red,
+                        color: isLowStock ? Colors.orange.shade700 : Colors.red,
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: Text(
-                        product.badgeText,
+                        isLowStock 
+                          ? (product.stock > 0 ? 'Only ${product.stock} left!' : 'Selling Fast!')
+                          : product.badgeText,
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 10,

@@ -18,6 +18,7 @@ class SearchState {
   // Advanced Filters
   final RangeValues? priceRange;
   final List<String> selectedCategoryIds;
+  final List<String> selectedDeliverySlots;
 
   const SearchState({
     this.query = '',
@@ -28,6 +29,7 @@ class SearchState {
     this.activeFilter = 'all',
     this.priceRange,
     this.selectedCategoryIds = const [],
+    this.selectedDeliverySlots = const [],
   });
 
   SearchState copyWith({
@@ -41,6 +43,7 @@ class SearchState {
     String? activeFilter,
     RangeValues? priceRange,
     List<String>? selectedCategoryIds,
+    List<String>? selectedDeliverySlots,
   }) {
     return SearchState(
       query: query ?? this.query,
@@ -51,11 +54,12 @@ class SearchState {
       activeFilter: activeFilter ?? this.activeFilter,
       priceRange: priceRange ?? this.priceRange,
       selectedCategoryIds: selectedCategoryIds ?? this.selectedCategoryIds,
+      selectedDeliverySlots: selectedDeliverySlots ?? this.selectedDeliverySlots,
     );
   }
 
   bool get hasResults => (result != null && !result!.isEmpty) || (paginatedResult != null && paginatedResult!.products.isNotEmpty);
-  bool get hasSearched => query.isNotEmpty || priceRange != null || selectedCategoryIds.isNotEmpty;
+  bool get hasSearched => query.isNotEmpty || priceRange != null || selectedCategoryIds.isNotEmpty || selectedDeliverySlots.isNotEmpty;
 }
 
 // ── Notifier ─────────────────────────────────────────────────────────────────
@@ -68,7 +72,7 @@ class SearchNotifier extends Notifier<SearchState> {
 
   /// Global Search: Shops + Products
   Future<void> search(String query) async {
-    if (query.trim().isEmpty && state.priceRange == null && state.selectedCategoryIds.isEmpty) {
+    if (query.trim().isEmpty && state.priceRange == null && state.selectedCategoryIds.isEmpty && state.selectedDeliverySlots.isEmpty) {
       state = const SearchState();
       return;
     }
@@ -98,6 +102,7 @@ class SearchNotifier extends Notifier<SearchState> {
   Future<void> applyAdvancedFilters({
     RangeValues? priceRange,
     List<String>? selectedCategoryIds,
+    List<String>? selectedDeliverySlots,
   }) async {
     state = state.copyWith(
       isLoading: true,
@@ -105,6 +110,7 @@ class SearchNotifier extends Notifier<SearchState> {
       clearResult: true,
       priceRange: priceRange,
       selectedCategoryIds: selectedCategoryIds,
+      selectedDeliverySlots: selectedDeliverySlots,
       activeFilter: 'products', // Advanced filters only apply to products
     );
 
@@ -114,6 +120,9 @@ class SearchNotifier extends Notifier<SearchState> {
         maxPrice: priceRange?.end,
         category: selectedCategoryIds != null && selectedCategoryIds.isNotEmpty 
             ? selectedCategoryIds.join(',') 
+            : null,
+        deliverySlot: selectedDeliverySlots != null && selectedDeliverySlots.isNotEmpty
+            ? selectedDeliverySlots.join(',')
             : null,
         search: state.query.isNotEmpty ? state.query : null,
       );

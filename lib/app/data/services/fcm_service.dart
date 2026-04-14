@@ -5,11 +5,21 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import '../network/api_client.dart';
 import '../../../core/storage/secure_storage_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../routes/app_routes.dart';
 import '../providers/notification_provider.dart';
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  // If you need to use Firebase services here, call Firebase.initializeApp()
   debugPrint("Handling a background message: ${message.messageId}");
+  
+  // Handled automatically by the OS if 'notification' block is present.
+  // If it's a DATA ONLY message, we must show it manually.
+  if (message.notification == null && message.data.isNotEmpty) {
+     // NOTE: We can't use the static singleton directly here easily if it's not initialized
+     // in this isolate. However, for background, we usually rely on the OS to show
+     // the notification if the backend includes the 'notification' payload.
+  }
 }
 
 class FCMService {
@@ -124,16 +134,19 @@ class FCMService {
     }
 
     // Example based on common FCM payloads
-    final type = data['type'];
-    final id = data['id'] ?? data['orderId'];
+    final String type = (data['type']?.toString() ?? '').toUpperCase();
+    final String id = (data['id'] ?? data['orderId'] ?? '').toString();
 
     if (type == 'ORDER' || type == 'NEW_ORDER') {
-      Navigator.pushNamed(context, '/track-order', arguments: {'orderId': id});
-    } else if (type == 'RIDER_ORDER') {
-      Navigator.pushNamed(context, '/rider-order-details',
+      Navigator.pushNamed(context, AppRoutes.trackOrder,
           arguments: {'orderId': id});
-    } else if (type == 'WALLET') {
-      Navigator.pushNamed(context, '/wallet');
+    } else if (type == 'RIDER_ORDER' || type == 'RIDER_ASSIGNED') {
+      Navigator.pushNamed(context, AppRoutes.riderOrderDetails,
+          arguments: {'orderId': id});
+    } else if (type == 'WALLET' || type == 'PAYMENT') {
+      Navigator.pushNamed(context, AppRoutes.wallet);
+    } else if (type == 'NOTIFICATION' || type == 'GENERAL' || type == 'SYSTEM') {
+      Navigator.pushNamed(context, AppRoutes.notifications);
     }
   }
 

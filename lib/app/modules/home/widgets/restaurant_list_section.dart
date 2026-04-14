@@ -24,7 +24,6 @@ const List<String> _cuisineTypes = [
   'Domestic · Supply',
 ];
 
-
 class RestaurantListSection extends ConsumerWidget {
   const RestaurantListSection({super.key});
 
@@ -85,19 +84,25 @@ class _ShopsList extends ConsumerWidget {
               InkWell(
                 onTap: () async {
                   final searchState = ref.read(searchProvider);
-                  final initialResult = searchState.priceRange != null || searchState.selectedCategoryIds.isNotEmpty
+                  final initialResult = searchState.priceRange != null ||
+                          searchState.selectedCategoryIds.isNotEmpty ||
+                          searchState.selectedDeliverySlots.isNotEmpty
                       ? FilterResult(
-                          priceRange: searchState.priceRange ?? const RangeValues(10, 2000),
+                          priceRange: searchState.priceRange ??
+                              const RangeValues(10, 2000),
                           selectedCategoryIds: searchState.selectedCategoryIds,
+                          selectedDeliverySlots: searchState.selectedDeliverySlots,
                         )
                       : null;
-                  
-                  final result = await FilterBottomSheet.show(context, initialResult: initialResult);
+
+                  final result = await FilterBottomSheet.show(context,
+                      initialResult: initialResult);
                   if (result != null) {
                     ref.read(searchProvider.notifier).applyAdvancedFilters(
-                      priceRange: result.priceRange,
-                      selectedCategoryIds: result.selectedCategoryIds,
-                    );
+                          priceRange: result.priceRange,
+                          selectedCategoryIds: result.selectedCategoryIds,
+                          selectedDeliverySlots: result.selectedDeliverySlots,
+                        );
                     if (context.mounted) {
                       Navigator.pushNamed(context, AppRoutes.search);
                     }
@@ -156,199 +161,189 @@ class _ShopCard extends StatelessWidget {
 
   const _ShopCard({required this.shop, required this.index});
 
-
   String get _cuisine => _cuisineTypes[index % _cuisineTypes.length];
 
   // Generate a deterministic rating from shop ID
-
-
-
-  double get _distance {
-    final code = shop.id.codeUnits.fold<int>(0, (a, b) => a + b);
-    return ((code % 50) + 5) / 10.0; // 0.5 – 5.4 km
-  }
 
   bool get _isFeatured => shop.isFeatured;
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {
-        if (!shop.isShopActive) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('This plant is currently not accepting orders.'),
-              backgroundColor: Colors.black87,
-              behavior: SnackBarBehavior.floating,
+        onTap: () {
+          if (!shop.isShopActive) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('This plant is currently not accepting orders.'),
+                backgroundColor: Colors.black87,
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+            return;
+          }
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => RestaurantMenuPage(shop: shop),
             ),
           );
-          return;
-        }
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => RestaurantMenuPage(shop: shop),
-          ),
-        );
-      },
-      child: Opacity(
-        opacity: shop.isShopActive ? 1.0 : 0.8,
-        child: ColorFiltered(
-          colorFilter: shop.isShopActive
-              ? const ColorFilter.mode(Colors.transparent, BlendMode.multiply)
-              : const ColorFilter.mode(Colors.grey, BlendMode.saturation),
-          child: Container(
-            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.grey.shade200),
-            ),
-            child:
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              // ── Hero Banner ─────────────────────────────────────────────────
-              Stack(
-                children: [
-                  ClipRRect(
-                    borderRadius:
-                        const BorderRadius.vertical(top: Radius.circular(16)),
-                    child: _buildHeroImage(),
-                  ),
-                  // Closed/Offline Overlay
-                  if (!shop.isShopActive)
-                    Positioned.fill(
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.2),
-                          borderRadius: const BorderRadius.vertical(
-                              top: Radius.circular(16)),
-                        ),
-                        child: Center(
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 12, vertical: 6),
-                            decoration: BoxDecoration(
-                              color: Colors.red.shade700,
-                              borderRadius: BorderRadius.circular(8),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.3),
-                                  blurRadius: 10,
+        },
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: Opacity(
+            opacity: shop.isShopActive ? 1.0 : 0.8,
+            child: ColorFiltered(
+              colorFilter: shop.isShopActive
+                  ? const ColorFilter.mode(
+                      Colors.transparent, BlendMode.multiply)
+                  : const ColorFilter.mode(
+                      Color.fromARGB(255, 255, 255, 255), BlendMode.saturation),
+              child: Container(
+                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.grey.shade200),
+                ),
+                child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // ── Hero Banner ─────────────────────────────────────────────────
+                      Stack(
+                        children: [
+                          ClipRRect(
+                            borderRadius: const BorderRadius.vertical(
+                                top: Radius.circular(16)),
+                            child: _buildHeroImage(),
+                          ),
+                          // Closed/Offline Overlay
+                          if (!shop.isShopActive)
+                            Positioned.fill(
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withOpacity(0.2),
+                                  borderRadius: const BorderRadius.vertical(
+                                      top: Radius.circular(16)),
                                 ),
-                              ],
+                                child: Center(
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 12, vertical: 6),
+                                    decoration: BoxDecoration(
+                                      color: Colors.red.shade700,
+                                      borderRadius: BorderRadius.circular(8),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withOpacity(0.3),
+                                          blurRadius: 10,
+                                        ),
+                                      ],
+                                    ),
+                                    child: const Text(
+                                      'CLOSED',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w900,
+                                        letterSpacing: 1.2,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
                             ),
-                            child: const Text(
-                              'CLOSED',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 13,
-                                fontWeight: FontWeight.w900,
-                                letterSpacing: 1.2,
+                          // Top dish label overlay
+                          Positioned(
+                            top: 12,
+                            left: 12,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 10, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: Colors.black.withValues(alpha: 0.65),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                shop.businessName.isNotEmpty
+                                    ? shop.businessName
+                                    : 'Pure Water · ₹499+',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                      ),
-                    ),
-                  // Top dish label overlay
-                  Positioned(
-                    top: 12,
-                    left: 12,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.65),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Text(
-                        shop.businessName.isNotEmpty
-                            ? shop.businessName
-                            : 'Pure Water · ₹499+',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ),
-                  // Featured badge
-                  if (_isFeatured)
-                    Positioned(
-                      bottom: 10,
-                      left: 12,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 3),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFFFF3CD),
-                          borderRadius: BorderRadius.circular(4),
-                          border: Border.all(color: const Color(0xFFFFD600)),
-                        ),
-                        child: const Text(
-                          '⭐ Featured',
-                          style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF5D4037),
-                          ),
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-
-              // ── Info Row ─────────────────────────────────────────────────
-              Padding(
-                padding: const EdgeInsets.fromLTRB(14, 12, 14, 0),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            shop.name,
-                            style: const TextStyle(
-                              fontSize: 17,
-                              fontWeight: FontWeight.w800,
-                              color: Color(0xFF1A1A1A),
+                          // Featured badge
+                          if (_isFeatured)
+                            Positioned(
+                              bottom: 10,
+                              left: 12,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8, vertical: 3),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFFFF3CD),
+                                  borderRadius: BorderRadius.circular(4),
+                                  border: Border.all(
+                                      color: const Color(0xFFFFD600)),
+                                ),
+                                child: const Text(
+                                  '⭐ Featured',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF5D4037),
+                                  ),
+                                ),
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            _cuisine,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey.shade600,
-                            ),
-                          ),
                         ],
                       ),
-                    ),
-                  ],
-                ),
-              ),
 
-              // ── Delivery Meta ────────────────────────────────────────────
-              Padding(
-                padding: const EdgeInsets.fromLTRB(14, 6, 14, 0),
-                child: Text(
-                  '${_distance.toStringAsFixed(1)} km',
-                  style: const TextStyle(fontSize: 12, color: Colors.black87),
-                ),
-              ),
+                      // ── Info Row ─────────────────────────────────────────────────
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(14, 12, 14, 0),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    shop.name,
+                                    style: const TextStyle(
+                                      fontSize: 17,
+                                      fontWeight: FontWeight.w800,
+                                      color: Color(0xFF1A1A1A),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    _cuisine,
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey.shade600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
 
-              const SizedBox(height: 12),
-            ]),
+
+                      const SizedBox(height: 12),
+                    ]),
+              ),
+            ),
           ),
-        ),
-      ),
-    );
+        ));
   }
 
   Widget _buildHeroImage() {
@@ -385,7 +380,6 @@ class _ShopCard extends StatelessWidget {
       ),
     );
   }
-
 }
 
 // ── Loading State ─────────────────────────────────────────────────────────────

@@ -5,6 +5,7 @@ import '../../../data/models/food_models.dart';
 import '../../../data/services/order_service.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_images.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'track_order_page.dart';
 
 class ActiveOrdersPage extends ConsumerStatefulWidget {
@@ -344,6 +345,57 @@ class _ActiveOrderCard extends StatelessWidget {
               ),
 
               const SizedBox(height: 16),
+
+              // ── Plant Section (Added) ──────────────────────────────────
+              if (order.plantName.isNotEmpty) ...[
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  margin: const EdgeInsets.only(bottom: 12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF0FDF4), // Very light green
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: const Color(0xFFDCFCE7)),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.factory_outlined,
+                          color: Color(0xFF16A34A), size: 24),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text('Plant / Retailer',
+                                style: TextStyle(
+                                    fontSize: 12,
+                                    color: Color(0xFF16A34A),
+                                    fontWeight: FontWeight.w600)),
+                            const SizedBox(height: 4),
+                            Text(order.plantName,
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14,
+                                    color: Colors.black87)),
+                          ],
+                        ),
+                      ),
+                      if (order.plantPhone.isNotEmpty)
+                        IconButton(
+                          icon: const Icon(Icons.call, color: Color(0xFF16A34A)),
+                          onPressed: () async {
+                            final Uri uri = Uri.parse('tel:${order.plantPhone}');
+                            if (await canLaunchUrl(uri)) {
+                              await launchUrl(uri);
+                            }
+                          },
+                          constraints: const BoxConstraints(),
+                          padding: EdgeInsets.zero,
+                          tooltip: 'Call Plant',
+                        ),
+                    ],
+                  ),
+                ),
+              ],
 
               // ── Location Section (Matching Screenshot) ──────────────────────
               Container(

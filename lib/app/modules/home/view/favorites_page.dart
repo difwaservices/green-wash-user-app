@@ -205,6 +205,51 @@ class _FavProductCard extends ConsumerWidget {
                       )
                     : _placeholder(),
               ),
+              // Out of stock badge
+              if (p.stockStatus == 'Out of Stock' || p.stock <= 0)
+                Positioned.fill(
+                  child: ClipRRect(
+                    borderRadius:
+                        const BorderRadius.vertical(top: Radius.circular(20)),
+                    child: Container(
+                      color: Colors.black.withValues(alpha: 0.45),
+                      child: const Center(
+                        child: Text(
+                          'Out of Stock',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              // Low Stock Badge
+              if (p.stockStatus == 'Low Stock' && p.stock > 0)
+                Positioned(
+                  top: 8,
+                  left: 8,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 3,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.orange.shade700,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      'ONLY ${p.stock} LEFT!',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 8,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
               // Live heart toggle (unfav removes from list)
               Positioned(
                 top: 8,
@@ -287,7 +332,17 @@ class _FavProductCard extends ConsumerWidget {
                     color: Color(0xFF1A1A1A),
                   ),
                 ),
-                if (cartItem.quantity == 0)
+                if (p.stockStatus == 'Out of Stock' || p.stock <= 0)
+                  Container(
+                    width: 30,
+                    height: 30,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade100,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(Icons.add, color: Colors.grey, size: 18),
+                  )
+                else if (cartItem.quantity == 0)
                   GestureDetector(
                     onTap: () {
                       cart.addToCart(CartItem(

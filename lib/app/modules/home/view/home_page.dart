@@ -24,7 +24,7 @@ class HomePage extends ConsumerWidget {
       child: Scaffold(
         backgroundColor: Colors.white,
         body: Container(
-          color: const Color(0xFFF7F8FA),
+          color: const Color.fromARGB(255, 255, 255, 255),
           child: RefreshIndicator(
             onRefresh: () async {
               await ref.read(shopsListProvider.notifier).refresh();
@@ -109,26 +109,17 @@ class _AnimatedFooterTextState extends State<AnimatedFooterText>
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _controller,
-      builder: (context, child) {
-        return Opacity(
-          opacity: _opacityAnimation.value,
-          child: Transform.scale(scale: _scaleAnimation.value, child: child),
-        );
-      },
-      child: const Padding(
-        padding: EdgeInsets.symmetric(vertical: 0),
-        child: Text(
-          'With love,\nfrom Difwa.',
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize: 28,
-            fontWeight: FontWeight.w900,
-            color: Color(0xFFB4B4B4),
-            height: 1.1,
-            letterSpacing: -1.5,
-          ),
+    return const Padding(
+      padding: EdgeInsets.only(left: 20, right: 20, top: 20, bottom: 129),
+      child: Text(
+        'With love,\nfrom Difwa.',
+        textAlign: TextAlign.left,
+        style: TextStyle(
+          fontSize: 48,
+          fontWeight: FontWeight.w900,
+          color: Color(0xFFB4B4B4),
+          height: 1.1,
+          letterSpacing: -1.5,
         ),
       ),
     );

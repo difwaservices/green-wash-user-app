@@ -20,7 +20,7 @@ val mapsApiKey: String = localProperties.getProperty("MAPS_API_KEY") ?: ""
 
 android {
     namespace = "com.difmo.difwa"
-    compileSdk = flutter.compileSdkVersion
+    compileSdk = 36
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
@@ -39,9 +39,9 @@ android {
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = 24
-        targetSdk = 34
-        versionCode = 4
-        versionName = "1.0.5"
+        targetSdk = 36
+        versionCode = 38
+        versionName = "1.0.38"
 
         // Inject Maps API key into AndroidManifest.xml as ${MAPS_API_KEY}
         manifestPlaceholders["MAPS_API_KEY"] = mapsApiKey

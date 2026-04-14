@@ -63,9 +63,11 @@ class UserSubscription {
   final DateTime startDate;
   final DateTime? endDate;
   final String retailerName;
+  // Always stored as midnight-normalized local dates (no time component)
   final List<DateTime> vacationDates;
   final double price;
   final String? deliverySlot;
+
   /// Raw delivery address map as returned by the API
   final Map<String, dynamic>? deliveryAddress;
 
@@ -91,27 +93,57 @@ class UserSubscription {
   String get deliveryAddressString {
     final m = deliveryAddress;
     if (m == null || m.isEmpty) return '';
-    
+
     final label = m['label']?.toString() ?? '';
     final name = m['fullName']?.toString() ?? m['name']?.toString() ?? '';
-    
+
     final street = m['fullAddress'] ?? m['address'] ?? m['street'] ?? '';
     final city = m['city'] ?? '';
     final state = m['state'] ?? '';
     final pincode = m['pincode'] ?? '';
-    
+
     final parts = [street, city, state, pincode]
         .where((p) => p.toString().isNotEmpty)
         .toList();
-    
+
     String addrStr = parts.join(', ');
     String result = '';
-    
+
     if (label.isNotEmpty) result += '[${label.toUpperCase()}] ';
     if (name.isNotEmpty) result += '$name: ';
     result += addrStr;
-    
+
     return result;
+  }
+
+  /// Parse a date string safely without timezone shifting.
+  /// The backend returns ISO strings like "2026-04-09T00:00:00.000Z".
+  /// We only care about the date part (YYYY-MM-DD), not the time.
+  static DateTime _parseDateOnly(String? raw) {
+    if (raw == null) return DateTime.now();
+    final s = raw.trim();
+    // Take only the first 10 chars: "YYYY-MM-DD"
+    if (s.length >= 10) {
+      final parts = s.substring(0, 10).split('-');
+      if (parts.length == 3) {
+        final y = int.tryParse(parts[0]);
+        final m = int.tryParse(parts[1]);
+        final d = int.tryParse(parts[2]);
+        if (y != null && m != null && d != null) {
+          return DateTime(y, m, d); // midnight local — no UTC shift
+        }
+      }
+    }
+    // Fallback: parse and normalize to midnight local
+    final dt = DateTime.tryParse(s);
+    if (dt != null) return DateTime(dt.year, dt.month, dt.day);
+    return DateTime.now();
+  }
+
+  /// Returns true if this subscription has [date] in its vacation list.
+  bool isOnVacationOn(DateTime date) {
+    final d = DateTime(date.year, date.month, date.day);
+    return vacationDates.any((vd) => vd == d);
   }
 
   factory UserSubscription.fromJson(Map<String, dynamic> json) {
@@ -126,7 +158,7 @@ class UserSubscription {
       for (final item in rawItems) {
         final p = item['product'] is Map ? item['product'] : item;
         names.add("${p['name'] ?? 'Product'} (${item['quantity'] ?? 1})");
-        
+
         // Use first product's image for the card
         if (imageUrl.isEmpty) {
           final images = p['images'] as List?;
@@ -134,9 +166,10 @@ class UserSubscription {
               ? images.first.toString()
               : p['image']?.toString() ?? '';
         }
-        
-        final unitPrice = (item['price'] as num?)?.toDouble() ?? 
-                         (p['price'] as num?)?.toDouble() ?? 0.0;
+
+        final unitPrice = (item['price'] as num?)?.toDouble() ??
+            (p['price'] as num?)?.toDouble() ??
+            0.0;
         totalPrice += unitPrice * (item['quantity'] ?? 1);
       }
       combinedName = names.join(" + ");
@@ -150,16 +183,18 @@ class UserSubscription {
       imageUrl = (images != null && images.isNotEmpty)
           ? images.first.toString()
           : product['image']?.toString() ?? '';
-      
+
       final pPrice = (product['price'] as num?)?.toDouble() ?? 0.0;
       totalPrice = pPrice * ((json['quantity'] as num?)?.toInt() ?? 1);
     }
 
     // Use top-level price if available
-    final topLevelPrice = (json['totalAmount'] ?? json['price'] as num?)?.toDouble() ?? 0.0;
+    final topLevelPrice =
+        (json['totalAmount'] ?? json['price'] as num?)?.toDouble() ?? 0.0;
     if (topLevelPrice > 0) totalPrice = topLevelPrice;
 
-    final retailer = json['retailer'] ?? (product is Map ? product['retailer'] : null);
+    final retailer =
+        json['retailer'] ?? (product is Map ? product['retailer'] : null);
     String retailerName = '';
     if (retailer is Map) {
       final biz = retailer['businessDetails'];
@@ -180,19 +215,20 @@ class UserSubscription {
       retailerName: retailerName,
       frequency: json['frequency']?.toString() ?? 'Daily',
       quantity: (json['quantity'] as num?)?.toInt() ?? 1,
-      price: totalPrice / ((json['quantity'] as num?)?.toInt() ?? 1), // Store unit price
+      price: totalPrice /
+          ((json['quantity'] as num?)?.toInt() ?? 1), // Store unit price
       customDays: (json['customDays'] as List<dynamic>?)
               ?.map((e) => e.toString())
               .toList() ??
           [],
       status: json['status']?.toString() ?? 'Active',
-      startDate: DateTime.tryParse(json['startDate']?.toString() ?? '') ??
-          DateTime.now(),
+      startDate: _parseDateOnly(json['startDate']?.toString()),
       endDate: json['endDate'] != null
-          ? DateTime.tryParse(json['endDate'].toString())
+          ? _parseDateOnly(json['endDate'].toString())
           : null,
+      // Use timezone-safe parser so UTC "2026-04-09T00:00Z" stays as Apr 9
       vacationDates: (json['vacationDates'] as List<dynamic>?)
-              ?.map((e) => DateTime.tryParse(e.toString()) ?? DateTime.now())
+              ?.map((e) => _parseDateOnly(e.toString()))
               .toList() ??
           [],
       deliverySlot: json['deliverySlot']?.toString(),
@@ -201,6 +237,7 @@ class UserSubscription {
           : null,
     );
   }
+
 
   UserSubscription copyWith({
     String? id,

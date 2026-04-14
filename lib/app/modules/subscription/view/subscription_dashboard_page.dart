@@ -30,10 +30,14 @@ class SubscriptionDashboardPage extends ConsumerWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.cloud_off_rounded, size: 64, color: Colors.grey.shade300),
+              Icon(Icons.cloud_off_rounded,
+                  size: 64, color: Colors.grey.shade300),
               const SizedBox(height: 16),
               const Text('Could not load subscriptions',
-                  style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey, fontSize: 16)),
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey,
+                      fontSize: 16)),
               const SizedBox(height: 8),
               const Text('Check your connection and try again',
                   style: TextStyle(color: Colors.grey, fontSize: 13)),
@@ -43,7 +47,8 @@ class SubscriptionDashboardPage extends ConsumerWidget {
                 icon: const Icon(Icons.refresh, size: 18),
                 label: const Text('Retry'),
                 style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primaryDark, foregroundColor: Colors.white),
+                    backgroundColor: AppColors.primaryDark,
+                    foregroundColor: Colors.white),
               ),
             ],
           ),
@@ -151,14 +156,16 @@ class SubscriptionDashboardPage extends ConsumerWidget {
                     final confirmed = await showDialog<bool>(
                           context: context,
                           builder: (context) => AlertDialog(
-                            title: Text(
-                                val ? 'Resume Subscription?' : 'Pause Subscription?'),
+                            title: Text(val
+                                ? 'Resume Subscription?'
+                                : 'Pause Subscription?'),
                             content: Text(val
                                 ? 'Do you want to resume deliveries for ${sub.productName}?'
                                 : 'Do you want to pause deliveries for ${sub.productName}?'),
                             actions: [
                               TextButton(
-                                  onPressed: () => Navigator.pop(context, false),
+                                  onPressed: () =>
+                                      Navigator.pop(context, false),
                                   child: const Text('Cancel')),
                               TextButton(
                                   onPressed: () => Navigator.pop(context, true),
@@ -176,12 +183,10 @@ class SubscriptionDashboardPage extends ConsumerWidget {
                     if (!confirmed) return;
 
                     final newStatus = val ? 'Active' : 'Paused';
-                    final success = await ref
-                        .read(subscriptionServiceProvider)
+                    // Route through notifier for optimistic UI update
+                    await ref
+                        .read(mySubscriptionsProvider.notifier)
                         .updateStatus(sub.id, newStatus);
-                    if (success) {
-                      ref.invalidate(mySubscriptionsProvider);
-                    }
                   },
                 ),
               ],
@@ -204,8 +209,8 @@ class SubscriptionDashboardPage extends ConsumerWidget {
                               fontWeight: FontWeight.bold)),
                       const SizedBox(height: 2),
                       Text(
-                        isActive 
-                            ? "Tomorrow, ${sub.deliverySlot ?? 'Morning Slot'}" 
+                        isActive
+                            ? "Tomorrow, ${sub.deliverySlot ?? 'Morning Slot'}"
                             : "Paused",
                         style: TextStyle(
                           color: isActive ? AppColors.accentGreen : Colors.red,
@@ -219,12 +224,12 @@ class SubscriptionDashboardPage extends ConsumerWidget {
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-
                     TextButton.icon(
                       onPressed: () {
                         final now = DateTime.now();
                         if (now.hour >= 20) {
-                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                          ScaffoldMessenger.of(context)
+                              .showSnackBar(const SnackBar(
                             content: Text(
                                 'Deadline passed (8 PM). Vacation settings are locked for tonight.'),
                             backgroundColor: Colors.orange,
@@ -312,10 +317,12 @@ class SubscriptionDashboardPage extends ConsumerWidget {
         if (!confirmed) return;
       }
 
-      final res = await ref.read(subscriptionServiceProvider).updateVacation(
+      // Route through notifier for optimistic UI update
+      final res = await ref.read(mySubscriptionsProvider.notifier).updateVacation(
             subscriptionId: sub.id,
             startDate: picked.start,
             endDate: picked.end,
+            isResume: false,
           );
 
       if (context.mounted) {

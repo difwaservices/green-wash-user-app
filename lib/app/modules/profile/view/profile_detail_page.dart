@@ -532,13 +532,16 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
                             context: context,
                             builder: (context) => ReviewDialog(
                               orderId: order.id,
-                              productName: (order.items.isNotEmpty)
-                                  ? order.items[0].name
-                                  : 'Difwa Product',
-                              retailerId:
-                                  '65e9f8f8f8f8f8f8f8f8f8f8', // Mock retailer ID
-                              productId:
-                                  '65e9f8f8f8f8f8f8f8f8f8f9', // Mock product ID
+                              items: order.items
+                                  .map((i) => {
+                                        '_id': i.id,
+                                        'name': i.name,
+                                        'image': i.image,
+                                      })
+                                  .toList(),
+                              retailerId: order.retailer?['_id']?.toString() ??
+                                  '65e9f8f8f8f8f8f8f8f8f8f8',
+                              isOrderReview: true,
                             ),
                           );
                         },

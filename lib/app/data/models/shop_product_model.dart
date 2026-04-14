@@ -77,10 +77,12 @@ class ShopProduct {
       weight: category?.name ?? 'Difwa VARIETY',
       category: category?.name ?? 'Restaurant',
       description: description,
-      isShopActive: shopActive && isAvailable,
-      badgeText: !isAvailable ? 'Out of Stock' : '',
+      isShopActive: shopActive,
+      badgeText: (stockStatus == 'Out of Stock' || stock <= 0) ? 'Out of Stock' : '',
       shopId: retailerId,
       shopName: shopName ?? '',
+      stockStatus: stockStatus,
+      stock: stock,
     );
   }
 

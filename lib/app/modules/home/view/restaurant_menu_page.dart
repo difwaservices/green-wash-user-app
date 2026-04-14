@@ -345,7 +345,7 @@ class _ProductCardState extends ConsumerState<_ProductCard> {
                   child: _FavoriteHeart(productId: p.id),
                 ),
                 // Out of stock badge
-                if (!p.isAvailable)
+                if (p.stockStatus == 'Out of Stock' || p.stock <= 0)
                   Positioned.fill(
                     child: ClipRRect(
                       borderRadius:
@@ -361,6 +361,30 @@ class _ProductCardState extends ConsumerState<_ProductCard> {
                               fontWeight: FontWeight.bold,
                             ),
                           ),
+                        ),
+                      ),
+                    ),
+                  ),
+                // Low Stock Badge
+                if (p.stockStatus == 'Low Stock' && p.stock > 0)
+                  Positioned(
+                    top: 6,
+                    left: 6,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 3,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.orange.shade700,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        'ONLY ${p.stock} LEFT!',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 9,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
                     ),
@@ -420,7 +444,7 @@ class _ProductCardState extends ConsumerState<_ProductCard> {
                     ),
                   ),
                   // Dynamic Cart Controls
-                  if (p.isAvailable)
+                  if (p.stockStatus != 'Out of Stock' && p.stock > 0)
                     _buildCartControls(context, cart, p, widget.shopName)
                   else
                     Container(

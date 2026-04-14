@@ -69,13 +69,22 @@ class UserOrder {
     this.deliveryAddressMap,
     this.deliverySlot,
     this.orderType,
+    this.retailer,
   });
 
   final String? deliverySlot;
   final String? orderType;
+  final Map<String, dynamic>? retailer;
 
   String get riderName => rider?['fullName'] ?? rider?['name'] ?? '';
   String get riderPhone => rider?['phoneNumber'] ?? rider?['phone'] ?? '';
+  
+  String get plantName => retailer?['businessDetails']?['storeDisplayName'] ?? 
+                          retailer?['fullName'] ?? 
+                          retailer?['name'] ?? 
+                          '';
+  String get plantPhone => retailer?['phoneNumber'] ?? retailer?['phone'] ?? '';
+  
   bool get isSubscription => orderType?.toLowerCase() == 'subscription';
 
   String get deliveryAddress {
@@ -137,6 +146,9 @@ class UserOrder {
           json['deliveryAddress'] is Map ? json['deliveryAddress'] : null,
       deliverySlot: json['deliverySlot']?.toString(),
       orderType: json['orderType']?.toString() ?? 'One-time',
+      retailer: json['retailer'] is Map 
+          ? json['retailer'] as Map<String, dynamic>
+          : (items.isNotEmpty ? items.first.retailer : null),
     );
   }
 }
@@ -147,6 +159,7 @@ class UserOrderItem {
   final int quantity;
   final double price;
   final String image;
+  final Map<String, dynamic>? retailer;
 
   const UserOrderItem({
     required this.id,
@@ -154,6 +167,7 @@ class UserOrderItem {
     required this.quantity,
     required this.price,
     required this.image,
+    this.retailer,
   });
 
   factory UserOrderItem.fromJson(Map<String, dynamic> json) {
@@ -173,6 +187,7 @@ class UserOrderItem {
           (p['price'] as num?)?.toDouble() ??
           0.0,
       image: img,
+      retailer: json['retailer'] is Map ? json['retailer'] as Map<String, dynamic> : null,
     );
   }
 }
@@ -253,6 +268,8 @@ class Product {
   final bool isShopActive;
   final String shopId;
   final String shopName;
+  final String stockStatus;
+  final int stock;
 
   const Product({
     required this.id,
@@ -268,15 +285,26 @@ class Product {
     this.isShopActive = true,
     this.shopId = '',
     this.shopName = '',
+    this.stockStatus = 'In Stock',
+    this.stock = 0,
   });
 
   factory Product.fromJson(Map<String, dynamic> json) {
     return Product(
       id: (json['id'] ?? json['_id'])?.toString() ?? '',
       name: json['name']?.toString() ?? '',
-      image: (json['image'] ?? (json['images'] is List && (json['images'] as List).isNotEmpty ? json['images'][0] : ''))?.toString() ?? '',
+      image: (json['image'] ??
+              (json['images'] is List && (json['images'] as List).isNotEmpty
+                  ? json['images'][0]
+                  : ''))
+          ?.toString() ??
+          '',
       price: double.tryParse(json['price']?.toString() ?? '0') ?? 0.0,
-      weight: (json['weight'] ?? json['description']?.toString().split('\n').first ?? '')?.toString() ?? '',
+      weight: (json['weight'] ??
+              json['description']?.toString().split('\n').first ??
+              '')
+          ?.toString() ??
+          '',
       category: json['category']?.toString() ?? '',
       badgeText: json['badgeText']?.toString() ?? '',
       isFavorite: json['isFavorite'] == true || json['isFavorite'] == 'true',
@@ -288,6 +316,8 @@ class Product {
       isShopActive: json['isShopActive'] ?? json['isActive'] ?? true,
       shopId: (json['shopId'] ?? json['retailer'])?.toString() ?? '',
       shopName: json['shopName']?.toString() ?? '',
+      stockStatus: json['stockStatus']?.toString() ?? 'In Stock',
+      stock: (json['stock'] as num?)?.toInt() ?? 0,
     );
   }
 }

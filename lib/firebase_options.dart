@@ -51,11 +51,11 @@ class DefaultFirebaseOptions {
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyAERIRnyuyZtBJZbqmzrHfoL8ewuCwCULM',
-    appId: '1:501607990708:android:93b6d3018a2652bb07dee1',
-    messagingSenderId: '501607990708',
-    projectId: 'difwa-continue',
-    storageBucket: 'difwa-continue.firebasestorage.app',
+    apiKey: 'AIzaSyDCv2HwmS1TPAJUMBwhtkV9Xrc4LUgg6D8',
+    appId: '1:685191561219:android:e74a67b4d2c23a13e9ce36',
+    messagingSenderId: '685191561219',
+    projectId: 'codechat-45ec2',
+    storageBucket: 'codechat-45ec2.appspot.com',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
