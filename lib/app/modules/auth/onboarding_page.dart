@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:licius_application/app/routes/app_routes.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import '../../core/constants/app_colors.dart';
+import '../../core/constants/app_images.dart';
+import '../../routes/app_routes.dart';
 
 class OnboardingPage extends StatefulWidget {
   const OnboardingPage({super.key});
@@ -12,32 +15,37 @@ class _OnboardingPageState extends State<OnboardingPage> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
 
-  // ---------- page data ----------
   final List<Map<String, dynamic>> _pages = [
     {
-      'title': 'Get Discounts\nOn All Products',
-      'subtitle': 'Fresh shrimp, fish & premium seafood at\nunbeatable prices.',
-      'image': 'assets/images/logowithoutback.png',
-      'layout': 'standard', // title top, image center
-    },
-    {
-      'title': 'Premium Quality\nFarm Fresh',
+      'title': 'Pure Drinking Water\nAt Your Doorstep',
       'subtitle':
-          'Freshly sourced, hygienically cleaned, and\npacked to preserve natural taste.',
-      'image': 'assets/images/image copy 2.png',
+          'Fresh and filtered water delivered right to\nyour home or office.',
+      'image': AppImages.difwaLogoPng,
+      'layout': 'standard', // title top, image center
+      'isSvg': false,
+    },
+    {
+      'title': 'Safe and Hygienic\nPremium Quality',
+      'subtitle':
+          'Our water undergoes strict filtration processes\nto ensure your health and safety.',
+      'image': AppImages.waterHero,
       'layout': 'card', // title top, image in rounded card
+      'isSvg': false,
     },
     {
-      'title': 'Best Deals on\nAll Seafood',
-      'subtitle': 'Get amazing discounts on shrimp, prawns &\nmore every day.',
-      'image': 'assets/images/image copy 5.png',
+      'title': 'Effortless Ordering\nIn Just a Tap',
+      'subtitle': 'Quick and easy booking through the\nDifwa Water App.',
+      'image': AppImages.bottleIcon,
       'layout': 'fullimage', // image fills top, curved white bottom
+      'isSvg': true,
     },
     {
-      'title': 'Fast Delivery',
-      'subtitle': 'From ocean to your kitchen in record time,\nfresh and safe.',
-      'image': 'assets/images/image copy 4.png',
+      'title': 'Fast Delivery\nStay Hydrated',
+      'subtitle':
+          'On-time delivery across the city\nto keep you and your family healthy.',
+      'image': AppImages.waterBottle,
       'layout': 'bottom', // image top half, title+subtitle bottom, skip/next
+      'isSvg': false,
     },
   ];
 
@@ -132,15 +140,21 @@ class _OnboardingPageState extends State<OnboardingPage> {
             ),
             Expanded(
               child: Center(
-                child: Image.asset(
-                  page['image'],
-                  fit: BoxFit.contain,
-                  errorBuilder: (context, error, stackTrace) => const Icon(
-                    Icons.image_not_supported,
-                    size: 100,
-                    color: Colors.grey,
-                  ),
-                ),
+                child: page['isSvg']
+                    ? SvgPicture.asset(
+                        page['image'],
+                        width: 250,
+                      )
+                    : Image.asset(
+                        page['image'],
+                        fit: BoxFit.contain,
+                        errorBuilder: (context, error, stackTrace) =>
+                            const Icon(
+                          Icons.image_not_supported,
+                          size: 100,
+                          color: Colors.grey,
+                        ),
+                      ),
               ),
             ),
           ],
@@ -179,19 +193,25 @@ class _OnboardingPageState extends State<OnboardingPage> {
             Expanded(
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(20),
-                child: Image.asset(
-                  page['image'],
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) => Container(
-                    color: Colors.grey.shade200,
-                    child: const Icon(
-                      Icons.image_not_supported,
-                      size: 80,
-                      color: Colors.grey,
-                    ),
-                  ),
-                ),
+                child: page['isSvg']
+                    ? SvgPicture.asset(
+                        page['image'],
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                      )
+                    : Image.asset(
+                        page['image'],
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) => Container(
+                          color: Colors.grey.shade200,
+                          child: const Icon(
+                            Icons.image_not_supported,
+                            size: 80,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ),
               ),
             ),
           ],
@@ -206,12 +226,17 @@ class _OnboardingPageState extends State<OnboardingPage> {
       children: [
         // Full-bleed image
         Positioned.fill(
-          child: Image.asset(
-            page['image'],
-            fit: BoxFit.cover,
-            errorBuilder: (context, error, stackTrace) =>
-                Container(color: Colors.grey.shade300),
-          ),
+          child: page['isSvg']
+              ? SvgPicture.asset(
+                  page['image'],
+                  fit: BoxFit.cover,
+                )
+              : Image.asset(
+                  page['image'],
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) =>
+                      Container(color: Colors.grey.shade300),
+                ),
         ),
         // Curved white card at bottom
         Positioned(
@@ -260,13 +285,19 @@ class _OnboardingPageState extends State<OnboardingPage> {
       children: [
         // Top image (50%)
         Expanded(
-          child: Image.asset(
-            page['image'],
-            width: double.infinity,
-            fit: BoxFit.cover,
-            errorBuilder: (context, error, stackTrace) =>
-                Container(color: Colors.grey.shade300),
-          ),
+          child: page['isSvg']
+              ? SvgPicture.asset(
+                  page['image'],
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                )
+              : Image.asset(
+                  page['image'],
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) =>
+                      Container(color: Colors.grey.shade300),
+                ),
         ),
         // Bottom white area
         Container(
@@ -316,7 +347,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
               'Skip',
               style: TextStyle(
                 fontSize: 15,
-                color: Color(0xFF2E7D32),
+                color: AppColors.primary,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -328,7 +359,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
               'Next',
               style: TextStyle(
                 fontSize: 15,
-                color: Color(0xFF2E7D32),
+                color: AppColors.primary,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -350,9 +381,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
           height: 8,
           width: _currentPage == i ? 20 : 8,
           decoration: BoxDecoration(
-            color: _currentPage == i
-                ? const Color(0xFF2E7D32)
-                : Colors.grey.shade300,
+            color: _currentPage == i ? AppColors.primary : Colors.grey.shade300,
             borderRadius: BorderRadius.circular(4),
           ),
         ),

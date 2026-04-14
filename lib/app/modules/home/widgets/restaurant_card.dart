@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import '../../../data/models/food_models.dart';
 
-class RestaurantCard extends StatelessWidget {
+class WaterPlantCard extends StatelessWidget {
   final Restaurant restaurant;
   final VoidCallback onTap;
 
-  const RestaurantCard({
+  const WaterPlantCard({
     super.key,
     required this.restaurant,
     required this.onTap,
@@ -36,7 +36,7 @@ class RestaurantCard extends StatelessWidget {
                         width: 160,
                         height: 120,
                         color: Colors.grey.shade200,
-                        child: const Icon(Icons.restaurant, color: Colors.grey),
+                        child: const Icon(Icons.water_drop_outlined, color: Colors.grey),
                       );
                     },
                   ),
@@ -77,7 +77,7 @@ class RestaurantCard extends StatelessWidget {
                       vertical: 2,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.green,
+                      color: const Color(0xFF06B6D4),
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: Row(
@@ -113,13 +113,13 @@ class RestaurantCard extends StatelessWidget {
             // Delivery Info Row
             Row(
               children: [
-                const Icon(Icons.bolt, color: Colors.green, size: 14),
+                const Icon(Icons.bolt, color: Color(0xFF06B6D4), size: 14),
                 const SizedBox(width: 2),
                 Text(
                   restaurant.deliveryTime,
                   style: const TextStyle(
                     fontSize: 11,
-                    color: Colors.green,
+                    color: Color(0xFF06B6D4),
                     fontWeight: FontWeight.w600,
                   ),
                 ),

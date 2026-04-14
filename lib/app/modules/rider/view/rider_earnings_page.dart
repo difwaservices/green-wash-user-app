@@ -294,14 +294,14 @@ class _WalletBalanceCard extends StatelessWidget {
       padding: const EdgeInsets.all(28),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [Color(0xFF68B92E), Color(0xFF3A7A18)],
+          colors: [Color(0xFF06B6D4), Color(0xFF3A7A18)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF68B92E).withValues(alpha: 0.35),
+            color: const Color(0xFF06B6D4).withValues(alpha: 0.35),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -501,3 +501,4 @@ class _PayoutRow extends StatelessWidget {
     );
   }
 }
+

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../core/constants/app_colors.dart';
 
 class CommonButton extends StatelessWidget {
   final String text;
@@ -14,7 +15,7 @@ class CommonButton extends StatelessWidget {
     super.key,
     required this.text,
     required this.onPressed,
-    this.backgroundColor = const Color(0xFF438E5A),
+    this.backgroundColor = AppColors.primary,
     this.textColor = Colors.white,
     this.borderRadius = 8.0,
     this.height = 54.0,

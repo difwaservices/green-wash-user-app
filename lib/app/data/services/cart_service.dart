@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter/foundation.dart';
 import '../network/api_client.dart';
 import '../models/product_model.dart';
 
@@ -21,35 +22,31 @@ class CartService {
         requiresAuth: true,
       );
 
+      if (json == null || json['cart'] == null) return [];
+
       List<dynamic> data = [];
-      if (json is List) {
-        data = json;
-      } else if (json is Map) {
-        final directList = json['cart'] ?? json['items'] ?? json['data'];
-        if (directList is List) {
-          data = directList;
-        } else if (directList is Map && directList['items'] is List) {
-          data = directList['items'];
-        } else if (json['data'] is Map && json['data']['items'] is List) {
-          data = json['data']['items'];
-        }
+      final cartObj = json['cart'];
+      if (cartObj is List) {
+        data = cartObj;
+      } else if (cartObj is Map) {
+        final items = cartObj['items'] ?? cartObj['products'] ?? [];
+        if (items is List) data = items;
       }
 
       return data
           .map((e) => _mapToCartItem(Map<String, dynamic>.from(e)))
           .toList();
-    } catch (e, stack) {
-      print('Cart sync error: $e\\n$stack');
-      // If endpoint doesn't exist yet, return empty list
+    } catch (e) {
+      print('CartService: Error fetching cart: $e');
       return [];
     }
   }
 
   // ── Add to Cart ──────────────────────────────────────────────────────────
   /// POST /api/app/cart/add (requires auth token)
-  Future<void> addToCart(String productId, int quantity) async {
+  Future<bool> addToCart(String productId, int quantity) async {
     try {
-      await _client.post(
+      final response = await _client.post(
         '${ApiClient.baseUrl}/cart/add',
         data: {
           'productId': productId,
@@ -57,8 +54,10 @@ class CartService {
         },
         requiresAuth: true,
       );
+      return response != null;
     } catch (e) {
-      // SILENT FAIL for now, as UI might be using optimistic updates
+      debugPrint('CartService: Error adding to cart (Backend rejected it): $e');
+      throw Exception('Backend failed to add item: $e');
     }
   }
 
@@ -75,7 +74,7 @@ class CartService {
         requiresAuth: true,
       );
     } catch (e) {
-      // SILENT FAIL
+      print('CartService: Error updating quantity: $e');
     }
   }
 

@@ -1,12 +1,18 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/auth_models.dart';
 import '../network/api_client.dart';
+import 'package:logger/logger.dart';
+import 'fcm_service.dart';
 
 final authServiceProvider = Provider<AuthService>((ref) {
   return AuthService(client: ref.watch(apiClientProvider));
 });
 
 final userProfileProvider = FutureProvider.autoDispose<UserModel>((ref) async {
+  // keepAlive: Profile page prefers authStoreProvider (no network call).
+  // This provider is only a fallback — cache it for the session to avoid
+  // re-fetching every time the user navigates away from Profile and returns.
+  ref.keepAlive();
   final response = await ref.watch(authServiceProvider).getProfile();
   if (response.success && response.data != null) {
     return response.data!;
@@ -17,8 +23,9 @@ final userProfileProvider = FutureProvider.autoDispose<UserModel>((ref) async {
 /// Service layer for authentication.
 class AuthService {
   final ApiClient _client;
+  final Logger _logger = Logger();
 
-  AuthService({ApiClient? client}) : _client = client ?? ApiClient();
+  AuthService({required ApiClient client}) : _client = client;
 
   // ── Update Name (Requested Endpoint) ──────────────────────────────────────
   Future<AuthResponseModel> updateName({required String fullName}) async {
@@ -36,203 +43,61 @@ class AuthService {
     }
   }
 
-  Future<AuthResponseModel> register({
-    required String fullName,
-    required String email,
-    required String phoneNumber,
-    required String password,
-    required String confirmPassword,
-    String? fcmToken,
-  }) async {
-    try {
-      final data = await _client.post(
-        '${ApiClient.baseUrl}/register',
-        data: {
-          'fullName': fullName,
-          'email': email,
-          'phoneNumber': phoneNumber,
-          'password': password,
-          'confirmPassword': confirmPassword,
-          if (fcmToken != null) 'fcmToken': fcmToken,
-        },
-      );
-      return AuthResponseModel.fromJson(data);
-    } on ApiException catch (e) {
-      return AuthResponseModel(success: false, message: e.message);
-    } catch (e) {
-      return AuthResponseModel(
-          success: false, message: 'Unexpected error: ${e.toString()}');
-    }
-  }
-
-  Future<AuthResponseModel> login({
-    required String phoneNumber,
-    required String password,
-    String? fcmToken,
-  }) async {
-    try {
-      final data = await _client.post(
-        '${ApiClient.baseUrl}/login',
-        data: {
-          'phoneNumber': phoneNumber,
-          'password': password,
-          if (fcmToken != null) 'fcmToken': fcmToken,
-        },
-      );
-      final response = AuthResponseModel.fromJson(data);
-      // Persist token for future authenticated requests
-      if (response.success && response.token != null) {
-        await ApiClient.saveToken(response.token!);
-      }
-      return response;
-    } on ApiException catch (e) {
-      return AuthResponseModel(success: false, message: e.message);
-    } catch (e) {
-      return AuthResponseModel(
-          success: false, message: 'Unexpected error: ${e.toString()}');
-    }
-  }
-
-  // ── Google Auth ───────────────────────────────────────────────────────────
-  Future<AuthResponseModel> googleAuth({
-    required String idToken,
-    String? fcmToken,
-  }) async {
-    try {
-      final data = await _client.post(
-        '${ApiClient.baseUrl}/google-auth',
-        data: {
-          'idToken': idToken,
-          if (fcmToken != null) 'fcmToken': fcmToken,
-        },
-      );
-      final response = AuthResponseModel.fromJson(data);
-      if (response.success && response.token != null) {
-        await ApiClient.saveToken(response.token!);
-      }
-      return response;
-    } on ApiException catch (e) {
-      return AuthResponseModel(success: false, message: e.message);
-    } catch (e) {
-      return AuthResponseModel(
-          success: false, message: 'Unexpected error: ${e.toString()}');
-    }
-  }
 
   Future<AuthResponseModel> sendOtp({
     required String phoneNumber,
-    String? fcmToken,
   }) async {
     try {
       final data = await _client.post(
-        '${ApiClient.otpBaseUrl}/send',
+        '/app/auth/send-otp',
         data: {
           'phoneNumber': phoneNumber,
-          if (fcmToken != null) 'fcmToken': fcmToken,
         },
       );
-      return AuthResponseModel.fromJson(data);
+      final response = AuthResponseModel.fromJson(data);
+      if (response.success && response.otp != null) {
+        _logger.w('VERIFICATION OTP FOR $phoneNumber IS: ${response.otp}');
+      }
+      return response;
     } on ApiException catch (e) {
       return AuthResponseModel(success: false, message: e.message);
     } catch (e) {
-      return AuthResponseModel(
-          success: false, message: 'Unexpected error: ${e.toString()}');
+      return AuthResponseModel(success: false, message: e.toString());
     }
   }
 
-  Future<AuthResponseModel> resendOtp({required String phoneNumber}) async {
-    // Usually the same as sendOtp, but explicitly named for clarity in UI
-    return sendOtp(phoneNumber: phoneNumber);
-  }
-
-  // ── Verify OTP ────────────────────────────────────────────────────────────
   Future<AuthResponseModel> verifyOtp({
     required String phoneNumber,
     required String otp,
   }) async {
     try {
-      final data = await _client.post(
-        '${ApiClient.otpBaseUrl}/verify',
-        data: {'phoneNumber': phoneNumber, 'otp': otp},
-      );
-      final response = AuthResponseModel.fromJson(data);
-      if (response.success && response.token != null && response.token!.isNotEmpty) {
-        await ApiClient.saveToken(response.token!);
+      String? fcmToken;
+      try {
+        fcmToken = await FCMService().getToken();
+      } catch (e) {
+        _logger.w('Could not fetch FCM Token for verifyOtp: $e');
       }
-      return response;
-    } on ApiException catch (e) {
-      return AuthResponseModel(success: false, message: e.message);
-    } catch (e) {
-      return AuthResponseModel(
-          success: false, message: 'Unexpected error: ${e.toString()}');
-    }
-  }
 
-  // ── Verify Firebase OTP (New) ───────────────────────────────────────────
-  Future<AuthResponseModel> verifyFirebaseOtp({
-    required String phoneNumber,
-    required String idToken,
-    String? fcmToken,
-  }) async {
-    try {
       final data = await _client.post(
-        '${ApiClient.otpBaseUrl}/verify-firebase',
+        '/app/auth/verify-otp',
         data: {
           'phoneNumber': phoneNumber,
-          'idToken': idToken,
-          if (fcmToken != null) 'fcmToken': fcmToken,
+          'otp': otp,
+          'fcmToken': fcmToken,
         },
       );
       final response = AuthResponseModel.fromJson(data);
-      if (response.success && response.token != null && response.token!.isNotEmpty) {
+      if (response.success &&
+          response.token != null &&
+          response.token!.isNotEmpty) {
+        _logger.i('OTP Verified successfully. Token obtained.');
         await ApiClient.saveToken(response.token!);
       }
       return response;
     } on ApiException catch (e) {
       return AuthResponseModel(success: false, message: e.message);
     } catch (e) {
-      return AuthResponseModel(
-          success: false, message: 'Unexpected error: ${e.toString()}');
-    }
-  }
-
-  // ── Forgot / Change Password ───────────────────────────────────────────────
-  Future<AuthResponseModel> forgotPassword({
-    required String email,
-  }) async {
-    try {
-      final data = await _client.post(
-        '${ApiClient.baseUrl}/forgot-password',
-        data: {'email': email},
-      );
-      return AuthResponseModel.fromJson(data);
-    } on ApiException catch (e) {
-      return AuthResponseModel(success: false, message: e.message);
-    } catch (e) {
-      return AuthResponseModel(
-          success: false, message: 'Unexpected error: ${e.toString()}');
-    }
-  }
-
-  Future<AuthResponseModel> changePassword({
-    required String oldPassword,
-    required String newPassword,
-  }) async {
-    try {
-      final data = await _client.put(
-        '${ApiClient.baseUrl}/change-password',
-        data: {
-          'oldPassword': oldPassword,
-          'newPassword': newPassword,
-        },
-        requiresAuth: true,
-      );
-      return AuthResponseModel.fromJson(data);
-    } on ApiException catch (e) {
-      return AuthResponseModel(success: false, message: e.message);
-    } catch (e) {
-      return AuthResponseModel(
-          success: false, message: 'Unexpected error: ${e.toString()}');
+      return AuthResponseModel(success: false, message: e.toString());
     }
   }
 
@@ -277,12 +142,12 @@ class AuthService {
   // ── Update FCM Token ─────────────────────────────────────────────────────
   Future<AuthResponseModel> updateFcmToken({required String fcmToken}) async {
     try {
-      final data = await _client.post(
-        '${ApiClient.baseUrl}/update-fcm-token',
+      final json = await _client.put(
+        '${ApiClient.baseUrl}/profile',
         data: {'fcmToken': fcmToken},
         requiresAuth: true,
       );
-      return AuthResponseModel.fromJson(data);
+      return AuthResponseModel.fromJson(json);
     } on ApiException catch (e) {
       return AuthResponseModel(success: false, message: e.message);
     } catch (e) {

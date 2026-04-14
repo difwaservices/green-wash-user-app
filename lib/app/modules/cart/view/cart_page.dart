@@ -1,16 +1,21 @@
 import 'package:flutter/material.dart';
 import '../../../data/services/db_service.dart';
 import '../../../data/models/food_models.dart';
+import '../../../data/models/product_model.dart';
 import '../../home/view/product_details_page.dart';
 import '../../home/controller/main_controller.dart';
 import '../../home/widgets/quantity_selector.dart';
 import 'shipping_address_page.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/state/auth_store.dart';
+import '../../../routes/app_routes.dart';
+import '../../../core/utils/auth_helper.dart';
 
-class CartPage extends StatelessWidget {
+class CartPage extends ConsumerWidget {
   const CartPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     // ... items ...
     final cart = CartProviderScope.of(context);
     final items = cart.items;
@@ -59,7 +64,7 @@ class CartPage extends StatelessWidget {
                   bottom: 0,
                   left: 0,
                   right: 0,
-                  child: _buildSummarySection(context, cart),
+                  child: _buildSummarySection(context, ref, cart),
                 ),
               ],
             ),
@@ -75,13 +80,13 @@ class CartPage extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(30),
             decoration: const BoxDecoration(
-              color: Color(0xFFEBFFD7),
+              color: Color(0xFFCFFAFE),
               shape: BoxShape.circle,
             ),
             child: const Icon(
               Icons.shopping_cart_outlined,
               size: 80,
-              color: Color(0xFF68B92E),
+              color: Color(0xFF06B6D4),
             ),
           ),
           const SizedBox(height: 24),
@@ -114,7 +119,7 @@ class CartPage extends StatelessWidget {
                 } catch (_) {}
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF439462),
+                backgroundColor: const Color(0xFF06B6D4),
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
@@ -136,18 +141,15 @@ class CartPage extends StatelessWidget {
     return GestureDetector(
       onTap: () {
         // Find the full product object to pass to details page
-        final product = cart.recommendedProducts.firstWhere(
-          (p) => p.id == item.id,
-          orElse: () => Product(
-            id: item.id,
-            name: item.title,
-            image: item.image,
-            price: item.unitPrice,
-            weight: item.subtitle,
-            category: '', // Assuming a default empty category if not found
-            description: '',
-            whyChoose: [],
-          ),
+        final product = Product(
+          id: item.id,
+          name: item.title,
+          image: item.image,
+          price: item.unitPrice,
+          weight: item.subtitle,
+          category: '', 
+          description: '',
+          whyChoose: [],
         );
         Navigator.push(
           context,
@@ -180,7 +182,7 @@ class CartPage extends StatelessWidget {
                           fit: BoxFit.cover,
                           errorBuilder: (context, error, stackTrace) =>
                               const Icon(
-                            Icons.set_meal_outlined,
+                            Icons.water_drop_outlined,
                             color: Colors.grey,
                             size: 30,
                           ),
@@ -190,7 +192,7 @@ class CartPage extends StatelessWidget {
                           fit: BoxFit.cover,
                           errorBuilder: (context, error, stackTrace) =>
                               const Icon(
-                            Icons.set_meal_outlined,
+                            Icons.water_drop_outlined,
                             color: Colors.grey,
                             size: 30,
                           ),
@@ -223,7 +225,7 @@ class CartPage extends StatelessWidget {
                     Text(
                       '₹${item.unitPrice.toStringAsFixed(0)}',
                       style: const TextStyle(
-                        color: Color(0xFF68B92E),
+                        color: Color(0xFF06B6D4),
                         fontWeight: FontWeight.bold,
                         fontSize: 15,
                       ),
@@ -235,25 +237,22 @@ class CartPage extends StatelessWidget {
                 children: [
                   QuantitySelector(
                     quantity: item.quantity,
-                    onIncrement: () => cart.increment(item.title),
-                    onDecrement: () => cart.decrement(item.title),
+                    onIncrement: () => cart.increment(item.id),
+                    onDecrement: () => cart.decrement(item.id),
                     size: 34, // Slightly smaller for list view
                   ),
                   const SizedBox(height: 8),
                   TextButton(
                     onPressed: () {
-                      final product = cart.recommendedProducts.firstWhere(
-                        (p) => p.id == item.id,
-                        orElse: () => Product(
-                          id: item.id,
-                          name: item.title,
-                          image: item.image,
-                          price: item.unitPrice,
-                          weight: item.subtitle,
-                          category: '',
-                          description: '',
-                          whyChoose: [],
-                        ),
+                      final product = Product(
+                        id: item.id,
+                        name: item.title,
+                        image: item.image,
+                        price: item.unitPrice,
+                        weight: item.subtitle,
+                        category: '',
+                        description: '',
+                        whyChoose: [],
                       );
                       showModalBottomSheet(
                         context: context,
@@ -271,7 +270,7 @@ class CartPage extends StatelessWidget {
                     child: const Text(
                       'Schedule',
                       style: TextStyle(
-                        color: Color(0xFF68B92E),
+                        color: Color(0xFF06B6D4),
                         fontSize: 11,
                         fontWeight: FontWeight.bold,
                         decoration: TextDecoration.underline,
@@ -287,7 +286,7 @@ class CartPage extends StatelessWidget {
     );
   }
 
-  Widget _buildSummarySection(BuildContext context, CartProvider cart) {
+  Widget _buildSummarySection(BuildContext context, WidgetRef ref, CartProvider cart) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -324,7 +323,7 @@ class CartPage extends StatelessWidget {
                 style: const TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF68B92E),
+                  color: Color(0xFF06B6D4),
                 ),
               ),
             ],
@@ -335,6 +334,12 @@ class CartPage extends StatelessWidget {
             height: 56,
             child: ElevatedButton(
               onPressed: () {
+                if (!AuthHelper.checkAuth(
+                  context: context,
+                  ref: ref,
+                  message: 'Please log in to proceed with your order.',
+                )) return;
+                
                 Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -342,7 +347,7 @@ class CartPage extends StatelessWidget {
                 );
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF439462),
+                backgroundColor: const Color(0xFF06B6D4),
                 foregroundColor: Colors.white,
                 elevation: 0,
                 shape: RoundedRectangleBorder(
@@ -402,3 +407,5 @@ class CartPage extends StatelessWidget {
     );
   }
 }
+
+

@@ -98,7 +98,7 @@ class _FilterBarState extends State<FilterBar> {
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: isSelected
-                ? const Color(0xFF68B92E)
+                ? const Color(0xFF06B6D4)
                 : Colors.grey.withValues(alpha:  0.2),
             width: 1,
           ),
@@ -110,7 +110,7 @@ class _FilterBarState extends State<FilterBar> {
               Icon(
                 icon,
                 size: 16,
-                color: isSelected ? const Color(0xFF68B92E) : Colors.black,
+                color: isSelected ? const Color(0xFF06B6D4) : Colors.black,
               ),
               const SizedBox(width: 4),
             ],
@@ -132,5 +132,6 @@ class _FilterBarState extends State<FilterBar> {
     ).animate(delay: (index * 100).ms).fadeIn(duration: 400.ms).slideX(begin: 0.2, duration: 400.ms, curve: Curves.easeOutCubic);
   }
 }
+
 
 

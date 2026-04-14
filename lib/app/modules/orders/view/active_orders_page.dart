@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../data/models/food_models.dart';
 import '../../../data/services/order_service.dart';
+import '../../../core/constants/app_colors.dart';
+import '../../../core/constants/app_images.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'track_order_page.dart';
 
 class ActiveOrdersPage extends ConsumerStatefulWidget {
@@ -15,7 +19,6 @@ class _ActiveOrdersPageState extends ConsumerState<ActiveOrdersPage> {
   @override
   void initState() {
     super.initState();
-    // The provider now handles real-time updates via socket1
   }
 
   @override
@@ -23,20 +26,23 @@ class _ActiveOrdersPageState extends ConsumerState<ActiveOrdersPage> {
     final activeOrdersAsync = ref.watch(activeOrdersProvider);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF0F4EC),
+      backgroundColor: const Color(0xFFF1F5EF), // Very light greenish background from screenshot
       appBar: AppBar(
         title: const Text('Active Orders',
             style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 18,
-                color: Color(0xFF114F3B))),
-        backgroundColor: const Color(0xFFF0F4EC),
-        foregroundColor: const Color(0xFF114F3B),
+                color: Colors.white)),
+        backgroundColor: AppColors.primaryDark,
         elevation: 0,
         centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.pop(context),
+        ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh_rounded, color: Color(0xFF114F3B)),
+            icon: const Icon(Icons.refresh_rounded, color: Colors.white),
             onPressed: () => ref.invalidate(activeOrdersProvider),
             tooltip: 'Refresh',
           ),
@@ -44,18 +50,25 @@ class _ActiveOrdersPageState extends ConsumerState<ActiveOrdersPage> {
       ),
       body: activeOrdersAsync.when(
         data: (orders) {
-          if (orders.isEmpty) {
+          final pendingCancelledOrders = orders
+              .where((o) =>
+                  o.status.toLowerCase() != 'delivered')
+              .toList();
+
+          if (pendingCancelledOrders.isEmpty) {
             return _buildEmptyState(context);
           }
+          final sortedOrders = List<UserOrder>.from(pendingCancelledOrders)
+            ..sort((a, b) => b.date.compareTo(a.date));
           return RefreshIndicator(
-            color: const Color(0xFF114F3B),
+            color: const Color(0xFF0891B2),
             onRefresh: () async =>
                 ref.read(activeOrdersProvider.notifier).refresh(),
             child: ListView.builder(
               padding: const EdgeInsets.fromLTRB(20, 12, 20, 100),
-              itemCount: orders.length,
+              itemCount: sortedOrders.length,
               itemBuilder: (context, index) =>
-                  _ActiveOrderCard(order: orders[index]),
+                  _ActiveOrderCard(order: sortedOrders[index]),
             ),
           );
         },
@@ -89,18 +102,18 @@ class _ActiveOrdersPageState extends ConsumerState<ActiveOrdersPage> {
           Container(
             padding: const EdgeInsets.all(28),
             decoration: const BoxDecoration(
-              color: Color(0xFFEBFFD7),
+              color: Color(0xFFCFFAFE),
               shape: BoxShape.circle,
             ),
             child: const Icon(Icons.inventory_2_outlined,
-                size: 56, color: Color(0xFF68B92E)),
+                size: 56, color: Color(0xFF06B6D4)),
           ),
           const SizedBox(height: 24),
           const Text('No Active Orders',
               style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 20,
-                  color: Color(0xFF114F3B))),
+                  color: Color(0xFF0891B2))),
           const SizedBox(height: 8),
           Text('Place an order and track it live here!',
               style: TextStyle(color: Colors.grey.shade500, fontSize: 14)),
@@ -110,7 +123,7 @@ class _ActiveOrdersPageState extends ConsumerState<ActiveOrdersPage> {
             icon: const Icon(Icons.storefront_outlined),
             label: const Text('Order Something'),
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF114F3B),
+              backgroundColor: const Color(0xFF0891B2),
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16)),
@@ -142,7 +155,7 @@ class _ActiveOrdersPageState extends ConsumerState<ActiveOrdersPage> {
             icon: const Icon(Icons.refresh, size: 18),
             label: const Text('Retry'),
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF114F3B),
+              backgroundColor: const Color(0xFF0891B2),
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12)),
@@ -157,51 +170,38 @@ class _ActiveOrdersPageState extends ConsumerState<ActiveOrdersPage> {
 // ── Order Card ─────────────────────────────────────────────────────────────────
 
 class _ActiveOrderCard extends StatelessWidget {
-  final dynamic order;
+  final UserOrder order;
   const _ActiveOrderCard({required this.order});
 
   @override
   Widget build(BuildContext context) {
-    final String rawId =
-        (order['orderId'] ?? order['_id'] ?? order['id'] ?? '').toString();
+    final String rawId = order.id;
     final String orderId = rawId.length > 8
         ? rawId.substring(rawId.length - 8).toUpperCase()
         : rawId.toUpperCase();
-    final String status = order['status']?.toString() ?? 'Pending';
-    final double total =
-        (order['totalAmount'] ?? order['grandTotal'] ?? order['total'] ?? 0)
-            .toDouble();
+    final String status = order.status;
+    final double total = order.total;
 
     // Items
-    final items = order['items'] as List? ?? [];
-    final String itemsSummary = items.isNotEmpty
-        ? items.map((i) => i['name'] ?? i['productName'] ?? 'Item').join(', ')
+    final String itemsSummary = order.items.isNotEmpty
+        ? order.items.map((i) => i.name).join(', ')
         : 'See details';
 
-    // Rider info
-    final rider = order['rider'] ?? order['riderId'];
-    final String riderName =
-        rider is Map ? (rider['fullName'] ?? rider['name'] ?? '') : '';
-    final String riderPhone =
-        rider is Map ? (rider['phoneNumber'] ?? rider['phone'] ?? '') : '';
-
     // Delivery address
-    final deliveryAddressMap = order['deliveryAddress'];
-    final String deliveryAddress = deliveryAddressMap is Map
-        ? (deliveryAddressMap['fullAddress'] ??
-            deliveryAddressMap['address'] ??
-            'Your delivery address')
-        : (order['address']?.toString() ?? 'Your delivery address');
-
-    // Status color
-    final statusInfo = _getStatusStyle(status);
+    final String deliveryAddress = order.deliveryAddress;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 20),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.grey.shade200),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: InkWell(
         onTap: () {
@@ -209,195 +209,251 @@ class _ActiveOrderCard extends StatelessWidget {
             context,
             MaterialPageRoute(
               builder: (_) => TrackOrderPage(
-                orderId: (order['orderId'] ?? order['_id'] ?? order['id'] ?? '')
-                    .toString(),
+                orderId: order.id,
                 status: status,
-                deliveryAddress: deliveryAddressMap is Map
-                    ? Map<String, dynamic>.from(deliveryAddressMap)
-                    : null,
+                deliveryAddress: order.deliveryAddressMap,
               ),
             ),
           );
         },
         borderRadius: BorderRadius.circular(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // ── Top colored header ──────────────────────────────────────────
-            Container(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
-              decoration: BoxDecoration(
-                color: statusInfo['bg'] as Color,
-                borderRadius:
-                    const BorderRadius.vertical(top: Radius.circular(24)),
-              ),
-              child: Row(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // ── Header (Matching Screenshot) ─────────────────────────────
+              Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  Expanded(
+                    child: Text('Order #$orderId',
+                        style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18,
+                            color: Colors.black87)),
+                  ),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text('Order #$orderId',
+                      // Order Type Badge
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 4),
+                        margin: const EdgeInsets.only(right: 8),
+                        decoration: BoxDecoration(
+                          color: order.isSubscription
+                              ? AppColors.primaryDark.withValues(alpha: 0.1)
+                              : Colors.grey.shade100,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                              color: order.isSubscription
+                                  ? AppColors.primaryDark
+                                      .withValues(alpha: 0.3)
+                                  : Colors.grey.shade300),
+                        ),
+                        child: Text(
+                          (order.orderType ?? 'One-time').toUpperCase(),
+                          style: TextStyle(
+                              color: order.isSubscription
+                                  ? AppColors.primaryDark
+                                  : Colors.grey.shade600,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 9),
+                        ),
+                      ),
+                      // Status Badge
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color:
+                              const Color(0xFFE2F5E9), // Light green for status
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          _formatStatus(status),
                           style: const TextStyle(
-                              fontWeight: FontWeight.w900,
-                              fontSize: 15,
-                              color: Colors.white)),
+                              color: Color(0xFF2E7D32), // Dark green text
+                              fontWeight: FontWeight.bold,
+                              fontSize: 11),
+                        ),
+                      ),
                     ],
                   ),
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: Colors.white38),
-                    ),
-                    child: Text(
-                      _formatStatus(status),
-                      style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 11),
-                    ),
-                  ),
                 ],
               ),
-            ),
 
-            // ── Items summary ────────────────────────────────────────────────
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
-              child: Row(
+              const Divider(height: 32, thickness: 1, color: Color(0xFFF3F4F6)),
+
+              // ── Item Row ────────────────────────────────────────────────────
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Icon(Icons.set_meal_outlined,
-                      size: 18, color: Color(0xFF68B92E)),
-                  const SizedBox(width: 8),
+                  // Product image with fallback
+                  Container(
+                    width: 70,
+                    height: 70,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF3F4F6),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: ClipRRect(
+                       borderRadius: const BorderRadius.all(Radius.circular(12)),
+                       child: _buildItemImage(order),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
                   Expanded(
-                    child: Text(itemsSummary,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                            fontWeight: FontWeight.w500,
-                            fontSize: 13,
-                            color: Color(0xFF1A1A1A))),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(itemsSummary,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                                color: Color(0xFF1E293B))),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Total Quantity: ${order.items.fold(0, (sum, i) => sum + i.quantity)}',
+                          style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
+                        ),
+                        if (order.deliverySlot != null && order.deliverySlot!.isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 4),
+                            child: Text(
+                              'Slot: ${order.deliverySlot}',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: Colors.grey.shade600,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
                   ),
                 ],
               ),
-            ),
 
-            const SizedBox(height: 12),
+              const SizedBox(height: 16),
+              
+              Text(
+                'Placed: ${order.date.toLocal().toString().substring(0, 16).replaceAll('T', ', ')}',
+                style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
+              ),
 
-            // ── Location ─────────────────────────────────────────────────────
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Container(
-                padding: const EdgeInsets.all(14),
+              const SizedBox(height: 16),
+
+              // ── Plant Section (Added) ──────────────────────────────────
+              if (order.plantName.isNotEmpty) ...[
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  margin: const EdgeInsets.only(bottom: 12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF0FDF4), // Very light green
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: const Color(0xFFDCFCE7)),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.factory_outlined,
+                          color: Color(0xFF16A34A), size: 24),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text('Plant / Retailer',
+                                style: TextStyle(
+                                    fontSize: 12,
+                                    color: Color(0xFF16A34A),
+                                    fontWeight: FontWeight.w600)),
+                            const SizedBox(height: 4),
+                            Text(order.plantName,
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14,
+                                    color: Colors.black87)),
+                          ],
+                        ),
+                      ),
+                      if (order.plantPhone.isNotEmpty)
+                        IconButton(
+                          icon: const Icon(Icons.call, color: Color(0xFF16A34A)),
+                          onPressed: () async {
+                            final Uri uri = Uri.parse('tel:${order.plantPhone}');
+                            if (await canLaunchUrl(uri)) {
+                              await launchUrl(uri);
+                            }
+                          },
+                          constraints: const BoxConstraints(),
+                          padding: EdgeInsets.zero,
+                          tooltip: 'Call Plant',
+                        ),
+                    ],
+                  ),
+                ),
+              ],
+
+              // ── Location Section (Matching Screenshot) ──────────────────────
+              Container(
+                padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF7F8FA),
-                  borderRadius: BorderRadius.circular(14),
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.grey.shade300),
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.location_on,
-                        color: Color(0xFF114F3B), size: 18),
-                    const SizedBox(width: 10),
+                    const Icon(Icons.location_on_outlined,
+                        color: Colors.grey, size: 24),
+                    const SizedBox(width: 12),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const Text('Delivery Address',
                               style:
-                                  TextStyle(fontSize: 10, color: Colors.grey)),
+                                  TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.w500)),
+                          const SizedBox(height: 4),
                           Text(deliveryAddress,
-                              maxLines: 1,
+                              maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                               style: const TextStyle(
-                                  fontWeight: FontWeight.w600, fontSize: 13)),
+                                  fontWeight: FontWeight.w500, fontSize: 13, color: Colors.black87)),
                         ],
                       ),
                     ),
                   ],
                 ),
               ),
-            ),
 
-            const SizedBox(height: 12),
+              const SizedBox(height: 12),
 
-            // ── Rider chip (if assigned) ─────────────────────────────────────
-            if (riderName.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF0F4EC),
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  child: Row(
-                    children: [
-                      CircleAvatar(
-                        radius: 16,
-                        backgroundColor: const Color(0xFF114F3B),
-                        child: Text(
-                          riderName.isNotEmpty
-                              ? riderName[0].toUpperCase()
-                              : 'R',
-                          style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(riderName,
-                                style: const TextStyle(
-                                    fontWeight: FontWeight.bold, fontSize: 13)),
-                            const Text('Your delivery partner',
-                                style: TextStyle(
-                                    fontSize: 11, color: Colors.black54)),
-                          ],
-                        ),
-                      ),
-                      if (riderPhone.isNotEmpty)
-                        GestureDetector(
-                          onTap: () {
-                            HapticFeedback.lightImpact();
-                            // open dialer
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF114F3B),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: const Icon(Icons.call,
-                                color: Colors.white, size: 16),
-                          ),
-                        ),
-                    ],
-                  ),
+              // ── Price & View Details ───────────────────────────────────────────
+              Align(
+                alignment: Alignment.centerRight,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text('₹${total.toStringAsFixed(0)}',
+                        style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 22,
+                            color: Colors.black)),
+                    const SizedBox(height: 4),
+                    Text('View Details',
+                        style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.grey.shade500,
+                            decoration: TextDecoration.underline)),
+                  ],
                 ),
               ),
-
-            // ── Footer ───────────────────────────────────────────────────────
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
-              child: Row(
-                children: [
-                  Text('₹${total.toStringAsFixed(0)}',
-                      style: const TextStyle(
-                          fontWeight: FontWeight.w900,
-                          fontSize: 20,
-                          color: Color(0xFF114F3B))),
-                ],
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -408,7 +464,8 @@ class _ActiveOrderCard extends StatelessWidget {
       case 'pending':
         return 'PENDING';
       case 'accepted':
-        return 'ACCEPTED';
+      case 'rider_assigned':
+        return 'RIDER ASSIGNED';
       case 'pickedup':
       case 'picked_up':
         return 'PICKED UP';
@@ -423,22 +480,29 @@ class _ActiveOrderCard extends StatelessWidget {
     }
   }
 
-  Map<String, dynamic> _getStatusStyle(String status) {
-    switch (status.toLowerCase()) {
-      case 'pending':
-        return {'bg': const Color(0xFFF59E0B), 'text': Colors.white};
-      case 'accepted':
-        return {'bg': const Color(0xFF3B82F6), 'text': Colors.white};
-      case 'pickedup':
-      case 'picked_up':
-        return {'bg': const Color(0xFF8B5CF6), 'text': Colors.white};
-      case 'ontheway':
-      case 'out_for_delivery':
-      case 'out for delivery':
-        return {'bg': const Color(0xFFEF4444), 'text': Colors.white};
-      default:
-        return {'bg': const Color(0xFF114F3B), 'text': Colors.white};
+  Widget _buildItemImage(UserOrder order) {
+    final String imageUrl =
+        order.items.isNotEmpty ? order.items.first.image : '';
+
+    if (imageUrl.startsWith('http')) {
+      return Image.network(
+        imageUrl,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => _fallbackImage(),
+      );
     }
+
+    return _fallbackImage();
+  }
+
+  Widget _fallbackImage() {
+    return Image.asset(
+      AppImages.waterBottle,
+      fit: BoxFit.contain,
+      errorBuilder: (_, __, ___) => const Center(
+        child: Icon(Icons.water_drop, color: Color(0xFF0891B2), size: 32),
+      ),
+    );
   }
 }
 
@@ -483,3 +547,4 @@ class _ShimmerBoxState extends State<_ShimmerBox>
     );
   }
 }
+

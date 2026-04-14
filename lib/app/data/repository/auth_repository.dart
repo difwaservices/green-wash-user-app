@@ -1,34 +1,9 @@
 import '../../data/models/auth_models.dart';
 import '../../data/services/auth_service.dart';
+import '../network/api_client.dart';
 
 class AuthRepository {
-  final AuthService _authService = AuthService();
-
-  Future<AuthResponseModel> register({
-    required String fullName,
-    required String email,
-    required String phoneNumber,
-    required String password,
-    required String confirmPassword,
-  }) async {
-    return await _authService.register(
-      fullName: fullName,
-      email: email,
-      phoneNumber: phoneNumber,
-      password: password,
-      confirmPassword: confirmPassword,
-    );
-  }
-
-  Future<AuthResponseModel> login({
-    required String phoneNumber,
-    required String password,
-  }) async {
-    return await _authService.login(
-      phoneNumber: phoneNumber,
-      password: password,
-    );
-  }
+  final AuthService _authService = AuthService(client: ApiClient.createDefault());
 
   Future<AuthResponseModel> sendOtp({required String phoneNumber}) async {
     return await _authService.sendOtp(phoneNumber: phoneNumber);

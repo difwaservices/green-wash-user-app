@@ -14,7 +14,6 @@ import 'package:flutter/foundation.dart'
 ///   options: DefaultFirebaseOptions.currentPlatform,
 /// );
 /// ```
-/// sd
 class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform {
     if (kIsWeb) {
@@ -41,49 +40,49 @@ class DefaultFirebaseOptions {
     }
   }
 
-  static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyCDCh9kYPOSZ6-K3FYYJ2jlK4QS9-KqEvk',
-    appId: '1:246944187312:android:9e709ec88c5d1a41994c75',
-    messagingSenderId: '246944187312',
-    projectId: 'shrimpbite',
-    storageBucket: 'shrimpbite.firebasestorage.app',
-  );
-
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyB9_QnO0cYAa53Kw3VFqhDa3ZXjCHvovlw',
-    appId: '1:246944187312:web:4b9be407cad8648e994c75',
-    messagingSenderId: '246944187312',
-    projectId: 'shrimpbite',
-    authDomain: 'shrimpbite.firebaseapp.com',
-    storageBucket: 'shrimpbite.firebasestorage.app',
-    measurementId: 'G-C5ZK3Z8F1P',
+    apiKey: 'AIzaSyBGx-JoxvVU6Ag-GoJyZd--IjjsJbOEpvQ',
+    appId: '1:501607990708:web:c4843b280e0e57da07dee1',
+    messagingSenderId: '501607990708',
+    projectId: 'difwa-continue',
+    authDomain: 'difwa-continue.firebaseapp.com',
+    storageBucket: 'difwa-continue.firebasestorage.app',
+    measurementId: 'G-S2CK0RM7NZ',
   );
 
-  static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyC3gkH97rVWWPptU5IX4PCXV7WjRH6U2U0',
-    appId: '1:246944187312:ios:fe1480df51616526994c75',
-    messagingSenderId: '246944187312',
-    projectId: 'shrimpbite',
-    storageBucket: 'shrimpbite.firebasestorage.app',
-    iosBundleId: 'com.example.liciusApplication',
+  static const FirebaseOptions android = FirebaseOptions(
+    apiKey: 'AIzaSyDCv2HwmS1TPAJUMBwhtkV9Xrc4LUgg6D8',
+    appId: '1:685191561219:android:e74a67b4d2c23a13e9ce36',
+    messagingSenderId: '685191561219',
+    projectId: 'codechat-45ec2',
+    storageBucket: 'codechat-45ec2.appspot.com',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyC3gkH97rVWWPptU5IX4PCXV7WjRH6U2U0',
-    appId: '1:246944187312:ios:1c0948f6a18630dc994c75',
-    messagingSenderId: '246944187312',
-    projectId: 'shrimpbite',
-    storageBucket: 'shrimpbite.firebasestorage.app',
-    iosBundleId: 'com.shrimpbite.app',
+    apiKey: 'AIzaSyC-ITSfCWmUzloO_5nLad5DietFjZVNoHk',
+    appId: '1:501607990708:ios:934f13181fd41c3a07dee1',
+    messagingSenderId: '501607990708',
+    projectId: 'difwa-continue',
+    storageBucket: 'difwa-continue.firebasestorage.app',
+    iosBundleId: 'com.difmo.difwa',
+  );
+
+  static const FirebaseOptions macos = FirebaseOptions(
+    apiKey: 'AIzaSyC-ITSfCWmUzloO_5nLad5DietFjZVNoHk',
+    appId: '1:501607990708:ios:6181875979b85f5b07dee1',
+    messagingSenderId: '501607990708',
+    projectId: 'difwa-continue',
+    storageBucket: 'difwa-continue.firebasestorage.app',
+    iosBundleId: 'com.example.liciusApplication',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'AIzaSyB9_QnO0cYAa53Kw3VFqhDa3ZXjCHvovlw',
-    appId: '1:246944187312:web:5900891e0b7f1eb7994c75',
-    messagingSenderId: '246944187312',
-    projectId: 'shrimpbite',
-    authDomain: 'shrimpbite.firebaseapp.com',
-    storageBucket: 'shrimpbite.firebasestorage.app',
-    measurementId: 'G-Q2Q4D4YXED',
+    apiKey: 'AIzaSyBGx-JoxvVU6Ag-GoJyZd--IjjsJbOEpvQ',
+    appId: '1:501607990708:web:b9abbafe55ef43f907dee1',
+    messagingSenderId: '501607990708',
+    projectId: 'difwa-continue',
+    authDomain: 'difwa-continue.firebaseapp.com',
+    storageBucket: 'difwa-continue.firebasestorage.app',
+    measurementId: 'G-QWNW1VW9BV',
   );
 }

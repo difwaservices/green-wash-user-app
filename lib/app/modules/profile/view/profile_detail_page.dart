@@ -5,6 +5,7 @@ import '../../../data/services/db_service.dart';
 import '../../../data/services/subscription_service.dart';
 import '../../../data/models/subscription_model.dart';
 import '../../../data/models/food_models.dart';
+import '../../../core/constants/app_colors.dart';
 import 'address_form_page.dart';
 import '../widgets/review_dialog.dart';
 
@@ -19,13 +20,18 @@ class ProfileDetailPage extends ConsumerStatefulWidget {
 
 class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
   int? _expandedOrderIndex = 0; // Default first one expanded as in Image 3
-  bool _makeDefaultCard = true;
 
   // ── Subscriptions state ───────────────────────────────────────────────────
   final SubscriptionService _subscriptionService = SubscriptionService();
   List<SubscriptionPlan> _subscriptionPlans = [];
   bool _subscriptionsLoading = false;
   String? _subscriptionsError;
+  final Map<String, bool> _notificationSettings = {
+    'Allow Notifications': true, 
+    'Email Notifications': false,
+    'Order Notifications': false,
+    'General Notifications': true,
+  };
   String? _selectedPlanId;
 
   @override
@@ -45,10 +51,7 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
     final cartProvider = CartProviderScope.of(context);
     cartProvider.setLoadingOrders(true);
     try {
-      final ordersJson = await ref.read(orderServiceProvider).getMyOrders();
-      final List<UserOrder> orders = ordersJson
-          .map((json) => UserOrder.fromJson(json as Map<String, dynamic>))
-          .toList();
+      final orders = await ref.read(orderServiceProvider).getMyOrders();
       cartProvider.setOrders(orders);
     } catch (e) {
       debugPrint('Error loading orders: $e');
@@ -158,135 +161,188 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
 
     return Column(
       children: [
-        ...addresses.map((addr) {
-          return Container(
-            margin: const EdgeInsets.only(bottom: 16),
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.05),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
+        ...addresses.asMap().entries.map((entry) {
+          final int index = entry.key;
+          final addr = entry.value;
+          final isSelected = provider.selectedAddressIndex == index;
+
+          return GestureDetector(
+            onTap: () {
+              provider.selectAddress(index);
+            },
+            child: Container(
+              margin: const EdgeInsets.only(bottom: 16),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: isSelected
+                      ? const Color(0xFF06B6D4)
+                      : Colors.transparent,
+                  width: 2,
                 ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (addr.isDefault)
-                  Container(
-                    margin: const EdgeInsets.only(bottom: 12),
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFEBFFD7),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: const Text(
-                      'DEFAULT',
-                      style: TextStyle(
-                        color: Color(0xFF68B92E),
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                boxShadow: [
+                  BoxShadow(
+                    color: isSelected
+                        ? const Color(0xFF06B6D4).withValues(alpha: 0.1)
+                        : Colors.black.withValues(alpha: 0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
                   ),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    CircleAvatar(
-                      radius: 24,
-                      backgroundColor: const Color(0xFFEBFFD7),
-                      child: Icon(
-                        addr.title == 'Home'
-                            ? Icons.home_rounded
-                            : addr.title == 'Work'
-                                ? Icons.work_rounded
-                                : Icons.location_on_rounded,
-                        color: const Color(0xFF68B92E),
-                        size: 20,
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                addr.title,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.w800,
-                                  fontSize: 16,
-                                  color: Color(0xFF1A1A1A),
-                                ),
-                              ),
-                              Row(
-                                children: [
-                                  IconButton(
-                                    icon: const Icon(Icons.edit_outlined,
-                                        size: 18, color: Colors.grey),
-                                    onPressed: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (_) =>
-                                              AddressFormPage(address: addr),
-                                        ),
-                                      );
-                                    },
-                                    constraints: const BoxConstraints(),
-                                    padding: EdgeInsets.zero,
-                                  ),
-                                  const SizedBox(width: 8),
-                                  IconButton(
-                                    icon: const Icon(Icons.delete_outline,
-                                        size: 18, color: Colors.redAccent),
-                                    onPressed: () {
-                                      provider.removeAddress(addr.id);
-                                    },
-                                    constraints: const BoxConstraints(),
-                                    padding: EdgeInsets.zero,
-                                  ),
-                                ],
-                              ),
-                            ],
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      if (addr.isDefault)
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFCFFAFE),
+                            borderRadius: BorderRadius.circular(4),
                           ),
-                          const SizedBox(height: 4),
-                          Text(
-                            profile.name,
-                            style: const TextStyle(
+                          child: const Text(
+                            'DEFAULT',
+                            style: TextStyle(
+                              color: Color(0xFF06B6D4),
+                              fontSize: 10,
                               fontWeight: FontWeight.bold,
-                              fontSize: 14,
-                              color: Color(0xFF4B5563),
                             ),
                           ),
-                          const SizedBox(height: 2),
-                          Text(
-                            '${addr.street}\n${addr.details}',
-                            style: const TextStyle(
-                                color: Colors.grey, fontSize: 13, height: 1.4),
+                        )
+                      else
+                        const SizedBox.shrink(),
+                      // Selection Indicator (Radio Button style)
+                      Container(
+                        width: 20,
+                        height: 20,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: isSelected
+                                ? const Color(0xFF06B6D4)
+                                : Colors.grey.shade300,
+                            width: 2,
                           ),
-                          const SizedBox(height: 8),
-                          Text(
-                            profile.phone,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 13,
-                              color: Color(0xFF1A1A1A),
-                            ),
-                          ),
-                        ],
+                        ),
+                        child: isSelected
+                            ? Center(
+                                child: Container(
+                                  width: 10,
+                                  height: 10,
+                                  decoration: const BoxDecoration(
+                                    color: Color(0xFF06B6D4),
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                              )
+                            : null,
                       ),
-                    ),
-                  ],
-                ),
-              ],
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      CircleAvatar(
+                        radius: 24,
+                        backgroundColor: const Color(0xFFCFFAFE),
+                        child: Icon(
+                          addr.title.toLowerCase() == 'home'
+                              ? Icons.home_rounded
+                              : addr.title.toLowerCase() == 'office' ||
+                                      addr.title.toLowerCase() == 'work'
+                                  ? Icons.work_rounded
+                                  : Icons.location_on_rounded,
+                          color: const Color(0xFF06B6D4),
+                          size: 20,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  addr.title,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w800,
+                                    fontSize: 16,
+                                    color: Color(0xFF1A1A1A),
+                                  ),
+                                ),
+                                Row(
+                                  children: [
+                                    IconButton(
+                                      icon: const Icon(Icons.edit_outlined,
+                                          size: 18, color: Colors.grey),
+                                      onPressed: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (_) =>
+                                                AddressFormPage(address: addr),
+                                          ),
+                                        );
+                                      },
+                                      constraints: const BoxConstraints(),
+                                      padding: EdgeInsets.zero,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    IconButton(
+                                      icon: const Icon(Icons.delete_outline,
+                                          size: 18, color: Colors.redAccent),
+                                      onPressed: () {
+                                        provider.removeAddress(addr.id);
+                                      },
+                                      constraints: const BoxConstraints(),
+                                      padding: EdgeInsets.zero,
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              profile.name,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                                color: Color(0xFF4B5563),
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              '${addr.street}\n${addr.details}',
+                              style: const TextStyle(
+                                  color: Colors.grey,
+                                  fontSize: 13,
+                                  height: 1.4),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              profile.phone,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 13,
+                                color: Color(0xFF1A1A1A),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           );
         }),
@@ -315,13 +371,13 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.add_circle_outline, color: Color(0xFF439462)),
+                    Icon(Icons.add_circle_outline, color: Color(0xFF06B6D4)),
                     SizedBox(width: 8),
                     Text(
                       'Add New Address',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF439462),
+                        color: Color(0xFF06B6D4),
                       ),
                     ),
                   ],
@@ -339,7 +395,7 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
       return const Padding(
         padding: EdgeInsets.only(top: 40),
         child:
-            Center(child: CircularProgressIndicator(color: Color(0xFF68B92E))),
+            Center(child: CircularProgressIndicator(color: Color(0xFF06B6D4))),
       );
     }
 
@@ -371,10 +427,10 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
             contentPadding: const EdgeInsets.all(16),
             leading: CircleAvatar(
               radius: 30,
-              backgroundColor: const Color(0xFFEBFFD7),
+              backgroundColor: const Color(0xFFCFFAFE),
               child: const Icon(
                 Icons.inventory_2_outlined,
-                color: Color(0xFF68B92E),
+                color: Color(0xFF06B6D4),
               ),
             ),
             title: Text(
@@ -385,7 +441,7 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Placed on ${order.date}',
+                  'Placed on ${_formatDate(order.date)}',
                   style: const TextStyle(color: Colors.grey, fontSize: 12),
                 ),
                 const SizedBox(height: 4),
@@ -422,7 +478,7 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
               isExpanded
                   ? Icons.expand_less_rounded
                   : Icons.expand_more_rounded,
-              color: const Color(0xFF68B92E),
+              color: const Color(0xFF06B6D4),
             ),
             onTap: () {
               setState(() {
@@ -439,14 +495,14 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
                   const SizedBox(height: 16),
                   _buildTimelineItem(
                     'Order Placed',
-                    order.date,
+                    _formatDate(order.date),
                     Icons.inventory_2_outlined,
                     true,
                     true,
                   ),
                   _buildTimelineItem(
                     'Order Confirmed',
-                    order.date,
+                    _formatDate(order.date),
                     Icons.check_circle_outline,
                     true,
                     true,
@@ -460,7 +516,7 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
                   ),
                   _buildTimelineItem(
                     'Order Delivered',
-                    order.status == 'Delivered' ? order.date : 'Pending',
+                    order.status == 'Delivered' ? _formatDate(order.date) : 'Pending',
                     Icons.shopping_basket_outlined,
                     order.status == 'Delivered',
                     order.status == 'Delivered',
@@ -476,26 +532,29 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
                             context: context,
                             builder: (context) => ReviewDialog(
                               orderId: order.id,
-                              productName: (order.items.isNotEmpty && order.items[0].isNotEmpty)
-                                  ? order.items[0].split('x ').last
-                                  : 'Shrimp Product',
-                              retailerId:
-                                  '65e9f8f8f8f8f8f8f8f8f8f8', // Mock retailer ID
-                              productId:
-                                  '65e9f8f8f8f8f8f8f8f8f8f9', // Mock product ID
+                              items: order.items
+                                  .map((i) => {
+                                        '_id': i.id,
+                                        'name': i.name,
+                                        'image': i.image,
+                                      })
+                                  .toList(),
+                              retailerId: order.retailer?['_id']?.toString() ??
+                                  '65e9f8f8f8f8f8f8f8f8f8f8',
+                              isOrderReview: true,
                             ),
                           );
                         },
                         icon: const Icon(Icons.star_outline,
-                            color: Color(0xFF68B92E)),
+                            color: Color(0xFF06B6D4)),
                         label: const Text(
                           'Rate & Review',
                           style: TextStyle(
-                              color: Color(0xFF68B92E),
+                              color: Color(0xFF06B6D4),
                               fontWeight: FontWeight.bold),
                         ),
                         style: OutlinedButton.styleFrom(
-                          side: const BorderSide(color: Color(0xFF68B92E)),
+                          side: const BorderSide(color: Color(0xFF06B6D4)),
                           shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12)),
                           padding: const EdgeInsets.symmetric(vertical: 12),
@@ -514,160 +573,32 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
   // --- NOTIFICATIONS DESIGN (Image 4) ---
   Widget _buildNotificationsDetail() {
     return Column(
-      children: [
-        _buildNotificationCard(
-          'Allow Notifications',
-          'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed diam nonummym',
-          true,
-        ),
-        _buildNotificationCard(
-          'Email Notifications',
-          'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed diam nonummym',
-          false,
-        ),
-        _buildNotificationCard(
-          'Order Notifications',
-          'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed diam nonummym',
-          false,
-        ),
-        _buildNotificationCard(
-          'General Notifications',
-          'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed diam nonummym',
-          true,
-        ),
+      children: _notificationSettings.keys.map((key) {
+        return _buildNotificationCard(
+          key,
+          'Get real-time updates for $key.',
+          _notificationSettings[key]!,
+        );
+      }).toList() + [
         const SizedBox(height: 60),
         _buildSaveButton('Save settings'),
       ],
     );
   }
 
-  // --- MY CARDS DESIGN (Image 5) ---
   Widget _buildCardsDetail(CartProvider provider) {
+    if (provider.payments.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.only(top: 40),
+        child: Center(
+            child: Text('No credit cards saved yet.',
+                style: TextStyle(color: Colors.grey, fontSize: 16))),
+      );
+    }
+    
     return Column(
       children: [
-        // MasterCard expanded
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.3),
-                blurRadius: 15,
-                spreadRadius: 0,
-                offset: const Offset(0, 8),
-              ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFEBFFD7),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: const Text(
-                  'DEFAULT',
-                  style: TextStyle(
-                    color: Color(0xFF68B92E),
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  CircleAvatar(
-                    radius: 30,
-                    backgroundColor: const Color(0xFFF7F8FA),
-                    child: Icon(Icons.credit_card, color: Colors.orange),
-                  ),
-                  const SizedBox(width: 16),
-                  const Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Master Card',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
-                        ),
-                        Text(
-                          'XXXX XXXX XXXX 5678',
-                          style: TextStyle(color: Colors.grey, fontSize: 12),
-                        ),
-                        Text(
-                          'Expiry: 01/22  CVV: 908',
-                          style: TextStyle(color: Colors.grey, fontSize: 12),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const Icon(Icons.expand_less, color: Color(0xFF68B92E)),
-                ],
-              ),
-              const SizedBox(height: 24),
-              _buildIconTextField(Icons.person_outline, 'Russell Austin'),
-              const SizedBox(height: 12),
-              _buildIconTextField(
-                Icons.credit_card_outlined,
-                'XXXX XXXX XXXX 5678',
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildIconTextField(
-                      Icons.calendar_today_outlined,
-                      '01/22',
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _buildIconTextField(Icons.lock_outline, '908'),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Switch(
-                    value: _makeDefaultCard,
-                    onChanged: (v) => setState(() => _makeDefaultCard = v),
-                    activeThumbColor: const Color(0xFF68B92E),
-                    activeTrackColor: const Color(0xFFEBFFD7),
-                  ),
-                  const Text(
-                    'Make default',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF1A1A1A),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 16),
-        _buildCardItem(
-          'Visa Card',
-          'XXXX XXXX XXXX 5678',
-          Icons.credit_card,
-          Colors.blue,
-        ),
-        _buildCardItem(
-          'Master Card',
-          'XXXX XXXX XXXX 5678',
-          Icons.payment,
-          Colors.orange,
-        ),
+        // Map over provider.payments here when ready
         const SizedBox(height: 32),
         _buildSaveButton('Save card'),
       ],
@@ -708,7 +639,7 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
       child: ElevatedButton(
         onPressed: () {},
         style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF439462), // Darker designer green
+          backgroundColor: const Color(0xFF06B6D4), // Darker designer green
           foregroundColor: Colors.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
@@ -741,13 +672,13 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
               height: 50,
               decoration: BoxDecoration(
                 color: isCompleted
-                    ? const Color(0xFFEBFFD7)
+                    ? const Color(0xFFCFFAFE)
                     : const Color(0xFFF1F4F8),
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 icon,
-                color: isCompleted ? const Color(0xFF68B92E) : Colors.grey,
+                color: isCompleted ? const Color(0xFF06B6D4) : Colors.grey,
                 size: 24,
               ),
             ),
@@ -756,7 +687,7 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
                 width: 2,
                 height: 50,
                 color: isCompleted
-                    ? const Color(0xFFEBFFD7)
+                    ? const Color(0xFFCFFAFE)
                     : const Color(0xFFF1F4F8),
               ),
           ],
@@ -823,54 +754,14 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
           const SizedBox(width: 12),
           Switch(
             value: value,
-            onChanged: (v) {},
-            activeThumbColor: const Color(0xFF68B92E),
+            onChanged: (v) {
+              setState(() {
+                _notificationSettings[title] = v;
+              });
+            },
+            activeThumbColor: const Color(0xFF06B6D4),
+            activeTrackColor: const Color(0xFFCFFAFE),
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCardItem(
-    String title,
-    String number,
-    IconData icon,
-    Color iconColor,
-  ) {
-    return Container(
-      margin: const EdgeInsets.only(top: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(
-        children: [
-          CircleAvatar(
-            radius: 24,
-            backgroundColor: const Color(0xFFF1F4F8),
-            child: Icon(icon, color: iconColor),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
-                  ),
-                ),
-                Text(
-                  number,
-                  style: const TextStyle(color: Colors.grey, fontSize: 11),
-                ),
-              ],
-            ),
-          ),
-          const Icon(Icons.expand_more, color: Color(0xFFD1D1D1)),
         ],
       ),
     );
@@ -878,41 +769,27 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
 
   // --- MY FAVORITES DESIGN (Image 5) ---
   Widget _buildFavoritesDetail(CartProvider provider) {
+    if (provider.favRestaurants.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.only(top: 40),
+        child: Center(
+          child: Text('No favorites yet.',
+              style: TextStyle(color: Colors.grey, fontSize: 16)),
+        ),
+      );
+    }
+
     return Column(
-      children: [
-        _buildFavoriteCard(
-          'Fresh Broccoli',
-          '1.50 lbs',
-          '2.22',
-          4,
-          'assets/images/image copy.png',
-          const Color(0xFFEBFFD7),
-        ),
-        _buildFavoriteCard(
-          'Black Grapes',
-          '5.0 lbs',
-          '2.32',
-          4,
-          'assets/images/image copy 2.png',
-          const Color(0xFFFFF1F1),
-        ),
-        _buildFavoriteCard(
-          'Avocado',
-          '1.50 lbs',
-          '2.22',
-          4,
-          'assets/images/image copy.png',
-          const Color(0xFFFFF8E1),
-        ),
-        _buildFavoriteCard(
-          'Pineapple',
-          'dozen',
-          '3.22',
-          4,
-          'assets/images/image copy 2.png',
-          const Color(0xFFFFF3E0),
-        ),
-      ],
+      children: provider.favRestaurants.map((fav) {
+        return _buildFavoriteCard(
+          fav.name,
+          fav.discount,
+          '—',
+          1,
+          fav.image,
+          const Color(0xFFE3F2FD),
+        );
+      }).toList(),
     );
   }
 
@@ -968,7 +845,7 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
                   Text(
                     '₹$price x $count',
                     style: const TextStyle(
-                      color: Color(0xFF68B92E),
+                      color: Color(0xFF06B6D4),
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
                     ),
@@ -994,7 +871,7 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
                   icon: const Icon(
                     Icons.add,
                     size: 18,
-                    color: Color(0xFF68B92E),
+                    color: Color(0xFF06B6D4),
                   ),
                   onPressed: () {},
                 ),
@@ -1026,45 +903,30 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
 
   // --- TRANSACTIONS DESIGN ---
   Widget _buildTransactionsDetail() {
+    final cartProvider = CartProviderScope.of(context);
+    if (cartProvider.transactions.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.only(top: 40),
+        child: Center(
+          child: Text('No transactions found.',
+              style: TextStyle(color: Colors.grey, fontSize: 16)),
+        ),
+      );
+    }
+    
     return Column(
-      children: [
-        _buildTransactionItem(
-          'Order Payment',
-          'Oct 24, 2021',
-          '-₹34.50',
-          'Completed',
-          isNegative: true,
-        ),
-        _buildTransactionItem(
-          'Wallet Top-up',
-          'Oct 22, 2021',
-          '+₹50.00',
-          'Completed',
-          isNegative: false,
-        ),
-        _buildTransactionItem(
-          'Refund received',
-          'Oct 20, 2021',
-          '+₹12.00',
-          'Completed',
-          isNegative: false,
-        ),
-        _buildTransactionItem(
-          'Order Payment',
-          'Oct 19, 2021',
-          '-₹16.90',
-          'Completed',
-          isNegative: true,
-        ),
-        _buildTransactionItem(
-          'Order Payment',
-          'Oct 18, 2021',
-          '-₹22.10',
-          'Failed',
-          isNegative: true,
-          isFailed: true,
-        ),
-      ],
+      children: cartProvider.transactions.map((tx) {
+        final amount = tx['amount'] ?? 0;
+        final isNegative = tx['type'] == 'Debit';
+        return _buildTransactionItem(
+          tx['description'] ?? 'Transaction',
+          _formatDate(tx['createdAt'] ?? ''),
+          '${isNegative ? '-' : '+'}₹$amount',
+          tx['status'] ?? 'Completed',
+          isNegative: isNegative,
+          isFailed: tx['status'] == 'Failed',
+        );
+      }).toList(),
     );
   }
 
@@ -1090,7 +952,7 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
                 ? Colors.red.withValues(alpha: 0.1)
                 : (isNegative
                     ? Colors.orange.withValues(alpha: 0.1)
-                    : Colors.green.withValues(alpha: 0.1)),
+                    : AppColors.primary.withValues(alpha: 0.1)),
             child: Icon(
               isFailed
                   ? Icons.error_outline
@@ -1099,7 +961,7 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
                       : Icons.account_balance_wallet_outlined),
               color: isFailed
                   ? Colors.red
-                  : (isNegative ? Colors.orange : Colors.green),
+                  : (isNegative ? Colors.orange : AppColors.primary),
             ),
           ),
           const SizedBox(width: 16),
@@ -1131,7 +993,7 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
                   fontSize: 15,
                   color: isFailed
                       ? Colors.grey
-                      : (isNegative ? Colors.black : Colors.green),
+                      : (isNegative ? Colors.black : AppColors.primary),
                 ),
               ),
               Text(
@@ -1200,7 +1062,7 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
         height: 300,
         child: Center(
           child: CircularProgressIndicator(
-            color: Color(0xFF439462),
+            color: Color(0xFF06B6D4),
           ),
         ),
       );
@@ -1227,7 +1089,7 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
                 icon: const Icon(Icons.refresh),
                 label: const Text('Retry'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF439462),
+                  backgroundColor: const Color(0xFF06B6D4),
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12)),
@@ -1259,14 +1121,14 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
             gradient: const LinearGradient(
-              colors: [Color(0xFF1B4332), Color(0xFF439462)],
+              colors: [Color(0xFF0891B2), Color(0xFF06B6D4)],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
             borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF439462).withValues(alpha: 0.32),
+                color: const Color(0xFF06B6D4).withValues(alpha: 0.32),
                 blurRadius: 18,
                 offset: const Offset(0, 8),
               ),
@@ -1301,7 +1163,7 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
                     ),
                     SizedBox(height: 4),
                     Text(
-                      'Unlock exclusive shrimp benefits',
+                      'Unlock exclusive Difwa benefits',
                       style: TextStyle(
                         color: Colors.white70,
                         fontSize: 12,
@@ -1577,4 +1439,10 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
       ),
     );
   }
+
+  String _formatDate(DateTime date) {
+    return '${date.day}/${date.month}/${date.year}';
+  }
 }
+
+

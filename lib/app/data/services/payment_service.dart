@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:razorpay_flutter/razorpay_flutter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../network/api_client.dart';
@@ -26,9 +28,12 @@ class PaymentService {
     required String email,
   }) async {
     try {
-      // 1. Create order on backend
-      print("Starting openCheckout... amount is $amount");
-      print("Contact: '$contact', Email: '$email'");
+      final keyId = dotenv.env['RAZORPAY_KEY_ID'] ?? '';
+      if (keyId.isEmpty) throw Exception('Razorpay key not configured');
+
+      if (kDebugMode) {
+        debugPrint('PaymentService: Starting checkout, amount=$amount, key=${keyId.substring(0, 8)}...');
+      }
 
       final orderResponse = await _apiClient.post(
         '${ApiClient.paymentBaseUrl}/create-order',
@@ -36,33 +41,41 @@ class PaymentService {
         requiresAuth: true,
       );
 
-      print("orderResponse type: ${orderResponse.runtimeType}");
-      print("orderResponse data: $orderResponse");
+      String? orderId;
+      if (orderResponse is Map) {
+        if (orderResponse.containsKey('order') && orderResponse['order'] is Map) {
+          orderId = orderResponse['order']['id']?.toString();
+        } else if (orderResponse.containsKey('id')) {
+          orderId = orderResponse['id']?.toString();
+        } else if (orderResponse.containsKey('data') && orderResponse['data'] is Map) {
+          orderId = orderResponse['data']['id']?.toString();
+        } else if (orderResponse.containsKey('razorpayOrderId')) {
+          orderId = orderResponse['razorpayOrderId']?.toString();
+        }
+      }
 
-      final orderId = orderResponse['order']['id'];
-      print("Extracted orderId: $orderId");
+      if (orderId == null || orderId.isEmpty) {
+        throw Exception('Could not create payment order. Please try again.');
+      }
 
-      // 2. Open Razorpay Checkout
       var options = {
-        'key': 'rzp_test_S7lSvWtu89c6zD', // Using the test key provided
+        'key': keyId,
         'amount': (amount * 100).toInt(),
-        'name': 'Shrimpbite',
+        'name': 'Difwa Water',
         'order_id': orderId,
         'description': 'Wallet Top-up',
-        'prefill': {'contact': contact, 'email': email},
+        'prefill': {
+          if (contact.isNotEmpty) 'contact': contact,
+          if (email.isNotEmpty) 'email': email,
+        },
         'external': {
           'wallets': ['paytm']
         }
       };
 
-      print("Opening Razorpay with options: $options");
       _razorpay.open(options);
-      print("Razorpay open() called successfully.");
-    } catch (e, stacktrace) {
-      print("=====================================");
-      print("ERROR IN PAYMENT SERVICE: ${e.toString()}");
-      print("STACKTRACE: $stacktrace");
-      print("=====================================");
+    } catch (e) {
+      if (kDebugMode) debugPrint('PaymentService ERROR: $e');
       rethrow;
     }
   }

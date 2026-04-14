@@ -18,12 +18,15 @@ class ShippingAddressPage extends ConsumerStatefulWidget {
 class _ShippingAddressPageState extends ConsumerState<ShippingAddressPage> {
   final _formKey = GlobalKey<FormState>();
 
+  final _fullNameCtrl = TextEditingController();
+  final _emailCtrl = TextEditingController();
   final _fullAddressCtrl = TextEditingController();
   final _cityCtrl = TextEditingController();
   final _stateCtrl = TextEditingController();
   final _pincodeCtrl = TextEditingController();
 
   String _selectedLabel = 'Home';
+  UserAddress? _editingAddress;
   final List<Map<String, dynamic>> _labels = [
     {'name': 'Home', 'icon': Icons.home_rounded},
     {'name': 'Office', 'icon': Icons.work_rounded},
@@ -46,6 +49,8 @@ class _ShippingAddressPageState extends ConsumerState<ShippingAddressPage> {
 
   @override
   void dispose() {
+    _fullNameCtrl.dispose();
+    _emailCtrl.dispose();
     _fullAddressCtrl.dispose();
     _cityCtrl.dispose();
     _stateCtrl.dispose();
@@ -63,6 +68,8 @@ class _ShippingAddressPageState extends ConsumerState<ShippingAddressPage> {
       final service = cart.addressService!;
 
       final result = await service.saveAddress(
+        fullName: _fullNameCtrl.text.trim(),
+        email: _emailCtrl.text.trim(),
         label: _selectedLabel,
         fullAddress: _fullAddressCtrl.text.trim(),
         city: _cityCtrl.text.trim(),
@@ -72,7 +79,9 @@ class _ShippingAddressPageState extends ConsumerState<ShippingAddressPage> {
       );
 
       if (result['success']) {
+        // Reload addresses AND re-sync cart so backend total is correct
         await cart.loadAddresses();
+        await cart.loadCartFromApi(); // Ensures backend cart = UI cart
         if (mounted) {
           setState(() {
             _showAddForm = false;
@@ -109,10 +118,12 @@ class _ShippingAddressPageState extends ConsumerState<ShippingAddressPage> {
     final cart = CartProviderScope.of(context);
     final addresses = cart.addresses;
 
-    // Auto-show form if no addresses exist and loading has finished
     if (addresses.isEmpty && !_showAddForm && !cart.isAddressesLoading) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) setState(() => _showAddForm = true);
+        // Double check after callback to avoid race conditions
+        if (mounted && !_showAddForm && cart.addresses.isEmpty && !cart.isAddressesLoading) {
+          setState(() => _showAddForm = true);
+        }
       });
     }
 
@@ -294,7 +305,8 @@ class _ShippingAddressPageState extends ConsumerState<ShippingAddressPage> {
                     : addr.title.toLowerCase() == 'office'
                         ? Icons.work_rounded
                         : Icons.location_on_rounded,
-                color: isSelected ? AppColors.accentGreen : Colors.grey.shade600,
+                color:
+                    isSelected ? AppColors.accentGreen : Colors.grey.shade600,
                 size: 24,
               ),
             ),
@@ -363,7 +375,8 @@ class _ShippingAddressPageState extends ConsumerState<ShippingAddressPage> {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: isSelected ? AppColors.accentGreen : Colors.grey.shade300,
+                  color:
+                      isSelected ? AppColors.accentGreen : Colors.grey.shade300,
                   width: 2,
                 ),
               ),
@@ -380,6 +393,37 @@ class _ShippingAddressPageState extends ConsumerState<ShippingAddressPage> {
                     )
                   : null,
             ),
+            const SizedBox(width: 12),
+            IconButton(
+              icon: const Icon(Icons.edit_note_rounded, color: Colors.grey),
+              onPressed: () {
+                setState(() {
+                  _editingAddress = addr;
+                  _fullNameCtrl.text = addr.fullName;
+                  _emailCtrl.text = addr.email;
+                  _fullAddressCtrl.text = addr.street;
+                  _selectedLabel = addr.title;
+                  _isDefault = addr.isDefault;
+
+                  // Extract city, state, pin from details
+                  final parts = addr.details.split(',');
+                  _cityCtrl.text = parts.isNotEmpty ? parts[0].trim() : '';
+                  if (parts.length > 1) {
+                    final stateParts = parts[1].trim().split(' ');
+                    if (stateParts.length > 1) {
+                      _pincodeCtrl.text = stateParts.last;
+                      _stateCtrl.text = stateParts
+                          .sublist(0, stateParts.length - 1)
+                          .join(' ');
+                    } else {
+                      _stateCtrl.text = parts[1].trim();
+                    }
+                  }
+
+                  _showAddForm = true;
+                });
+              },
+            ),
           ],
         ),
       ).animate().fadeIn(duration: 400.ms).slideX(begin: 0.05, end: 0),
@@ -388,7 +432,16 @@ class _ShippingAddressPageState extends ConsumerState<ShippingAddressPage> {
 
   Widget _buildAddAddressButton() {
     return InkWell(
-      onTap: () => setState(() => _showAddForm = true),
+      onTap: () => setState(() {
+        _editingAddress = null;
+        _fullNameCtrl.clear();
+        _emailCtrl.clear();
+        _fullAddressCtrl.clear();
+        _cityCtrl.clear();
+        _stateCtrl.clear();
+        _pincodeCtrl.clear();
+        _showAddForm = true;
+      }),
       borderRadius: BorderRadius.circular(16),
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 20),
@@ -495,6 +548,29 @@ class _ShippingAddressPageState extends ConsumerState<ShippingAddressPage> {
             ),
             const SizedBox(height: 32),
             _buildInputField(
+              controller: _fullNameCtrl,
+              label: 'Full Name',
+              hint: 'e.g. John Doe',
+              icon: Icons.person_rounded,
+              validator: (v) => v!.isEmpty ? 'Please enter your name' : null,
+            ),
+            const SizedBox(height: 20),
+            _buildInputField(
+              controller: _emailCtrl,
+              label: 'Email Address',
+              hint: 'e.g. john@example.com',
+              icon: Icons.email_rounded,
+              keyboardType: TextInputType.emailAddress,
+              validator: (v) {
+                if (v!.isEmpty) return 'Please enter your email';
+                if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(v)) {
+                  return 'Please enter a valid email address';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 20),
+            _buildInputField(
               controller: _fullAddressCtrl,
               label: 'Full Address',
               hint: 'Flat no, House no, Street name',
@@ -521,7 +597,13 @@ class _ShippingAddressPageState extends ConsumerState<ShippingAddressPage> {
                     hint: '123456',
                     icon: Icons.pin_drop_rounded,
                     keyboardType: TextInputType.number,
-                    validator: (v) => v!.length < 6 ? 'Invalid pin' : null,
+                    validator: (v) {
+                      if (v!.isEmpty) return 'Required';
+                      if (!RegExp(r'^\d{6}$').hasMatch(v)) {
+                        return 'Invalid (6 digits)';
+                      }
+                      return null;
+                    },
                   ),
                 ),
               ],
@@ -547,12 +629,14 @@ class _ShippingAddressPageState extends ConsumerState<ShippingAddressPage> {
                   const Expanded(
                     child: Text(
                       'Set as default address',
-                      style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
+                      style:
+                          TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
                     ),
                   ),
                   Switch.adaptive(
                     value: _isDefault,
-                    activeTrackColor: AppColors.accentGreen.withValues(alpha: 0.5),
+                    activeTrackColor:
+                        AppColors.accentGreen.withValues(alpha: 0.5),
                     activeThumbColor: AppColors.accentGreen,
                     onChanged: (val) => setState(() => _isDefault = val),
                   ),
@@ -576,7 +660,8 @@ class _ShippingAddressPageState extends ConsumerState<ShippingAddressPage> {
                     ? const CircularProgressIndicator(color: Colors.white)
                     : const Text(
                         'Save & Continue',
-                        style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                            fontSize: 17, fontWeight: FontWeight.bold),
                       ),
               ),
             ),
@@ -654,6 +739,17 @@ class _ShippingAddressPageState extends ConsumerState<ShippingAddressPage> {
         height: 56,
         child: ElevatedButton(
           onPressed: () {
+            final selected = cart.selectedAddress;
+            if (selected == null) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Please select a delivery address first.'),
+                  backgroundColor: Colors.redAccent,
+                  behavior: SnackBarBehavior.floating,
+                ),
+              );
+              return;
+            }
             Navigator.push(context,
                 MaterialPageRoute(builder: (_) => const PaymentMethodPage()));
           },

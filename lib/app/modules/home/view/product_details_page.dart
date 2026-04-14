@@ -7,17 +7,62 @@ import '../../../data/services/subscription_service.dart';
 import '../widgets/cart_summary_bar.dart';
 import '../widgets/quantity_selector.dart';
 
+import '../../../core/constants/app_colors.dart';
+import '../../../../core/state/auth_store.dart';
+import '../../../routes/app_routes.dart';
+import '../../../core/utils/auth_helper.dart';
+import '../../../data/services/shop_service.dart';
+
 class ProductDetailsPage extends ConsumerWidget {
   final Product product;
 
   const ProductDetailsPage({super.key, required this.product});
 
   void _showSubscriptionDrawer(BuildContext context, WidgetRef ref) {
+    if (!AuthHelper.checkAuth(
+      context: context,
+      ref: ref,
+      message: 'Please log in to set up daily deliveries.',
+    )) return;
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => SubscriptionConfigDrawer(product: product),
+    );
+  }
+
+  void _addToCart(BuildContext context, CartProvider cart, CartItem newItem) {
+    if (!cart.isSameShop(newItem.shopId)) {
+      _showReplaceCartDialog(context, cart, newItem);
+    } else {
+      cart.addToCart(newItem);
+    }
+  }
+
+  void _showReplaceCartDialog(
+      BuildContext context, CartProvider cart, CartItem newItem) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Replace selection?'),
+        content: Text('Your cart contains products from ${cart.cartShopName}. '
+            'Do you want to discard them and add products from ${newItem.shopName}?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('NO'),
+          ),
+          TextButton(
+            onPressed: () {
+              cart.clearCart();
+              cart.addToCart(newItem);
+              Navigator.pop(context);
+            },
+            child: const Text('YES'),
+          ),
+        ],
+      ),
     );
   }
 
@@ -39,6 +84,9 @@ class ProductDetailsPage extends ConsumerWidget {
       ),
     );
     final isInCart = cartItem.quantity > 0;
+    final isOutOfStock = product.stockStatus == 'Out of Stock';
+    final isLowStock = product.stockStatus == 'Low Stock';
+    final isAvailable = product.isShopActive && !isOutOfStock;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -81,27 +129,34 @@ class ProductDetailsPage extends ConsumerWidget {
                   ),
                 ],
                 flexibleSpace: FlexibleSpaceBar(
-                  background: Hero(
-                    tag: 'product_${product.id}',
-                    child: product.image.isEmpty
-                        ? const Center(
-                            child: Icon(Icons.set_meal_outlined,
-                                size: 64, color: Colors.grey))
-                        : product.image.startsWith('http')
-                            ? Image.network(
-                                product.image,
-                                fit: BoxFit.cover,
-                                errorBuilder: (_, __, ___) => const Center(
-                                    child: Icon(Icons.set_meal_outlined,
-                                        size: 64, color: Colors.grey)),
-                              )
-                            : Image.asset(
-                                product.image,
-                                fit: BoxFit.cover,
-                                errorBuilder: (_, __, ___) => const Center(
-                                    child: Icon(Icons.set_meal_outlined,
-                                        size: 64, color: Colors.grey)),
-                              ),
+                  background: ColorFiltered(
+                    colorFilter: isAvailable
+                        ? const ColorFilter.mode(
+                            Colors.transparent, BlendMode.multiply)
+                        : const ColorFilter.mode(
+                            Colors.grey, BlendMode.saturation),
+                    child: Hero(
+                      tag: 'product_${product.id}',
+                      child: product.image.isEmpty
+                          ? const Center(
+                              child: Icon(Icons.water_drop_outlined,
+                                  size: 64, color: Colors.grey))
+                          : product.image.startsWith('http')
+                              ? Image.network(
+                                  product.image,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, __, ___) => const Center(
+                                      child: Icon(Icons.water_drop_outlined,
+                                          size: 64, color: Colors.grey)),
+                                )
+                              : Image.asset(
+                                  product.image,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, __, ___) => const Center(
+                                      child: Icon(Icons.water_drop_outlined,
+                                          size: 64, color: Colors.grey)),
+                                ),
+                    ),
                   ),
                 ),
               ),
@@ -111,19 +166,31 @@ class ProductDetailsPage extends ConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      if (product.badgeText.isNotEmpty)
+                      if (product.badgeText.isNotEmpty || isOutOfStock || isLowStock)
                         Container(
                           padding: const EdgeInsets.symmetric(
                               horizontal: 10, vertical: 4),
                           margin: const EdgeInsets.only(bottom: 12),
                           decoration: BoxDecoration(
-                              color: Colors.red,
+                              color: isOutOfStock
+                                  ? Colors.black87
+                                  : (isLowStock
+                                      ? Colors.orange.shade700
+                                      : Colors.red),
                               borderRadius: BorderRadius.circular(6)),
-                          child: Text(product.badgeText,
-                              style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold)),
+                          child: Text(
+                            isOutOfStock
+                                ? 'OUT OF STOCK'
+                                : (isLowStock
+                                    ? (product.stock > 0
+                                        ? 'ONLY ${product.stock} LEFT!'
+                                        : 'SELLING FAST!')
+                                    : product.badgeText.toUpperCase()),
+                            style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold),
+                          ),
                         ),
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -139,7 +206,7 @@ class ProductDetailsPage extends ConsumerWidget {
                               style: const TextStyle(
                                   fontSize: 24,
                                   fontWeight: FontWeight.w800,
-                                  color: Color(0xFF68B92E))),
+                                  color: AppColors.primaryDark)),
                         ],
                       ),
                       const SizedBox(height: 8),
@@ -160,7 +227,7 @@ class ProductDetailsPage extends ConsumerWidget {
                               color: Colors.grey.shade800)),
                       const SizedBox(height: 24),
                       if (product.whyChoose.isNotEmpty) ...[
-                        const Text('Why Choose Our Shrimp',
+                        const Text('Why Choose Our Water',
                             style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
@@ -172,7 +239,7 @@ class ProductDetailsPage extends ConsumerWidget {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   const Icon(Icons.check_circle,
-                                      color: Color(0xFF68B92E), size: 20),
+                                      color: AppColors.primary, size: 20),
                                   const SizedBox(width: 12),
                                   Expanded(
                                       child: Text(point,
@@ -220,37 +287,45 @@ class ProductDetailsPage extends ConsumerWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   OutlinedButton.icon(
-                    onPressed: () => _showSubscriptionDrawer(context, ref),
+                    onPressed: isAvailable
+                        ? () => _showSubscriptionDrawer(context, ref)
+                        : null,
                     icon: const Icon(Icons.calendar_month, size: 20),
                     label: const Text('Subscribe & Save',
                         style: TextStyle(
                             fontWeight: FontWeight.bold, fontSize: 16)),
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: const Color(0xFF68B92E),
-                      side: const BorderSide(
-                          color: Color(0xFF68B92E), width: 1.5),
+                      foregroundColor:
+                          isAvailable ? AppColors.primary : Colors.grey,
+                      side: BorderSide(
+                          color: isAvailable ? AppColors.primary : Colors.grey,
+                          width: 1.5),
                       minimumSize: const Size(double.infinity, 50),
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12)),
                     ),
                   ),
                   const SizedBox(height: 12),
-                  !isInCart
-                      ? ElevatedButton(
-                          onPressed: () =>
-                              cart.addToCart(CartItem.fromProduct(product)),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF68B92E),
-                            foregroundColor: Colors.white,
-                            minimumSize: const Size(double.infinity, 56),
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16)),
-                            elevation: 0,
-                          ),
-                          child: const Text('Add to Cart',
-                              style: TextStyle(
-                                  fontSize: 18, fontWeight: FontWeight.bold)),
-                        )
+                      !isInCart
+                        ? ElevatedButton(
+                            onPressed: isAvailable
+                                ? () => _addToCart(context, cart,
+                                    CartItem.fromProduct(product))
+                                : null,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor:
+                                  isAvailable ? AppColors.primary : Colors.grey,
+                              foregroundColor: Colors.white,
+                              minimumSize: const Size(double.infinity, 56),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16)),
+                              elevation: 0,
+                            ),
+                            child: Text(
+                                isOutOfStock ? 'Out of Stock' : 'Add to Cart',
+                                style: const TextStyle(
+                                    fontSize: 18, fontWeight: FontWeight.bold)),
+                          )
                       : Container(
                           height: 56,
                           padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -258,7 +333,7 @@ class ProductDetailsPage extends ConsumerWidget {
                               color: const Color(0xFFF7F8FA),
                               borderRadius: BorderRadius.circular(16),
                               border: Border.all(
-                                  color: const Color(0xFF68B92E)
+                                  color: AppColors.primary
                                       .withValues(alpha: 0.2))),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -270,8 +345,12 @@ class ProductDetailsPage extends ConsumerWidget {
                                       color: Color(0xFF1A1A1A))),
                               QuantitySelector(
                                 quantity: cartItem.quantity,
-                                onIncrement: () => cart.increment(product.name),
-                                onDecrement: () => cart.decrement(product.name),
+                                onIncrement: isAvailable
+                                    ? () => cart.increment(product.name)
+                                    : () {},
+                                onDecrement: isAvailable
+                                    ? () => cart.decrement(product.name)
+                                    : () {},
                                 size: 40,
                               ),
                             ],
@@ -287,16 +366,17 @@ class ProductDetailsPage extends ConsumerWidget {
   }
 }
 
-class SubscriptionConfigDrawer extends StatefulWidget {
+class SubscriptionConfigDrawer extends ConsumerStatefulWidget {
   final Product product;
   const SubscriptionConfigDrawer({super.key, required this.product});
 
   @override
-  State<SubscriptionConfigDrawer> createState() =>
+  ConsumerState<SubscriptionConfigDrawer> createState() =>
       _SubscriptionConfigDrawerState();
 }
 
-class _SubscriptionConfigDrawerState extends State<SubscriptionConfigDrawer> {
+class _SubscriptionConfigDrawerState
+    extends ConsumerState<SubscriptionConfigDrawer> {
   String _frequency = 'Daily';
   int _quantity = 1;
   List<String> _selectedDays = [];
@@ -310,6 +390,7 @@ class _SubscriptionConfigDrawerState extends State<SubscriptionConfigDrawer> {
     'Saturday',
     'Sunday'
   ];
+  String? _selectedSlot;
 
   @override
   void initState() {
@@ -327,7 +408,7 @@ class _SubscriptionConfigDrawerState extends State<SubscriptionConfigDrawer> {
       builder: (context, child) => Theme(
         data: Theme.of(context).copyWith(
           colorScheme: const ColorScheme.light(
-            primary: Color(0xFF68B92E),
+            primary: AppColors.primary,
             onPrimary: Colors.white,
             surface: Colors.white,
           ),
@@ -340,6 +421,8 @@ class _SubscriptionConfigDrawerState extends State<SubscriptionConfigDrawer> {
 
   @override
   Widget build(BuildContext context) {
+    final shopDetailsAsync = ref.watch(shopDetailsProvider(widget.product.shopId));
+
     return Container(
       decoration: const BoxDecoration(
         color: Colors.white,
@@ -377,11 +460,10 @@ class _SubscriptionConfigDrawerState extends State<SubscriptionConfigDrawer> {
                         _frequency = freq;
                         if (freq != 'Weekly') _selectedDays = [];
                       }),
-                      selectedColor:
-                          const Color(0xFF68B92E).withValues(alpha: 0.2),
+                      selectedColor: AppColors.primary.withValues(alpha: 0.2),
                       labelStyle: TextStyle(
                           color: _frequency == freq
-                              ? const Color(0xFF2E7D32)
+                              ? AppColors.primaryDark
                               : Colors.black87,
                           fontWeight: _frequency == freq
                               ? FontWeight.bold
@@ -412,11 +494,11 @@ class _SubscriptionConfigDrawerState extends State<SubscriptionConfigDrawer> {
                     width: 44,
                     height: 44,
                     decoration: BoxDecoration(
-                      color: selected ? const Color(0xFF68B92E) : Colors.white,
+                      color: selected ? AppColors.primary : Colors.white,
                       borderRadius: BorderRadius.circular(10),
                       border: Border.all(
                         color: selected
-                            ? const Color(0xFF68B92E)
+                            ? AppColors.primary
                             : Colors.grey.shade300,
                       ),
                     ),
@@ -456,7 +538,7 @@ class _SubscriptionConfigDrawerState extends State<SubscriptionConfigDrawer> {
                   IconButton(
                       onPressed: () => setState(() => _quantity++),
                       icon: const Icon(Icons.add_circle,
-                          color: Color(0xFF68B92E))),
+                          color: AppColors.primary)),
                 ],
               ),
             ],
@@ -471,21 +553,21 @@ class _SubscriptionConfigDrawerState extends State<SubscriptionConfigDrawer> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               decoration: BoxDecoration(
-                color: const Color(0xFF68B92E).withValues(alpha: 0.05),
+                color: AppColors.primary.withValues(alpha: 0.05),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFF68B92E)),
+                border: Border.all(color: AppColors.primary),
               ),
               child: Row(
                 children: [
                   const Icon(Icons.event_outlined,
-                      color: Color(0xFF68B92E), size: 20),
+                      color: AppColors.primary, size: 20),
                   const SizedBox(width: 12),
                   Text(
                     '${_startDate.day.toString().padLeft(2, '0')} / ${_startDate.month.toString().padLeft(2, '0')} / ${_startDate.year}',
                     style: const TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF2E7D32)),
+                        color: AppColors.primaryDark),
                   ),
                   const Spacer(),
                   const Text('Tap to change',
@@ -494,40 +576,99 @@ class _SubscriptionConfigDrawerState extends State<SubscriptionConfigDrawer> {
               ),
             ),
           ),
+          const SizedBox(height: 24),
+          const Text('Delivery Slot',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+          const SizedBox(height: 12),
+          shopDetailsAsync.when(
+            data: (shop) {
+              final slots = shop?.deliverySlots ?? [];
+              if (slots.isEmpty) {
+                return Text('No slots available',
+                    style: TextStyle(color: Colors.grey.shade500));
+              }
+              // Ensure selected slot remains valid if it's not in the new slots list
+              if (_selectedSlot != null && !slots.contains(_selectedSlot)) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  setState(() => _selectedSlot = null);
+                });
+              }
+              return SizedBox(
+                height: 48,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: slots.length,
+                  itemBuilder: (context, index) {
+                    final slot = slots[index];
+                    final isSelected = _selectedSlot == slot;
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: ChoiceChip(
+                        label: Text(slot),
+                        selected: isSelected,
+                        onSelected: (val) => setState(() => _selectedSlot = slot),
+                        selectedColor: AppColors.primary.withValues(alpha: 0.2),
+                        labelStyle: TextStyle(
+                            color: isSelected
+                                ? AppColors.primaryDark
+                                : Colors.black87,
+                            fontWeight: isSelected
+                                ? FontWeight.bold
+                                : FontWeight.normal),
+                      ),
+                    );
+                  },
+                ),
+              );
+            },
+            loading: () => const Center(
+                child: SizedBox(
+                    width: 20, height: 20, child: CircularProgressIndicator())),
+            error: (_, __) => const Text('Error loading slots'),
+          ),
           const SizedBox(height: 28),
-          Consumer(builder: (context, ref, child) {
-            return ElevatedButton(
-              onPressed: () async {
-                final subService = ref.read(subscriptionServiceProvider);
-                final messenger = ScaffoldMessenger.of(context);
-                final navigator = Navigator.of(context);
-                final res = await subService.subscribeToProduct(
-                  productId: widget.product.id,
-                  frequency: _frequency,
-                  quantity: _quantity,
-                  customDays: _frequency == 'Weekly' ? _selectedDays : [],
-                  startDate: _startDate,
-                );
-                if (mounted) {
-                  navigator.pop();
-                  messenger.showSnackBar(SnackBar(
-                    content: Text(res['message'] ?? 'Subscribed successfully!'),
-                    backgroundColor:
-                        res['success'] == true ? Colors.green : Colors.red,
-                  ));
-                }
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF2E7D32),
-                foregroundColor: Colors.white,
-                minimumSize: const Size(double.infinity, 56),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16)),
-              ),
-              child: const Text('Confirm Subscription',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            );
-          }),
+          ElevatedButton(
+            onPressed: () async {
+              if (_selectedSlot == null) {
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                    content: Text('Please select a delivery slot')));
+                return;
+              }
+              final isAuth = ref.read(isAuthenticatedProvider);
+              if (!isAuth) {
+                Navigator.pushNamed(context, AppRoutes.login);
+                return;
+              }
+              final subService = ref.read(subscriptionServiceProvider);
+              final messenger = ScaffoldMessenger.of(context);
+              final navigatorState = Navigator.of(context);
+              final res = await subService.subscribeToProduct(
+                productId: widget.product.id,
+                frequency: _frequency,
+                quantity: _quantity,
+                customDays: _frequency == 'Weekly' ? _selectedDays : [],
+                startDate: _startDate,
+                deliverySlot: _selectedSlot!,
+              );
+              if (mounted) {
+                navigatorState.pop();
+                messenger.showSnackBar(SnackBar(
+                  content: Text(res['message'] ?? 'Subscribed successfully!'),
+                  backgroundColor:
+                      res['success'] == true ? AppColors.primary : Colors.red,
+                ));
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primaryDark,
+              foregroundColor: Colors.white,
+              minimumSize: const Size(double.infinity, 56),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16)),
+            ),
+            child: const Text('Confirm Subscription',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          ),
         ],
       ),
     );

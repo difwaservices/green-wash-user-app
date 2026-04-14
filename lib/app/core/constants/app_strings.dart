@@ -1,7 +1,7 @@
 class AppStrings {
   AppStrings._();
 
-  static const String appName = 'Shrimpbite';
+  static const String appName = 'Difwa Water';
 
   // Onboarding
   static const String getStarted = 'Get started';
@@ -9,7 +9,7 @@ class AppStrings {
   // Welcome
   static const String welcome = 'Welcome';
   static const String welcomeSubtitle =
-      'Experience the finest quality shrimp and seafood, packed with care.';
+      'Experience the finest quality drinking water, delivered with care.';
   static const String continueWithGoogle = 'Continue with google';
   static const String createAccount = 'Create an account';
   static const String alreadyHaveAccount = 'Already have an account? ';

@@ -97,8 +97,8 @@ class _PaymentPageState extends State<PaymentPage> {
                   Switch(
                     value: _saveCard,
                     onChanged: (v) => setState(() => _saveCard = v),
-                    activeThumbColor: const Color(0xFF68B92E),
-                    activeTrackColor: const Color(0xFFEBFFD7),
+                    activeThumbColor: const Color(0xFF06B6D4),
+                    activeTrackColor: const Color(0xFFCFFAFE),
                   ),
                   const Text(
                     'Save this card',
@@ -133,7 +133,7 @@ class _PaymentPageState extends State<PaymentPage> {
                   );
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF439462),
+                  backgroundColor: const Color(0xFF06B6D4),
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
@@ -161,11 +161,11 @@ class _PaymentPageState extends State<PaymentPage> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFEBFFD7), width: 1),
+        border: Border.all(color: const Color(0xFFCFFAFE), width: 1),
       ),
       child: Column(
         children: [
-          const Icon(Icons.info_outline, color: Color(0xFF68B92E), size: 40),
+          const Icon(Icons.info_outline, color: Color(0xFF06B6D4), size: 40),
           const SizedBox(height: 16),
           Text(
             'Secure Payment via $_selectedMethod',
@@ -243,7 +243,7 @@ class _PaymentPageState extends State<PaymentPage> {
           value,
           style: TextStyle(
             fontSize: isTotal ? 18 : 14,
-            color: isTotal ? const Color(0xFF68B92E) : const Color(0xFF1A1A1A),
+            color: isTotal ? const Color(0xFF06B6D4) : const Color(0xFF1A1A1A),
             fontWeight: FontWeight.w900,
           ),
         ),
@@ -277,7 +277,7 @@ class _PaymentPageState extends State<PaymentPage> {
           height: 36,
           decoration: BoxDecoration(
             color: isCompleted
-                ? const Color(0xFF68B92E)
+                ? const Color(0xFF06B6D4)
                 : Colors.grey.withValues(alpha:  0.2),
             shape: BoxShape.circle,
           ),
@@ -312,7 +312,7 @@ class _PaymentPageState extends State<PaymentPage> {
       height: 2,
       margin: const EdgeInsets.only(bottom: 20, left: 4, right: 4),
       color: isCompleted
-          ? const Color(0xFF68B92E)
+          ? const Color(0xFF06B6D4)
           : Colors.grey.withValues(alpha:  0.2),
     );
   }
@@ -329,7 +329,7 @@ class _PaymentPageState extends State<PaymentPage> {
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
               color: isSelected
-                  ? const Color(0xFF68B92E).withValues(alpha:  0.5)
+                  ? const Color(0xFF06B6D4).withValues(alpha:  0.5)
                   : Colors.grey.shade100,
               width: isSelected ? 2 : 1,
             ),
@@ -339,7 +339,7 @@ class _PaymentPageState extends State<PaymentPage> {
               Icon(
                 icon,
                 color: isSelected
-                    ? const Color(0xFF68B92E)
+                    ? const Color(0xFF06B6D4)
                     : color.withValues(alpha:  0.6),
                 size: 32,
               ),
@@ -365,7 +365,7 @@ class _PaymentPageState extends State<PaymentPage> {
       height: 200,
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [Color(0xFF68B92E), Color(0xFF439462)],
+          colors: [Color(0xFF06B6D4), Color(0xFF06B6D4)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -474,5 +474,7 @@ class _PaymentPageState extends State<PaymentPage> {
     );
   }
 }
+
+
 
 

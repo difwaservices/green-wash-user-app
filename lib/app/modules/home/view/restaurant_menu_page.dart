@@ -8,23 +8,15 @@ import '../../../data/services/favorites_service.dart';
 import '../provider/shop_provider.dart';
 import '../widgets/cart_summary_bar.dart';
 import '../widgets/quantity_selector.dart';
-import 'package:licius_application/app/routes/app_routes.dart';
+import 'package:difwawaterapp/app/routes/app_routes.dart';
+import '../../../core/constants/app_colors.dart';
+import 'product_details_page.dart';
 
 class RestaurantMenuPage extends ConsumerWidget {
   final ShopModel shop;
   const RestaurantMenuPage({super.key, required this.shop});
 
   // Deterministic display metadata (same logic as the card)
-  double get _rating {
-    final code = shop.id.codeUnits.fold<int>(0, (a, b) => a + b);
-    return 3.8 + (code % 9) * 0.1;
-  }
-
-  String get _deliveryTime {
-    final code = shop.id.codeUnits.fold<int>(0, (a, b) => a + b);
-    final mins = 50 + (code % 40);
-    return '$mins–${mins + 15} mins';
-  }
 
   double get _distance {
     final code = shop.id.codeUnits.fold<int>(0, (a, b) => a + b);
@@ -33,12 +25,12 @@ class RestaurantMenuPage extends ConsumerWidget {
 
   String get _heroImage {
     final images = [
-      'assets/images/shrimp_dish_1.png',
-      'assets/images/shrimp_dish_2.png',
-      'assets/images/shrimp_dish_3.png',
-      'assets/images/shrimp_lemon_herb.png',
-      'assets/images/shrimp_tiger_trio.png',
-      'assets/images/shrimp_cooked_duo.png',
+      'assets/images/Difwa_dish_1.png',
+      'assets/images/Difwa_dish_2.png',
+      'assets/images/Difwa_dish_3.png',
+      'assets/images/Difwa_lemon_herb.png',
+      'assets/images/Difwa_tiger_trio.png',
+      'assets/images/Difwa_cooked_duo.png',
     ];
     final code = shop.id.codeUnits.fold<int>(0, (a, b) => a + b);
     return images[code % images.length];
@@ -66,9 +58,16 @@ class RestaurantMenuPage extends ConsumerWidget {
                 : const ColorFilter.mode(Colors.grey, BlendMode.saturation),
             child: Opacity(
               opacity: isShopActive ? 1.0 : 0.8,
-              child: CustomScrollView(
-                physics: const BouncingScrollPhysics(),
-                slivers: [
+              child: RefreshIndicator(
+                color: AppColors.primary,
+                onRefresh: () async {
+                  ref.invalidate(shopsListProvider);
+                  ref.invalidate(shopProductsProvider(currentShop.id));
+                  await ref.read(shopProductsProvider(currentShop.id).future);
+                },
+                child: CustomScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  slivers: [
                   // ── Hero App Bar ──────────────────────────────────────────────────
                   SliverAppBar(
                     expandedHeight: 220,
@@ -86,16 +85,7 @@ class RestaurantMenuPage extends ConsumerWidget {
                         ),
                       ),
                     ),
-                    actions: [
-                      Padding(
-                        padding: const EdgeInsets.only(right: 12),
-                        child: CircleAvatar(
-                          backgroundColor: Colors.white.withValues(alpha: 0.9),
-                          child: const Icon(Icons.bookmark_border,
-                              color: Colors.black87, size: 20),
-                        ),
-                      ),
-                    ],
+                    actions: [],
                     flexibleSpace: FlexibleSpaceBar(
                       background: _buildHeroBanner(currentShop),
                     ),
@@ -114,63 +104,17 @@ class RestaurantMenuPage extends ConsumerWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      shop.deliveryTime.isNotEmpty
-                                          ? shop.deliveryTime
-                                          : _deliveryTime,
-                                      style: const TextStyle(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.w600,
-                                        color: Color(0xFF1A1A1A),
-                                      ),
-                                    ),
-                                    if (shop.location.isNotEmpty) ...[
-                                      const SizedBox(height: 3),
-                                      Text(
-                                        shop.location,
-                                        style: TextStyle(
-                                            fontSize: 12,
-                                            color: Colors.grey.shade600),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ],
-                                  ],
+                              if (shop.location.isNotEmpty) ...[
+                                const SizedBox(height: 3),
+                                Text(
+                                  shop.location,
+                                  style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey.shade600),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
-                              ),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 10, vertical: 6),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFF68B92E),
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: Row(
-                                  children: [
-                                    const Icon(Icons.star,
-                                        size: 14, color: Colors.white),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      shop.rating > 0
-                                          ? shop.rating.toStringAsFixed(1)
-                                          : _rating.toStringAsFixed(1),
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 14,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
+                              ],
                           const SizedBox(height: 12),
                           // Delivery meta chips
                           Wrap(
@@ -178,18 +122,8 @@ class RestaurantMenuPage extends ConsumerWidget {
                             runSpacing: 6,
                             children: [
                               _MetaChip(
-                                icon: Icons.bolt,
-                                label: _deliveryTime,
-                                iconColor: const Color(0xFF68B92E),
-                              ),
-                              _MetaChip(
                                 icon: Icons.location_on_outlined,
                                 label: '${_distance.toStringAsFixed(1)} km',
-                                iconColor: Colors.grey,
-                              ),
-                              _MetaChip(
-                                icon: Icons.delivery_dining_outlined,
-                                label: 'Free delivery',
                                 iconColor: Colors.grey,
                               ),
                             ],
@@ -209,7 +143,7 @@ class RestaurantMenuPage extends ConsumerWidget {
                                   SizedBox(width: 12),
                                   Expanded(
                                     child: Text(
-                                      'This restaurant is currently offline and not accepting orders.',
+                                      'This water plant is currently offline and not accepting orders.',
                                       style: TextStyle(
                                           color: Colors.white,
                                           fontSize: 12,
@@ -221,30 +155,6 @@ class RestaurantMenuPage extends ConsumerWidget {
                             ),
                           ] else ...[
                             const SizedBox(height: 12),
-                            // Offer banner
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 12, vertical: 8),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFEBFFD7),
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: Row(
-                                children: [
-                                  const Icon(Icons.local_offer,
-                                      size: 14, color: Color(0xFF439462)),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    'Flat ₹100 OFF above ₹499',
-                                    style: const TextStyle(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w700,
-                                      color: Color(0xFF439462),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
                           ],
                         ],
                       ),
@@ -256,7 +166,7 @@ class RestaurantMenuPage extends ConsumerWidget {
                     padding: EdgeInsets.fromLTRB(16, 4, 16, 12),
                     sliver: SliverToBoxAdapter(
                       child: Text(
-                        'SHRIMP VARIETIES',
+                        'WATER VARIETIES',
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w800,
@@ -317,20 +227,9 @@ class RestaurantMenuPage extends ConsumerWidget {
               ),
             ),
           ),
+        ),
 
-          // ── Floating Back Button (Above Grayscale) ────────────────────────
-          Positioned(
-            top: MediaQuery.of(context).padding.top + 10,
-            left: 12,
-            child: CircleAvatar(
-              backgroundColor: Colors.white.withValues(alpha: 0.9),
-              child: IconButton(
-                icon: const Icon(Icons.arrow_back,
-                    color: Colors.black87, size: 20),
-                onPressed: () => Navigator.pop(context),
-              ),
-            ),
-          ),
+          // ── Floating Back Button removed (handled by SliverAppBar) ────────
 
           if (cart.itemCount > 0 && isShopActive)
             Positioned(
@@ -359,7 +258,7 @@ class RestaurantMenuPage extends ConsumerWidget {
         errorBuilder: (_, __, ___) => _localHero(),
       );
     }
-    return _localHero();
+        return _localHero();
   }
 
   Widget _localHero() {
@@ -369,7 +268,7 @@ class RestaurantMenuPage extends ConsumerWidget {
       errorBuilder: (_, __, ___) => Container(
         color: Colors.grey.shade200,
         child: const Center(
-            child: Icon(Icons.restaurant, size: 64, color: Colors.grey)),
+            child: Icon(Icons.water_drop_outlined, size: 64, color: Colors.grey)),
       ),
     );
   }
@@ -402,129 +301,166 @@ class _ProductCardState extends ConsumerState<_ProductCard> {
     final cart = CartProviderScope.of(context);
     final p = widget.product;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade200),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // ── Product Image ─────────────────────────────────────────────
-          Stack(
-            children: [
-              ClipRRect(
-                borderRadius:
-                    const BorderRadius.vertical(top: Radius.circular(16)),
-                child: p.primaryImage.isNotEmpty
-                    ? Image.network(
-                        p.primaryImage,
-                        height: 110,
-                        width: double.infinity,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => _imagePlaceholder(),
-                      )
-                    : _imagePlaceholder(),
-              ),
-              // Favorite button — wired to backend
-              Positioned(
-                top: 6,
-                right: 6,
-                child: _FavoriteHeart(productId: p.id),
-              ),
-              // Out of stock badge
-              if (!p.isAvailable)
-                Positioned.fill(
-                  child: ClipRRect(
-                    borderRadius:
-                        const BorderRadius.vertical(top: Radius.circular(16)),
-                    child: Container(
-                      color: Colors.black.withValues(alpha: 0.45),
-                      child: const Center(
-                        child: Text(
-                          'Out of Stock',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ProductDetailsPage(
+              product: p.toProduct(widget.isShopActive,
+                  shopName: widget.shopName),
+            ),
+          ),
+        );
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.grey.shade200),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // ── Product Image ─────────────────────────────────────────────
+            Stack(
+              children: [
+                ClipRRect(
+                  borderRadius:
+                      const BorderRadius.vertical(top: Radius.circular(16)),
+                  child: p.primaryImage.isNotEmpty
+                      ? Image.network(
+                          p.primaryImage,
+                          height: 110,
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => _imagePlaceholder(),
+                        )
+                      : _imagePlaceholder(),
+                ),
+                // Favorite button
+                Positioned(
+                  top: 6,
+                  right: 6,
+                  child: _FavoriteHeart(productId: p.id),
+                ),
+                // Out of stock badge
+                if (p.stockStatus == 'Out of Stock' || p.stock <= 0)
+                  Positioned.fill(
+                    child: ClipRRect(
+                      borderRadius:
+                          const BorderRadius.vertical(top: Radius.circular(16)),
+                      child: Container(
+                        color: Colors.black.withValues(alpha: 0.45),
+                        child: const Center(
+                          child: Text(
+                            'Out of Stock',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
                       ),
                     ),
                   ),
-                ),
-            ],
-          ),
-
-          // ── Product Info ──────────────────────────────────────────────
-          Padding(
-            padding: const EdgeInsets.fromLTRB(10, 8, 10, 0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  p.name,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF1A1A1A),
-                  ),
-                ),
-                const SizedBox(height: 2),
-                if (p.category != null)
-                  Text(
-                    p.category!.name,
-                    style: const TextStyle(fontSize: 11, color: Colors.grey),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                if (p.description.isNotEmpty)
-                  Text(
-                    p.description,
-                    style: TextStyle(fontSize: 10, color: Colors.grey.shade500),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-              ],
-            ),
-          ),
-
-          const Spacer(),
-
-          // ── Price + Add to Cart ──────────────────────────────────────
-          Padding(
-            padding: const EdgeInsets.fromLTRB(10, 0, 10, 10),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  '₹${p.price.toStringAsFixed(0)}',
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w900,
-                    color: Color(0xFF1A1A1A),
-                  ),
-                ),
-                // Dynamic Cart Controls
-                if (p.isAvailable)
-                  _buildCartControls(context, cart, p, widget.shopName)
-                else
-                  Container(
-                    width: 32,
-                    height: 32,
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade300,
-                      borderRadius: BorderRadius.circular(8),
+                // Low Stock Badge
+                if (p.stockStatus == 'Low Stock' && p.stock > 0)
+                  Positioned(
+                    top: 6,
+                    left: 6,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 3,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.orange.shade700,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        'ONLY ${p.stock} LEFT!',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 9,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
-                    child: const Icon(Icons.add, color: Colors.grey, size: 18),
                   ),
               ],
             ),
-          ),
-        ],
+
+            // ── Product Info ──────────────────────────────────────────────
+            Padding(
+              padding: const EdgeInsets.fromLTRB(10, 8, 10, 0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    p.name,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF1A1A1A),
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  if (p.category != null)
+                    Text(
+                      p.category!.name,
+                      style: const TextStyle(fontSize: 11, color: Colors.grey),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  if (p.description.isNotEmpty)
+                    Text(
+                      p.description,
+                      style: TextStyle(fontSize: 10, color: Colors.grey.shade500),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                ],
+              ),
+            ),
+
+            const Spacer(),
+
+            // ── Price + Add to Cart ──────────────────────────────────────
+            Padding(
+              padding: const EdgeInsets.fromLTRB(10, 0, 10, 10),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    '₹${p.price.toStringAsFixed(0)}',
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w900,
+                      color: Color(0xFF1A1A1A),
+                    ),
+                  ),
+                  // Dynamic Cart Controls
+                  if (p.stockStatus != 'Out of Stock' && p.stock > 0)
+                    _buildCartControls(context, cart, p, widget.shopName)
+                  else
+                    Container(
+                      width: 28,
+                      height: 28,
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade100,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(Icons.add, color: Colors.grey, size: 16),
+                    ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     )
         .animate(delay: (60 * widget.index).ms)
@@ -540,7 +476,7 @@ class _ProductCardState extends ConsumerState<_ProductCard> {
         id: p.id,
         title: p.name,
         unitPrice: p.price,
-        subtitle: p.category?.name ?? 'Shrimp',
+        subtitle: p.category?.name ?? 'Difwa',
         image: p.primaryImage,
         category: 'restaurant',
         shopId: widget.shopId,
@@ -569,7 +505,7 @@ class _ProductCardState extends ConsumerState<_ProductCard> {
               id: p.id,
               title: p.name,
               unitPrice: p.price,
-              subtitle: p.category?.name ?? 'Shrimp',
+              subtitle: p.category?.name ?? 'Difwa',
               image: p.primaryImage,
               category: 'restaurant',
               shopId: widget.shopId,
@@ -579,7 +515,7 @@ class _ProductCardState extends ConsumerState<_ProductCard> {
               SnackBar(
                 content: Text('${p.name} added to cart!'),
                 duration: const Duration(seconds: 1),
-                backgroundColor: const Color(0xFF439462),
+                backgroundColor: AppColors.primaryDark,
                 behavior: SnackBarBehavior.floating,
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10)),
@@ -593,7 +529,7 @@ class _ProductCardState extends ConsumerState<_ProductCard> {
           width: 32,
           height: 32,
           decoration: BoxDecoration(
-            color: const Color(0xFF68B92E),
+            color: AppColors.primary,
             borderRadius: BorderRadius.circular(8),
           ),
           child: const Icon(Icons.add, color: Colors.white, size: 18),
@@ -603,9 +539,9 @@ class _ProductCardState extends ConsumerState<_ProductCard> {
 
     return QuantitySelector(
       quantity: cartItem.quantity,
-      onIncrement: () => cart.increment(p.name),
-      onDecrement: () => cart.decrement(p.name),
-      size: 32, // Compact size for grid card
+      onIncrement: () => cart.increment(p.id),
+      onDecrement: () => cart.decrement(p.id),
+      size: 32,
     );
   }
 
@@ -622,7 +558,7 @@ class _ProductCardState extends ConsumerState<_ProductCard> {
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
         ),
         content: Text(
-          'Your cart contains dishes from $oldShopName. Do you want to discard the selection and add dishes from $newShopName?',
+          'Your cart contains products from $oldShopName. Do you want to discard the selection and add products from $newShopName?',
           style:
               const TextStyle(color: Colors.black87, fontSize: 14, height: 1.5),
         ),
@@ -655,7 +591,7 @@ class _ProductCardState extends ConsumerState<_ProductCard> {
                       id: p.id,
                       title: p.name,
                       unitPrice: p.price,
-                      subtitle: p.category?.name ?? 'Shrimp',
+                      subtitle: p.category?.name ?? 'Difwa',
                       image: p.primaryImage,
                       category: 'restaurant',
                       shopId: widget.shopId,
@@ -666,7 +602,7 @@ class _ProductCardState extends ConsumerState<_ProductCard> {
                       SnackBar(
                         content:
                             Text('Cart replaced with items from $newShopName'),
-                        backgroundColor: const Color(0xFF439462),
+                        backgroundColor: AppColors.primaryDark,
                         behavior: SnackBarBehavior.floating,
                       ),
                     );
@@ -697,7 +633,7 @@ class _ProductCardState extends ConsumerState<_ProductCard> {
       height: 110,
       color: Colors.grey.shade100,
       child: const Center(
-        child: Icon(Icons.set_meal_outlined, size: 36, color: Colors.grey),
+        child: Icon(Icons.water_drop_outlined, size: 36, color: Colors.grey),
       ),
     );
   }
@@ -914,13 +850,13 @@ class _ProductsErrorState extends StatelessWidget {
             const Text('Failed to load products',
                 style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
             const SizedBox(height: 6),
-            Text('Login required to view menu.',
+            Text('Login required to view the catalogue.',
                 style: TextStyle(color: Colors.grey.shade600, fontSize: 13)),
             const SizedBox(height: 16),
             ElevatedButton.icon(
               onPressed: onRetry,
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF68B92E),
+                backgroundColor: const Color(0xFF06B6D4),
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12)),
@@ -945,12 +881,12 @@ class _ProductsEmptyState extends StatelessWidget {
       child: Center(
         child: Column(
           children: [
-            Icon(Icons.no_meals_outlined, size: 48, color: Colors.grey),
-            SizedBox(height: 12),
-            Text('No products available',
+            const Icon(Icons.water_drop_outlined, size: 48, color: Colors.grey),
+            const SizedBox(height: 12),
+            const Text('No products available',
                 style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
-            SizedBox(height: 6),
-            Text('This restaurant has no products yet.',
+            const SizedBox(height: 6),
+            const Text('This source has no water products yet.',
                 style: TextStyle(color: Colors.grey, fontSize: 13)),
           ],
         ),
@@ -998,3 +934,4 @@ class _MetaChip extends StatelessWidget {
     );
   }
 }
+

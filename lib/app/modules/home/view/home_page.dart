@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import '../../../core/constants/app_colors.dart';
 import 'package:flutter/services.dart';
 import '../../../data/services/db_service.dart';
 import '../widgets/home_header.dart';
+import '../../../data/services/wallet_service.dart';
 import '../widgets/home_banner.dart';
 import '../widgets/restaurant_list_section.dart';
 
@@ -15,34 +17,41 @@ class HomePage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: const SystemUiOverlayStyle(
-        statusBarColor: Colors.white,
+        statusBarColor: Color(0xFFF7F8FA),
         statusBarIconBrightness: Brightness.dark,
         statusBarBrightness: Brightness.light,
       ),
       child: Scaffold(
-        backgroundColor: const Color(0xFFF7F8FA),
-        body: SafeArea(
-          bottom: false,
+        backgroundColor: Colors.white,
+        body: Container(
+          color: const Color.fromARGB(255, 255, 255, 255),
           child: RefreshIndicator(
             onRefresh: () async {
               await ref.read(shopsListProvider.notifier).refresh();
-              // Proactively refresh other related data if needed
               CartProviderScope.of(context).loadAddresses();
               CartProviderScope.of(context).syncWallet();
+              ref.invalidate(walletBalanceProvider);
+              ref.invalidate(walletHistoryProvider);
             },
-            color: const Color(0xFF68B92E),
+            color: AppColors.primary,
             child: CustomScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
               slivers: [
+                SliverToBoxAdapter(
+                  child: Container(
+                    height: MediaQuery.of(context).padding.top,
+                    color: const Color(
+                        0xFFF7F8FA), // Light grey blending with header
+                  ),
+                ),
+
                 // Header: Location & Search
                 const SliverToBoxAdapter(child: HomeHeader()),
-
-                const SliverToBoxAdapter(child: SizedBox(height: 16)),
 
                 // Banner (Horizontal Scrolling Carousel)
                 const SliverToBoxAdapter(child: HomeBanner()),
 
-                const SliverToBoxAdapter(child: SizedBox(height: 8)),
+                const SliverToBoxAdapter(child: SizedBox(height: 24)),
 
                 // Restaurants Section
                 const SliverToBoxAdapter(child: RestaurantListSection()),
@@ -100,26 +109,17 @@ class _AnimatedFooterTextState extends State<AnimatedFooterText>
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _controller,
-      builder: (context, child) {
-        return Opacity(
-          opacity: _opacityAnimation.value,
-          child: Transform.scale(scale: _scaleAnimation.value, child: child),
-        );
-      },
-      child: const Padding(
-        padding: EdgeInsets.symmetric(vertical: 0),
-        child: Text(
-          'With love,\nfrom Shrimp.',
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize: 28,
-            fontWeight: FontWeight.w900,
-            color: Color(0xFFB4B4B4),
-            height: 1.1,
-            letterSpacing: -1.5,
-          ),
+    return const Padding(
+      padding: EdgeInsets.only(left: 20, right: 20, top: 20, bottom: 129),
+      child: Text(
+        'With love,\nfrom Difwa.',
+        textAlign: TextAlign.left,
+        style: TextStyle(
+          fontSize: 48,
+          fontWeight: FontWeight.w900,
+          color: Color(0xFFB4B4B4),
+          height: 1.1,
+          letterSpacing: -1.5,
         ),
       ),
     );

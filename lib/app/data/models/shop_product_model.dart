@@ -1,3 +1,5 @@
+import 'food_models.dart';
+
 /// Model for an API-fetched product category (embedded inside a product).
 class ShopProductCategory {
   final String id;
@@ -48,13 +50,13 @@ class ShopProduct {
     if (images.isNotEmpty && images.first.length > 5) return images.first;
 
     // Fallback logic for demo/missing data:
-    // If it's a "Fish" or "Prawns/Shrimp", return a relevant local asset if we had them.
+    // If it's a "Fish" or "Prawns/Difwa", return a relevant local asset if we had them.
     // For now, let's just use high-quality placeholder URLs if network image is missing
     final lower = name.toLowerCase();
     if (lower.contains('rohu')) {
       return 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?q=80&w=800&auto=format&fit=crop';
     }
-    if (lower.contains('prawn') || lower.contains('shrimp')) {
+    if (lower.contains('prawn') || lower.contains('Difwa')) {
       return 'https://images.unsplash.com/photo-1559737558-2f5a35f4523b?q=80&w=800&auto=format&fit=crop';
     }
     if (lower.contains('fish')) {
@@ -64,6 +66,24 @@ class ShopProduct {
       return 'https://images.unsplash.com/photo-1599487488170-d11ec9c172f0?q=80&w=800&auto=format&fit=crop';
     }
     return '';
+  }
+
+  Product toProduct(bool shopActive, {String? shopName}) {
+    return Product(
+      id: id,
+      name: name,
+      image: primaryImage,
+      price: price,
+      weight: category?.name ?? 'Difwa VARIETY',
+      category: category?.name ?? 'Restaurant',
+      description: description,
+      isShopActive: shopActive,
+      badgeText: (stockStatus == 'Out of Stock' || stock <= 0) ? 'Out of Stock' : '',
+      shopId: retailerId,
+      shopName: shopName ?? '',
+      stockStatus: stockStatus,
+      stock: stock,
+    );
   }
 
   factory ShopProduct.fromJson(Map<String, dynamic> json) {
@@ -117,6 +137,8 @@ class ShopModel {
   final double rating;
   final String deliveryTime;
   final bool isShopActive;
+  final bool isFeatured;
+  final List<String> deliverySlots;
 
   const ShopModel({
     required this.id,
@@ -127,6 +149,8 @@ class ShopModel {
     this.rating = 4.5,
     this.deliveryTime = '30-45 mins',
     this.isShopActive = true,
+    this.isFeatured = false,
+    this.deliverySlots = const [],
   });
 
   ShopModel copyWith({
@@ -138,6 +162,8 @@ class ShopModel {
     double? rating,
     String? deliveryTime,
     bool? isShopActive,
+    bool? isFeatured,
+    List<String>? deliverySlots,
   }) {
     return ShopModel(
       id: id ?? this.id,
@@ -148,19 +174,29 @@ class ShopModel {
       rating: rating ?? this.rating,
       deliveryTime: deliveryTime ?? this.deliveryTime,
       isShopActive: isShopActive ?? this.isShopActive,
+      isFeatured: isFeatured ?? this.isFeatured,
+      deliverySlots: deliverySlots ?? this.deliverySlots,
     );
   }
 
   factory ShopModel.fromJson(Map<String, dynamic> json) {
     return ShopModel(
       id: (json['id'] ?? json['_id'] ?? '').toString(),
-      name: (json['name'] ?? 'Shrimp Shop').toString(),
+      name: (json['name'] ?? 'Difwa Shop').toString(),
       businessName: (json['businessName'] ?? '').toString(),
       image: (json['image'] ?? json['logo'] ?? json['banner'] ?? '').toString(),
       location: (json['location'] ?? json['address'] ?? '').toString(),
       rating: (json['rating'] as num?)?.toDouble() ?? 4.5,
       deliveryTime: (json['deliveryTime'] ?? '30-45 mins').toString(),
       isShopActive: json['isShopActive'] ?? json['isActive'] ?? true,
+      isFeatured: json['isFeatured'] ?? json['featured'] ?? false,
+      deliverySlots: (json['deliverySlots'] as List?)
+              ?.map((e) => e.toString())
+              .toList() ??
+          (json['businessDetails']?['deliverySlots'] as List?)
+              ?.map((e) => e.toString())
+              .toList() ??
+          [],
     );
   }
 }

@@ -1,19 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
-/// A styled text input field.
-/// - When focused: dark navy border (#0D1B4B) + grey background fills the box
-/// - When unfocused: grey background, no border
-/// - Label rendered above the field
-/// - Supports password toggle
 class InputField extends StatefulWidget {
   final String label;
   final String hintText;
   final IconData prefixIcon;
   final bool isPassword;
-  final bool obscureText;
-  final VoidCallback? onToggleVisibility;
   final TextInputType keyboardType;
   final TextEditingController? controller;
+
+  final int? maxLength;
+  final List<TextInputFormatter>? inputFormatters;
 
   const InputField({
     super.key,
@@ -21,10 +18,10 @@ class InputField extends StatefulWidget {
     required this.hintText,
     required this.prefixIcon,
     this.isPassword = false,
-    this.obscureText = false,
-    this.onToggleVisibility,
     this.keyboardType = TextInputType.text,
     this.controller,
+    this.maxLength,
+    this.inputFormatters,
   });
 
   @override
@@ -32,6 +29,27 @@ class InputField extends StatefulWidget {
 }
 
 class _InputFieldState extends State<InputField> {
+  final FocusNode _focusNode = FocusNode();
+  bool _isFocused = false;
+  bool _obscureText = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _obscureText = widget.isPassword;
+    _focusNode.addListener(() {
+      setState(() {
+        _isFocused = _focusNode.hasFocus;
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _focusNode.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -42,33 +60,67 @@ class _InputFieldState extends State<InputField> {
           widget.label,
           style: const TextStyle(
             fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: Color(0xFF1A1A1A),
+            fontWeight: FontWeight.bold,
+            color: Color(0xFF1E293B),
           ),
         ),
         const SizedBox(height: 8),
 
-        // Input box
-        TextField(
-          controller: widget.controller,
-          obscureText: widget.obscureText,
-          keyboardType: widget.keyboardType,
-          style: const TextStyle(fontSize: 15, color: Color(0xFF1A1A1A)),
-          decoration: InputDecoration(
-            hintText: widget.hintText,
-            prefixIcon: Icon(widget.prefixIcon, size: 20),
-            suffixIcon: widget.isPassword
-                ? GestureDetector(
-                    onTap: widget.onToggleVisibility,
-                    child: Icon(
-                      widget.obscureText
-                          ? Icons.visibility_off_outlined
-                          : Icons.visibility_outlined,
-                      color: const Color(0xFF888888),
-                      size: 20,
-                    ),
-                  )
-                : null,
+        // Glowing Animated Container
+        AnimatedContainer(
+          duration: const Duration(milliseconds: 300),
+          height: 56,
+          decoration: BoxDecoration(
+            color: const Color(0xFFEDF8FA),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: _isFocused ? const Color(0xFF06B6D4) : Colors.white,
+              width: 2,
+            ),
+            boxShadow: _isFocused
+                ? [
+                    BoxShadow(
+                      color: const Color(0xFF06B6D4).withValues(alpha: 0.3),
+                      blurRadius: 15,
+                      spreadRadius: 2,
+                    )
+                  ]
+                : [],
+          ),
+          child: Center(
+            child: TextField(
+              controller: widget.controller,
+              focusNode: _focusNode,
+              obscureText: _obscureText,
+              keyboardType: widget.keyboardType,
+              maxLength: widget.maxLength,
+              inputFormatters: widget.inputFormatters,
+              style: const TextStyle(fontSize: 15, color: Color(0xFF1E293B)),
+              decoration: InputDecoration(
+                hintText: widget.hintText,
+                hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 14),
+                prefixIcon: Icon(widget.prefixIcon, size: 20, color: const Color(0xFF94A3B8)),
+                border: InputBorder.none,
+                counterText: '', // Hide default character counter
+                contentPadding: const EdgeInsets.symmetric(vertical: 16),
+                suffixIcon: widget.isPassword
+                    ? GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            _obscureText = !_obscureText;
+                          });
+                        },
+                        child: Icon(
+                          _obscureText
+                              ? Icons.visibility_outlined
+                              : Icons.visibility_off_outlined,
+                          color: const Color(0xFF94A3B8),
+                          size: 20,
+                        ),
+                      )
+                    : null,
+              ),
+            ),
           ),
         ),
       ],

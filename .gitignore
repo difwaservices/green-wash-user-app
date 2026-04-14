@@ -53,3 +53,26 @@ android/local.properties
 # Firebase Config Files
 android/app/google-services.json
 ios/Runner/GoogleService-Info.plist
+macos/Runner/GoogleService-Info.plist
+
+# Keystore and Signing Files
+*.jks
+*.keystore
+key.properties
+android/key.properties
+
+# Environment Variables (Additional)
+.env*
+!.env.example
+!.env.sample
+
+# API Keys and Secrets
+api_keys.dart
+secrets.dart
+credentials.json
+
+# Fastlane secrets
+**/fastlane/Appfile
+**/fastlane/.env
+**/fastlane/report.xml
+

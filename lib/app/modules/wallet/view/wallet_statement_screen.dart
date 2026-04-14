@@ -3,13 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../data/models/food_models.dart';
 import '../../../data/services/wallet_service.dart';
 import 'package:intl/intl.dart';
-
-// Provider for filtered wallet transactions
-final walletTransactionsProvider =
-    FutureProvider.autoDispose<List<WalletTransaction>>((ref) async {
-  final rawData = await ref.read(walletServiceProvider).getTransactionHistory();
-  return rawData.map((json) => WalletTransaction.fromJson(json)).toList();
-});
+import '../../../core/constants/app_colors.dart';
 
 class WalletStatementScreen extends ConsumerStatefulWidget {
   const WalletStatementScreen({super.key});
@@ -58,8 +52,21 @@ class _WalletStatementScreenState extends ConsumerState<WalletStatementScreen> {
                 return _buildTransactionList(filteredTx);
               },
               loading: () => const Center(
-                  child: CircularProgressIndicator(color: Color(0xFF68B92E))),
-              error: (err, _) => Center(child: Text('Error: $err')),
+                  child: CircularProgressIndicator(color: AppColors.primary)),
+              error: (err, _) => Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.cloud_off_rounded, size: 56, color: Colors.grey.shade300),
+                    const SizedBox(height: 12),
+                    const Text('Could not load transactions',
+                        style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)),
+                    const SizedBox(height: 6),
+                    const Text('Pull down to try again',
+                        style: TextStyle(color: Colors.grey, fontSize: 13)),
+                  ],
+                ),
+              ),
             ),
           ),
         ],
@@ -115,7 +122,7 @@ class _WalletStatementScreenState extends ConsumerState<WalletStatementScreen> {
                     selected: isSelected,
                     onSelected: (val) =>
                         setState(() => _selectedDateFilter = filter),
-                    selectedColor: const Color(0xFF68B92E),
+                    selectedColor: AppColors.primary,
                     backgroundColor: const Color(0xFFF1F4F8),
                     elevation: 0,
                     pressElevation: 0,
@@ -146,7 +153,7 @@ class _WalletStatementScreenState extends ConsumerState<WalletStatementScreen> {
                             color: Colors.white)),
                     selected: true,
                     onSelected: (val) {},
-                    selectedColor: const Color(0xFF439462),
+                    selectedColor: AppColors.primaryDark,
                     backgroundColor: const Color(0xFFF1F4F8),
                     elevation: 0,
                     pressElevation: 0,
@@ -225,7 +232,7 @@ class _WalletStatementScreenState extends ConsumerState<WalletStatementScreen> {
             children: [
               _buildSummaryItem(
                   'Total money added', '+₹${totalCredit.toStringAsFixed(0)}',
-                  Colors.green),
+                  AppColors.primary),
               Container(width: 1, height: 30, color: Colors.white24),
               _buildSummaryItem('Expense', '-₹${totalDebit.toStringAsFixed(0)}',
                   Colors.redAccent),
@@ -363,9 +370,9 @@ class _TransactionItemWidget extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      transaction.category == 'Top-up'
-                          ? 'Wallet Top-up'
-                          : 'Order Payment',
+                      transaction.description.isNotEmpty 
+                          ? transaction.description 
+                          : (isCredit ? 'Wallet Top-up' : 'Order Payment'),
                       style: const TextStyle(
                           fontWeight: FontWeight.bold, fontSize: 14),
                     ),
@@ -392,7 +399,7 @@ class _TransactionItemWidget extends StatelessWidget {
                 style: TextStyle(
                   fontWeight: FontWeight.w900,
                   fontSize: 15,
-                  color: isCredit ? Colors.green : Colors.redAccent,
+                  color: isCredit ? AppColors.primary : Colors.redAccent,
                 ),
               ),
               const SizedBox(height: 4),
@@ -414,12 +421,12 @@ class _TransactionItemWidget extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: (isCredit ? Colors.green : Colors.grey).withValues(alpha: 0.1),
+        color: (isCredit ? AppColors.primary : Colors.grey).withValues(alpha: 0.1),
         shape: BoxShape.circle,
       ),
       child: Icon(
         isCredit ? Icons.add_rounded : Icons.shopping_bag_rounded,
-        color: isCredit ? Colors.green : Colors.grey[700],
+        color: isCredit ? AppColors.primary : Colors.grey[700],
         size: 20,
       ),
     );
@@ -429,7 +436,7 @@ class _TransactionItemWidget extends StatelessWidget {
     Color color;
     switch (status.toLowerCase()) {
       case 'success':
-        color = Colors.green;
+        color = AppColors.primary;
         break;
       case 'failed':
         color = Colors.red;

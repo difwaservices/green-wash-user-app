@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../models/food_models.dart';
 import '../network/api_client.dart';
 import 'socket_service.dart';
 
@@ -9,22 +10,26 @@ class OrderService {
   OrderService(this._apiClient);
 
   Future<Map<String, dynamic>> placeOrder({
+    required List<Map<String, dynamic>> items,
+    required double totalAmount,
     required Map<String, dynamic> deliveryAddress,
     required String paymentMethod,
+    String? deliverySlot,
   }) async {
     try {
       final response = await _apiClient.post(
         '${ApiClient.baseUrl}/orders',
         data: {
+          'items': items,
+          'totalAmount': totalAmount,
           'deliveryAddress': deliveryAddress,
           'paymentMethod': paymentMethod,
           'orderType': 'One-time',
+          if (deliverySlot != null) 'deliverySlot': deliverySlot,
         },
         requiresAuth: true,
       );
 
-      // ApiClient returns the response body as a Map.gterg
-      // If paymentStatus is Paid, or success is true, we consider it successful.
       return {
         'success': response['success'] ?? true,
         'order': response['order'] ?? response['data'],
@@ -38,64 +43,41 @@ class OrderService {
     }
   }
 
-  Future<List<dynamic>> getMyOrders() async {
+  Future<List<UserOrder>> getMyOrders() async {
     try {
       final response = await _apiClient.get(
         '${ApiClient.baseUrl}/orders/history',
         requiresAuth: true,
       );
 
-      debugPrint('OrderHistory Response Type: ${response.runtimeType}');
-
+      final List<dynamic> rawData;
       if (response is List) {
-        return response;
-      }
-
-      if (response is Map) {
-        debugPrint('OrderHistory Keys: ${response.keys.toList()}');
-
-        // Check various common keys
-        final directList = response['orders'] ??
-            response['data'] ??
-            response['history'] ??
-            response['items'];
-        if (directList is List) return directList;
-
-        // Handle nested data: { "data": { "orders": [...] } }
-        if (response['data'] is Map) {
-          final nestedList = response['data']['orders'] ??
-              response['data']['history'] ??
-              response['data']['items'];
-          if (nestedList is List) return nestedList;
+        rawData = response;
+      } else if (response is Map) {
+        final data = response['data'];
+        if (data is List) {
+          rawData = data;
+        } else if (data is Map) {
+          rawData = data['orders'] ?? data['history'] ?? [];
+        } else {
+          rawData = response['orders'] ?? response['history'] ?? [];
         }
-
-        // If the map itself looks like a single order or doesn't have list keys
-        return [];
+      } else {
+        rawData = [];
       }
 
-      return [];
-    } catch (e, stack) {
-      debugPrint('Error fetching orders from /orders/history: $e');
-      debugPrint('Stack trace: $stack');
-
-      // Attempt fallback to /orders/my if /orders/history failed or was empty
-      try {
-        final fallback = await _apiClient.get(
-          '${ApiClient.baseUrl}/orders/my',
-          requiresAuth: true,
-        );
-        if (fallback is List) return fallback;
-        if (fallback is Map)
-          return fallback['orders'] ??
-              fallback['data'] ??
-              fallback['history'] ??
-              [];
-      } catch (e2) {
-        debugPrint('Fallback /orders/my also failed: $e2');
-      }
-
+      // Senior Dev: Use isolate for mapping large lists of orders
+      return await compute(_parseOrders, rawData);
+    } catch (e) {
+      debugPrint('Error fetching orders: $e');
       return [];
     }
+  }
+
+  static List<UserOrder> _parseOrders(List<dynamic> data) {
+    return data
+        .map((e) => UserOrder.fromJson(e as Map<String, dynamic>))
+        .toList();
   }
 
   Future<Map<String, dynamic>> placeSpotOrder({
@@ -126,34 +108,47 @@ class OrderService {
     }
   }
 
-  Future<List<dynamic>> getActiveOrders() async {
+  Future<List<UserOrder>> getActiveOrders() async {
     try {
       final response = await _apiClient.get(
         '${ApiClient.baseUrl}/orders/active',
         requiresAuth: true,
       );
 
+      final List<dynamic> rawData;
       if (response is List) {
-        return response;
-      }
-
-      if (response is Map) {
+        rawData = response;
+      } else if (response is Map) {
+        // Robust checking for common list keys
         final directList = response['orders'] ??
             response['data'] ??
             response['activeOrders'] ??
-            response['items'];
-        if (directList is List) return directList;
-
-        if (response['data'] is Map) {
-          final nestedList =
-              response['data']['orders'] ?? response['data']['activeOrders'];
-          if (nestedList is List) return nestedList;
+            response['items'] ??
+            response['list'];
+            
+        if (directList is List) {
+           rawData = directList;
+        } else if (response['data'] is Map) {
+          rawData = response['data']['orders'] ?? 
+                    response['data']['activeOrders'] ?? 
+                    response['data']['items'] ?? 
+                    [];
+        } else if (response['activeOrders'] is Map) {
+          rawData = response['activeOrders']['orders'] ?? [];
+        } else {
+          // If response is a map but no list found, maybe the map itself is 
+          // a single order (though unlikely for this endpoint)
+          rawData = [];
         }
+      } else {
+        rawData = [];
       }
 
-      return [];
+      return rawData
+          .map((e) => UserOrder.fromJson(e as Map<String, dynamic>))
+          .toList();
     } catch (e) {
-      debugPrint('Error fetching active orders: $e');
+      debugPrint('OrderService: Error fetching active orders: $e');
       return [];
     }
   }
@@ -230,17 +225,20 @@ final orderServiceProvider = Provider<OrderService>((ref) {
   return OrderService(ref.watch(apiClientProvider));
 });
 
-final myOrdersProvider = FutureProvider.autoDispose<List<dynamic>>((ref) {
+final myOrdersProvider = FutureProvider.autoDispose<List<UserOrder>>((ref) async {
+  // keepAlive: order history can be large; cache it for the session so
+  // navigating to/from My Orders page doesn't trigger a full re-fetch.
+  ref.keepAlive();
   return ref.watch(orderServiceProvider).getMyOrders();
 });
 
 final activeOrdersProvider =
-    AsyncNotifierProvider<ActiveOrdersNotifier, List<dynamic>>(
+    AsyncNotifierProvider<ActiveOrdersNotifier, List<UserOrder>>(
         ActiveOrdersNotifier.new);
 
-class ActiveOrdersNotifier extends AsyncNotifier<List<dynamic>> {
+class ActiveOrdersNotifier extends AsyncNotifier<List<UserOrder>> {
   @override
-  Future<List<dynamic>> build() async {
+  Future<List<UserOrder>> build() async {
     // Listen for real-time order status updates from socket
     final socket = ref.watch(socketServiceProvider);
     socket.onOrderUpdate((data) {
@@ -255,19 +253,19 @@ class ActiveOrdersNotifier extends AsyncNotifier<List<dynamic>> {
     return _fetchActiveOrders();
   }
 
-  Future<List<dynamic>> _fetchActiveOrders() async {
+  Future<List<UserOrder>> _fetchActiveOrders() async {
     final service = ref.read(orderServiceProvider);
-
     try {
-      // Fetch full history to ensure we include everything "not delivered"
+      // 1. Try dedicated active orders endpoint
+      final active = await service.getActiveOrders();
+      if (active.isNotEmpty) return active;
+
+      // 2. Fallback: Parse history for anything not delivered/cancelled
+      // This ensures orders show up even if the /active endpoint is inconsistent
       final history = await service.getMyOrders();
-
-      if (history.isEmpty) return [];
-
       return history.where((o) {
-        final status = (o['status'] ?? '').toString().toLowerCase();
-        // The user specifically wants orders that are NOT "delivered"
-        return status != 'delivered';
+        final s = o.status.toLowerCase();
+        return s != 'delivered' && s != 'cancelled';
       }).toList();
     } catch (e) {
       debugPrint('Error in _fetchActiveOrders: $e');

@@ -4,89 +4,65 @@ import '../models/food_models.dart';
 import 'cart_service.dart';
 import 'wallet_service.dart';
 import 'address_service.dart';
+import 'shop_service.dart';
+import 'order_service.dart';
 import '../network/api_client.dart';
+import '../../core/constants/app_images.dart';
 
 class CartProvider extends ChangeNotifier {
   final CartService? _service;
   final WalletService? _walletService;
   final AddressService? _addressService;
+  final ShopService? _shopService;
+  final OrderService? _orderService;
   final List<CartItem> _items = [];
 
   CartProvider({
     CartService? service,
     WalletService? walletService,
     AddressService? addressService,
+    ShopService? shopService,
+    OrderService? orderService,
+    UserProfile? user,
   })  : _service = service,
         _walletService = walletService,
-        _addressService = addressService {
+        _addressService = addressService,
+        _shopService = shopService,
+        _orderService = orderService {
+    if (user != null) {
+      _userProfile = user;
+    }
+    loadCategories();
     loadAddresses();
     syncWallet();
+    loadShops();
+    if (isLoggedIn) {
+      loadCartFromApi();
+    }
   }
 
+  // ── Getters ───────────────────────────────────────────────────────────────
   AddressService? get addressService => _addressService;
+  List<CartItem> get items => _items;
+  UserProfile get userProfile => _userProfile;
+  List<FoodCategory> get foodCategories => _foodCategories;
+  List<Restaurant> get restaurants => _restaurants;
+  List<UserOrder> get orders => _orders;
+  List<UserAddress> get addresses => _addresses;
+
+  List<UserPaymentMethod> get payments => _payments;
 
   UserProfile _userProfile = const UserProfile(
     name: 'Guest User',
     email: '',
     phone: '',
-    profileImage: 'assets/images/image copy 2.png',
+    profileImage: AppImages.defaultAvatar,
   );
 
-  bool get isLoggedIn => _userProfile.email.isNotEmpty;
+  bool get isLoggedIn => _userProfile.email.isNotEmpty || _userProfile.phone.isNotEmpty;
 
-  final List<FoodCategory> _foodCategories = const [
-    FoodCategory(
-      id: '1',
-      name: 'White Shrimp',
-      image: 'assets/images/image copy 11.png',
-      colorValue: 0xFFFFF8E1, // Light Orange
-    ),
-    FoodCategory(
-      id: '2',
-      name: 'Tiger Shrimp',
-      image: 'assets/images/shrimp_tiger_trio.png',
-      colorValue: 0xFFE8F5E9, // Light Green
-    ),
-    FoodCategory(
-      id: '4',
-      name: 'Peeled Shrimp',
-      image: 'assets/images/shrimp_cooked_duo.png',
-      colorValue: 0xFFF3E5F5, // Light Purple
-    ),
-  ];
-
-  final List<Restaurant> _restaurants = const [
-    Restaurant(
-      id: '1',
-      name: 'New Pizza King',
-      image: 'assets/images/image copy 2.png',
-      rating: 4.2,
-      deliveryTime: '25-30 mins',
-      discount: '₹101 OFF above ₹149',
-      minOrder: '₹149',
-      categories: ['Pizza', 'Fast Food'],
-    ),
-    Restaurant(
-      id: '2',
-      name: 'Oven Story Pizza',
-      image: 'assets/images/image copy 2.png',
-      rating: 4.1,
-      deliveryTime: '20-25 mins',
-      discount: 'Items starting at ₹79',
-      minOrder: '₹79',
-      categories: ['Pizza'],
-    ),
-    Restaurant(
-      id: '3',
-      name: 'Radhe Ke Khas',
-      image: 'assets/images/image copy 2.png',
-      rating: 4.3,
-      deliveryTime: '10-15 mins',
-      discount: '₹101 OFF above ₹149',
-      minOrder: '₹149',
-      categories: ['North Indian'],
-    ),
-  ];
+  List<FoodCategory> _foodCategories = [];
+  final List<Restaurant> _restaurants = [];
 
   List<UserOrder> _orders = [];
   bool _isOrdersLoading = false;
@@ -109,15 +85,33 @@ class CartProvider extends ChangeNotifier {
   double get walletBalance => _walletBalance;
   List<dynamic> get transactions => _transactions;
 
+  bool _isWalletSyncing = false;
   Future<void> syncWallet() async {
-    if (_walletService == null) return;
-    final result = await _walletService!.getBalance();
-    if (result['success']) {
-      _walletBalance = (result['balance'] as num).toDouble();
+    if (_walletService == null || _isWalletSyncing) return;
+    _isWalletSyncing = true;
+    try {
+      final result = await _walletService!.getBalance();
+      if (result['success']) {
+        _walletBalance = (result['balance'] as num).toDouble();
+      }
+      _transactions = await _walletService!.getTransactionHistory();
       notifyListeners();
+    } catch (e) {
+      debugPrint('CartProvider: Error syncing wallet: $e');
+    } finally {
+      _isWalletSyncing = false;
     }
-    _transactions = await _walletService!.getTransactionHistory();
-    notifyListeners();
+  }
+
+  Future<void> syncOrders() async {
+    if (_orderService == null) return;
+    try {
+      final history = await _orderService!.getMyOrders();
+      _orders = history;
+      notifyListeners();
+    } catch (e) {
+      debugPrint('CartProvider: Error syncing orders: $e');
+    }
   }
 
   List<UserAddress> _addresses = [];
@@ -125,7 +119,6 @@ class CartProvider extends ChangeNotifier {
   int _selectedAddressIndex = 0;
 
   bool get isAddressesLoading => _isAddressesLoading;
-
   int get selectedAddressIndex => _selectedAddressIndex;
 
   void selectAddress(int index) {
@@ -139,332 +132,11 @@ class CartProvider extends ChangeNotifier {
         _selectedAddressIndex < _addresses.length) {
       return _addresses[_selectedAddressIndex];
     }
-    if (_addresses.isEmpty) return null;
     return _addresses.firstWhere((a) => a.isDefault,
         orElse: () => _addresses.first);
   }
 
-  final List<UserPaymentMethod> _payments = [
-    const UserPaymentMethod(
-      id: 'PAY001',
-      type: 'Visa',
-      lastFour: '4567',
-      expiry: '12/28',
-    ),
-    const UserPaymentMethod(
-      id: 'PAY002',
-      type: 'UPI',
-      lastFour: 'rajaji@upi',
-      expiry: '-',
-    ),
-  ];
-
-  final List<Product> _recommendedProducts = const [
-    Product(
-      id: 'p1',
-      name: 'White Shrimp',
-      image: 'assets/images/image copy 11.png',
-      price: 349,
-      weight: '500g',
-      category: 'White Shrimp',
-      description:
-          'White Shrimp is one of the most popular and widely consumed shrimp varieties across the world. Known for its mild flavor, firm texture, and high nutritional value, it is perfect for everyday home cooking as well as gourmet recipes. At Shrimpbite, our White Shrimp is sourced directly from trusted Indian aqua farmers, ensuring freshness, quality, and food safety in every pack.',
-      whyChoose: [
-        'Fresh and Naturally Sweet Flavor',
-        'Firm Texture ideal for frying, grilling, curries, and stir-fries',
-        'High in Protein & Low in Fat',
-        'Zero Preservatives & Antibiotic-Free',
-        'Sustainably Farmed & Hygienically Processed',
-        'Available in Multiple Sizes for All Cooking Needs',
-      ],
-    ),
-    Product(
-      id: 'p2',
-      name: 'Tiger Prawns',
-      image: 'assets/images/shrimp_tiger_trio.png',
-      price: 499,
-      weight: '1kg',
-      category: 'Tiger Shrimp',
-      isFavorite: true,
-      description:
-          'Tiger Prawns are known for their spectacular size and bold, sweet flavor. Their distinctive stripes make them a chef favorite for presentation. These Jumbo prawns are perfect for big feasts.',
-      whyChoose: [
-        'Large, juicy meat with a sweet finish',
-        'Perfect for tandoori, bbq, and grilling',
-        'Rich in Omega-3 fatty acids for heart health',
-        'Individually Quick Frozen to lock in peak freshness',
-        'Naturally sourced from sustainable coastal farms',
-      ],
-    ),
-    Product(
-      id: 'p3',
-      name: 'King Thai Shrimps',
-      image: 'assets/images/shrimp_lemon_herb.png',
-      price: 649,
-      weight: '500g',
-      category: 'White Shrimp',
-      description:
-          'Authentic King Thai Shrimps, marinated with subtle herbs for a unique coastal flavor. Best enjoyed sautéed or in light broths. A premium variety sought after for its delicate snap.',
-      whyChoose: [
-        'Premium export quality sourced for retail',
-        'De-veined and cleaned for your convenience',
-        'Consistent size and quality in every pack',
-        'Chemical-free and natural processing',
-      ],
-    ),
-    Product(
-      id: 'p4',
-      name: 'Cooked Prawns Duo',
-      image: 'assets/images/shrimp_cooked_duo.png',
-      price: 349,
-      weight: '250g',
-      category: 'Peeled Shrimp',
-      description:
-          'Perfectly steamed and ready-to-eat prawns. Save time in the kitchen without compromising on that fresh seaside taste. These are pre-peeled and cooked to perfection.',
-      whyChoose: [
-        'Ready to eat - just thaw and serve in minutes',
-        'Uniformly cooked to maintain juicy texture',
-        'Ideal for salads, rolls, and shrimp cocktails',
-        'No mess, no hassle cleaning needed',
-      ],
-    ),
-    Product(
-      id: 'p5',
-      name: 'Fresh Shrimps',
-      image: 'assets/images/shrimp_fresh_pile.png',
-      price: 249,
-      weight: '500g',
-      category: 'Peeled Shrimp',
-      description:
-          'Daily catch fresh shrimps, delivered straight from the coast to your kitchen. Vibrant, tender, and full of natural sea flavor. These are the foundation of any great seafood dish.',
-      whyChoose: [
-        'Caught and delivered within 24 hours of sea time',
-        'Never frozen, always fresh and chilled',
-        'Sweet coastal flavor with a clean finish',
-        'Hygienically sorted and packed in safe containers',
-      ],
-    ),
-    Product(
-      id: 'p6',
-      name: 'Spicy Prawn Curry',
-      image: 'assets/images/image copy 10.png',
-      price: 549,
-      weight: '1 portion',
-      category: 'Grocery',
-      description:
-          'Chef-crafted spicy prawn curry, ready to heat and eat. A perfect blend of traditional Indian spices and creamy coconut milk. Experience the authentic taste of the coast.',
-      whyChoose: [
-        'Authentic coastal recipe with secret spices',
-        'Ready in 5 minutes - heat and serve',
-        'Made with fresh, premium prawns',
-        'No artificial colors or added MSG',
-      ],
-    ),
-    Product(
-      id: 'p7',
-      name: 'Lemon Garlic Shrimp',
-      image: 'assets/images/image copy 5.png',
-      price: 599,
-      weight: '1 plate',
-      category: 'Grocery',
-      description:
-          'Tangy and buttery lemon garlic shrimp. A restaurant-style delicacy in the comfort of your home. Perfect for a quick dinner or a fancy appetizer.',
-      whyChoose: [
-        'Infused with fresh lemon zest and garlic',
-        'Tender, melt-in-your-mouth shrimp',
-        'Low calorie and high in protein',
-        'Chef-suggested pairing with sourdough or pasta',
-      ],
-    ),
-    Product(
-      id: 'p8',
-      name: 'Farm Fresh Prawns',
-      image: 'assets/images/image copy 3.png',
-      price: 429,
-      weight: '500g',
-      category: 'White Shrimp',
-      description:
-          'Quality prawns from our sustainably managed aqua farms. Healthy, safe, and delicious. We monitor every stage of growth to ensure the highest standards.',
-      whyChoose: [
-        'Traceable back to the farm of origin',
-        'Balanced diet for shrimps ensures better nutrition',
-        'Stringent quality checks at every harvest',
-        'Available year-round with consistent flavor',
-      ],
-    ),
-    Product(
-      id: 'p9',
-      name: 'Sizzling Garlic Shrimp',
-      image: 'assets/images/shrimp_dish_1.png',
-      price: 549,
-      weight: '250g',
-      category: 'Grocery',
-      description:
-          'Our best-selling Sizzling Garlic Shrimp is a flavor explosion. Tossed in a rich garlic butter sauce with a hint of chili, it is the ultimate comfort food for seafood lovers.',
-      whyChoose: [
-        'Intense garlic flavor in every bite',
-        'Perfectly sautéed to retain juice',
-        'Great source of lean protein',
-        'Top-rated by our regular customers',
-      ],
-    ),
-    Product(
-      id: 'p10',
-      name: 'Peppery Onion Prawns',
-      image: 'assets/images/shrimp_dish_2.png',
-      price: 489,
-      weight: '300g',
-      category: 'Grocery',
-      description:
-          'A rustic and hearty dish featuring prawns sautéed with crushed black pepper and caramelised onions. This dish brings out the earthy flavors of Indian coastal cuisine.',
-      whyChoose: [
-        'Traditional "Ved" style cooking inspiration',
-        'Freshly ground black pepper for a sharp kick',
-        'No added preservatives or processing',
-        'High in antioxidants from natural spices',
-      ],
-    ),
-    Product(
-      id: 'p11',
-      name: 'Honey Chilli Shrimp',
-      image: 'assets/images/shrimp_dish_3.png',
-      price: 599,
-      weight: '1 plate',
-      category: 'Grocery',
-      description:
-          'A delightful Indo-Chinese fusion dish. Crispy shrimp glazed in a sweet and spicy honey-chili sauce, topped with sesame seeds. A perfect party starter.',
-      whyChoose: [
-        'The perfect balance of sweet and spicy',
-        'Crispy texture with a juicy core',
-        'Restaurant-style quality at home',
-        'Guaranteed hit for all age groups',
-      ],
-    ),
-    Product(
-      id: 'p12',
-      name: 'Spicy Fried Shrimp',
-      image: 'assets/images/shrimp_dish_4.png',
-      price: 529,
-      weight: '400g',
-      category: 'Grocery',
-      description:
-          'Classic crispy fried shrimp with a spicy rub. These are golden-brown on the outside and tender on the inside. Served best with a tangy dip.',
-      whyChoose: [
-        'Extra crispy coating with signature spices',
-        'Ideal snack for game nights or gatherings',
-        'Sourced from the freshest daily catch',
-        'High nutritional value in every bite',
-      ],
-    ),
-    Product(
-      id: 'p13',
-      name: 'Zesty Lemon Prawns',
-      image: 'assets/images/shrimp_dish_5.png',
-      price: 649,
-      weight: '350g',
-      category: 'Tiger Shrimp',
-      description:
-          'Refresh your palate with these Zesty Lemon Prawns. Marinated in a citrusy blend of lemon juice, cilantro, and mild spices. Light and healthy.',
-      whyChoose: [
-        'Zesty and refreshing citrus flavor profile',
-        'Excellent for weight-watchers and healthy eaters',
-        'Rich in Vitamin C and Essential minerals',
-        'Pairs beautifully with grilled vegetables',
-      ],
-    ),
-    Product(
-      id: 'p14',
-      name: 'Classic Cooked Shrimps',
-      image: 'assets/images/shrimp_dish_6.png',
-      price: 599,
-      weight: '400g',
-      category: 'Peeled Shrimp',
-      description:
-          'Simple, elegant, and timeless. These shrimps are lightly seasoned and perfectly cooked to highlight their natural sweetness. The pure taste of Shrimpbite.',
-      whyChoose: [
-        'Pure taste of the ocean with minimal seasoning',
-        'Perfectly cleaned and deveined',
-        'Ideal for pastas, salads, and more',
-        'The gold standard of prepared seafood',
-      ],
-    ),
-    Product(
-      id: 'p15',
-      name: 'Fresh Broccoli',
-      image: 'assets/images/image copy 7.png',
-      price: 49,
-      weight: '250g',
-      category: 'Vegetables',
-      description:
-          'Farm-fresh green broccoli. rich in fiber and vitamins. Perfect for steamed sides or healthy stir-fries.',
-      whyChoose: [
-        'Organically grown without pesticides',
-        'High in antioxidants and vitamin K',
-        'Crispy and tender texture when cooked',
-      ],
-    ),
-    Product(
-      id: 'p16',
-      name: 'Red Bell Peppers',
-      image: 'assets/images/image copy 5.png',
-      price: 89,
-      weight: '2 pcs',
-      category: 'Vegetables',
-      description:
-          'Sweet and vibrant red bell peppers. Adds a crunch and color to any dish. Sourced daily for peak flavor.',
-      whyChoose: [
-        'Rich in Vitamin C and A',
-        'Versatile for salads, roasting, or stuffing',
-        'Sweet, low-acid flavor profile',
-      ],
-    ),
-    Product(
-      id: 'p18',
-      name: 'Organic Carrots',
-      image: 'assets/images/image copy 11.png',
-      price: 39,
-      weight: '500g',
-      category: 'Vegetables',
-      description:
-          'Sweet and crunchy organic carrots. Perfect for salads, juices, or as a healthy snack.',
-      whyChoose: [
-        'Loaded with Beta-Carotene',
-        'Farm-fresh and soil-grown',
-        'Great for eye health',
-      ],
-    ),
-    Product(
-      id: 'p20',
-      name: 'Baby Spinach',
-      image: 'assets/images/image copy 7.png',
-      price: 29,
-      weight: '100g',
-      category: 'Vegetables',
-      description:
-          'Tender baby spinach leaves, pre-washed and ready for your salads or green smoothies.',
-      whyChoose: [
-        'Iron-rich superfood',
-        'Zero pesticide residue',
-        'Delicate and mild flavor',
-      ],
-    ),
-  ];
-
-  List<Product> getProductsByCategory(String category) {
-    return _recommendedProducts
-        .where((p) => p.category.toLowerCase() == category.toLowerCase())
-        .toList();
-  }
-
-  List<Product> get recommendedProducts => _recommendedProducts;
-
-  List<CartItem> get items => List.unmodifiable(_items);
-  List<FoodCategory> get foodCategories => _foodCategories;
-  List<Restaurant> get restaurants => _restaurants;
-  List<UserOrder> get orders => _orders;
-  List<UserAddress> get addresses => _addresses;
-  List<UserPaymentMethod> get payments => _payments;
-  UserProfile get userProfile => _userProfile;
+  final List<UserPaymentMethod> _payments = [];
 
   void updateUserProfile(UserProfile profile) {
     _userProfile = profile;
@@ -476,15 +148,68 @@ class CartProvider extends ChangeNotifier {
       name: 'Guest User',
       email: '',
       phone: '',
-      profileImage: 'assets/images/image copy 2.png',
+      profileImage: AppImages.defaultAvatar,
     );
     _items.clear();
     _favoriteIds.clear();
+    _addresses.clear();
+    _orders.clear();
+    _transactions.clear();
+    _walletBalance = 0.0;
+    _selectedAddressIndex = 0;
     notifyListeners();
   }
 
+  /// Syncs local guest cart items to the server after login.
+  Future<void> syncLocalCartToServer() async {
+    if (!isLoggedIn || _service == null || _items.isEmpty) return;
+    
+    debugPrint('🛒 Syncing ${_items.length} local items to server...');
+    for (final item in _items) {
+      try {
+        await _service!.addToCart(item.id, item.quantity);
+      } catch (e) {
+        debugPrint('⚠️ Failed to sync item ${item.title} to server: $e');
+      }
+    }
+    // After syncing, reload the full cart from API to ensure everything is in sync
+    await loadCartFromApi();
+  }
+
   // ── API Integration ───────────────────────────────────────────────────────
-  /// Syncs the local cart with the backend.
+  Future<void> loadCategories() async {
+    if (_shopService == null) return;
+    try {
+      _foodCategories = await _shopService!.getCategories();
+      notifyListeners();
+    } catch (e) {
+      debugPrint('CartProvider: Error loading categories: $e');
+    }
+  }
+
+  Future<void> loadShops() async {
+    if (_shopService == null) return;
+    try {
+      final shops = await _shopService!.getShops();
+      _restaurants.clear();
+      // Map ShopModel to Restaurant model used in Home UI
+      for (var s in shops) {
+        _restaurants.add(Restaurant(
+          id: s.id,
+          name: s.name,
+          image: s.image,
+          rating: s.rating,
+          deliveryTime: s.deliveryTime,
+          discount: 'Free Delivery',
+          minOrder: '₹0 min',
+        ));
+      }
+      notifyListeners();
+    } catch (e) {
+      debugPrint('CartProvider: Error loading shops: $e');
+    }
+  }
+
   Future<void> loadCartFromApi() async {
     if (_service == null) return;
     try {
@@ -497,24 +222,10 @@ class CartProvider extends ChangeNotifier {
     }
   }
 
-  final List<String> _favoriteIds = ['1', '3']; // Default favorites for demo
+  final List<String> _favoriteIds = [];
 
   List<Restaurant> get favRestaurants {
     if (_restaurants.isEmpty) return [];
-    
-    final List<Restaurant> favs = [];
-    for (var id in _favoriteIds) {
-      final r = _restaurants.firstWhere((res) => res.id == id,
-          orElse: () => _restaurants.first);
-      if (!_favoriteIds.contains(r.id)) {
-        continue; // Double check but it should be fine
-      }
-      if (!favs.contains(r)) {
-        favs.add(r);
-      }
-    }
-    
-    // Correct way: map ids to restaurants in order
     return _favoriteIds
         .map((id) => _restaurants.firstWhere((r) => r.id == id,
             orElse: () => _restaurants.first))
@@ -544,22 +255,29 @@ class CartProvider extends ChangeNotifier {
   void addAddress(UserAddress address) async {
     if (_addressService != null) {
       final addressParts = address.details.split(',');
-      final cityName = addressParts.isNotEmpty ? addressParts.first.trim() : 'City';
-      final result = await _addressService!.saveAddress(
-        label: address.title,
-        fullAddress: address.street,
-        city: cityName,
-        state: address.details.contains(',')
-            ? address.details.split(',')[1].trim()
-            : '',
-        pincode: address.details.split(' ').last,
-        isDefault: address.isDefault,
-      );
-      if (result['success']) {
-        loadAddresses();
+      final cityName =
+          addressParts.isNotEmpty ? addressParts.first.trim() : 'City';
+      try {
+        final result = await _addressService!.saveAddress(
+          fullName: address.fullName,
+          email: address.email,
+          label: address.title,
+          fullAddress: address.street,
+          city: cityName,
+          state: address.details.contains(',')
+              ? address.details.split(',')[1].trim()
+              : '',
+          pincode: address.details.split(' ').last,
+          isDefault: address.isDefault,
+        );
+        if (result['success']) {
+          loadAddresses();
+        }
+      } catch (e) {
+        debugPrint('CartProvider: Error adding address: $e');
+        // Prevent unhandled exception from crashing the app
       }
     } else {
-      // Fallback for local testing
       if (address.isDefault) {
         for (int i = 0; i < _addresses.length; i++) {
           _addresses[i] = UserAddress(
@@ -599,11 +317,12 @@ class CartProvider extends ChangeNotifier {
                   street: json['fullAddress'] ?? '',
                   details:
                       '${json['city'] ?? ''}, ${json['state'] ?? ''} ${json['pincode'] ?? ''}',
+                  fullName: json['fullName'] ?? '',
+                  email: json['email'] ?? '',
                   isDefault: json['isDefault'] ?? false,
                 ))
             .toList();
 
-        // Reset selection to default address if available
         final defaultIdx = _addresses.indexWhere((a) => a.isDefault);
         if (defaultIdx != -1) {
           _selectedAddressIndex = defaultIdx;
@@ -644,12 +363,9 @@ class CartProvider extends ChangeNotifier {
   }
 
   int get itemCount => _items.fold(0, (sum, item) => sum + item.quantity);
-
   double get subtotal => _items.fold(0.0, (sum, item) => sum + item.totalPrice);
-
-  double get shippingCharges => _items.isEmpty ? 0.0 : 1.6;
-
-  double get total => subtotal + shippingCharges;
+  double get shippingCharges => 0.0;
+  double get total => subtotal;
 
   bool isInCart(String title) {
     return _items.any((item) => item.title == title);
@@ -661,48 +377,49 @@ class CartProvider extends ChangeNotifier {
   bool isSameShop(String? shopId) {
     if (_items.isEmpty) return true;
     if (shopId == null) return true;
-    return cartShopId == shopId;
+    // Check if any item in cart belongs to a different shop
+    return _items.every((item) => item.shopId == shopId);
   }
 
   void addToCart(CartItem cartItem) {
-    final idx = _items.indexWhere((item) => item.title == cartItem.title);
+    final idx = _items.indexWhere((item) => item.id == cartItem.id);
     if (idx >= 0) {
       _items[idx].quantity += cartItem.quantity;
-      if (_service != null) {
+      if (isLoggedIn && _service != null) {
         _service!.updateQuantity(_items[idx].id, _items[idx].quantity);
       }
     } else {
       _items.add(cartItem);
-      if (_service != null) {
+      if (isLoggedIn && _service != null) {
         _service!.addToCart(cartItem.id, cartItem.quantity);
       }
     }
     notifyListeners();
   }
 
-  void increment(String title) {
-    final idx = _items.indexWhere((item) => item.title == title);
+  void increment(String id) {
+    final idx = _items.indexWhere((item) => item.id == id);
     if (idx >= 0) {
       _items[idx].quantity++;
-      if (_service != null) {
+      if (isLoggedIn && _service != null) {
         _service!.updateQuantity(_items[idx].id, _items[idx].quantity);
       }
       notifyListeners();
     }
   }
 
-  void decrement(String title) {
-    final idx = _items.indexWhere((item) => item.title == title);
+  void decrement(String id) {
+    final idx = _items.indexWhere((item) => item.id == id);
     if (idx >= 0) {
       final itemId = _items[idx].id;
       if (_items[idx].quantity > 1) {
         _items[idx].quantity--;
-        if (_service != null) {
+        if (isLoggedIn && _service != null) {
           _service!.updateQuantity(itemId, _items[idx].quantity);
         }
       } else {
         _items.removeAt(idx);
-        if (_service != null) {
+        if (isLoggedIn && _service != null) {
           _service!.removeFromCart(itemId);
         }
       }
@@ -710,9 +427,16 @@ class CartProvider extends ChangeNotifier {
     }
   }
 
-  void removeItem(String title) {
-    _items.removeWhere((item) => item.title == title);
-    notifyListeners();
+  void removeItem(String id) {
+    final idx = _items.indexWhere((item) => item.id == id);
+    if (idx >= 0) {
+      final itemId = _items[idx].id;
+      _items.removeAt(idx);
+      if (isLoggedIn && _service != null) {
+        _service!.removeFromCart(itemId);
+      }
+      notifyListeners();
+    }
   }
 
   void clearCart() {
@@ -722,9 +446,58 @@ class CartProvider extends ChangeNotifier {
     }
     notifyListeners();
   }
+
+  Future<Map<String, dynamic>> checkout({
+    String paymentMethod = 'Wallet',
+    String? deliverySlot,
+  }) async {
+    if (_orderService == null)
+      return {'success': false, 'message': 'Order service not available'};
+    if (selectedAddress == null)
+      return {'success': false, 'message': 'Please select a delivery address'};
+
+    final addr = selectedAddress!;
+    // Parse address details back to parts for the API
+    final detailsParts = addr.details.split(',');
+    final city = detailsParts.isNotEmpty ? detailsParts[0].trim() : '';
+    final statePin = detailsParts.length > 1 ? detailsParts[1].trim() : '';
+    final pin = statePin.contains(' ') ? statePin.split(' ').last : '';
+    final state = statePin.contains(' ')
+        ? statePin.substring(0, statePin.lastIndexOf(' ')).trim()
+        : statePin;
+
+    final deliveryAddress = {
+      'address': addr.street,
+      'city': city,
+      'state': state,
+      'pincode': pin,
+    };
+
+    final itemsMap = _items.map((item) => {
+      'product': item.id,
+      'retailer': item.shopId,
+      'quantity': item.quantity,
+      'price': item.unitPrice,
+    }).toList();
+
+    final result = await _orderService!.placeOrder(
+      items: itemsMap,
+      totalAmount: total,
+      deliveryAddress: deliveryAddress,
+      paymentMethod: paymentMethod,
+      deliverySlot: deliverySlot,
+    );
+
+    if (result['success']) {
+      _items.clear();
+      notifyListeners();
+      // Update wallet balance after purchase
+      syncWallet();
+    }
+    return result;
+  }
 }
 
-// InheritedNotifier wrapper so screens can access CartProvider without extra packages
 class CartProviderScope extends InheritedNotifier<CartProvider> {
   const CartProviderScope({
     super.key,

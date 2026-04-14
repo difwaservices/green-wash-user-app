@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:licius_application/app/data/services/db_service.dart';
+import 'package:difwawaterapp/app/data/services/db_service.dart';
 import '../../../data/services/order_service.dart';
 import '../../../data/services/subscription_service.dart';
+import '../../../core/constants/app_colors.dart';
+import '../../../data/services/wallet_service.dart';
 import 'order_success_page.dart';
+
+import '../../../data/services/shop_service.dart';
 
 class PaymentMethodPage extends ConsumerStatefulWidget {
   const PaymentMethodPage({super.key});
@@ -17,6 +21,50 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
   int _orderType = 0; // 0: One-time, 1: Scheduled
   String _frequency = 'Daily';
   List<String> _selectedDays = [];
+  String? _selectedSlot;
+
+  /// Show a clean, user-friendly snackbar — no 'Exception:' prefix ever shown.
+  void _showError(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const Icon(Icons.info_outline, color: Colors.white, size: 18),
+            const SizedBox(width: 10),
+            Expanded(child: Text(message, style: const TextStyle(fontSize: 14))),
+          ],
+        ),
+        backgroundColor: const Color(0xFF0891B2),
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        duration: const Duration(seconds: 3),
+      ),
+    );
+  }
+
+  Future<void> _refreshAfterPurchase(WidgetRef ref, CartProvider cartProvider) async {
+    // 1. Sync the CartProvider's internal wallet and orders state
+    await cartProvider.syncWallet();
+    await cartProvider.syncOrders();
+    
+    // 2. Invalidate Riverpod providers to force global UI updates
+    ref.invalidate(walletBalanceProvider);
+    ref.invalidate(walletHistoryProvider);
+    ref.invalidate(walletTransactionsProvider);
+    ref.invalidate(activeOrdersProvider);
+    ref.invalidate(myOrdersProvider);
+    
+    // 3. Refresh subscriptions list notifier
+    if (mounted) {
+      ref.invalidate(mySubscriptionsProvider);
+    }
+    
+    // 4. Clear the cart
+    cartProvider.clearCart();
+  }
+
   late DateTime _startDate;
   final List<String> _frequencies = [
     'Daily',
@@ -62,7 +110,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
       builder: (context, child) => Theme(
         data: Theme.of(context).copyWith(
           colorScheme: const ColorScheme.light(
-            primary: Color(0xFF439462),
+            primary: AppColors.primary,
             onPrimary: Colors.white,
             surface: Colors.white,
           ),
@@ -109,31 +157,39 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                       _PaymentMethodTile(
                         index: 3,
                         selected: true,
-                        onTap: () => Navigator.pushNamed(context, '/wallet'),
+                        onTap: () async {
+                          await Navigator.pushNamed(context, '/wallet');
+                          if (mounted) {
+                            CartProviderScope.of(context).syncWallet();
+                          }
+                        },
                         label: 'Wallet',
                         child: const Icon(Icons.account_balance_wallet_rounded,
-                            size: 28, color: Color(0xFF439462)),
+                            size: 28, color: AppColors.primary),
                       ),
                     ],
                   ),
                   const SizedBox(height: 24),
                   GestureDetector(
-                    onTap: () {
-                      Navigator.pushNamed(context, '/wallet');
+                    onTap: () async {
+                      await Navigator.pushNamed(context, '/wallet');
+                      if (mounted) {
+                        CartProviderScope.of(context).syncWallet();
+                      }
                     },
                     child: Container(
                       padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF439462).withValues(alpha: 0.1),
+                        color: AppColors.primary.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
                             color:
-                                const Color(0xFF439462).withValues(alpha: 0.3)),
+                                AppColors.primary.withValues(alpha: 0.3)),
                       ),
                       child: Row(
                         children: [
                           const Icon(Icons.account_balance_wallet_rounded,
-                              color: Color(0xFF439462), size: 32),
+                              color: AppColors.primary, size: 32),
                           const SizedBox(width: 16),
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -146,7 +202,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                                 style: const TextStyle(
                                     fontSize: 20,
                                     fontWeight: FontWeight.bold,
-                                    color: Color(0xFF439462)),
+                                    color: AppColors.primary),
                               ),
                             ],
                           ),
@@ -158,7 +214,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                                     fontWeight: FontWeight.bold,
                                     fontSize: 12)),
                           const Icon(Icons.arrow_forward_ios,
-                              size: 16, color: Color(0xFF439462)),
+                              size: 16, color: AppColors.primary),
                         ],
                       ),
                     ),
@@ -221,7 +277,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                               style: const TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 18,
-                                  color: Color(0xFF439462)),
+                                  color: AppColors.primary),
                             ),
                           ],
                         ),
@@ -272,7 +328,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                             _frequency = f;
                             if (f != 'Weekly') _selectedDays = [];
                           }),
-                          selectedColor: const Color(0xFF439462),
+                          selectedColor: AppColors.primary,
                           labelStyle: TextStyle(
                               color: isSel ? Colors.white : Colors.black,
                               fontWeight:
@@ -307,12 +363,12 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                               height: 44,
                               decoration: BoxDecoration(
                                 color: selected
-                                    ? const Color(0xFF439462)
+                                    ? AppColors.primary
                                     : Colors.white,
                                 borderRadius: BorderRadius.circular(10),
                                 border: Border.all(
                                   color: selected
-                                      ? const Color(0xFF439462)
+                                      ? AppColors.primary
                                       : Colors.grey.shade300,
                                 ),
                               ),
@@ -352,19 +408,19 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: const Color(0xFF439462)),
+                          border: Border.all(color: AppColors.primary),
                         ),
                         child: Row(
                           children: [
                             const Icon(Icons.calendar_today_outlined,
-                                color: Color(0xFF439462), size: 20),
+                                color: AppColors.primary, size: 20),
                             const SizedBox(width: 12),
                             Text(
                               '${_startDate.day.toString().padLeft(2, '0')} / ${_startDate.month.toString().padLeft(2, '0')} / ${_startDate.year}',
                               style: const TextStyle(
                                   fontSize: 15,
                                   fontWeight: FontWeight.bold,
-                                  color: Color(0xFF439462)),
+                                  color: AppColors.primary),
                             ),
                             const Spacer(),
                             const Text('Tap to change',
@@ -376,6 +432,65 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                     ),
                     const SizedBox(height: 24),
                   ],
+                  const Text('Delivery Slot',
+                      style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF1F2937))),
+                  const SizedBox(height: 12),
+                  ref.watch(shopDetailsProvider(cartProvider.cartShopId ?? '')).when(
+                        data: (shop) {
+                          final slots = shop?.deliverySlots ?? [];
+                          if (slots.isEmpty) {
+                            return Text('No slots available',
+                                style: TextStyle(color: Colors.grey.shade500));
+                          }
+                          // Verify current slot is still valid
+                          if (_selectedSlot != null && !slots.contains(_selectedSlot)) {
+                            WidgetsBinding.instance.addPostFrameCallback((_) {
+                              setState(() => _selectedSlot = null);
+                            });
+                          }
+                          return SizedBox(
+                            height: 50,
+                            child: ListView.builder(
+                              scrollDirection: Axis.horizontal,
+                              itemCount: slots.length,
+                              itemBuilder: (context, index) {
+                                final slot = slots[index];
+                                final isSelected = _selectedSlot == slot;
+                                return Padding(
+                                  padding: const EdgeInsets.only(right: 8),
+                                  child: ChoiceChip(
+                                    label: Text(slot),
+                                    selected: isSelected,
+                                    onSelected: (val) =>
+                                        setState(() => _selectedSlot = slot),
+                                    selectedColor: AppColors.primary,
+                                    labelStyle: TextStyle(
+                                        color: isSelected
+                                            ? Colors.white
+                                            : Colors.black,
+                                        fontWeight: isSelected
+                                            ? FontWeight.bold
+                                            : FontWeight.normal),
+                                  ),
+                                );
+                              },
+                            ),
+                          );
+                        },
+                        loading: () => const Center(
+                            child: SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator())),
+                        error: (_, __) => Text(
+                          'Could not load delivery slots. Pull to refresh.',
+                          style: TextStyle(color: Colors.grey.shade500, fontSize: 13),
+                        ),
+                      ),
+                  const SizedBox(height: 32),
                 ],
               ),
             ),
@@ -389,88 +504,96 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                 onPressed: _isLoading
                     ? null
                     : () async {
+                        // ── Validate user inputs BEFORE setting loading ────────
+                        final selectedAddr = cartProvider.selectedAddress;
+                        if (selectedAddr == null) {
+                          _showError('Please select a delivery address to continue.');
+                          return;
+                        }
+                        if (cartProvider.walletBalance < cartProvider.total) {
+                          _showError('Your wallet balance is low. Please top up to proceed.');
+                          return;
+                        }
+                        if (_orderType == 1 && _frequency == 'Weekly' && _selectedDays.isEmpty) {
+                          _showError('Please choose at least one day for your weekly delivery.');
+                          return;
+                        }
+                        if (_selectedSlot == null) {
+                          _showError('Please choose a delivery time slot.');
+                          return;
+                        }
+
                         setState(() => _isLoading = true);
-                        final messenger = ScaffoldMessenger.of(context);
                         final navigator = Navigator.of(context);
                         try {
-                          final selectedAddr = cartProvider.selectedAddress;
-                          if (selectedAddr == null) {
-                            throw Exception('Please select a delivery address');
-                          }
-
-                          if (cartProvider.walletBalance < cartProvider.total) {
-                            throw Exception(
-                                'Insufficient wallet balance. Please top up.');
-                          }
-
                           final deliveryAddressMap = {
                             'address': selectedAddr.street,
-                            'city':
-                                selectedAddr.details.split(',').first.trim(),
+                            'city': selectedAddr.details.split(',').first.trim(),
                             'state': selectedAddr.details.contains(',')
-                                ? selectedAddr.details
-                                    .split(',')[1]
-                                    .trim()
-                                    .split(' ')
-                                    .first
+                                ? selectedAddr.details.split(',')[1].trim().split(' ').first
                                 : 'Unknown',
                             'pincode': selectedAddr.details.split(' ').last,
                           };
 
                           if (_orderType == 1) {
                             // SCHEDULED ORDER
-                            final subService =
-                                ref.read(subscriptionServiceProvider);
+                            final subService = ref.read(subscriptionServiceProvider);
                             for (final item in cartProvider.items) {
                               final res = await subService.subscribeToProduct(
                                 productId: item.id,
                                 frequency: _frequency,
                                 quantity: item.quantity,
-                                customDays:
-                                    _frequency == 'Weekly' ? _selectedDays : [],
+                                customDays: _frequency == 'Weekly' ? _selectedDays : [],
                                 startDate: _startDate,
+                                deliverySlot: _selectedSlot,
                               );
                               if (res['success'] != true) {
-                                throw Exception(res['message'] ??
-                                    'Failed to subscribe ${item.title}');
+                                _showError(res['message'] ?? 'Could not subscribe to ${item.title}. Please try again.');
+                                return;
                               }
                             }
-                            // Success path for all items
-                            await cartProvider.syncWallet();
-                            cartProvider.clearCart();
+                            await _refreshAfterPurchase(ref, cartProvider);
+                            if (!mounted) return;
                             navigator.pushAndRemoveUntil(
-                                MaterialPageRoute(
-                                    builder: (_) => const OrderSuccessPage()),
+                                MaterialPageRoute(builder: (_) => const OrderSuccessPage()),
                                 (route) => route.isFirst);
                           } else {
                             // ONE-TIME ORDER
                             final orderService = ref.read(orderServiceProvider);
+                            final itemsMap = cartProvider.items.map((item) => {
+                                'product': item.id,
+                                'retailer': item.shopId,
+                                'quantity': item.quantity,
+                                'price': item.unitPrice,
+                              }).toList();
+
                             final response = await orderService.placeOrder(
+                                items: itemsMap,
+                                totalAmount: cartProvider.total,
                                 deliveryAddress: deliveryAddressMap,
-                                paymentMethod: 'Wallet');
+                                paymentMethod: 'Wallet',
+                                deliverySlot: _selectedSlot);
+
                             if (response['success'] == true) {
-                              await cartProvider.syncWallet();
-                              cartProvider.clearCart();
-                              ref.invalidate(activeOrdersProvider);
+                              await _refreshAfterPurchase(ref, cartProvider);
+                              if (!mounted) return;
                               navigator.pushAndRemoveUntil(
                                   MaterialPageRoute(
-                                      builder: (_) => OrderSuccessPage(
-                                          order: response['order'])),
+                                      builder: (_) => OrderSuccessPage(order: response['order'])),
                                   (route) => route.isFirst);
                             } else {
-                              throw Exception(response['message'] ??
-                                  'Failed to place order');
+                              _showError(response['message'] ?? 'Order could not be placed. Please try again.');
                             }
                           }
-                        } catch (e) {
-                          messenger.showSnackBar(
-                              SnackBar(content: Text('Error: $e')));
+                        } catch (_) {
+                          // Unexpected network/server error — never show raw exception to user
+                          _showError('Something went wrong. Please check your connection and try again.');
                         } finally {
                           if (mounted) setState(() => _isLoading = false);
                         }
                       },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF439462),
+                  backgroundColor: AppColors.primary,
                   foregroundColor: Colors.white,
                   elevation: 0,
                   shape: RoundedRectangleBorder(
@@ -514,16 +637,12 @@ class _TypeButton extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
           decoration: BoxDecoration(
-            color: selected ? const Color(0xFF439462) : Colors.white,
+            color: selected ? AppColors.primary : Colors.grey.shade200,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-                color:
-                    selected ? const Color(0xFF439462) : Colors.grey.shade200),
           ),
           child: Column(
             children: [
-              Icon(icon,
-                  color: selected ? Colors.white : Colors.grey, size: 24),
+              Icon(icon, color: selected ? Colors.white : Colors.grey, size: 24),
               const SizedBox(height: 8),
               Text(
                 label,
@@ -564,7 +683,7 @@ class _PaymentMethodTile extends StatelessWidget {
             color: Colors.white,
             borderRadius: BorderRadius.circular(12),
             border: selected
-                ? Border.all(color: const Color(0xFF38B24D), width: 2)
+                ? Border.all(color: AppColors.primary, width: 2)
                 : null,
           ),
           child: Column(
@@ -576,7 +695,7 @@ class _PaymentMethodTile extends StatelessWidget {
                 style: TextStyle(
                     fontSize: 12,
                     color: selected
-                        ? const Color(0xFF38B24D)
+                        ? AppColors.primary
                         : Colors.grey.shade600,
                     fontWeight: selected ? FontWeight.w600 : FontWeight.normal),
               ),
@@ -620,9 +739,9 @@ class _StepDot extends StatelessWidget {
   Widget build(BuildContext context) {
     final bool done = currentStep > stepIndex;
     final bool active = currentStep == stepIndex;
-    final Color bg = (done || active) ? const Color(0xFF68B92E) : Colors.white;
+    final Color bg = (done || active) ? AppColors.primary : Colors.white;
     final Color border =
-        (done || active) ? const Color(0xFF68B92E) : Colors.grey.shade300;
+        (done || active) ? AppColors.primary : Colors.grey.shade300;
     return Column(
       children: [
         Container(
@@ -649,7 +768,7 @@ class _StepDot extends StatelessWidget {
               fontSize: 10,
               fontWeight: FontWeight.w600,
               color: (done || active)
-                  ? const Color(0xFF38B24D)
+                  ? AppColors.primary
                   : Colors.grey.shade400,
               letterSpacing: 0.5),
         ),
@@ -666,7 +785,7 @@ class _StepLine extends StatelessWidget {
         child: Container(
           height: 2,
           margin: const EdgeInsets.only(bottom: 20),
-          color: active ? const Color(0xFF38B24D) : Colors.grey.shade300,
+          color: active ? AppColors.primary : Colors.grey.shade300,
         ),
       );
 }

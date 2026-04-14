@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
 import './profile_detail_page.dart';
 import './edit_profile_page.dart';
+import 'package:difwawaterapp/app/core/utils/auth_helper.dart';
+import 'package:difwawaterapp/core/state/auth_store.dart';
 import '../../../data/services/auth_service.dart' as auth;
 import '../../../data/models/auth_models.dart' as models;
 import '../../../data/services/db_service.dart';
@@ -9,9 +12,12 @@ import '../../../data/services/order_service.dart';
 import '../../../data/services/favorites_service.dart';
 import './my_orders_page.dart';
 import '../../auth/provider/auth_provider.dart';
-import '../../subscriptions/view/subscription_dashboard_page.dart';
+import '../../subscription/view/subscription_dashboard_page.dart';
+import '../../../data/services/subscription_service.dart';
 import '../../home/view/favorites_page.dart';
 import '../../../routes/app_routes.dart';
+import '../../../core/constants/app_colors.dart';
+import '../../../data/providers/notification_provider.dart';
 
 class ProfilePage extends ConsumerStatefulWidget {
   const ProfilePage({super.key});
@@ -23,14 +29,28 @@ class ProfilePage extends ConsumerStatefulWidget {
 class _ProfilePageState extends ConsumerState<ProfilePage> {
   @override
   Widget build(BuildContext context) {
-    final profileAsync = ref.watch(auth.userProfileProvider);
+    final isAuth = ref.watch(isAuthenticatedProvider);
+    if (!isAuth) {
+      return Scaffold(
+        backgroundColor: Colors.white,
+        body: AuthHelper.loginRequiredPlaceholder(
+          context: context,
+          featureName: 'Your Profile',
+          description:
+              'Manage your addresses, view order history, and personalize your experience.',
+        ),
+      );
+    }
 
+    // ── Primary: use cached user from the unified source of truth ─────────
+    final coreState = ref.watch(authStoreProvider);
+    final user = coreState is AuthAuthenticated ? coreState.user : null;
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
         child: RefreshIndicator(
           onRefresh: () => ref.refresh(auth.userProfileProvider.future),
-          color: const Color(0xFF114F3B),
+          color: AppColors.primaryDark,
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
             padding:
@@ -38,18 +58,31 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                profileAsync.when(
-                  data: (user) => _ProfileHeader(user: user),
-                  loading: () => const _ProfileHeaderSkeleton(),
-                  error: (e, _) => Center(child: Text('Error: $e')),
-                ),
+                // Prefer cached user; fall back to network fetch for real sessions
+                if (user != null)
+                  _ProfileHeader(user: user)
+                else
+                  ref.watch(auth.userProfileProvider).when(
+                        data: (user) => _ProfileHeader(user: user),
+                        loading: () => const _ProfileHeaderSkeleton(),
+                        error: (e, _) => const Center(
+                          child: Padding(
+                            padding: EdgeInsets.all(16),
+                            child: Text(
+                              'Could not load profile. Pull down to refresh.',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(color: Colors.grey, fontSize: 14),
+                            ),
+                          ),
+                        ),
+                      ),
                 const SizedBox(height: 30),
                 const _ActiveOrdersAndSubscriptions(),
                 const SizedBox(height: 24),
                 const Text(
                   'Quick Actions',
                   style: TextStyle(
-                      color: Color(0xFF114F3B),
+                      color: Color(0xFF0891B2),
                       fontSize: 16,
                       fontWeight: FontWeight.bold),
                 ),
@@ -118,13 +151,57 @@ class _ProfileHeader extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'Hello, ${name.split(' ').first}!',
-                style: const TextStyle(
-                  color: Color(0xFF114F3B),
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                ),
+              Row(
+                children: [
+                  Text(
+                    'Hello, ${name.isNotEmpty ? name.split(' ').first : 'User'}!',
+                    style: const TextStyle(
+                      color: Color(0xFF0891B2),
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  if (name.isEmpty || name.toLowerCase() == 'user')
+                    Padding(
+                      padding: const EdgeInsets.only(left: 12),
+                      child: GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => const EditProfilePage()),
+                          );
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF0891B2).withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: const Color(0xFF0891B2),
+                              width: 1,
+                            ),
+                          ),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.add, size: 14, color: Color(0xFF0891B2)),
+                              SizedBox(width: 4),
+                              Text(
+                                'Add Profile',
+                                style: TextStyle(
+                                  color: Color(0xFF0891B2),
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
               ),
               if (email.isNotEmpty)
                 Text(
@@ -149,13 +226,11 @@ class _ProfileHeader extends StatelessWidget {
                       const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
                     color: user.isShopActive
-                        ? const Color(0xFF68B92E).withOpacity(0.1)
+                        ? AppColors.primary.withOpacity(0.1)
                         : Colors.red.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: user.isShopActive
-                          ? const Color(0xFF68B92E)
-                          : Colors.red,
+                      color: user.isShopActive ? AppColors.primary : Colors.red,
                     ),
                   ),
                   child: Row(
@@ -165,8 +240,9 @@ class _ProfileHeader extends StatelessWidget {
                         width: 8,
                         height: 8,
                         decoration: BoxDecoration(
-                          color:
-                              user.isShopActive ? const Color(0xFF68B92E) : Colors.red,
+                          color: user.isShopActive
+                              ? AppColors.primary
+                              : Colors.red,
                           shape: BoxShape.circle,
                         ),
                       ),
@@ -175,7 +251,7 @@ class _ProfileHeader extends StatelessWidget {
                         user.isShopActive ? 'SHOP OPEN' : 'SHOP CLOSED',
                         style: TextStyle(
                           color: user.isShopActive
-                              ? const Color(0xFF114F3B)
+                              ? AppColors.primaryDark
                               : Colors.red,
                           fontSize: 10,
                           fontWeight: FontWeight.bold,
@@ -202,7 +278,7 @@ class _ProfileHeader extends StatelessWidget {
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFF114F3B).withValues(alpha: 0.3),
+                  color: AppColors.primaryDark.withValues(alpha: 0.3),
                   blurRadius: 20,
                   spreadRadius: 2,
                   offset: const Offset(0, 5),
@@ -210,14 +286,14 @@ class _ProfileHeader extends StatelessWidget {
               ],
             ),
             child: CircleAvatar(
-              backgroundColor: const Color(0xFFEBFFD7),
+              backgroundColor: AppColors.primaryLight,
               radius: 40,
               child: Text(
                 name.isNotEmpty ? name[0].toUpperCase() : 'U',
                 style: const TextStyle(
                   fontSize: 32,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF114F3B),
+                  color: AppColors.primaryDark,
                 ),
               ),
             ),
@@ -262,6 +338,12 @@ class _ActiveOrdersAndSubscriptions extends ConsumerWidget {
       orElse: () => 0,
     );
 
+    final subscriptionsAsync = ref.watch(mySubscriptionsProvider);
+    final activeSubsCount = subscriptionsAsync.maybeWhen(
+      data: (subs) => subs.length,
+      orElse: () => 0,
+    );
+
     return Row(
       children: [
         Expanded(
@@ -270,8 +352,9 @@ class _ActiveOrdersAndSubscriptions extends ConsumerWidget {
             child: Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: const Color(0xFFEBFFD7),
-                border: Border.all(color: const Color(0xFF114F3B).withOpacity(0.1)),
+                color: const Color(0xFFE0F7FA),
+                border: Border.all(
+                    color: const Color(0xFF00ACC1).withValues(alpha: 0.1)),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Column(
@@ -280,7 +363,7 @@ class _ActiveOrdersAndSubscriptions extends ConsumerWidget {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: const BoxDecoration(
-                      color: Color(0xFF114F3B),
+                      color: Color(0xFF00ACC1),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(Icons.inventory_2_outlined,
@@ -290,7 +373,7 @@ class _ActiveOrdersAndSubscriptions extends ConsumerWidget {
                   const Text(
                     'Active Orders',
                     style: TextStyle(
-                      color: Color(0xFF114F3B),
+                      color: Color(0xFF00838F),
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                     ),
@@ -300,23 +383,23 @@ class _ActiveOrdersAndSubscriptions extends ConsumerWidget {
                         ? '$activeOrdersCount Active Order${activeOrdersCount > 1 ? 's' : ''}'
                         : 'No Active Orders',
                     style: const TextStyle(
-                      color: Color(0xFF114F3B),
+                      color: Color(0xFF006064),
                       fontSize: 12,
                     ),
                   ),
                   const SizedBox(height: 12),
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 10, vertical: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(20),
                     ),
-                    child: const Text('Arriving in 15 mins',
+                    child: const Text('Track Live',
                         style: TextStyle(
-                            color: Color(0xFF114F3B),
+                            color: Color(0xFF00ACC1),
                             fontSize: 10,
-                            fontWeight: FontWeight.w500)),
+                            fontWeight: FontWeight.w600)),
                   ),
                 ],
               ),
@@ -330,8 +413,8 @@ class _ActiveOrdersAndSubscriptions extends ConsumerWidget {
             child: Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: const Color(0xFF114F3B),
-                border: Border.all(color: Colors.white.withOpacity(0.1)),
+                color: const Color(0xFF00ACC1),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Column(
@@ -340,11 +423,11 @@ class _ActiveOrdersAndSubscriptions extends ConsumerWidget {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFA5C9AD).withValues(alpha: 0.3),
+                      color: Colors.white.withValues(alpha: 0.2),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(Icons.card_membership_outlined,
-                        color: Color(0xFFA5C9AD), size: 20),
+                        color: Colors.white, size: 20),
                   ),
                   const SizedBox(height: 12),
                   const Text(
@@ -355,10 +438,12 @@ class _ActiveOrdersAndSubscriptions extends ConsumerWidget {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  const Text(
-                    '2 Active Plans',
-                    style: TextStyle(
-                      color: Color(0xFFA5C9AD),
+                  Text(
+                    activeSubsCount > 0
+                        ? '$activeSubsCount Active Plan${activeSubsCount > 1 ? 's' : ''}'
+                        : 'No Active Plans',
+                    style: const TextStyle(
+                      color: Colors.white70,
                       fontSize: 12,
                     ),
                   ),
@@ -367,12 +452,13 @@ class _ActiveOrdersAndSubscriptions extends ConsumerWidget {
                     padding:
                         const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFA5C9AD).withValues(alpha: 0.2),
+                      color: Colors.white.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(20),
                     ),
-                    child: const Text('Renewal Jun 11, 2023',
+                    child: Text(
+                        activeSubsCount > 0 ? 'Managed Live' : 'View Plans',
                         style:
-                            TextStyle(color: Color(0xFFA5C9AD), fontSize: 10)),
+                            const TextStyle(color: Colors.white, fontSize: 10)),
                   ),
                 ],
               ),
@@ -469,7 +555,7 @@ class _QuickActionBtn extends StatelessWidget {
                           : Icons.location_on_rounded,
                   color: isFavBtn && badgeCount > 0
                       ? Colors.red
-                      : const Color(0xFF114F3B),
+                      : AppColors.primaryDark,
                   size: 20,
                 ),
                 if (badgeCount > 0)
@@ -501,7 +587,7 @@ class _QuickActionBtn extends StatelessWidget {
               title,
               textAlign: TextAlign.center,
               style: const TextStyle(
-                  color: Color(0xFF114F3B),
+                  color: AppColors.primaryDark,
                   fontSize: 10,
                   fontWeight: FontWeight.w600),
             ),
@@ -512,14 +598,44 @@ class _QuickActionBtn extends StatelessWidget {
   }
 }
 
-class _ListTilesSection extends StatelessWidget {
+class _ListTilesSection extends ConsumerWidget {
   const _ListTilesSection();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final unreadCount = ref.watch(unreadNotificationsCountProvider);
     return Column(
-      children: const [
-        _ListTileItem(icon: Icons.notifications_none, title: 'Notifications'),
+      children: [
+        _ListTileItem(
+          icon: Icons.notifications_none_rounded, 
+          title: 'Notifications', 
+          color: const Color(0xFF0EA5E9),
+          badgeCount: unreadCount,
+        ),
+        const SizedBox(height: 12),
+        const _ListTileItem(
+          icon: Icons.help_outline_rounded, 
+          title: 'Help & Support',
+          color: Color(0xFF8B5CF6),
+        ),
+        const SizedBox(height: 12),
+        const _ListTileItem(
+          icon: Icons.info_outline_rounded, 
+          title: 'About Difwa',
+          color: Color(0xFF10B981),
+        ),
+        const SizedBox(height: 12),
+        const _ListTileItem(
+          icon: Icons.contact_support_outlined, 
+          title: 'Contact Us',
+          color: Color(0xFFF59E0B),
+        ),
+        const SizedBox(height: 12),
+        const _ListTileItem(
+          icon: Icons.star_outline_rounded, 
+          title: 'Rate Us',
+          color: Color(0xFFEF4444),
+        ),
       ],
     );
   }
@@ -528,38 +644,105 @@ class _ListTilesSection extends StatelessWidget {
 class _ListTileItem extends StatelessWidget {
   final IconData icon;
   final String title;
+  final Color color;
+  final int badgeCount;
 
-  const _ListTileItem({required this.icon, required this.title});
+  const _ListTileItem({
+    required this.icon, 
+    required this.title, 
+    required this.color,
+    this.badgeCount = 0,
+  });
+
+  void _handleTap(BuildContext context) async {
+    if (title == 'Notifications') {
+      Navigator.pushNamed(context, AppRoutes.notifications);
+    } else if (title == 'About Difwa') {
+      Navigator.pushNamed(context, AppRoutes.about);
+    } else if (title == 'Contact Us') {
+      Navigator.pushNamed(context, AppRoutes.contact);
+    } else if (title == 'Help & Support') {
+      Navigator.pushNamed(context, AppRoutes.help);
+    } else if (title == 'Rate Us') {
+      final Uri url = Uri.parse('https://play.google.com/store/apps/details?id=com.difmo.difwa');
+      if (await canLaunchUrl(url)) {
+        await launchUrl(url, mode: LaunchMode.externalApplication);
+      }
+    } else {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (context) => ProfileDetailPage(title: title)),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-              builder: (context) => ProfileDetailPage(title: title)),
-        );
-      },
+      onTap: () => _handleTap(context),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
           color: Colors.white,
-          border: Border.all(color: Colors.grey.shade200),
-          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: const Color(0xFFE2E8F0)),
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.02),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
         child: Row(
           children: [
-            Icon(icon, color: const Color(0xFF114F3B), size: 24),
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Icon(icon, color: color, size: 22),
+            ),
             const SizedBox(width: 16),
             Expanded(
-                child: Text(title,
+              child: Row(
+                children: [
+                  Text(
+                    title,
                     style: const TextStyle(
-                        color: Color(0xFF114F3B),
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600))),
-            const Icon(Icons.arrow_forward_ios_rounded,
-                color: Color(0xFFA5C9AD), size: 16),
+                      color: Color(0xFF1E293B),
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  if (badgeCount > 0) ...[
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: Colors.red,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(
+                        '$badgeCount',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            Icon(
+              Icons.arrow_forward_ios_rounded,
+              color: Colors.grey.shade300,
+              size: 14,
+            ),
           ],
         ),
       ),
@@ -577,7 +760,7 @@ class _SignOutButton extends ConsumerWidget {
       child: GestureDetector(
         onTap: () async {
           CartProviderScope.of(context).clearSession();
-          await ref.read(authProvider.notifier).logout();
+          await ref.read(authStoreProvider.notifier).logout();
           if (context.mounted) {
             Navigator.pushNamedAndRemoveUntil(
               context,
@@ -591,11 +774,11 @@ class _SignOutButton extends ConsumerWidget {
           children: const [
             Text('Sign Out',
                 style: TextStyle(
-                    color: Color(0xFF114F3B),
+                    color: AppColors.primaryDark,
                     fontWeight: FontWeight.bold,
                     fontSize: 16)),
             SizedBox(width: 8),
-            Icon(Icons.logout, color: Color(0xFF114F3B)),
+            Icon(Icons.logout, color: AppColors.primaryDark),
           ],
         ),
       ),

@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../data/models/food_models.dart';
 import '../../../data/services/order_service.dart';
 import '../../../data/services/socket_service.dart';
 import '../../auth/provider/auth_provider.dart';
+import '../../../core/constants/app_images.dart';
+import '../../../data/models/product_model.dart';
 
+import '../../../data/services/db_service.dart';
+import 'package:intl/intl.dart';
 // Local provider removed, using shared provider from order_service.dart
 
 
@@ -31,7 +36,7 @@ class _HeaderDelegate extends SliverPersistentHeaderDelegate {
             Container(
               decoration: const BoxDecoration(
                 image: DecorationImage(
-                  image: AssetImage('assets/images/image copy 10.png'),
+                  image: AssetImage(AppImages.waterHero),
                   fit: BoxFit.cover,
                   alignment: Alignment.center,
                 ),
@@ -74,8 +79,8 @@ class _HeaderDelegate extends SliverPersistentHeaderDelegate {
   @override
   double get minExtent => kToolbarHeight + 20;
   @override
-  bool shouldRebuild(covariant SliverPersistentHeaderDelegate oldDelegate) =>
-      true;
+  bool shouldRebuild(covariant _HeaderDelegate oldDelegate) =>
+      expandedHeight != oldDelegate.expandedHeight;
 }
 
 class OrdersPage extends ConsumerStatefulWidget {
@@ -97,6 +102,11 @@ class _OrdersPageState extends ConsumerState<OrdersPage> {
     if (user == null) return;
     final socket = ref.read(socketServiceProvider);
     socket.joinUserRoom(user.id);
+    socket.onOrderUpdate((data) {
+      if (!mounted) return;
+      ref.invalidate(myOrdersProvider);
+    });
+
     socket.onRiderAssigned((data) {
       if (!mounted) return;
       HapticFeedback.heavyImpact();
@@ -127,11 +137,11 @@ class _OrdersPageState extends ConsumerState<OrdersPage> {
               Container(
                 padding: const EdgeInsets.all(18),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF114F3B).withValues(alpha: 0.08),
+                  color: const Color(0xFF0891B2).withValues(alpha: 0.08),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(Icons.delivery_dining,
-                    size: 48, color: Color(0xFF114F3B)),
+                    size: 48, color: Color(0xFF0891B2)),
               ),
               const SizedBox(height: 20),
               const Text('🎉 Rider Assigned!',
@@ -145,7 +155,7 @@ class _OrdersPageState extends ConsumerState<OrdersPage> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(Icons.phone, color: Color(0xFF114F3B), size: 18),
+                    const Icon(Icons.phone, color: Color(0xFF0891B2), size: 18),
                     const SizedBox(width: 6),
                     Text(riderPhone,
                         style: const TextStyle(
@@ -159,13 +169,13 @@ class _OrdersPageState extends ConsumerState<OrdersPage> {
                     child: OutlinedButton(
                       onPressed: () => Navigator.pop(context),
                       style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: Color(0xFF114F3B)),
+                        side: const BorderSide(color: Color(0xFF0891B2)),
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12)),
                         padding: const EdgeInsets.symmetric(vertical: 12),
                       ),
                       child: const Text('OK',
-                          style: TextStyle(color: Color(0xFF114F3B))),
+                          style: TextStyle(color: Color(0xFF0891B2))),
                     ),
                   ),
                   if (riderPhone.isNotEmpty) ...[
@@ -177,7 +187,7 @@ class _OrdersPageState extends ConsumerState<OrdersPage> {
                           Navigator.pop(context);
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF114F3B),
+                          backgroundColor: const Color(0xFF0891B2),
                           shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12)),
                           padding: const EdgeInsets.symmetric(vertical: 12),
@@ -226,14 +236,19 @@ class _OrdersPageState extends ConsumerState<OrdersPage> {
                 child: Padding(
                   padding: const EdgeInsets.only(right: 16, top: 8),
                   child: IconButton(
-                    icon: const Icon(Icons.refresh, color: Color(0xFF114F3B)),
+                    icon: const Icon(Icons.refresh, color: Color(0xFF0891B2)),
                     onPressed: () => ref.invalidate(myOrdersProvider),
                   ),
                 ),
               ),
             ),
             ordersAsync.when(
-              data: (orders) => orders.isEmpty
+              data: (orders) {
+                final filteredOrders = orders
+                    .where((o) => o.status.toLowerCase() != 'cancelled')
+                    .toList();
+                
+                return filteredOrders.isEmpty
                   ? const SliverFillRemaining(
                       child: Center(
                         child: Text('No orders yet',
@@ -242,17 +257,22 @@ class _OrdersPageState extends ConsumerState<OrdersPage> {
                     )
                   : SliverPadding(
                       padding: const EdgeInsets.all(16),
-                      sliver: SliverList(
-                        delegate: SliverChildBuilderDelegate(
-                          (context, index) =>
-                              _LiveOrderCard(order: orders[index]),
-                          childCount: orders.length,
-                        ),
-                      ),
-                    ),
+                      sliver: Builder(builder: (context) {
+                        final sortedOrders = List<UserOrder>.from(filteredOrders)
+                          ..sort((a, b) => b.date.compareTo(a.date));
+                        return SliverList(
+                          delegate: SliverChildBuilderDelegate(
+                            (context, index) =>
+                                _LiveOrderCard(order: sortedOrders[index]),
+                            childCount: sortedOrders.length,
+                          ),
+                        );
+                      }),
+                    );
+              },
               loading: () => const SliverFillRemaining(
                 child: Center(
-                    child: CircularProgressIndicator(color: Color(0xFF114F3B))),
+                    child: CircularProgressIndicator(color: Color(0xFF0891B2))),
               ),
               error: (err, _) => SliverFillRemaining(
                 child: Center(child: Text('Error: $err')),
@@ -267,7 +287,7 @@ class _OrdersPageState extends ConsumerState<OrdersPage> {
 }
 
 class _LiveOrderCard extends StatefulWidget {
-  final Map<String, dynamic> order;
+  final UserOrder order;
   const _LiveOrderCard({required this.order});
 
   @override
@@ -294,39 +314,22 @@ class _LiveOrderCardState extends State<_LiveOrderCard>
     super.dispose();
   }
 
-  String get _title {
-    final items = widget.order['items'] as List<dynamic>? ?? [];
-    if (items.isEmpty) return 'Order';
-    final p = items.first['product'];
-    return (p is Map && p['name'] != null) ? p['name'].toString() : 'Order';
-  }
+  String get _title =>
+      widget.order.items.isNotEmpty ? widget.order.items.first.name : 'Order';
 
-  String get _description {
-    final items = widget.order['items'] as List<dynamic>? ?? [];
-    return items.map((i) {
-      final p = i['product'];
-      final name = p is Map ? p['name']?.toString() ?? 'Item' : 'Item';
-      return '${i['quantity']}x $name';
-    }).join(', ');
-  }
+  String get _description =>
+      widget.order.items.map((i) => '${i.quantity}x ${i.name}').join(', ');
 
-  double get _total {
-    final items = widget.order['items'] as List<dynamic>? ?? [];
-    return items.fold(0.0, (sum, i) {
-      final price = (i['price'] as num?)?.toDouble() ?? 0;
-      final qty = (i['quantity'] as num?)?.toDouble() ?? 1;
-      return sum + price * qty;
-    });
-  }
+  double get _total => widget.order.total;
 
-  String get _status => widget.order['status']?.toString() ?? 'Pending';
+  String get _status => widget.order.status;
 
   bool get _isDelivered => _status.toLowerCase() == 'delivered';
 
   Color get _statusColor {
     switch (_status.toLowerCase()) {
       case 'delivered':
-        return const Color(0xFF2E7D32);
+        return const Color(0xFF0891B2);
       case 'cancelled':
         return Colors.red;
       case 'out for delivery':
@@ -347,27 +350,33 @@ class _LiveOrderCardState extends State<_LiveOrderCard>
     }
   }
 
-  String get _imageUrl {
-    final items = widget.order['items'] as List<dynamic>? ?? [];
-    if (items.isEmpty) return '';
-    final p = items.first['product'];
-    if (p is Map) {
-      final imgs = p['images'] as List<dynamic>?;
-      return (imgs != null && imgs.isNotEmpty) ? imgs.first.toString() : '';
-    }
-    return '';
-  }
+  String get _imageUrl =>
+      widget.order.items.isNotEmpty ? widget.order.items.first.image : '';
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onDoubleTap: () {
-        HapticFeedback.mediumImpact();
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('Added to cart for reorder!'),
-          backgroundColor: Color(0xFF114F3B),
-        ));
-        _controller.forward().then((_) => _controller.reverse());
+        if (_isDelivered) {
+          HapticFeedback.mediumImpact();
+          final cartProv = CartProviderScope.of(context);
+          for (var item in widget.order.items) {
+            cartProv.addToCart(CartItem(
+              id: item.id.isNotEmpty ? item.id : 'reorder_${item.name}',
+              title: item.name,
+              unitPrice: item.price,
+              subtitle: '1 Unit',
+              image: item.image,
+              category: 'Reorder',
+              quantity: item.quantity,
+            ));
+          }
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content: Text('Added to cart for reorder!'),
+            backgroundColor: Color(0xFF0891B2),
+          ));
+          _controller.forward().then((_) => _controller.reverse());
+        }
       },
       onTapDown: (_) => _controller.forward(),
       onTapUp: (_) => _controller.reverse(),
@@ -427,22 +436,55 @@ class _LiveOrderCardState extends State<_LiveOrderCard>
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 6, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: _statusBg,
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(
-                                  color: _statusColor.withValues(alpha: 0.4)),
-                            ),
-                            child: Text(
-                              _status,
-                              style: TextStyle(
-                                  color: _statusColor,
-                                  fontSize: 8,
-                                  fontWeight: FontWeight.bold),
-                            ),
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: _statusBg,
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(
+                                      color:
+                                          _statusColor.withValues(alpha: 0.4)),
+                                ),
+                                child: Text(
+                                  _status,
+                                  style: TextStyle(
+                                      color: _statusColor,
+                                      fontSize: 8,
+                                      fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: widget.order.isSubscription
+                                      ? const Color(0xFF0891B2)
+                                          .withValues(alpha: 0.1)
+                                      : Colors.grey.shade100,
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(
+                                      color: widget.order.isSubscription
+                                          ? const Color(0xFF0891B2)
+                                              .withValues(alpha: 0.3)
+                                          : Colors.grey.shade300),
+                                ),
+                                child: Text(
+                                  (widget.order.orderType ?? 'One-time')
+                                      .toUpperCase(),
+                                  style: TextStyle(
+                                      color: widget.order.isSubscription
+                                          ? const Color(0xFF0891B2)
+                                          : Colors.grey.shade600,
+                                      fontSize: 8,
+                                      fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
@@ -456,6 +498,21 @@ class _LiveOrderCardState extends State<_LiveOrderCard>
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
+                      const SizedBox(height: 6),
+                      Text(
+                        'Placed: ${DateFormat('dd MMM yyyy, hh:mm a').format(widget.order.date)}',
+                        style: TextStyle(color: Colors.grey.shade500, fontSize: 11),
+                      ),
+                      if (_isDelivered)
+                        Text(
+                          'Delivered: ${DateFormat('dd MMM yyyy, hh:mm a').format(widget.order.date.add(const Duration(hours: 1)))}',
+                          style: TextStyle(color: Colors.grey.shade500, fontSize: 11),
+                        ),
+                      if (widget.order.riderName.isNotEmpty)
+                        Text(
+                          'Rider: ${widget.order.riderName}',
+                          style: TextStyle(color: Colors.grey.shade500, fontSize: 11),
+                        ),
                       const SizedBox(height: 16),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -476,20 +533,43 @@ class _LiveOrderCardState extends State<_LiveOrderCard>
                               ),
                             ],
                           ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 6),
-                            decoration: BoxDecoration(
-                              border: Border.all(
-                                  color: const Color(0xFFE67E22), width: 1.5),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Text(
-                              _isDelivered ? 'Reorder' : 'Track',
-                              style: const TextStyle(
-                                  color: Color(0xFF2D3436),
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 12),
+                          GestureDetector(
+                            onTap: () {
+                              if (_isDelivered) {
+                                HapticFeedback.mediumImpact();
+                                final cartProv = CartProviderScope.of(context);
+                                for (var item in widget.order.items) {
+                                  cartProv.addToCart(CartItem(
+                                    id: item.id.isNotEmpty ? item.id : 'reorder_${item.name}',
+                                    title: item.name,
+                                    unitPrice: item.price,
+                                    subtitle: '1 Unit',
+                                    image: item.image,
+                                    category: 'Reorder',
+                                    quantity: item.quantity,
+                                  ));
+                                }
+                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                                  content: Text('Added to cart for reorder!'),
+                                  backgroundColor: Color(0xFF0891B2),
+                                ));
+                              }
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 6),
+                              decoration: BoxDecoration(
+                                border: Border.all(
+                                    color: const Color(0xFFE67E22), width: 1.5),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Text(
+                                _isDelivered ? 'Reorder' : 'Track',
+                                style: const TextStyle(
+                                    color: Color(0xFF2D3436),
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 12),
+                              ),
                             ),
                           ),
                         ],
@@ -509,6 +589,7 @@ class _LiveOrderCardState extends State<_LiveOrderCard>
         width: 120,
         height: 150,
         color: const Color(0xFFE8F5E9),
-        child: const Icon(Icons.set_meal, size: 40, color: Color(0xFF114F3B)),
+        child: const Icon(Icons.set_meal, size: 40, color: Color(0xFF0891B2)),
       );
 }
+

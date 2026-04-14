@@ -12,7 +12,7 @@ class TransactionsPage extends StatelessWidget {
         elevation: 0,
         centerTitle: true,
         title: const Text(
-          'ShrimpBite',
+          'DifwaBite',
           style: TextStyle(
             color: Color(0xFF1A1A1A),
             fontWeight: FontWeight.bold,
@@ -34,11 +34,11 @@ class TransactionsPage extends StatelessWidget {
               width: double.infinity,
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                color: const Color(0xFF114F3B), // Using our deep green brand color for contrast
+                color: const Color(0xFF0891B2), // Using our deep green brand color for contrast
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF114F3B).withValues(alpha: 0.2),
+                    color: const Color(0xFF0891B2).withValues(alpha: 0.2),
                     blurRadius: 15,
                     offset: const Offset(0, 8),
                   ),
@@ -99,7 +99,7 @@ class TransactionsPage extends StatelessWidget {
             const SizedBox(height: 16),
             _buildTransactionItem(
               icon: Icons.set_meal_rounded,
-              title: 'Shrimp Shack',
+              title: 'Difwa Shack',
               subtitle: 'Wallet balance used • 7:30 PM',
               amount: '-\$24.50',
               isPositive: false,
@@ -120,7 +120,7 @@ class TransactionsPage extends StatelessWidget {
             ),
             _buildTransactionItem(
               icon: Icons.local_cafe_rounded, // Approximate for the soup icon
-              title: 'Shrimp Shack',
+              title: 'Difwa Shack',
               subtitle: 'Refund to Wallet • 12:30 PM',
               amount: '+\$12.00',
               isPositive: true,
@@ -139,9 +139,9 @@ class TransactionsPage extends StatelessWidget {
     required bool isPositive,
   }) {
     // Subtle colors for the light theme icons
-    final Color iconColor = isPositive ? const Color(0xFF439462) : const Color(0xFFE85D04);
+    final Color iconColor = isPositive ? const Color(0xFF06B6D4) : const Color(0xFFE85D04);
     final Color iconBgColor = isPositive 
-        ? const Color(0xFF439462).withValues(alpha: 0.1) 
+        ? const Color(0xFF06B6D4).withValues(alpha: 0.1) 
         : const Color(0xFFE85D04).withValues(alpha: 0.1);
 
     return Container(
@@ -197,7 +197,7 @@ class TransactionsPage extends StatelessWidget {
             style: TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 16,
-              color: isPositive ? const Color(0xFF439462) : const Color(0xFF1A1A1A),
+              color: isPositive ? const Color(0xFF06B6D4) : const Color(0xFF1A1A1A),
             ),
           ),
         ],
@@ -205,3 +205,5 @@ class TransactionsPage extends StatelessWidget {
     );
   }
 }
+
+

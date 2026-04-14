@@ -25,9 +25,9 @@ class RiderHistoryPage extends ConsumerWidget {
             style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 18,
-                color: Color(0xFF114F3B))),
+                color: Color(0xFF0891B2))),
         backgroundColor: const Color(0xFFF0F4EC),
-        foregroundColor: const Color(0xFF114F3B),
+        foregroundColor: const Color(0xFF0891B2),
         elevation: 0,
         centerTitle: true,
         actions: const [],
@@ -86,7 +86,7 @@ class RiderHistoryPage extends ConsumerWidget {
           Container(
             padding: const EdgeInsets.all(28),
             decoration: const BoxDecoration(
-              color: Color(0xFFEBFFD7),
+              color: Color(0xFFCFFAFE),
               shape: BoxShape.circle,
             ),
             child: const Icon(Icons.history_rounded,
@@ -97,7 +97,7 @@ class RiderHistoryPage extends ConsumerWidget {
               style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 20,
-                  color: Color(0xFF114F3B))),
+                  color: Color(0xFF0891B2))),
           const SizedBox(height: 8),
           Text('Completed deliveries will appear here',
               style: TextStyle(color: Colors.grey.shade500, fontSize: 14)),
@@ -150,9 +150,20 @@ class _DeliveryHistoryCard extends StatelessWidget {
     String addressStr = 'Address not available';
     final addrRaw = item['deliveryAddress'] ?? item['address'];
     if (addrRaw is Map) {
-      addressStr = addrRaw['fullAddress']?.toString() ??
-          addrRaw['address']?.toString() ??
-          'Address details unavailable';
+      final name = addrRaw['fullName'] ?? addrRaw['name'] ?? '';
+      final street = addrRaw['fullAddress'] ?? addrRaw['address'] ?? addrRaw['street'] ?? '';
+      final city = addrRaw['city'] ?? '';
+      final state = addrRaw['state'] ?? '';
+      final pincode = addrRaw['pincode'] ?? '';
+      List<String> parts = [];
+      if (street.toString().isNotEmpty) parts.add(street.toString());
+      if (city.toString().isNotEmpty) parts.add(city.toString());
+      if (state.toString().isNotEmpty) parts.add(state.toString());
+      if (pincode.toString().isNotEmpty) parts.add(pincode.toString());
+      addressStr = parts.isNotEmpty ? parts.join(', ') : 'Address details unavailable';
+      if (name.toString().isNotEmpty) {
+        addressStr = '$name\n$addressStr';
+      }
     } else if (addrRaw is String && addrRaw.isNotEmpty) {
       addressStr = addrRaw;
     }
@@ -170,11 +181,6 @@ class _DeliveryHistoryCard extends StatelessWidget {
             return '${q}x $n';
           }).join(', ')
         : 'No items info';
-
-    // ── Financials ───────────────────────────────────────────────────────────
-    final double total =
-        (item['totalAmount'] ?? item['grandTotal'] ?? item['total'] ?? 0)
-            .toDouble();
 
     Future<void> launchCall(String phone) async {
       if (phone.isEmpty) return;
@@ -221,7 +227,7 @@ class _DeliveryHistoryCard extends StatelessWidget {
                                 'delivered' ||
                             item['status']?.toString().toLowerCase() ==
                                 'completed')
-                        ? const Color(0xFFEBFFD7)
+                        ? const Color(0xFFCFFAFE)
                         : Colors.orange.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(10),
                   ),
@@ -278,7 +284,7 @@ class _DeliveryHistoryCard extends StatelessWidget {
                     icon: const Icon(Icons.phone_in_talk_rounded,
                         size: 20, color: AppColors.accentGreen),
                     style: IconButton.styleFrom(
-                      backgroundColor: const Color(0xFFEBFFD7),
+                      backgroundColor: const Color(0xFFCFFAFE),
                       padding: const EdgeInsets.all(8),
                       minimumSize: Size.zero,
                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -299,6 +305,7 @@ class _DeliveryHistoryCard extends StatelessWidget {
               icon: Icons.location_on_outlined,
               label: 'Delivered to',
               value: addressStr,
+              maxLines: 4,
             ),
             const SizedBox(height: 12),
             _Row(
@@ -308,33 +315,7 @@ class _DeliveryHistoryCard extends StatelessWidget {
               maxLines: 2,
             ),
 
-            const SizedBox(height: 20),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF9FBF8),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'Total Amount',
-                    style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.grey),
-                  ),
-                  Text(
-                    '₹${total.toStringAsFixed(0)}',
-                    style: const TextStyle(
-                        fontWeight: FontWeight.w900,
-                        fontSize: 22,
-                        color: Color(0xFF1B2D1F)),
-                  ),
-                ],
-              ),
-            ),
+            const SizedBox(height: 8),
           ],
         ),
       ),
@@ -366,7 +347,7 @@ class _Row extends StatelessWidget {
             color: const Color(0xFFF0F4EC),
             borderRadius: BorderRadius.circular(8),
           ),
-          child: Icon(icon, size: 16, color: const Color(0xFF114F3B)),
+          child: Icon(icon, size: 16, color: const Color(0xFF0891B2)),
         ),
         const SizedBox(width: 12),
         Expanded(
@@ -390,3 +371,4 @@ class _Row extends StatelessWidget {
     );
   }
 }
+

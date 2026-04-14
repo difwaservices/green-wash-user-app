@@ -79,11 +79,11 @@ class _ConsultDetailPageState extends State<ConsultDetailPage> {
                 ),
                 const Row(
                   children: [
-                    CircleAvatar(radius: 4, backgroundColor: Color(0xFF68B92E)),
+                    CircleAvatar(radius: 4, backgroundColor: Color(0xFF06B6D4)),
                     SizedBox(width: 4),
                     Text(
                       'Online',
-                      style: TextStyle(color: Color(0xFF68B92E), fontSize: 11),
+                      style: TextStyle(color: Color(0xFF06B6D4), fontSize: 11),
                     ),
                   ],
                 ),
@@ -135,7 +135,7 @@ class _ConsultDetailPageState extends State<ConsultDetailPage> {
               maxWidth: MediaQuery.of(context).size.width * 0.75,
             ),
             decoration: BoxDecoration(
-              color: isMe ? const Color(0xFF439462) : Colors.white,
+              color: isMe ? const Color(0xFF06B6D4) : Colors.white,
               borderRadius: BorderRadius.only(
                 topLeft: const Radius.circular(20),
                 topRight: const Radius.circular(20),
@@ -188,11 +188,11 @@ class _ConsultDetailPageState extends State<ConsultDetailPage> {
         children: [
           Container(
             decoration: BoxDecoration(
-              color: const Color(0xFFEBFFD7),
+              color: const Color(0xFFCFFAFE),
               borderRadius: BorderRadius.circular(12),
             ),
             child: IconButton(
-              icon: const Icon(Icons.add, color: Color(0xFF68B92E)),
+              icon: const Icon(Icons.add, color: Color(0xFF06B6D4)),
               onPressed: () {},
             ),
           ),
@@ -216,7 +216,7 @@ class _ConsultDetailPageState extends State<ConsultDetailPage> {
           const SizedBox(width: 12),
           Container(
             decoration: BoxDecoration(
-              color: const Color(0xFF439462),
+              color: const Color(0xFF06B6D4),
               borderRadius: BorderRadius.circular(12),
             ),
             child: IconButton(
@@ -229,5 +229,7 @@ class _ConsultDetailPageState extends State<ConsultDetailPage> {
     );
   }
 }
+
+
 
 

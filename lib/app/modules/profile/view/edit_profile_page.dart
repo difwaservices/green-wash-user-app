@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../data/services/auth_service.dart';
 import '../../../data/models/auth_models.dart';
+import '../../../../core/state/auth_store.dart' as auth_store;
 
 class EditProfilePage extends ConsumerStatefulWidget {
   const EditProfilePage({super.key});
@@ -61,13 +62,17 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
       if (response.success) {
         // Refresh the profile provider to update UI everywhere
         ref.invalidate(userProfileProvider);
+        // Sync with AuthStore
+        if (response.data != null) {
+          ref.read(auth_store.authStoreProvider.notifier).syncUser(response.data!);
+        }
         
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(response.message.isNotEmpty 
                 ? response.message 
                 : 'Profile updated successfully!'),
-            backgroundColor: const Color(0xFF68B92E),
+            backgroundColor: const Color(0xFF06B6D4),
           ),
         );
         Navigator.pop(context);
@@ -110,26 +115,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
           icon: const Icon(Icons.arrow_back, color: Color(0xFF1A1A1A)),
           onPressed: () => Navigator.pop(context),
         ),
-        actions: [
-          if (profileAsync.hasValue)
-            TextButton(
-              onPressed: _isSaving ? null : _saveProfile,
-              child: _isSaving
-                  ? const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(
-                          strokeWidth: 2, color: Color(0xFF68B92E)),
-                    )
-                  : const Text(
-                      'SAVE',
-                      style: TextStyle(
-                        color: Color(0xFF68B92E),
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-            ),
-        ],
+        actions: [],
       ),
       body: profileAsync.when(
         data: (user) {
@@ -144,7 +130,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                     children: [
                       CircleAvatar(
                         radius: 60,
-                        backgroundColor: const Color(0xFFEBFFD7),
+                        backgroundColor: const Color(0xFFCFFAFE),
                         child: Text(
                           _nameController.text.isNotEmpty
                               ? _nameController.text[0].toUpperCase()
@@ -152,24 +138,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                           style: const TextStyle(
                             fontSize: 48,
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFF114F3B),
-                          ),
-                        ),
-                      ),
-                      Positioned(
-                        bottom: 0,
-                        right: 0,
-                        child: Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF68B92E),
-                            shape: BoxShape.circle,
-                            border: Border.all(color: Colors.white, width: 2),
-                          ),
-                          child: const Icon(
-                            Icons.camera_alt,
-                            color: Colors.white,
-                            size: 18,
+                            color: Color(0xFF0891B2),
                           ),
                         ),
                       ),
@@ -211,7 +180,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                   child: ElevatedButton(
                     onPressed: _isSaving ? null : _saveProfile,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF439462),
+                      backgroundColor: const Color(0xFF06B6D4),
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
@@ -232,7 +201,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
           );
         },
         loading: () => const Center(
-            child: CircularProgressIndicator(color: Color(0xFF68B92E))),
+            child: CircularProgressIndicator(color: Color(0xFF06B6D4))),
         error: (e, _) => Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -293,3 +262,5 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
     );
   }
 }
+
+

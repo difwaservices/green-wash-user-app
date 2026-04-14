@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/constants/app_images.dart';
 import './consult_detail_page.dart';
 
 class ConsultPage extends StatelessWidget {
@@ -10,7 +11,7 @@ class ConsultPage extends StatelessWidget {
       backgroundColor: const Color(0xFFF7F8FA),
       appBar: AppBar(
         title: const Text(
-          'Consult with Experts',
+          'Support & Experts',
           style: TextStyle(
             color: Color(0xFF1A1A1A),
             fontWeight: FontWeight.bold,
@@ -26,34 +27,34 @@ class ConsultPage extends StatelessWidget {
         children: [
           _buildExpertItem(
             context,
-            'Chef Rahul',
-            'Culinary Specialist',
+            'Eng. David',
+            'Water Quality Analyst',
             '4.9',
-            'assets/images/image copy 2.png',
+            AppImages.defaultAvatar,
             true,
           ),
           _buildExpertItem(
             context,
             'Dr. Sarah',
-            'Clinical Nutritionist',
+            'Hydration Specialist',
             '4.8',
-            'assets/images/image copy.png',
+            AppImages.defaultAvatar,
             false,
           ),
           _buildExpertItem(
             context,
-            'Butcher Mike',
-            'Meat Processing Expert',
+            'Mike T.',
+            'Filtration Specialist',
             '4.7',
-            'assets/images/image copy 2.png',
+            AppImages.defaultAvatar,
             true,
           ),
           _buildExpertItem(
             context,
             'Emily Watson',
-            'Recipe Curator',
+            'Customer Experience',
             '4.9',
-            'assets/images/image copy.png',
+            AppImages.defaultAvatar,
             true,
           ),
         ],
@@ -76,7 +77,7 @@ class ConsultPage extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha:  0.3),
+            color: Colors.black.withValues(alpha: 0.3),
             blurRadius: 15,
             spreadRadius: 0,
             offset: const Offset(0, 8),
@@ -102,7 +103,7 @@ class ConsultPage extends StatelessWidget {
                       width: 14,
                       height: 14,
                       decoration: BoxDecoration(
-                        color: const Color(0xFF68B92E),
+                        color: const Color(0xFF06B6D4),
                         shape: BoxShape.circle,
                         border: Border.all(color: Colors.white, width: 2),
                       ),
@@ -154,8 +155,8 @@ class ConsultPage extends StatelessWidget {
                 );
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFEBFFD7),
-                foregroundColor: const Color(0xFF439462),
+                backgroundColor: const Color(0xFFCFFAFE),
+                foregroundColor: const Color(0xFF06B6D4),
                 elevation: 0,
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 shape: RoundedRectangleBorder(

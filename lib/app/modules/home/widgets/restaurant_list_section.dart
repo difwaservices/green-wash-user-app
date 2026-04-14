@@ -2,60 +2,27 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../data/models/shop_product_model.dart';
 import '../provider/shop_provider.dart';
-import '../../home/view/restaurant_menu_page.dart';
+import '../view/restaurant_menu_page.dart';
 import 'filter_bottom_sheet.dart';
+import '../../../core/constants/app_images.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import '../provider/search_provider.dart';
+import '../../../routes/app_routes.dart';
 
 // ── Cuisine types to cycle through for display ───────────────────────────────
 const List<String> _cuisineTypes = [
-  'Seafood · Coastal',
-  'Seafood · Grill',
-  'Seafood · Pan Asian',
-  'Seafood · Kerala',
-  'Seafood · Thai',
-  'Seafood · Mughlai',
-  'Seafood · Chinese',
-  'Seafood · Continental',
-  'Seafood · Goan',
-  'Seafood · Fusion',
-  'Seafood · Tandoor',
+  'Purified · Mineral',
+  'Alkaline · RO+UV',
+  'Natural · Spring',
+  'Distilled · Clean',
+  'Ionized · Balanced',
+  'Bottled · Bulk',
+  'Sparkling · Fresh',
+  'Filtered · Pure',
+  'Eco-Friendly · Safe',
+  'Premium · Health',
+  'Domestic · Supply',
 ];
-
-// ── Placeholder hero images (local assets as fallback) ───────────────────────
-const List<String> _heroImages = [
-  'assets/images/shrimp_dish_1.png',
-  'assets/images/shrimp_dish_2.png',
-  'assets/images/shrimp_dish_3.png',
-  'assets/images/shrimp_dish_4.png',
-  'assets/images/shrimp_dish_5.png',
-  'assets/images/shrimp_dish_6.png',
-  'assets/images/shrimp_fresh_pile.png',
-  'assets/images/shrimp_lemon_herb.png',
-  'assets/images/shrimp_tiger_trio.png',
-  'assets/images/shrimp_cooked_duo.png',
-];
-
-// ── Offer cycling logic ───────────────────────────────────────────────────────
-String _offerText(int index) {
-  switch (index % 3) {
-    case 0:
-      return 'Flat ₹100 OFF above ₹499';
-    case 1:
-      return 'Flat ₹150 OFF above ₹799';
-    default:
-      return 'Flat ₹200 OFF above ₹999';
-  }
-}
-
-int _offerAbove(int index) {
-  switch (index % 3) {
-    case 0:
-      return 499;
-    case 1:
-      return 799;
-    default:
-      return 999;
-  }
-}
 
 class RestaurantListSection extends ConsumerWidget {
   const RestaurantListSection({super.key});
@@ -83,21 +50,21 @@ class RestaurantListSection extends ConsumerWidget {
 
 // ── Shops List ────────────────────────────────────────────────────────────────
 
-class _ShopsList extends StatelessWidget {
+class _ShopsList extends ConsumerWidget {
   final List<ShopModel> shops;
   const _ShopsList({required this.shops});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 20, 16, 12),
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
           child: Row(
             children: [
               const Text(
-                'Restaurants Near You',
+                'Water Plants Near You',
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w800,
@@ -115,26 +82,51 @@ class _ShopsList extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               InkWell(
-                onTap: () => FilterBottomSheet.show(context),
+                onTap: () async {
+                  final searchState = ref.read(searchProvider);
+                  final initialResult = searchState.priceRange != null ||
+                          searchState.selectedCategoryIds.isNotEmpty ||
+                          searchState.selectedDeliverySlots.isNotEmpty
+                      ? FilterResult(
+                          priceRange: searchState.priceRange ??
+                              const RangeValues(10, 2000),
+                          selectedCategoryIds: searchState.selectedCategoryIds,
+                          selectedDeliverySlots: searchState.selectedDeliverySlots,
+                        )
+                      : null;
+
+                  final result = await FilterBottomSheet.show(context,
+                      initialResult: initialResult);
+                  if (result != null) {
+                    ref.read(searchProvider.notifier).applyAdvancedFilters(
+                          priceRange: result.priceRange,
+                          selectedCategoryIds: result.selectedCategoryIds,
+                          selectedDeliverySlots: result.selectedDeliverySlots,
+                        );
+                    if (context.mounted) {
+                      Navigator.pushNamed(context, AppRoutes.search);
+                    }
+                  }
+                },
                 borderRadius: BorderRadius.circular(8),
                 child: Container(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF68B92E).withValues(alpha: 0.1),
+                    color: const Color(0xFF06B6D4).withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Row(
                     children: [
                       Icon(Icons.filter_list_rounded,
-                          size: 16, color: Color(0xFF68B92E)),
+                          size: 16, color: Color(0xFF06B6D4)),
                       SizedBox(width: 4),
                       Text(
                         'Filters',
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w700,
-                          color: Color(0xFF68B92E),
+                          color: Color(0xFF06B6D4),
                         ),
                       ),
                     ],
@@ -169,359 +161,224 @@ class _ShopCard extends StatelessWidget {
 
   const _ShopCard({required this.shop, required this.index});
 
-  Color get _offerColor {
-    final above = _offerAbove(index);
-    if (above >= 999) return const Color(0xFF7B2FF7);
-    if (above >= 799) return const Color(0xFF1565C0);
-    return const Color(0xFF68B92E);
-  }
-
-  String get _heroImage => _heroImages[index % _heroImages.length];
   String get _cuisine => _cuisineTypes[index % _cuisineTypes.length];
 
   // Generate a deterministic rating from shop ID
-  double get _rating {
-    final code = shop.id.codeUnits.fold<int>(0, (a, b) => a + b);
-    return 3.8 + (code % 9) * 0.1; // 3.8 – 4.6
-  }
 
-  int get _reviews {
-    final code = shop.id.codeUnits.fold<int>(0, (a, b) => a + b);
-    return 600 + (code % 40) * 100; // realistic range
-  }
-
-  String get _deliveryTime {
-    final mins = 50 + (index * 5) % 40;
-    return '$mins–${mins + 15} mins';
-  }
-
-  double get _distance {
-    final code = shop.id.codeUnits.fold<int>(0, (a, b) => a + b);
-    return ((code % 50) + 5) / 10.0; // 0.5 – 5.4 km
-  }
-
-  bool get _isFeatured => index < 3;
+  bool get _isFeatured => shop.isFeatured;
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {
-        if (!shop.isShopActive) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('This shop is currently not accepting orders.'),
-              backgroundColor: Colors.black87,
-              behavior: SnackBarBehavior.floating,
+        onTap: () {
+          if (!shop.isShopActive) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('This plant is currently not accepting orders.'),
+                backgroundColor: Colors.black87,
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+            return;
+          }
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => RestaurantMenuPage(shop: shop),
             ),
           );
-          return;
-        }
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => RestaurantMenuPage(shop: shop),
-          ),
-        );
-      },
-      child: Opacity(
-        opacity: shop.isShopActive ? 1.0 : 0.8,
-        child: ColorFiltered(
-          colorFilter: shop.isShopActive
-              ? const ColorFilter.mode(Colors.transparent, BlendMode.multiply)
-              : const ColorFilter.mode(Colors.grey, BlendMode.saturation),
-          child: Container(
-            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.grey.shade200),
-            ),
-            child:
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              // ── Hero Banner ─────────────────────────────────────────────────
-              Stack(
-                children: [
-                  ClipRRect(
-                    borderRadius:
-                        const BorderRadius.vertical(top: Radius.circular(16)),
-                    child: _buildHeroImage(),
-                  ),
-                  // Closed/Offline Overlay
-                  if (!shop.isShopActive)
-                    Positioned.fill(
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.2),
-                          borderRadius: const BorderRadius.vertical(
-                              top: Radius.circular(16)),
-                        ),
-                        child: Center(
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 12, vertical: 6),
-                            decoration: BoxDecoration(
-                              color: Colors.red.shade700,
-                              borderRadius: BorderRadius.circular(8),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.3),
-                                  blurRadius: 10,
+        },
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: Opacity(
+            opacity: shop.isShopActive ? 1.0 : 0.8,
+            child: ColorFiltered(
+              colorFilter: shop.isShopActive
+                  ? const ColorFilter.mode(
+                      Colors.transparent, BlendMode.multiply)
+                  : const ColorFilter.mode(
+                      Color.fromARGB(255, 255, 255, 255), BlendMode.saturation),
+              child: Container(
+                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.grey.shade200),
+                ),
+                child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // ── Hero Banner ─────────────────────────────────────────────────
+                      Stack(
+                        children: [
+                          ClipRRect(
+                            borderRadius: const BorderRadius.vertical(
+                                top: Radius.circular(16)),
+                            child: _buildHeroImage(),
+                          ),
+                          // Closed/Offline Overlay
+                          if (!shop.isShopActive)
+                            Positioned.fill(
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withOpacity(0.2),
+                                  borderRadius: const BorderRadius.vertical(
+                                      top: Radius.circular(16)),
                                 ),
-                              ],
+                                child: Center(
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 12, vertical: 6),
+                                    decoration: BoxDecoration(
+                                      color: Colors.red.shade700,
+                                      borderRadius: BorderRadius.circular(8),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withOpacity(0.3),
+                                          blurRadius: 10,
+                                        ),
+                                      ],
+                                    ),
+                                    child: const Text(
+                                      'CLOSED',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w900,
+                                        letterSpacing: 1.2,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
                             ),
-                            child: const Text(
-                              'CLOSED',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 13,
-                                fontWeight: FontWeight.w900,
-                                letterSpacing: 1.2,
+                          // Top dish label overlay
+                          Positioned(
+                            top: 12,
+                            left: 12,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 10, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: Colors.black.withValues(alpha: 0.65),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                shop.businessName.isNotEmpty
+                                    ? shop.businessName
+                                    : 'Pure Water · ₹499+',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                      ),
-                    ),
-                  // Top dish label overlay
-                  Positioned(
-                    top: 12,
-                    left: 12,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.65),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Text(
-                        shop.businessName.isNotEmpty
-                            ? shop.businessName
-                            : 'Fresh Shrimp · ₹499+',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ),
-                  // Bookmark
-                  Positioned(
-                    top: 10,
-                    right: 12,
-                    child: Container(
-                      padding: const EdgeInsets.all(6),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.9),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(Icons.bookmark_border,
-                          size: 16, color: Colors.black54),
-                    ),
-                  ),
-                  // Featured badge
-                  if (_isFeatured)
-                    Positioned(
-                      bottom: 10,
-                      left: 12,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 3),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFFFF3CD),
-                          borderRadius: BorderRadius.circular(4),
-                          border: Border.all(color: const Color(0xFFFFD600)),
-                        ),
-                        child: const Text(
-                          '⭐ Featured',
-                          style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF5D4037),
-                          ),
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-
-              // ── Info Row ─────────────────────────────────────────────────
-              Padding(
-                padding: const EdgeInsets.fromLTRB(14, 12, 14, 0),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            shop.name,
-                            style: const TextStyle(
-                              fontSize: 17,
-                              fontWeight: FontWeight.w800,
-                              color: Color(0xFF1A1A1A),
+                          // Featured badge
+                          if (_isFeatured)
+                            Positioned(
+                              bottom: 10,
+                              left: 12,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8, vertical: 3),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFFFF3CD),
+                                  borderRadius: BorderRadius.circular(4),
+                                  border: Border.all(
+                                      color: const Color(0xFFFFD600)),
+                                ),
+                                child: const Text(
+                                  '⭐ Featured',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF5D4037),
+                                  ),
+                                ),
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            _cuisine,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey.shade600,
-                            ),
-                          ),
                         ],
                       ),
-                    ),
-                    // Rating badge
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF68B92E),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.star, size: 12, color: Colors.white),
-                          const SizedBox(width: 3),
-                          Text(
-                            shop.rating > 0
-                                ? shop.rating.toStringAsFixed(1)
-                                : _rating.toStringAsFixed(1),
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
+
+                      // ── Info Row ─────────────────────────────────────────────────
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(14, 12, 14, 0),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    shop.name,
+                                    style: const TextStyle(
+                                      fontSize: 17,
+                                      fontWeight: FontWeight.w800,
+                                      color: Color(0xFF1A1A1A),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    _cuisine,
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey.shade600,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      _formatReviews(_reviews),
-                      style: const TextStyle(fontSize: 11, color: Colors.grey),
-                    ),
-                  ],
-                ),
-              ),
 
-              // ── Delivery Meta ────────────────────────────────────────────
-              Padding(
-                padding: const EdgeInsets.fromLTRB(14, 6, 14, 0),
-                child: Wrap(
-                  spacing: 8,
-                  runSpacing: 4,
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  children: [
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(Icons.bolt,
-                            size: 14, color: Color(0xFF68B92E)),
-                        const SizedBox(width: 3),
-                        Text(
-                          shop.deliveryTime.isNotEmpty
-                              ? shop.deliveryTime
-                              : _deliveryTime,
-                          style: const TextStyle(
-                              fontSize: 12, color: Colors.black87),
-                        ),
-                      ],
-                    ),
-                    Text('·', style: TextStyle(color: Colors.grey.shade400)),
-                    Text(
-                      '${_distance.toStringAsFixed(1)} km',
-                      style:
-                          const TextStyle(fontSize: 12, color: Colors.black87),
-                    ),
-                    Text('·', style: TextStyle(color: Colors.grey.shade400)),
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(Icons.delivery_dining_outlined,
-                            size: 14, color: Colors.grey),
-                        const SizedBox(width: 3),
-                        const Text(
-                          'Free',
-                          style: TextStyle(fontSize: 12, color: Colors.black87),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
 
-              // ── Offer Strip ──────────────────────────────────────────────
-              Padding(
-                padding: const EdgeInsets.fromLTRB(14, 8, 14, 14),
-                child: Row(
-                  children: [
-                    Icon(Icons.local_offer_outlined,
-                        size: 14, color: _offerColor),
-                    const SizedBox(width: 5),
-                    Expanded(
-                      child: Text(
-                        _offerText(index),
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: _offerColor,
-                          fontWeight: FontWeight.w600,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
+                      const SizedBox(height: 12),
+                    ]),
               ),
-            ]),
+            ),
           ),
-        ),
-      ),
-    );
+        ));
   }
 
   Widget _buildHeroImage() {
     // Prefer banner from API, then local asset fallback
     final networkUrl = shop.image;
     if (networkUrl.length > 5) {
-      return Image.network(
-        networkUrl,
-        height: 180,
-        width: double.infinity,
-        fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) => _localFallback(),
+      return Container(
+        color: Colors.white,
+        child: Image.network(
+          networkUrl,
+          height: 180,
+          width: double.infinity,
+          fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) => _localFallback(),
+        ),
       );
     }
     return _localFallback();
   }
 
   Widget _localFallback() {
-    return Image.asset(
-      _heroImage,
+    return Container(
       height: 180,
       width: double.infinity,
-      fit: BoxFit.cover,
-      errorBuilder: (_, __, ___) => Container(
-        height: 180,
-        color: Colors.grey.shade100,
-        child: const Center(
-          child: Icon(Icons.restaurant, size: 48, color: Colors.grey),
+      color: Colors.white,
+      child: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Image.asset(
+            AppImages.difwaLogoPng,
+            fit: BoxFit.contain,
+          ),
         ),
       ),
     );
-  }
-
-  String _formatReviews(int count) {
-    if (count >= 1000) {
-      return '${(count / 1000).toStringAsFixed(1)}K+';
-    }
-    return '$count+';
   }
 }
 
@@ -535,15 +392,21 @@ class _ShopsLoadingState extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Padding(
-          padding: EdgeInsets.fromLTRB(16, 20, 16, 12),
-          child: Text(
-            'Restaurants Near You',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w800,
-              color: Color(0xFF1A1A1A),
-            ),
+        Center(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 24),
+            child: Image.asset(
+              AppImages.difwaLogoPng,
+              width: 100,
+              height: 100,
+            )
+                .animate(onPlay: (controller) => controller.repeat())
+                .scale(
+                    begin: const Offset(0.9, 0.9),
+                    end: const Offset(1.1, 1.1),
+                    duration: 1000.ms,
+                    curve: Curves.easeInOut)
+                .fadeIn(begin: 0.6, duration: 1000.ms, curve: Curves.easeInOut),
           ),
         ),
         ...List.generate(3, (i) => const _ShopShimmerCard()),
@@ -661,7 +524,7 @@ class _ShopsErrorState extends StatelessWidget {
             const Icon(Icons.wifi_off_rounded, size: 56, color: Colors.grey),
             const SizedBox(height: 12),
             const Text(
-              'Could not load restaurants',
+              'Could not load water plants',
               style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
@@ -677,7 +540,7 @@ class _ShopsErrorState extends StatelessWidget {
             ElevatedButton.icon(
               onPressed: onRetry,
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF68B92E),
+                backgroundColor: const Color(0xFF06B6D4),
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12)),
@@ -711,7 +574,7 @@ class _ShopsEmptyState extends StatelessWidget {
             const Icon(Icons.storefront_outlined, size: 56, color: Colors.grey),
             const SizedBox(height: 12),
             const Text(
-              'No restaurants found',
+              'No water plants found',
               style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
@@ -719,7 +582,7 @@ class _ShopsEmptyState extends StatelessWidget {
             ),
             const SizedBox(height: 6),
             Text(
-              'Check back later for nearby restaurants.',
+              'Check back later for nearby water plants.',
               style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
               textAlign: TextAlign.center,
             ),
@@ -727,7 +590,7 @@ class _ShopsEmptyState extends StatelessWidget {
             ElevatedButton.icon(
               onPressed: onRetry,
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF68B92E),
+                backgroundColor: const Color(0xFF06B6D4),
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12)),

@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../data/models/food_models.dart';
 import '../../../data/services/order_service.dart';
 import '../../orders/view/order_tracking_page.dart';
+import '../../../data/models/product_model.dart';
+import '../../../data/services/db_service.dart'; // For CartProviderScope
+import 'package:intl/intl.dart';
 
 class MyOrdersPage extends ConsumerWidget {
   const MyOrdersPage({super.key});
@@ -19,41 +23,48 @@ class MyOrdersPage extends ConsumerWidget {
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new,
-              color: Color(0xFF114F3B), size: 20),
+              color: Color(0xFF0891B2), size: 20),
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
           'My Orders',
           style: TextStyle(
-            color: Color(0xFF114F3B),
+            color: Color(0xFF0891B2),
             fontSize: 20,
             fontWeight: FontWeight.bold,
           ),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh, color: Color(0xFF114F3B)),
+            icon: const Icon(Icons.refresh, color: Color(0xFF0891B2)),
             onPressed: () => ref.invalidate(myOrdersProvider),
           ),
         ],
       ),
       body: ordersAsync.when(
-        data: (orders) => orders.isEmpty
-            ? const _EmptyOrdersView()
-            : RefreshIndicator(
-                onRefresh: () async => ref.refresh(myOrdersProvider),
-                color: const Color(0xFF114F3B),
-                child: ListView.builder(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  physics: const BouncingScrollPhysics(),
-                  itemCount: orders.length,
-                  itemBuilder: (context, index) =>
-                      _OrderCard(order: orders[index]),
-                ),
-              ),
+        data: (orders) {
+          final deliveredOrders = orders
+              .where((o) => o.status.toLowerCase() == 'delivered')
+              .toList()
+            ..sort((a, b) => b.date.compareTo(a.date));
+
+          return deliveredOrders.isEmpty
+              ? const _EmptyOrdersView()
+              : RefreshIndicator(
+                  onRefresh: () async => ref.refresh(myOrdersProvider),
+                  color: const Color(0xFF0891B2),
+                  child: ListView.builder(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    itemCount: deliveredOrders.length,
+                    itemBuilder: (context, index) =>
+                        _OrderCard(order: deliveredOrders[index]),
+                  ),
+                );
+        },
         loading: () => const Center(
-          child: CircularProgressIndicator(color: Color(0xFF114F3B)),
+          child: CircularProgressIndicator(color: Color(0xFF0891B2)),
         ),
         error: (err, _) => Center(
           child: Column(
@@ -101,43 +112,21 @@ class _EmptyOrdersView extends StatelessWidget {
 }
 
 class _OrderCard extends ConsumerWidget {
-  final Map<String, dynamic> order;
+  final UserOrder order;
 
   const _OrderCard({required this.order});
 
-  String _orderTitle() {
-    final items = order['items'] as List<dynamic>? ?? [];
-    if (items.isEmpty) return 'Order';
-    final first = items.first;
-    final product = first['product'];
-    if (product is Map && product['name'] != null)
-      return product['name'].toString();
-    return 'Order';
-  }
+  String _orderTitle() =>
+      order.items.isNotEmpty ? order.items.first.name : 'Order';
 
   String _orderDescription() {
-    final items = order['items'] as List<dynamic>? ?? [];
-    if (items.isEmpty) return 'No items';
-    final first = items.first;
-    final product = first['product'];
-    final name = (product is Map && product['name'] != null)
-        ? product['name'].toString()
-        : 'Item';
-    final qty = first['quantity']?.toString() ?? '1';
-
-    if (items.length > 1) {
-      return '${qty}x $name & ${items.length - 1} more';
-    }
-    return '${qty}x $name';
+    if (order.items.isEmpty) return 'No items';
+    return order.items.map((item) => '${item.quantity}x ${item.name}').join(', ');
   }
 
-  double _totalPrice() {
-    return (order['totalAmount'] as num?)?.toDouble() ??
-        (order['total'] as num?)?.toDouble() ??
-        0.0;
-  }
+  double _totalPrice() => order.total;
 
-  String _orderStatus() => order['status']?.toString() ?? 'Pending';
+  String _orderStatus() => order.status;
 
   bool _isDelivered() => _orderStatus().toLowerCase() == 'delivered';
 
@@ -152,20 +141,11 @@ class _OrderCard extends ConsumerWidget {
       case 'cancelled':
         return Colors.red;
       default:
-        return const Color(0xFF114F3B);
+        return const Color(0xFF0891B2);
     }
   }
 
-  String _imageUrl() {
-    final items = order['items'] as List<dynamic>? ?? [];
-    if (items.isEmpty) return '';
-    final product = items.first['product'];
-    if (product is Map) {
-      final images = product['images'] as List<dynamic>? ?? [];
-      return images.isNotEmpty ? images.first.toString() : '';
-    }
-    return '';
-  }
+  String _imageUrl() => order.items.isNotEmpty ? order.items.first.image : '';
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -253,6 +233,22 @@ class _OrderCard extends ConsumerWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
+                    const SizedBox(height: 6),
+                    // Times and Rider
+                    Text(
+                      'Placed: ${DateFormat('dd MMM yyyy, hh:mm a').format(order.date)}',
+                      style: TextStyle(color: Colors.grey.shade500, fontSize: 11),
+                    ),
+                    if (_isDelivered())
+                      Text(
+                        'Delivered: ${DateFormat('dd MMM yyyy, hh:mm a').format(order.date.add(const Duration(hours: 1)))}', // mockup delivered time
+                        style: TextStyle(color: Colors.grey.shade500, fontSize: 11),
+                      ),
+                    if (order.riderName.isNotEmpty)
+                      Text(
+                        'Rider: ${order.riderName}',
+                        style: TextStyle(color: Colors.grey.shade500, fontSize: 11),
+                      ),
                     const Spacer(),
                     // Bill and Action Action Button
                     Row(
@@ -288,15 +284,30 @@ class _OrderCard extends ConsumerWidget {
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) =>
-                                      OrderTrackingPage(order: order),
+                                      OrderTrackingPage(order: {
+                                    '_id': order.id,
+                                    'status': order.status,
+                                  }),
                                 ),
                               );
                             } else {
                               HapticFeedback.mediumImpact();
+                              final cartProv = CartProviderScope.of(context);
+                              for (var item in order.items) {
+                                cartProv.addToCart(CartItem(
+                                  id: item.id.isNotEmpty ? item.id : 'reorder_${item.name}',
+                                  title: item.name,
+                                  unitPrice: item.price,
+                                  subtitle: '1 Unit',
+                                  image: item.image,
+                                  category: 'Reorder',
+                                  quantity: item.quantity,
+                                ));
+                              }
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
                                   content: Text('Added to cart for reorder!'),
-                                  backgroundColor: Color(0xFF114F3B),
+                                  backgroundColor: Color(0xFF0891B2),
                                   behavior: SnackBarBehavior.floating,
                                 ),
                               );
@@ -346,9 +357,10 @@ class _PlaceholderImage extends StatelessWidget {
         child: Icon(
           Icons.set_meal_outlined,
           size: 40,
-          color: const Color(0xFF114F3B).withValues(alpha: 0.5),
+          color: const Color(0xFF0891B2).withValues(alpha: 0.5),
         ),
       ),
     );
   }
 }
+

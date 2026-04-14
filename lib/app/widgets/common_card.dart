@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../core/constants/app_colors.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'bounce_widget.dart';
 
@@ -118,7 +119,7 @@ class CommonCard extends StatelessWidget {
                   Text(
                     price,
                     style: const TextStyle(
-                      color: Color(0xFF68B92E),
+                      color: AppColors.primary,
                       fontWeight: FontWeight.bold,
                       fontSize: 14,
                     ),
@@ -161,7 +162,7 @@ class CommonCard extends StatelessWidget {
                             child: const Center(
                               child: Icon(
                                 Icons.remove,
-                                color: Color(0xFF68B92E),
+                                color: AppColors.primary,
                                 size: 18,
                               ),
                             ),
@@ -181,7 +182,7 @@ class CommonCard extends StatelessWidget {
                             child: const Center(
                               child: Icon(
                                 Icons.add,
-                                color: Color(0xFF68B92E),
+                                color: AppColors.primary,
                                 size: 18,
                               ),
                             ),
@@ -199,7 +200,7 @@ class CommonCard extends StatelessWidget {
                         children: const [
                           Icon(
                             Icons.shopping_bag_outlined,
-                            color: Color(0xFF68B92E),
+                            color: AppColors.primary,
                             size: 16,
                           ),
                           SizedBox(width: 8),

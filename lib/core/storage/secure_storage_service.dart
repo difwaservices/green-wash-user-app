@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class SecureStorageService {
@@ -21,10 +22,31 @@ class SecureStorageService {
     await _storage.write(key: _refreshTokenKey, value: refresh);
   }
 
-  Future<String?> getAccessToken() => _storage.read(key: _accessTokenKey);
-  Future<String?> getRefreshToken() => _storage.read(key: _refreshTokenKey);
+  Future<String?> getAccessToken() async {
+    try {
+      return await _storage.read(key: _accessTokenKey);
+    } catch (e) {
+      debugPrint('SecureStorage Error (Access Token): $e');
+      await _storage.deleteAll();
+      return null;
+    }
+  }
+
+  Future<String?> getRefreshToken() async {
+    try {
+      return await _storage.read(key: _refreshTokenKey);
+    } catch (e) {
+      debugPrint('SecureStorage Error (Refresh Token): $e');
+      await _storage.deleteAll();
+      return null;
+    }
+  }
 
   Future<void> clearAll() async {
-    await _storage.deleteAll();
+    try {
+      await _storage.deleteAll();
+    } catch (e) {
+      debugPrint('SecureStorage Error (Clear All): $e');
+    }
   }
 }

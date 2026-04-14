@@ -5,7 +5,6 @@ import '../../../data/services/payment_service.dart';
 import '../../../data/services/wallet_service.dart';
 import '../../../data/services/db_service.dart';
 import '../../../core/constants/app_colors.dart';
-import './wallet_page.dart';
 
 class TopUpPage extends ConsumerStatefulWidget {
   const TopUpPage({super.key});
@@ -19,6 +18,16 @@ class _TopUpPageState extends ConsumerState<TopUpPage> {
   bool _isLoading = false;
   // Cache service so we can call dispose() without using ref after unmount
   late PaymentService _paymentService;
+  // Cache messenger — Razorpay callbacks fire from native threads AFTER widget
+  // may have unmounted. Never call ScaffoldMessenger.of(context) inside them.
+  ScaffoldMessengerState? _messenger;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Safe to cache here — called every time dependencies change
+    _messenger = ScaffoldMessenger.of(context);
+  }
 
   @override
   void initState() {
@@ -32,9 +41,11 @@ class _TopUpPageState extends ConsumerState<TopUpPage> {
   }
 
   void _handlePaymentSuccess(PaymentSuccessResponse response) async {
+    debugPrint('TopUpPage: Payment SUCCESS: ID=${response.paymentId}, OrderID=${response.orderId}');
     setState(() => _isLoading = true);
     final amount = double.tryParse(_amountController.text) ?? 0.0;
-
+    
+    debugPrint('TopUpPage: Verifying payment with backend (amount: $amount)...');
     final result = await ref.read(walletServiceProvider).topUpSuccess(
           amount: amount,
           razorpayOrderId: response.orderId!,
@@ -42,11 +53,11 @@ class _TopUpPageState extends ConsumerState<TopUpPage> {
           razorpaySignature: response.signature!,
         );
 
+    debugPrint('TopUpPage: Verification result: $result');
+
     if (mounted) {
       setState(() => _isLoading = false);
       if (result['success'] == true) {
-        // Sync both the ChangeNotifier (used in Profile/Checkout) 
-        // and invalidate the Riverpod providers (used in WalletPage)
         CartProviderScope.of(context).syncWallet();
         ref.invalidate(walletBalanceProvider);
         ref.invalidate(walletHistoryProvider);
@@ -54,7 +65,7 @@ class _TopUpPageState extends ConsumerState<TopUpPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
               content: Text('Wallet topped up successfully!'),
-              backgroundColor: AppColors.accentGreen),
+              backgroundColor: Color(0xFF06B6D4)),
         );
         Navigator.pop(context);
       } else {
@@ -68,18 +79,34 @@ class _TopUpPageState extends ConsumerState<TopUpPage> {
   }
 
   void _handlePaymentFailure(PaymentFailureResponse response) {
-    ScaffoldMessenger.of(context).showSnackBar(
+    debugPrint('TopUpPage: Payment FAILED: Code=${response.code}, Message=${response.message}');
+    // Use cached messenger — widget may already be unmounted at this point
+    if (!mounted) return;
+    _messenger?.showSnackBar(
       SnackBar(
-          content: Text('Payment Failed: ${response.message}'),
-          backgroundColor: AppColors.error),
+        content: const Row(
+          children: [
+            Icon(Icons.error_outline, color: Colors.white, size: 18),
+            SizedBox(width: 10),
+            Expanded(child: Text('Payment was not completed. Please try again.')),
+          ],
+        ),
+        backgroundColor: AppColors.error,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
     );
   }
 
   void _handleExternalWallet(ExternalWalletResponse response) {
-    ScaffoldMessenger.of(context).showSnackBar(
+    debugPrint('TopUpPage: External Wallet selected: ${response.walletName}');
+    // Use cached messenger — safe after native callback
+    if (!mounted) return;
+    _messenger?.showSnackBar(
       SnackBar(
           content: Text('External Wallet: ${response.walletName}'),
-          backgroundColor: AppColors.primary),
+          backgroundColor: const Color(0xFF06B6D4)),
     );
   }
 
@@ -165,8 +192,19 @@ class _TopUpPageState extends ConsumerState<TopUpPage> {
                           email: profile.email,
                         );
                       } catch (e) {
-                        messenger.showSnackBar(
-                            SnackBar(content: Text(e.toString())));
+                        messenger.showSnackBar(SnackBar(
+                          content: const Row(
+                            children: [
+                              Icon(Icons.error_outline, color: Colors.white, size: 18),
+                              SizedBox(width: 10),
+                              Expanded(child: Text('Could not open payment. Please try again.')),
+                            ],
+                          ),
+                          backgroundColor: AppColors.error,
+                          behavior: SnackBarBehavior.floating,
+                          margin: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ));
                       }
                     },
                     style: ElevatedButton.styleFrom(

@@ -6,6 +6,7 @@ import '../../../data/services/db_service.dart';
 import '../../../data/models/product_model.dart';
 import '../controller/main_controller.dart';
 import '../widgets/quantity_selector.dart';
+import '../../../core/constants/app_colors.dart';
 
 class FavoritesPage extends ConsumerWidget {
   const FavoritesPage({super.key});
@@ -30,14 +31,14 @@ class FavoritesPage extends ConsumerWidget {
         centerTitle: true,
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh, color: Color(0xFF68B92E)),
+            icon: const Icon(Icons.refresh, color: Color(0xFF06B6D4)),
             onPressed: () => ref.invalidate(favoriteProductsProvider),
           ),
         ],
       ),
       body: productsAsync.when(
         loading: () => const Center(
-          child: CircularProgressIndicator(color: Color(0xFF68B92E)),
+          child: CircularProgressIndicator(color: Color(0xFF06B6D4)),
         ),
         error: (err, _) => _buildError(context, ref, err),
         data: (products) => products.isEmpty
@@ -71,13 +72,13 @@ class FavoritesPage extends ConsumerWidget {
           Container(
             padding: const EdgeInsets.all(28),
             decoration: BoxDecoration(
-              color: const Color(0xFFEBFFD7),
+              color: const Color(0xFFCFFAFE),
               shape: BoxShape.circle,
             ),
             child: const Icon(
               Icons.favorite_outline_rounded,
               size: 72,
-              color: Color(0xFF68B92E),
+              color: Color(0xFF06B6D4),
             ),
           ),
           const SizedBox(height: 24),
@@ -98,7 +99,7 @@ class FavoritesPage extends ConsumerWidget {
           ElevatedButton.icon(
             onPressed: () => MainControllerScope.of(context).changePage(0),
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF439462),
+              backgroundColor: AppColors.primary,
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16)),
@@ -131,10 +132,11 @@ class FavoritesPage extends ConsumerWidget {
           ElevatedButton.icon(
             onPressed: () => ref.invalidate(favoriteProductsProvider),
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF68B92E),
+              backgroundColor: AppColors.primary,
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12)),
+              side: const BorderSide(color: AppColors.primary), // Added for focused border effect
             ),
             icon: const Icon(Icons.refresh, size: 18),
             label: const Text('Retry'),
@@ -203,6 +205,51 @@ class _FavProductCard extends ConsumerWidget {
                       )
                     : _placeholder(),
               ),
+              // Out of stock badge
+              if (p.stockStatus == 'Out of Stock' || p.stock <= 0)
+                Positioned.fill(
+                  child: ClipRRect(
+                    borderRadius:
+                        const BorderRadius.vertical(top: Radius.circular(20)),
+                    child: Container(
+                      color: Colors.black.withValues(alpha: 0.45),
+                      child: const Center(
+                        child: Text(
+                          'Out of Stock',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              // Low Stock Badge
+              if (p.stockStatus == 'Low Stock' && p.stock > 0)
+                Positioned(
+                  top: 8,
+                  left: 8,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 3,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.orange.shade700,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      'ONLY ${p.stock} LEFT!',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 8,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
               // Live heart toggle (unfav removes from list)
               Positioned(
                 top: 8,
@@ -285,21 +332,31 @@ class _FavProductCard extends ConsumerWidget {
                     color: Color(0xFF1A1A1A),
                   ),
                 ),
-                if (cartItem.quantity == 0)
+                if (p.stockStatus == 'Out of Stock' || p.stock <= 0)
+                  Container(
+                    width: 30,
+                    height: 30,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade100,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(Icons.add, color: Colors.grey, size: 18),
+                  )
+                else if (cartItem.quantity == 0)
                   GestureDetector(
                     onTap: () {
                       cart.addToCart(CartItem(
                         id: p.id,
                         title: p.name,
                         unitPrice: p.price,
-                        subtitle: p.category?.name ?? 'Shrimp',
+                        subtitle: p.category?.name ?? 'Difwa',
                         image: p.primaryImage,
                         category: 'restaurant',
                       ));
                       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                         content: Text('${p.name} added to cart!'),
                         duration: const Duration(seconds: 1),
-                        backgroundColor: const Color(0xFF439462),
+                        backgroundColor: AppColors.primary,
                         behavior: SnackBarBehavior.floating,
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10)),
@@ -309,7 +366,7 @@ class _FavProductCard extends ConsumerWidget {
                       width: 30,
                       height: 30,
                       decoration: BoxDecoration(
-                        color: const Color(0xFF68B92E),
+                        color: const Color(0xFF06B6D4),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child:
@@ -339,3 +396,5 @@ class _FavProductCard extends ConsumerWidget {
         ),
       );
 }
+
+
