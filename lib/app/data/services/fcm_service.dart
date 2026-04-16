@@ -10,15 +10,18 @@ import '../providers/notification_provider.dart';
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  // If you need to use Firebase services here, call Firebase.initializeApp()
-  debugPrint("Handling a background message: ${message.messageId}");
-  
-  // Handled automatically by the OS if 'notification' block is present.
-  // If it's a DATA ONLY message, we must show it manually.
-  if (message.notification == null && message.data.isNotEmpty) {
-     // NOTE: We can't use the static singleton directly here easily if it's not initialized
-     // in this isolate. However, for background, we usually rely on the OS to show
-     // the notification if the backend includes the 'notification' payload.
+  // Ensure Firebase is initialized for background isolate if you need to use Firebase services
+  // await Firebase.initializeApp(); 
+
+  debugPrint("📩 Background Message Received: ${message.messageId}");
+  debugPrint("Data Payload: ${message.data}");
+
+  // Handle background data logic (e.g., updating a local timestamp or clearing a quick cache)
+  if (message.data.containsKey('type')) {
+    final type = message.data['type'].toString().toUpperCase();
+    if (type == 'SYSTEM' || type == 'NOTIFICATION') {
+       // Logic to mark that a new notification is available for when the app wakes up
+    }
   }
 }
 
@@ -112,8 +115,14 @@ class FCMService {
       }
     });
 
-    listenToTokenRefresh();
+    // Android: Allow foreground notifications to show alerts/sounds
+    await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(
+      alert: true,
+      badge: true,
+      sound: true,
+    );
 
+    listenToTokenRefresh();
     // Initial token send (if user is already logged in)
     await sendTokenToBackend();
 
@@ -147,6 +156,9 @@ class FCMService {
       Navigator.pushNamed(context, AppRoutes.wallet);
     } else if (type == 'NOTIFICATION' || type == 'GENERAL' || type == 'SYSTEM') {
       Navigator.pushNamed(context, AppRoutes.notifications);
+    } else if (type == 'CHAT') {
+      // Navigate to support or specific order chat if implemented
+      Navigator.pushNamed(context, AppRoutes.help);
     }
   }
 
@@ -225,7 +237,7 @@ class FCMService {
     try {
       final String? payload = data != null ? jsonEncode(data) : null;
       await _localNotifications.show(
-        title.hashCode,
+        DateTime.now().millisecond + (title.length * 100),
         title,
         body,
         NotificationDetails(

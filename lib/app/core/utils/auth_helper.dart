@@ -122,4 +122,35 @@ class AuthHelper {
       ),
     );
   }
+  /// Shows a confirmation dialog before signing out.
+  static Future<void> confirmSignOut({
+    required BuildContext context,
+    required VoidCallback onConfirm,
+  }) async {
+    return showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text('Sign Out',
+            style: TextStyle(fontWeight: FontWeight.bold)),
+        content:
+            const Text('Are you sure you want to sign out from Difwa Water?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              onConfirm();
+            },
+            child: const Text('Sign Out',
+                style:
+                    TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+  }
 }

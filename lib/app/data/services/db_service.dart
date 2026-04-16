@@ -310,18 +310,27 @@ class CartProvider extends ChangeNotifier {
       final result = await _addressService!.getAddresses();
       if (result['success']) {
         final List<dynamic> data = result['data'] ?? [];
-        _addresses = data
-            .map((json) => UserAddress(
-                  id: json['_id'] ?? '',
-                  title: json['label'] ?? 'Address',
-                  street: json['fullAddress'] ?? '',
-                  details:
-                      '${json['city'] ?? ''}, ${json['state'] ?? ''} ${json['pincode'] ?? ''}',
-                  fullName: json['fullName'] ?? '',
-                  email: json['email'] ?? '',
-                  isDefault: json['isDefault'] ?? false,
-                ))
-            .toList();
+        _addresses = data.map((json) {
+          final city = json['city'] ?? '';
+          final state = json['state'] ?? '';
+          final pincode = json['pincode'] ?? '';
+
+          String detailsStr = '$city, $state';
+          if (pincode.isNotEmpty &&
+              !state.toString().contains(pincode.toString())) {
+            detailsStr += ' $pincode';
+          }
+
+          return UserAddress(
+            id: json['_id'] ?? '',
+            title: json['label'] ?? 'Address',
+            street: json['fullAddress'] ?? '',
+            details: detailsStr,
+            fullName: json['fullName'] ?? '',
+            email: json['email'] ?? '',
+            isDefault: json['isDefault'] ?? false,
+          );
+        }).toList();
 
         final defaultIdx = _addresses.indexWhere((a) => a.isDefault);
         if (defaultIdx != -1) {

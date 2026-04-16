@@ -152,24 +152,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    children: [
-                      _PaymentMethodTile(
-                        index: 3,
-                        selected: true,
-                        onTap: () async {
-                          await Navigator.pushNamed(context, '/wallet');
-                          if (mounted) {
-                            CartProviderScope.of(context).syncWallet();
-                          }
-                        },
-                        label: 'Wallet',
-                        child: const Icon(Icons.account_balance_wallet_rounded,
-                            size: 28, color: AppColors.primary),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
+
                   GestureDetector(
                     onTap: () async {
                       await Navigator.pushNamed(context, '/wallet');
@@ -660,52 +643,7 @@ class _TypeButton extends StatelessWidget {
   }
 }
 
-class _PaymentMethodTile extends StatelessWidget {
-  final int index;
-  final bool selected;
-  final VoidCallback onTap;
-  final Widget child;
-  final String label;
-  const _PaymentMethodTile(
-      {required this.index,
-      required this.selected,
-      required this.onTap,
-      required this.child,
-      required this.label});
-  @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      child: GestureDetector(
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 14),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            border: selected
-                ? Border.all(color: AppColors.primary, width: 2)
-                : null,
-          ),
-          child: Column(
-            children: [
-              child,
-              const SizedBox(height: 6),
-              Text(
-                label,
-                style: TextStyle(
-                    fontSize: 12,
-                    color: selected
-                        ? AppColors.primary
-                        : Colors.grey.shade600,
-                    fontWeight: selected ? FontWeight.w600 : FontWeight.normal),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
+
 
 class _CheckoutStepper extends StatelessWidget {
   final int currentStep;

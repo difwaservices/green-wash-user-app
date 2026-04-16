@@ -271,12 +271,16 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Text(
-                                  addr.title,
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w800,
-                                    fontSize: 16,
-                                    color: Color(0xFF1A1A1A),
+                                Expanded(
+                                  child: Text(
+                                    addr.title,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w800,
+                                      fontSize: 16,
+                                      color: Color(0xFF1A1A1A),
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
                                 Row(
@@ -311,22 +315,29 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
                               ],
                             ),
                             const SizedBox(height: 4),
-                            Text(
-                              profile.name,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 14,
-                                color: Color(0xFF4B5563),
-                              ),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              '${addr.street}\n${addr.details}',
-                              style: const TextStyle(
-                                  color: Colors.grey,
-                                  fontSize: 13,
-                                  height: 1.4),
-                            ),
+                             Text(
+                               addr.fullName.isNotEmpty ? addr.fullName : (profile.name.isNotEmpty ? profile.name : 'Unknown Recipient'),
+                               style: const TextStyle(
+                                 fontWeight: FontWeight.bold,
+                                 fontSize: 14,
+                                 color: Color(0xFF4B5563),
+                               ),
+                             ),
+                             const SizedBox(height: 4),
+                             Text(
+                               addr.street,
+                               style: const TextStyle(
+                                   color: Colors.grey,
+                                   fontSize: 13,
+                                   height: 1.4),
+                             ),
+                             Text(
+                               addr.details,
+                               style: const TextStyle(
+                                   color: Color(0xFF9CA3AF),
+                                   fontSize: 12,
+                                   height: 1.2),
+                             ),
                             const SizedBox(height: 8),
                             Text(
                               profile.phone,

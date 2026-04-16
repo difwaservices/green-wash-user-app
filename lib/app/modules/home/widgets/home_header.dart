@@ -57,12 +57,16 @@ class _HomeHeaderState extends ConsumerState<HomeHeader> {
                           const Icon(Icons.location_on,
                               color: AppColors.textPrimary, size: 18),
                           const SizedBox(width: 4),
-                          Text(
-                            address?.title ?? 'Add Address',
-                            style: const TextStyle(
-                              fontSize: 14.6,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.textPrimary,
+                          Flexible(
+                            child: Text(
+                              address?.title ?? 'Add Address',
+                              style: const TextStyle(
+                                fontSize: 14.6,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.textPrimary,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                           const Icon(Icons.keyboard_arrow_down, size: 20),

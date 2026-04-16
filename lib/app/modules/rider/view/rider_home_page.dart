@@ -8,6 +8,7 @@ import '../../../core/constants/app_colors.dart';
 import '../../../routes/app_routes.dart';
 import 'rider_order_details_page.dart';
 import 'rider_history_page.dart'; // to invalidate deliveryHistoryProvider
+import '../../../core/utils/auth_helper.dart';
 
 final riderOrdersProvider =
     FutureProvider.autoDispose<List<dynamic>>((ref) async {
@@ -467,15 +468,20 @@ class _RiderHomePageState extends ConsumerState<RiderHomePage> {
         actions: [
           IconButton(
             icon: const Icon(Icons.logout_rounded),
-            onPressed: () async {
-              await ref.read(authProvider.notifier).logout();
-              if (context.mounted) {
-                Navigator.pushNamedAndRemoveUntil(
-                  context,
-                  AppRoutes.login,
-                  (route) => false,
-                );
-              }
+            onPressed: () {
+              AuthHelper.confirmSignOut(
+                context: context,
+                onConfirm: () async {
+                  await ref.read(authProvider.notifier).logout();
+                  if (context.mounted) {
+                    Navigator.pushNamedAndRemoveUntil(
+                      context,
+                      AppRoutes.login,
+                      (route) => false,
+                    );
+                  }
+                },
+              );
             },
           ),
           const SizedBox(width: 8),

@@ -369,12 +369,16 @@ class _TransactionItemWidget extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      transaction.description.isNotEmpty 
-                          ? transaction.description 
-                          : (isCredit ? 'Wallet Top-up' : 'Order Payment'),
-                      style: const TextStyle(
-                          fontWeight: FontWeight.bold, fontSize: 14),
+                    Expanded(
+                      child: Text(
+                        transaction.description.isNotEmpty 
+                            ? transaction.description 
+                            : (isCredit ? 'Wallet Top-up' : 'Order Payment'),
+                        style: const TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 14),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
                     _buildStatusBadge(transaction.status),
                   ],

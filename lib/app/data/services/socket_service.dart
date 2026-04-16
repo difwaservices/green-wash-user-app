@@ -80,24 +80,31 @@ class SocketService {
     _socket!.onConnect((_) {
       debugPrint('✅ SocketService connected');
       _flushQueue();
-
-      // Setup global notification listener
-      onNotification((data) {
-        debugPrint('🔔 New Socket Notification: $data');
-        if (_container != null) {
-          _container!.invalidate(notificationsProvider);
-        }
-        
-        // Show local notification if the app is in foreground
-        try {
-          final title = data['title'] ?? 'New Notification';
-          final body = data['message'] ?? '';
-          FCMService.showNotification(title: title, body: body);
-        } catch (e) {
-          debugPrint('❌ Error showing socket notification: $e');
-        }
-      });
     });
+
+    // Setup global notification listener (using .off() first to prevent duplicates on reconnect)
+    _socket!.off('notification');
+    _socket!.on('notification', (data) {
+      debugPrint('🔔 New Socket Notification: $data');
+      if (_container != null) {
+        _container!.invalidate(notificationsProvider);
+      }
+      
+      // Show local notification if the app is in foreground
+      try {
+        final title = data['title'] ?? 'New Notification';
+        final body = data['message'] ?? data['body'] ?? data['content'] ?? '';
+        
+        FCMService.showNotification(
+          title: title, 
+          body: body,
+          data: Map<String, dynamic>.from(data),
+        );
+      } catch (e) {
+        debugPrint('❌ Error showing socket notification: $e');
+      }
+    });
+
     _socket!.onDisconnect((_) => debugPrint('🔌 SocketService disconnected'));
     _socket!.onConnectError((err) {
       debugPrint('⚠️ SocketService connect error: $err');

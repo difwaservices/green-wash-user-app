@@ -758,16 +758,21 @@ class _SignOutButton extends ConsumerWidget {
     return Align(
       alignment: Alignment.centerRight,
       child: GestureDetector(
-        onTap: () async {
-          CartProviderScope.of(context).clearSession();
-          await ref.read(authStoreProvider.notifier).logout();
-          if (context.mounted) {
-            Navigator.pushNamedAndRemoveUntil(
-              context,
-              AppRoutes.login,
-              (route) => false,
-            );
-          }
+        onTap: () {
+          AuthHelper.confirmSignOut(
+            context: context,
+            onConfirm: () async {
+              CartProviderScope.of(context).clearSession();
+              await ref.read(authProvider.notifier).logout();
+              if (context.mounted) {
+                Navigator.pushNamedAndRemoveUntil(
+                  context,
+                  AppRoutes.login,
+                  (route) => false,
+                );
+              }
+            },
+          );
         },
         child: Row(
           mainAxisSize: MainAxisSize.min,

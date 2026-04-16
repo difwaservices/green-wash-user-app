@@ -317,12 +317,16 @@ class _ShippingAddressPageState extends ConsumerState<ShippingAddressPage> {
                 children: [
                   Row(
                     children: [
-                      Text(
-                        addr.title,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                          color: Color(0xFF1B2D1F),
+                      Expanded(
+                        child: Text(
+                          addr.title,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                            color: Color(0xFF1B2D1F),
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                       if (addr.isDefault) ...[
