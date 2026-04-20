@@ -9,6 +9,7 @@ import '../../../routes/app_routes.dart';
 import 'rider_order_details_page.dart';
 import 'rider_history_page.dart'; // to invalidate deliveryHistoryProvider
 import '../../../core/utils/auth_helper.dart';
+import '../../../../core/api/api_provider.dart';
 
 final riderOrdersProvider =
     FutureProvider.autoDispose<List<dynamic>>((ref) async {
@@ -72,9 +73,47 @@ class RiderHomePage extends ConsumerStatefulWidget {
 }
 
 class RiderStatusNotifier extends Notifier<bool> {
+  static const _key = 'rider_online_status';
+
   @override
-  bool build() => false;
-  void toggle(bool value) => state = value;
+  bool build() {
+    // Start with false, then load from storage
+    _loadFromStorage();
+    return false;
+  }
+
+  Future<void> _loadFromStorage() async {
+    try {
+      final storage = ref.read(storageServiceProvider);
+      final saved = await storage.getBool(_key);
+      if (saved != null && saved != state) {
+        state = saved;
+        
+        // If we restored an "online" state, ensure we join the socket rooms
+        if (saved) {
+          final authState = ref.read(authProvider);
+          if (authState is AuthAuthenticated) {
+            final socket = ref.read(socketServiceProvider);
+            socket.joinRiderRoom(authState.user.id);
+            socket.joinUserRoom(authState.user.id);
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('Error loading rider status: $e');
+    }
+  }
+
+  Future<void> toggle(bool value) async {
+    if (state == value) return;
+    state = value;
+    try {
+      final storage = ref.read(storageServiceProvider);
+      await storage.setBool(_key, value);
+    } catch (e) {
+      debugPrint('Error saving rider status: $e');
+    }
+  }
 }
 
 final riderStatusProvider =
@@ -281,6 +320,7 @@ class _RiderHomePageState extends ConsumerState<RiderHomePage> {
   }
 
   void _showSnack(String message, {bool isError = false}) {
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content:
           Text(message, style: const TextStyle(fontWeight: FontWeight.w500)),
@@ -345,12 +385,13 @@ class _RiderHomePageState extends ConsumerState<RiderHomePage> {
     setState(() => _processingIds.add(orderId));
 
     try {
+      final messenger = ScaffoldMessenger.of(context);
       final riderService = ref.read(riderServiceProvider);
       final result = await riderService.respondToOrder(
           orderId: orderId, response: response);
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
+        messenger.showSnackBar(
           SnackBar(
             content: Text(result['message'] ?? 'Action successful'),
             backgroundColor:
@@ -362,6 +403,9 @@ class _RiderHomePageState extends ConsumerState<RiderHomePage> {
         );
         if (result['success']) {
           ref.invalidate(riderOrdersProvider);
+          try {
+            await ref.read(riderOrdersProvider.future);
+          } catch (_) {}
         }
       }
     } finally {
@@ -374,12 +418,13 @@ class _RiderHomePageState extends ConsumerState<RiderHomePage> {
     setState(() => _processingIds.add(orderId));
 
     try {
+      final messenger = ScaffoldMessenger.of(context);
       final result = await ref.read(riderServiceProvider).updateDeliveryStatus(
             orderId: orderId,
             status: 'Out for Delivery',
           );
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        messenger.showSnackBar(SnackBar(
           content: Text(result['message'] ?? '🚚 Out for Delivery!'),
           backgroundColor: AppColors.accentGreen,
           behavior: SnackBarBehavior.floating,
@@ -387,6 +432,9 @@ class _RiderHomePageState extends ConsumerState<RiderHomePage> {
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         ));
         ref.invalidate(riderOrdersProvider);
+        try {
+          await ref.read(riderOrdersProvider.future);
+        } catch (_) {}
       }
     } finally {
       if (mounted) setState(() => _processingIds.remove(orderId));
@@ -398,13 +446,14 @@ class _RiderHomePageState extends ConsumerState<RiderHomePage> {
     setState(() => _processingIds.add(orderId));
 
     try {
+      final messenger = ScaffoldMessenger.of(context);
       final riderService = ref.read(riderServiceProvider);
       final result = await riderService.markAsDelivered(orderId: orderId);
 
       if (mounted) {
         final isSuccess = result['success'] != false;
-        ScaffoldMessenger.of(context).clearSnackBars();
-        ScaffoldMessenger.of(context).showSnackBar(
+        messenger.clearSnackBars();
+        messenger.showSnackBar(
           SnackBar(
             content: Row(
               children: [
@@ -436,6 +485,9 @@ class _RiderHomePageState extends ConsumerState<RiderHomePage> {
           ref.invalidate(riderOrdersProvider);
           ref.invalidate(deliveryHistoryProvider);
           ref.invalidate(riderStatsProvider);
+          try {
+            await ref.read(riderOrdersProvider.future);
+          } catch (_) {}
         }
       }
     } finally {
@@ -453,6 +505,7 @@ class _RiderHomePageState extends ConsumerState<RiderHomePage> {
     return Scaffold(
       backgroundColor: const Color(0xFFF7F8FA),
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         title: const Text(
           'Rider Dashboard',
           style: TextStyle(
@@ -616,26 +669,13 @@ class _RiderHomePageState extends ConsumerState<RiderHomePage> {
                               ),
                             ),
                           ),
-                          error: (_, __) => Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceAround,
-                            children: [
-                              _buildStat(
-                                  'Total Delivered', '—', Icons.delivery_dining),
-                              _buildStat('Rating', '—', Icons.star_rounded),
-                            ],
+                          error: (_, __) => Center(
+                            child: _buildStat(
+                                'Total Delivered', '—', Icons.delivery_dining),
                           ),
-                          data: (stats) => Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceAround,
-                            children: [
-                              _buildStat('Total Delivered', '${stats.orders}',
-                                  Icons.delivery_dining),
-                              _buildStat(
-                                  'Rating',
-                                  stats.rating > 0
-                                      ? stats.rating.toStringAsFixed(1)
-                                      : '—',
-                                  Icons.star_rounded),
-                            ],
+                          data: (stats) => Center(
+                            child: _buildStat('Total Delivered', '${stats.orders}',
+                                Icons.delivery_dining),
                           ),
                         ),
                       ],
@@ -752,25 +792,51 @@ class _RiderHomePageState extends ConsumerState<RiderHomePage> {
   }
 
   Widget _buildStat(String label, String value, IconData icon) {
-    return Column(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: const Color(0xFFF1F8EB),
-            borderRadius: BorderRadius.circular(10),
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
           ),
-          child: Icon(icon, color: AppColors.accentGreen, size: 20),
-        ),
-        const SizedBox(height: 8),
-        Text(value,
+        ],
+        border: Border.all(color: const Color(0xFFF1F4F8)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: const BoxDecoration(
+              color: Color(0xFFF1F8EB),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, color: AppColors.accentGreen, size: 22),
+          ),
+          const SizedBox(width: 16),
+          Text(
+            label,
+            style: TextStyle(
+              color: Colors.grey.shade600,
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const Spacer(),
+          Text(
+            value,
             style: const TextStyle(
-                color: Color(0xFF1B2D1F),
-                fontSize: 16,
-                fontWeight: FontWeight.bold)),
-        Text(label,
-            style: TextStyle(color: Colors.grey.shade500, fontSize: 11)),
-      ],
+              color: Color(0xFF1B2D1F),
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -970,6 +1036,22 @@ class _RiderHomePageState extends ConsumerState<RiderHomePage> {
                   ),
                   const SizedBox(height: 12),
                   _buildOrderInfoRow(
+                    Icons.directions_run_rounded,
+                    'Plant / Vendor',
+                    (() {
+                      final items = (order['items'] as List?) ?? [];
+                      final retailer = order['retailer'] ?? (items.isNotEmpty ? items.first['retailer'] : null);
+                      if (retailer is Map) {
+                        return (retailer['businessDetails']?['storeDisplayName'] ?? 
+                                retailer['fullName'] ?? 
+                                retailer['name'] ?? 
+                                'RETAILER').toString().toUpperCase();
+                      }
+                      return 'RETAILER';
+                    })(),
+                  ),
+                  const SizedBox(height: 12),
+                  _buildOrderInfoRow(
                     Icons.list_alt_rounded,
                     'Items',
                     (() {
@@ -995,10 +1077,24 @@ class _RiderHomePageState extends ConsumerState<RiderHomePage> {
                 child: (() {
                   if (isPending) {
                     // STEP 1: ACCEPT ORDER
-                    return ElevatedButton(
+                    return ElevatedButton.icon(
                       onPressed: isProcessing
                           ? null
                           : () => _handleResponse(order['orderId'], 'Accepted'),
+                      icon: isProcessing
+                          ? const SizedBox(
+                              height: 18,
+                              width: 18,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white70,
+                              ),
+                            )
+                          : const Icon(Icons.check_circle_outline_rounded, size: 20),
+                      label: Text(
+                          isProcessing ? 'Processing...' : 'Accept Order',
+                          style: const TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 15)),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: isProcessing
                             ? Colors.grey
@@ -1009,15 +1105,6 @@ class _RiderHomePageState extends ConsumerState<RiderHomePage> {
                             borderRadius: BorderRadius.circular(12)),
                         padding: const EdgeInsets.symmetric(vertical: 14),
                       ),
-                      child: isProcessing
-                          ? const SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(
-                                  strokeWidth: 2, color: Colors.white))
-                          : const Text('Accept Order',
-                              style: TextStyle(
-                                  fontWeight: FontWeight.bold, fontSize: 15)),
                     );
                   } else if (isAccepted && !isDelivered) {
                     final s = orderStatus.toLowerCase();
@@ -1028,9 +1115,19 @@ class _RiderHomePageState extends ConsumerState<RiderHomePage> {
                         onPressed: isProcessing
                             ? null
                             : () => _markDelivered(order['orderId']),
-                        icon: const Icon(Icons.check_circle_rounded, size: 20),
-                        label: const Text('Mark as Delivered',
-                            style: TextStyle(
+                        icon: isProcessing
+                            ? const SizedBox(
+                                height: 18,
+                                width: 18,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white70,
+                                ),
+                              )
+                            : const Icon(Icons.check_circle_rounded, size: 20),
+                        label: Text(
+                            isProcessing ? 'Processing...' : 'Mark as Delivered',
+                            style: const TextStyle(
                                 fontWeight: FontWeight.bold, fontSize: 15)),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: isProcessing
@@ -1049,10 +1146,21 @@ class _RiderHomePageState extends ConsumerState<RiderHomePage> {
                         onPressed: isProcessing
                             ? null
                             : () => _markOutForDelivery(order['orderId']),
-                        icon:
-                            const Icon(Icons.delivery_dining_rounded, size: 20),
-                        label: const Text('Mark Out for Delivery',
-                            style: TextStyle(
+                        icon: isProcessing
+                            ? const SizedBox(
+                                height: 18,
+                                width: 18,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white70,
+                                ),
+                              )
+                            : const Icon(Icons.delivery_dining_rounded, size: 20),
+                        label: Text(
+                            isProcessing
+                                ? 'Processing...'
+                                : 'Mark Out for Delivery',
+                            style: const TextStyle(
                                 fontWeight: FontWeight.bold, fontSize: 15)),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: isProcessing

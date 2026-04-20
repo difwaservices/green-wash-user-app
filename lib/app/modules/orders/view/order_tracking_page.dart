@@ -442,6 +442,8 @@ class _OrderTrackingPageState extends ConsumerState<OrderTrackingPage> {
 
   Widget _buildOrderSummary() {
     final totalAmount = _order['totalAmount'];
+    final deliveryFee = _order['deliveryFee'];
+    final distance = _order['distance'];
     final paymentMethod = _order['paymentMethod']?.toString() ?? '';
     final paymentStatus = _order['paymentStatus']?.toString() ?? '';
     final orderType = _order['orderType']?.toString() ?? '';
@@ -481,6 +483,22 @@ class _OrderTrackingPageState extends ConsumerState<OrderTrackingPage> {
           ),
           child: Column(
             children: [
+              if (distance != null && (distance as num) > 0) ...[
+                _summaryRow(
+                  'Distance',
+                  '${distance.toString()} km',
+                  icon: Icons.motorcycle,
+                ),
+                const Divider(height: 20, color: Color(0xFFEEEEEE)),
+              ],
+              if (deliveryFee != null && (deliveryFee as num) > 0) ...[
+                _summaryRow(
+                  'Delivery Fee',
+                  '₹${deliveryFee.toString()}',
+                  icon: Icons.local_shipping,
+                ),
+                const Divider(height: 20, color: Color(0xFFEEEEEE)),
+              ],
               if (totalAmount != null)
                 _summaryRow(
                   'Total Amount',

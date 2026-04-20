@@ -1,4 +1,0 @@
-Analyzing Shrimpbite...                                         
-
-  error - The method 'CommonButton' isn't defined for the type '_RegisterPageState' - lib\app\modules\auth\register_page.dart:223:19 - undefined_method
-

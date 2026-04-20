@@ -16,7 +16,17 @@ val localPropertiesFile = rootProject.file("local.properties")
 if (localPropertiesFile.exists()) {
     localPropertiesFile.inputStream().use { localProperties.load(it) }
 }
-val mapsApiKey: String = localProperties.getProperty("MAPS_API_KEY") ?: ""
+
+// Read .env safely from project root
+val envProperties = Properties()
+val envFile = project.rootProject.file("../.env")
+if (envFile.exists()) {
+    envFile.inputStream().use { envProperties.load(it) }
+}
+
+val mapsApiKey: String = envProperties.getProperty("GOOGLE_MAPS_API_KEY") 
+    ?: localProperties.getProperty("MAPS_API_KEY") 
+    ?: ""
 
 android {
     namespace = "com.difmo.difwa"

@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/shop_product_model.dart';
 import '../models/food_models.dart';
+import '../models/banner_model.dart';
 import '../network/api_client.dart';
 import 'package:flutter/foundation.dart';
 
@@ -12,6 +13,11 @@ final shopServiceProvider = Provider<ShopService>((ref) {
 /// Reactive Provider for a specific shop's details
 final shopDetailsProvider = FutureProvider.family<ShopModel?, String>((ref, id) {
   return ref.watch(shopServiceProvider).getShopDetails(id);
+});
+
+/// Reactive Provider for app banners
+final bannersProvider = FutureProvider<List<AppBanner>>((ref) {
+  return ref.watch(shopServiceProvider).getBanners();
 });
 
 /// Service layer for shops.
@@ -101,6 +107,34 @@ class ShopService {
       return ShopModel.fromJson(data as Map<String, dynamic>);
     } catch (e) {
       debugPrint('ShopService: Error fetching shop details for $shopId: $e');
+      return null;
+    }
+  }
+
+  Future<List<AppBanner>> getBanners() async {
+    try {
+      final json = await _client.get(
+        '/banners/app',
+        requiresAuth: false,
+      );
+      final raw = json['data'] as List<dynamic>? ?? [];
+      return raw.map((e) => AppBanner.fromJson(e as Map<String, dynamic>)).toList();
+    } catch (e) {
+      debugPrint('ShopService: Error fetching banners: $e');
+      return [];
+    }
+  }
+
+  Future<Product?> getProductDetails(String productId) async {
+    try {
+      final json = await _client.get(
+        '/products/$productId',
+        requiresAuth: false,
+      );
+      final data = json['data'] ?? json;
+      return Product.fromJson(data as Map<String, dynamic>);
+    } catch (e) {
+      debugPrint('ShopService: Error fetching product details for $productId: $e');
       return null;
     }
   }

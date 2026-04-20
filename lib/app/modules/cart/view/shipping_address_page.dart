@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../data/network/api_client.dart';
@@ -6,6 +7,8 @@ import '../../../data/models/food_models.dart';
 import '../../../data/services/db_service.dart';
 import '../../../core/constants/app_colors.dart';
 import 'payment_method_page.dart';
+import '../../profile/view/address_form_page.dart';
+import '../../../routes/app_routes.dart';
 
 class ShippingAddressPage extends ConsumerStatefulWidget {
   const ShippingAddressPage({super.key});
@@ -18,8 +21,6 @@ class ShippingAddressPage extends ConsumerStatefulWidget {
 class _ShippingAddressPageState extends ConsumerState<ShippingAddressPage> {
   final _formKey = GlobalKey<FormState>();
 
-  final _fullNameCtrl = TextEditingController();
-  final _emailCtrl = TextEditingController();
   final _fullAddressCtrl = TextEditingController();
   final _cityCtrl = TextEditingController();
   final _stateCtrl = TextEditingController();
@@ -27,6 +28,9 @@ class _ShippingAddressPageState extends ConsumerState<ShippingAddressPage> {
 
   String _selectedLabel = 'Home';
   UserAddress? _editingAddress;
+  double? _latitude;
+  double? _longitude;
+
   final List<Map<String, dynamic>> _labels = [
     {'name': 'Home', 'icon': Icons.home_rounded},
     {'name': 'Office', 'icon': Icons.work_rounded},
@@ -49,8 +53,6 @@ class _ShippingAddressPageState extends ConsumerState<ShippingAddressPage> {
 
   @override
   void dispose() {
-    _fullNameCtrl.dispose();
-    _emailCtrl.dispose();
     _fullAddressCtrl.dispose();
     _cityCtrl.dispose();
     _stateCtrl.dispose();
@@ -59,51 +61,51 @@ class _ShippingAddressPageState extends ConsumerState<ShippingAddressPage> {
   }
 
   Future<void> _saveAddress() async {
+    final cart = CartProviderScope.of(context);
+    
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isSaving = true);
 
     try {
-      final cart = CartProviderScope.of(context);
-      final service = cart.addressService!;
-
-      final result = await service.saveAddress(
-        fullName: _fullNameCtrl.text.trim(),
-        email: _emailCtrl.text.trim(),
-        label: _selectedLabel,
-        fullAddress: _fullAddressCtrl.text.trim(),
-        city: _cityCtrl.text.trim(),
-        state: _stateCtrl.text.trim(),
-        pincode: _pincodeCtrl.text.trim(),
+      final newAddress = UserAddress(
+        id: _editingAddress?.id ?? '',
+        title: _selectedLabel,
+        street: _fullAddressCtrl.text.trim(),
+        details: '${_cityCtrl.text.trim()}, ${_stateCtrl.text.trim()} ${_pincodeCtrl.text.trim()}',
+        fullName: cart.userProfile.name, // Use profile directly
+        email: cart.userProfile.email,   // Use profile directly
         isDefault: _isDefault,
+        latitude: _latitude,
+        longitude: _longitude,
       );
 
-      if (result['success']) {
-        // Reload addresses AND re-sync cart so backend total is correct
-        await cart.loadAddresses();
-        await cart.loadCartFromApi(); // Ensures backend cart = UI cart
-        if (mounted) {
-          setState(() {
-            _showAddForm = false;
-            _isSaving = false;
-          });
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: const Text('Address saved successfully!'),
-              backgroundColor: AppColors.accentGreen,
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10)),
-            ),
-          );
-        }
+      if (_editingAddress == null) {
+        await cart.addAddress(newAddress);
+      } else {
+        await cart.updateAddress(newAddress);
+      }
+
+      if (mounted) {
+        setState(() {
+          _showAddForm = false;
+          _isSaving = false;
+          _editingAddress = null;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Address saved and selected!'),
+            backgroundColor: AppColors.primary,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+        );
       }
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content:
-              Text('Error: ${e is ApiException ? e.message : e.toString()}'),
+          content: Text('Error: $e'),
           backgroundColor: Colors.redAccent,
           behavior: SnackBarBehavior.floating,
         ),
@@ -117,15 +119,6 @@ class _ShippingAddressPageState extends ConsumerState<ShippingAddressPage> {
   Widget build(BuildContext context) {
     final cart = CartProviderScope.of(context);
     final addresses = cart.addresses;
-
-    if (addresses.isEmpty && !_showAddForm && !cart.isAddressesLoading) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        // Double check after callback to avoid race conditions
-        if (mounted && !_showAddForm && cart.addresses.isEmpty && !cart.isAddressesLoading) {
-          setState(() => _showAddForm = true);
-        }
-      });
-    }
 
     return Scaffold(
       backgroundColor: const Color(0xFFF7F8FA),
@@ -198,13 +191,23 @@ class _ShippingAddressPageState extends ConsumerState<ShippingAddressPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Select Delivery Address',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF1F2937),
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Select Delivery Address',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF1F2937),
+                ),
+              ),
+              if (addresses.isNotEmpty)
+                IconButton(
+                  onPressed: () => cart.loadAddresses(),
+                  icon: const Icon(Icons.refresh_rounded, color: Colors.grey, size: 20),
+                ),
+            ],
           ),
           const SizedBox(height: 16),
           if (addresses.isEmpty)
@@ -224,6 +227,7 @@ class _ShippingAddressPageState extends ConsumerState<ShippingAddressPage> {
             ),
           const SizedBox(height: 24),
           _buildAddAddressButton(),
+          const SizedBox(height: 100), // Space for bottom action
         ],
       ),
     );
@@ -291,23 +295,27 @@ class _ShippingAddressPageState extends ConsumerState<ShippingAddressPage> {
         ),
         child: Row(
           children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: isSelected
-                    ? AppColors.accentGreen.withValues(alpha: 0.1)
-                    : const Color(0xFFF1F4F8),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                addr.title.toLowerCase() == 'home'
-                    ? Icons.home_rounded
-                    : addr.title.toLowerCase() == 'office'
-                        ? Icons.work_rounded
-                        : Icons.location_on_rounded,
-                color:
-                    isSelected ? AppColors.accentGreen : Colors.grey.shade600,
-                size: 24,
+            AnimatedScale(
+              scale: isSelected ? 1.1 : 1.0,
+              duration: 300.ms,
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? AppColors.accentGreen.withValues(alpha: 0.1)
+                      : const Color(0xFFF1F4F8),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  addr.title.toLowerCase() == 'home'
+                      ? Icons.home_rounded
+                      : addr.title.toLowerCase() == 'office'
+                          ? Icons.work_rounded
+                          : Icons.location_on_rounded,
+                  color:
+                      isSelected ? AppColors.accentGreen : Colors.grey.shade600,
+                  size: 24,
+                ),
               ),
             ),
             const SizedBox(width: 16),
@@ -373,60 +381,56 @@ class _ShippingAddressPageState extends ConsumerState<ShippingAddressPage> {
               ),
             ),
             const SizedBox(width: 8),
-            Container(
-              width: 24,
-              height: 24,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color:
-                      isSelected ? AppColors.accentGreen : Colors.grey.shade300,
-                  width: 2,
+            Column(
+              children: [
+                Container(
+                  width: 24,
+                  height: 24,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color:
+                          isSelected ? AppColors.accentGreen : Colors.grey.shade300,
+                      width: 2,
+                    ),
+                  ),
+                  child: isSelected
+                      ? Center(
+                          child: Container(
+                            width: 12,
+                            height: 12,
+                            decoration: BoxDecoration(
+                              color: AppColors.accentGreen,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                        )
+                      : null,
                 ),
-              ),
-              child: isSelected
-                  ? Center(
-                      child: Container(
-                        width: 12,
-                        height: 12,
-                        decoration: BoxDecoration(
-                          color: AppColors.accentGreen,
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                    )
-                  : null,
-            ),
-            const SizedBox(width: 12),
-            IconButton(
-              icon: const Icon(Icons.edit_note_rounded, color: Colors.grey),
-              onPressed: () {
-                setState(() {
-                  _editingAddress = addr;
-                  _fullNameCtrl.text = addr.fullName;
-                  _emailCtrl.text = addr.email;
-                  _fullAddressCtrl.text = addr.street;
-                  _selectedLabel = addr.title;
-                  _isDefault = addr.isDefault;
-
-                  // Extract city, state, pin from details
-                  final parts = addr.details.split(',');
-                  _cityCtrl.text = parts.isNotEmpty ? parts[0].trim() : '';
-                  if (parts.length > 1) {
-                    final stateParts = parts[1].trim().split(' ');
-                    if (stateParts.length > 1) {
-                      _pincodeCtrl.text = stateParts.last;
-                      _stateCtrl.text = stateParts
-                          .sublist(0, stateParts.length - 1)
-                          .join(' ');
-                    } else {
-                      _stateCtrl.text = parts[1].trim();
+                const SizedBox(height: 12),
+                InkWell(
+                  onTap: () async {
+                    final result = await Navigator.pushNamed(
+                      context,
+                      AppRoutes.locationPicker,
+                      arguments: {'initialAddress': addr},
+                    );
+                    if (result != null && mounted) {
+                      CartProviderScope.of(context).loadAddresses();
                     }
-                  }
-
-                  _showAddForm = true;
-                });
-              },
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade100,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(Icons.edit_location_alt_rounded,
+                        color: AppColors.accentGreen.withValues(alpha: 0.8),
+                        size: 20),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
@@ -436,16 +440,13 @@ class _ShippingAddressPageState extends ConsumerState<ShippingAddressPage> {
 
   Widget _buildAddAddressButton() {
     return InkWell(
-      onTap: () => setState(() {
-        _editingAddress = null;
-        _fullNameCtrl.clear();
-        _emailCtrl.clear();
-        _fullAddressCtrl.clear();
-        _cityCtrl.clear();
-        _stateCtrl.clear();
-        _pincodeCtrl.clear();
-        _showAddForm = true;
-      }),
+      onTap: () async {
+        final result = await Navigator.pushNamed(context, AppRoutes.locationPicker);
+        if (result != null && mounted) {
+           // Address is already saved by the LocationPicker's bottom sheet
+           CartProviderScope.of(context).loadAddresses();
+        }
+      },
       borderRadius: BorderRadius.circular(16),
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 20),
@@ -487,6 +488,54 @@ class _ShippingAddressPageState extends ConsumerState<ShippingAddressPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            InkWell(
+              onTap: () async {
+                final result = await Navigator.pushNamed(context, '/location-picker');
+                if (result != null && result is Map && mounted) {
+                  setState(() {
+                    _fullAddressCtrl.text = result['street'] ?? '';
+                    _cityCtrl.text = result['city'] ?? '';
+                    _stateCtrl.text = result['state'] ?? '';
+                    _pincodeCtrl.text = result['pincode'] ?? '';
+                    _latitude = result['latitude'];
+                    _longitude = result['longitude'];
+                    // Ensure a tag is ALWAYS selected (fallback to Home)
+                    if (_selectedLabel.isEmpty) _selectedLabel = 'Home';
+                  });
+                  // FAST-TRACK: Automatically save and return to list after map pick
+                  _saveAddress();
+                }
+              },
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppColors.accentGreen.withValues(alpha: 0.05),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: AppColors.accentGreen.withValues(alpha: 0.2)),
+                ),
+                child: Row(
+                  children: [
+                    CircleAvatar(
+                      backgroundColor: AppColors.accentGreen,
+                      radius: 20,
+                      child: const Icon(Icons.map_rounded, color: Colors.white, size: 20),
+                    ),
+                    const SizedBox(width: 16),
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Pick from Map', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1A1A1A))),
+                          Text('Set your location for accurate delivery', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                        ],
+                      ),
+                    ),
+                    Icon(Icons.chevron_right_rounded, color: AppColors.accentGreen),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
             const Text(
               'Address Label',
               style: TextStyle(
@@ -552,29 +601,6 @@ class _ShippingAddressPageState extends ConsumerState<ShippingAddressPage> {
             ),
             const SizedBox(height: 32),
             _buildInputField(
-              controller: _fullNameCtrl,
-              label: 'Full Name',
-              hint: 'e.g. John Doe',
-              icon: Icons.person_rounded,
-              validator: (v) => v!.isEmpty ? 'Please enter your name' : null,
-            ),
-            const SizedBox(height: 20),
-            _buildInputField(
-              controller: _emailCtrl,
-              label: 'Email Address',
-              hint: 'e.g. john@example.com',
-              icon: Icons.email_rounded,
-              keyboardType: TextInputType.emailAddress,
-              validator: (v) {
-                if (v!.isEmpty) return 'Please enter your email';
-                if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(v)) {
-                  return 'Please enter a valid email address';
-                }
-                return null;
-              },
-            ),
-            const SizedBox(height: 20),
-            _buildInputField(
               controller: _fullAddressCtrl,
               label: 'Full Address',
               hint: 'Flat no, House no, Street name',
@@ -601,6 +627,8 @@ class _ShippingAddressPageState extends ConsumerState<ShippingAddressPage> {
                     hint: '123456',
                     icon: Icons.pin_drop_rounded,
                     keyboardType: TextInputType.number,
+                    maxLength: 6,
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                     validator: (v) {
                       if (v!.isEmpty) return 'Required';
                       if (!RegExp(r'^\d{6}$').hasMatch(v)) {
@@ -661,14 +689,19 @@ class _ShippingAddressPageState extends ConsumerState<ShippingAddressPage> {
                       borderRadius: BorderRadius.circular(16)),
                 ),
                 child: _isSaving
-                    ? const CircularProgressIndicator(color: Colors.white)
-                    : const Text(
-                        'Save & Continue',
-                        style: TextStyle(
+                    ? const SizedBox(
+                        height: 24,
+                        width: 24,
+                        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                      )
+                    : Text(
+                        _editingAddress == null ? 'Save & Continue' : 'Update Address',
+                        style: const TextStyle(
                             fontSize: 17, fontWeight: FontWeight.bold),
                       ),
               ),
             ),
+            const SizedBox(height: 32),
           ],
         ),
       ),
@@ -681,6 +714,8 @@ class _ShippingAddressPageState extends ConsumerState<ShippingAddressPage> {
     required String hint,
     required IconData icon,
     TextInputType? keyboardType,
+    int? maxLength,
+    List<TextInputFormatter>? inputFormatters,
     String? Function(String?)? validator,
   }) {
     return Column(
@@ -695,9 +730,12 @@ class _ShippingAddressPageState extends ConsumerState<ShippingAddressPage> {
         TextFormField(
           controller: controller,
           keyboardType: keyboardType,
+          maxLength: maxLength,
+          inputFormatters: inputFormatters,
           validator: validator,
           cursorColor: AppColors.accentGreen,
           decoration: InputDecoration(
+            counterText: '',
             hintText: hint,
             hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
             prefixIcon: Icon(icon, color: Colors.grey.shade400, size: 22),
@@ -726,6 +764,8 @@ class _ShippingAddressPageState extends ConsumerState<ShippingAddressPage> {
   }
 
   Widget _buildBottomAction(CartProvider cart) {
+    final bool canProceed = cart.isDeliverable && !cart.isCalculatingDelivery;
+
     return Container(
       padding: const EdgeInsets.fromLTRB(24, 16, 24, 36),
       decoration: BoxDecoration(
@@ -738,44 +778,104 @@ class _ShippingAddressPageState extends ConsumerState<ShippingAddressPage> {
           )
         ],
       ),
-      child: SizedBox(
-        width: double.infinity,
-        height: 56,
-        child: ElevatedButton(
-          onPressed: () {
-            final selected = cart.selectedAddress;
-            if (selected == null) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Please select a delivery address first.'),
-                  backgroundColor: Colors.redAccent,
-                  behavior: SnackBarBehavior.floating,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (cart.isCalculatingDelivery)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 20),
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.blue.shade50,
+                  borderRadius: BorderRadius.circular(12),
                 ),
-              );
-              return;
-            }
-            Navigator.push(context,
-                MaterialPageRoute(builder: (_) => const PaymentMethodPage()));
-          },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.accentGreen,
-            foregroundColor: Colors.white,
-            elevation: 0,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    SizedBox(
+                        width: 14,
+                        height: 14,
+                        child: CircularProgressIndicator(
+                            strokeWidth: 2, color: Colors.blue)),
+                    SizedBox(width: 10),
+                    Text('Checking serviceability...',
+                        style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.blue,
+                            fontWeight: FontWeight.w600)),
+                  ],
+                ),
+              ),
+            ),
+          if (!cart.isDeliverable && !cart.isCalculatingDelivery && cart.selectedAddress != null)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 20),
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFEF2F2),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.red.shade100),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.error_outline_rounded, color: Colors.redAccent, size: 24),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('Not Serviceable', 
+                            style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold, fontSize: 14)),
+                          const SizedBox(height: 2),
+                          Text(
+                            cart.deliveryMessage.isEmpty ? 'This location is outside our delivery range.' : cart.deliveryMessage,
+                            style: TextStyle(color: Colors.red.shade900, fontSize: 12),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          SizedBox(
+            width: double.infinity,
+            height: 56,
+            child: ElevatedButton(
+              onPressed: !canProceed ? null : () {
+                final selected = cart.selectedAddress;
+                if (selected == null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Please select a delivery address first.'),
+                      backgroundColor: Colors.redAccent,
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                  return;
+                }
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (_) => const PaymentMethodPage()));
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.accentGreen,
+                foregroundColor: Colors.white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16)),
+                disabledBackgroundColor: Colors.grey.shade300,
+              ),
+              child: const Text(
+                'Proceed to Payment',
+                style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
+              ),
+            ),
           ),
-          child: const Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text('Continue to Payment',
-                  style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
-              SizedBox(width: 8),
-              Icon(Icons.arrow_forward_rounded, size: 20),
-            ],
-          ),
-        ),
+        ],
       ),
-    ).animate().fadeIn(delay: 200.ms).slideY(begin: 0.1, end: 0);
+    );
   }
 }
 
@@ -785,83 +885,58 @@ class _CheckoutStepper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 40),
-      child: Row(
+    return Row(
+      children: [
+        _buildStep(0, 'CART', true),
+        _buildLine(true),
+        _buildStep(1, 'ADDRESS', currentStep >= 1),
+        _buildLine(currentStep >= 2),
+        _buildStep(2, 'PAYMENT', currentStep >= 2),
+      ],
+    );
+  }
+
+  Widget _buildStep(int step, String label, bool isActive) {
+    return Expanded(
+      child: Column(
         children: [
-          _StepDot(label: 'CART', stepIndex: 0, currentStep: currentStep),
-          _StepLine(active: currentStep >= 1),
-          _StepDot(label: 'ADDRESS', stepIndex: 1, currentStep: currentStep),
-          _StepLine(active: currentStep >= 2),
-          _StepDot(label: 'PAYMENT', stepIndex: 2, currentStep: currentStep),
+          Container(
+            width: 28,
+            height: 28,
+            decoration: BoxDecoration(
+              color: isActive ? AppColors.accentGreen : Colors.grey.shade200,
+              shape: BoxShape.circle,
+            ),
+            child: Center(
+              child: isActive
+                  ? const Icon(Icons.check, color: Colors.white, size: 16)
+                  : Text('${step + 1}',
+                      style: TextStyle(
+                          color: Colors.grey.shade500,
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold)),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            label,
+            style: TextStyle(
+              color: isActive ? AppColors.accentGreen : Colors.grey.shade400,
+              fontSize: 10,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 0.5,
+            ),
+          ),
         ],
       ),
     );
   }
-}
 
-class _StepDot extends StatelessWidget {
-  final String label;
-  final int stepIndex;
-  final int currentStep;
-  const _StepDot(
-      {required this.label,
-      required this.stepIndex,
-      required this.currentStep});
-
-  @override
-  Widget build(BuildContext context) {
-    final bool done = currentStep > stepIndex;
-    final bool active = currentStep == stepIndex;
-    final Color primary = AppColors.accentGreen;
-
-    return Column(
-      children: [
-        Container(
-          width: 32,
-          height: 32,
-          decoration: BoxDecoration(
-            color: (done || active) ? primary : Colors.white,
-            shape: BoxShape.circle,
-            border: Border.all(
-                color: (done || active) ? primary : Colors.grey.shade300,
-                width: 2),
-          ),
-          alignment: Alignment.center,
-          child: done
-              ? const Icon(Icons.check, color: Colors.white, size: 16)
-              : Text('${stepIndex + 1}',
-                  style: TextStyle(
-                      color: active ? Colors.white : Colors.grey.shade500,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 13)),
-        ),
-        const SizedBox(height: 8),
-        Text(label,
-            style: TextStyle(
-                fontSize: 9,
-                fontWeight:
-                    (done || active) ? FontWeight.bold : FontWeight.w500,
-                color: (done || active) ? primary : Colors.grey.shade400)),
-      ],
-    );
-  }
-}
-
-class _StepLine extends StatelessWidget {
-  final bool active;
-  const _StepLine({required this.active});
-
-  @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      child: Container(
-        height: 2,
-        margin: const EdgeInsets.only(bottom: 22, left: 8, right: 8),
-        decoration: BoxDecoration(
-            color: active ? AppColors.accentGreen : Colors.grey.shade200,
-            borderRadius: BorderRadius.circular(2)),
-      ),
+  Widget _buildLine(bool isActive) {
+    return Container(
+      width: 40,
+      height: 2,
+      color: isActive ? AppColors.accentGreen : Colors.grey.shade200,
     );
   }
 }

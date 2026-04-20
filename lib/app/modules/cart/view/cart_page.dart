@@ -29,12 +29,12 @@ class CartPage extends ConsumerWidget {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Color(0xFF1A1A1A)),
           onPressed: () {
-            try {
-              MainControllerScope.of(context).changePage(0);
-            } catch (_) {
-              if (Navigator.canPop(context)) {
-                Navigator.pop(context);
-              }
+            if (Navigator.canPop(context)) {
+              Navigator.pop(context);
+            } else {
+              try {
+                ref.read(mainIndexProvider.notifier).setIndex(0);
+              } catch (_) {}
             }
           },
         ),
@@ -49,7 +49,7 @@ class CartPage extends ConsumerWidget {
         centerTitle: true,
       ),
       body: items.isEmpty
-          ? _buildEmptyCart(context)
+          ? _buildEmptyCart(context, ref)
           : Stack(
               children: [
                 ListView.builder(
@@ -72,7 +72,7 @@ class CartPage extends ConsumerWidget {
   }
 
   // ... _buildEmptyCart remains same ...
-  Widget _buildEmptyCart(BuildContext context) {
+  Widget _buildEmptyCart(BuildContext context, WidgetRef ref) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -114,8 +114,7 @@ class CartPage extends ConsumerWidget {
                   Navigator.pop(context);
                 }
                 try {
-                  MainControllerScope.of(context)
-                      .changePage(0); // Go to Home tab
+                  ref.read(mainIndexProvider.notifier).setIndex(0); // Go to Home tab
                 } catch (_) {}
               },
               style: ElevatedButton.styleFrom(
@@ -240,42 +239,6 @@ class CartPage extends ConsumerWidget {
                     onIncrement: () => cart.increment(item.id),
                     onDecrement: () => cart.decrement(item.id),
                     size: 34, // Slightly smaller for list view
-                  ),
-                  const SizedBox(height: 8),
-                  TextButton(
-                    onPressed: () {
-                      final product = Product(
-                        id: item.id,
-                        name: item.title,
-                        image: item.image,
-                        price: item.unitPrice,
-                        weight: item.subtitle,
-                        category: '',
-                        description: '',
-                        whyChoose: [],
-                      );
-                      showModalBottomSheet(
-                        context: context,
-                        isScrollControlled: true,
-                        backgroundColor: Colors.transparent,
-                        builder: (context) =>
-                            SubscriptionConfigDrawer(product: product),
-                      );
-                    },
-                    style: TextButton.styleFrom(
-                      padding: EdgeInsets.zero,
-                      minimumSize: const Size(0, 0),
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    ),
-                    child: const Text(
-                      'Schedule',
-                      style: TextStyle(
-                        color: Color(0xFF06B6D4),
-                        fontSize: 11,
-                        fontWeight: FontWeight.bold,
-                        decoration: TextDecoration.underline,
-                      ),
-                    ),
                   ),
                 ],
               ),

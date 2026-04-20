@@ -31,8 +31,22 @@ class _HomeHeaderState extends ConsumerState<HomeHeader> {
         children: [
           // Location Picker Row
           Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Pin Icon with Background
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFCFFAFE),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(
+                  Icons.location_on_rounded,
+                  color: Color(0xFF06B6D4),
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 12),
+              // Address Text Column
               Expanded(
                 child: GestureDetector(
                   onTap: () {
@@ -51,39 +65,54 @@ class _HomeHeaderState extends ConsumerState<HomeHeader> {
                   },
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       Row(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.location_on,
-                              color: AppColors.textPrimary, size: 18),
-                          const SizedBox(width: 4),
                           Flexible(
                             child: Text(
                               address?.title ?? 'Add Address',
                               style: const TextStyle(
-                                fontSize: 14.6,
+                                fontSize: 15,
                                 fontWeight: FontWeight.bold,
-                                color: AppColors.textPrimary,
+                                color: Color(0xFF1A1A1A),
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                          const Icon(Icons.keyboard_arrow_down, size: 20),
+                          const Icon(
+                            Icons.keyboard_arrow_down_rounded,
+                            size: 18,
+                            color: Colors.grey,
+                          ),
                         ],
                       ),
                       const SizedBox(height: 2),
-                      Text(
-                        address?.street ?? 'Tap to set your delivery location',
-                        style:
-                            const TextStyle(fontSize: 10.2, color: Colors.grey),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              address != null 
+                                ? "${address.street}, ${address.details}" 
+                                : 'Tap to set your delivery location',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey.shade600,
+                                fontWeight: FontWeight.w400,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
                 ),
               ),
+              const SizedBox(width: 12),
               // Profile Button
               const SizedBox(width: 8),
               BounceWidget(
@@ -93,7 +122,7 @@ class _HomeHeaderState extends ConsumerState<HomeHeader> {
                     Navigator.pushNamed(context, AppRoutes.login);
                     return;
                   }
-                  MainControllerScope.of(context).changePage(4);
+                  ref.read(mainIndexProvider.notifier).setIndex(3);
                 },
                 child: Hero(
                   tag: 'profile_pic',
@@ -178,7 +207,7 @@ class _HomeHeaderState extends ConsumerState<HomeHeader> {
               readOnly: true,
               onTap: () => Navigator.pushNamed(context, AppRoutes.search),
               decoration: InputDecoration(
-                hintText: 'Search for water...',
+                hintText: 'Search water plants with name',
                 fillColor: Colors.white,
                 filled: true,
                 contentPadding: const EdgeInsets.symmetric(vertical: 0),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../routes/app_routes.dart';
 import '../../../data/services/wallet_service.dart';
+import '../../home/controller/main_controller.dart';
 
 import 'package:difwawaterapp/app/core/utils/auth_helper.dart';
 import 'package:difwawaterapp/core/state/auth_store.dart';
@@ -41,7 +42,15 @@ class WalletPage extends ConsumerWidget {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new,
               size: 20, color: Color(0xFF1E293B)),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () {
+            if (Navigator.canPop(context)) {
+              Navigator.pop(context);
+            } else {
+              try {
+                ref.read(mainIndexProvider.notifier).setIndex(0);
+              } catch (_) {}
+            }
+          },
         ),
         actions: [
           Container(

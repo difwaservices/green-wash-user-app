@@ -35,17 +35,42 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
   }
 
   void _populateControllers(UserModel user) {
-    if (_isInitialized) return;
-    _nameController.text = user.fullName;
-    _emailController.text = user.email;
-    _phoneController.text = user.phoneNumber;
-    _isInitialized = true;
+    if (_isSaving) return;
+    
+    // Initial populate or external sync
+    if (!_isInitialized || (_nameController.text != user.fullName && _nameController.text.isEmpty)) {
+      _nameController.text = user.fullName;
+      _emailController.text = user.email;
+      _phoneController.text = user.phoneNumber;
+      _isInitialized = true;
+    }
+    
+    // If name/email were updated externally but we are initialized, sync if they are different from initial values
+    // (This handles cases where the page remains in stack but profile updates elsewhere)
+    if (_isInitialized && _nameController.text == '' && user.fullName != '') {
+       _nameController.text = user.fullName;
+    }
   }
 
   Future<void> _saveProfile() async {
-    if (_nameController.text.trim().isEmpty) {
+    final currentUser = ref.read(userProfileProvider).value;
+    if (currentUser == null) return;
+
+    final newName = _nameController.text.trim();
+    final newEmail = _emailController.text.trim();
+
+    String? nameToUpdate;
+    String? emailToUpdate;
+
+    if (newName != currentUser.fullName) nameToUpdate = newName;
+    if (newEmail != currentUser.email) emailToUpdate = newEmail;
+
+    if (nameToUpdate == null && emailToUpdate == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Name cannot be empty')),
+        const SnackBar(
+          content: Text('No changes to save'),
+          backgroundColor: Colors.orange,
+        ),
       );
       return;
     }
@@ -53,8 +78,9 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
     setState(() => _isSaving = true);
 
     try {
-      final response = await ref.read(authServiceProvider).updateName(
-        fullName: _nameController.text.trim(),
+      final response = await ref.read(authServiceProvider).updateProfile(
+        fullName: nameToUpdate,
+        email: emailToUpdate,
       );
 
       if (!mounted) return;
@@ -161,7 +187,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                   hint: 'Enter your email',
                   icon: Icons.email_outlined,
                   keyboardType: TextInputType.emailAddress,
-                  enabled: false, // Usually email/phone aren't editable here
+                  enabled: !_isSaving,
                 ),
                 const SizedBox(height: 20),
                 _buildTextField(

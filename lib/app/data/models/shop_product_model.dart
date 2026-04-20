@@ -139,6 +139,8 @@ class ShopModel {
   final bool isShopActive;
   final bool isFeatured;
   final List<String> deliverySlots;
+  final double? lat;
+  final double? lng;
 
   const ShopModel({
     required this.id,
@@ -151,6 +153,8 @@ class ShopModel {
     this.isShopActive = true,
     this.isFeatured = false,
     this.deliverySlots = const [],
+    this.lat,
+    this.lng,
   });
 
   ShopModel copyWith({
@@ -164,6 +168,8 @@ class ShopModel {
     bool? isShopActive,
     bool? isFeatured,
     List<String>? deliverySlots,
+    double? lat,
+    double? lng,
   }) {
     return ShopModel(
       id: id ?? this.id,
@@ -176,16 +182,46 @@ class ShopModel {
       isShopActive: isShopActive ?? this.isShopActive,
       isFeatured: isFeatured ?? this.isFeatured,
       deliverySlots: deliverySlots ?? this.deliverySlots,
+      lat: lat ?? this.lat,
+      lng: lng ?? this.lng,
     );
   }
 
   factory ShopModel.fromJson(Map<String, dynamic> json) {
+    String parsedLocation = '';
+    double? parsedLat;
+    double? parsedLng;
+
+    if (json['location'] is String) {
+      parsedLocation = json['location'];
+    }
+
+    if (json['address'] is Map) {
+      final addressMap = json['address'];
+      // Prefer full formatted address, fallback to city, then whatever was in location string
+      String fullAddr = (addressMap['address'] ?? '').toString();
+      if (fullAddr.isNotEmpty) {
+        parsedLocation = fullAddr;
+      } else {
+         if (parsedLocation.isEmpty) {
+           parsedLocation = (addressMap['city'] ?? '').toString();
+         }
+      }
+
+      if (addressMap['coordinates'] is Map) {
+         parsedLat = (addressMap['coordinates']['lat'] as num?)?.toDouble();
+         parsedLng = (addressMap['coordinates']['lng'] as num?)?.toDouble();
+      }
+    } else if (json['address'] is String && parsedLocation.isEmpty) {
+      parsedLocation = json['address'];
+    }
+
     return ShopModel(
       id: (json['id'] ?? json['_id'] ?? '').toString(),
       name: (json['name'] ?? 'Difwa Shop').toString(),
       businessName: (json['businessName'] ?? '').toString(),
       image: (json['image'] ?? json['logo'] ?? json['banner'] ?? '').toString(),
-      location: (json['location'] ?? json['address'] ?? '').toString(),
+      location: parsedLocation,
       rating: (json['rating'] as num?)?.toDouble() ?? 4.5,
       deliveryTime: (json['deliveryTime'] ?? '30-45 mins').toString(),
       isShopActive: json['isShopActive'] ?? json['isActive'] ?? true,
@@ -197,6 +233,8 @@ class ShopModel {
               ?.map((e) => e.toString())
               .toList() ??
           [],
+      lat: parsedLat,
+      lng: parsedLng,
     );
   }
 }

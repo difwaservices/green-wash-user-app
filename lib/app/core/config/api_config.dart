@@ -8,4 +8,7 @@ class ApiConfig {
 
   static String get socketUrl =>
       dotenv.env['SOCKET_URL'] ?? 'https://api.difwa.com';
+
+  static String get googleMapsApiKey =>
+      dotenv.env['GOOGLE_MAPS_API_KEY'] ?? '';
 }

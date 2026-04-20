@@ -54,15 +54,20 @@ class UserOrder {
   final String id;
   final String status;
   final double total;
+  final double deliveryFee;
+  final double distance;
   final DateTime date;
   final List<UserOrderItem> items;
   final Map<String, dynamic>? rider;
   final Map<String, dynamic>? deliveryAddressMap;
+  final bool isReviewed;
 
   const UserOrder({
     required this.id,
     required this.status,
     required this.total,
+    this.deliveryFee = 0.0,
+    this.distance = 0.0,
     required this.date,
     required this.items,
     this.rider,
@@ -70,6 +75,7 @@ class UserOrder {
     this.deliverySlot,
     this.orderType,
     this.retailer,
+    this.isReviewed = false,
   });
 
   final String? deliverySlot;
@@ -134,6 +140,8 @@ class UserOrder {
       id: (json['_id'] ?? json['orderId'] ?? json['id'] ?? '').toString(),
       status: (json['status'] ?? json['paymentStatus'] ?? 'Pending').toString(),
       total: totalAmt,
+      deliveryFee: (json['deliveryFee'] as num?)?.toDouble() ?? 0.0,
+      distance: (json['distance'] as num?)?.toDouble() ?? 0.0,
       date: DateTime.tryParse(json['updatedAt'] ??
                   json['createdAt'] ??
                   json['orderDate'] ??
@@ -149,6 +157,14 @@ class UserOrder {
       retailer: json['retailer'] is Map 
           ? json['retailer'] as Map<String, dynamic>
           : (items.isNotEmpty ? items.first.retailer : null),
+      isReviewed: json['isReviewed'] == true ||
+          json['reviewed'] == true ||
+          json['isReviewed'] == 1 ||
+          json['reviewed'] == 1 ||
+          json['is_reviewed'] == true ||
+          json['is_reviewed'] == 1 ||
+          json['isReviewed'].toString().toLowerCase() == 'true' ||
+          json['is_reviewed'].toString().toLowerCase() == 'true',
     );
   }
 }
@@ -200,6 +216,8 @@ class UserAddress {
   final String fullName;
   final String email;
   final bool isDefault;
+  final double? latitude;
+  final double? longitude;
 
   const UserAddress({
     required this.id,
@@ -209,7 +227,33 @@ class UserAddress {
     this.fullName = '',
     this.email = '',
     this.isDefault = false,
+    this.latitude,
+    this.longitude,
   });
+
+  UserAddress copyWith({
+    String? id,
+    String? title,
+    String? street,
+    String? details,
+    String? fullName,
+    String? email,
+    bool? isDefault,
+    double? latitude,
+    double? longitude,
+  }) {
+    return UserAddress(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      street: street ?? this.street,
+      details: details ?? this.details,
+      fullName: fullName ?? this.fullName,
+      email: email ?? this.email,
+      isDefault: isDefault ?? this.isDefault,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
+    );
+  }
 }
 
 class UserPaymentMethod {

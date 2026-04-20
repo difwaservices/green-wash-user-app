@@ -3,11 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../data/services/order_service.dart';
 import '../../../data/services/db_service.dart';
 import '../../../data/services/subscription_service.dart';
+import '../../../data/services/auth_service.dart';
 import '../../../data/models/subscription_model.dart';
 import '../../../data/models/food_models.dart';
 import '../../../core/constants/app_colors.dart';
 import 'address_form_page.dart';
 import '../widgets/review_dialog.dart';
+import '../../../../core/state/auth_store.dart' as auth_store;
 
 class ProfileDetailPage extends ConsumerStatefulWidget {
   final String title;
@@ -43,6 +45,11 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
     if (widget.title == 'My Orders') {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _loadOrders();
+      });
+    }
+    if (widget.title == 'My Address') {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        CartProviderScope.of(context).loadAddresses();
       });
     }
   }
@@ -288,14 +295,15 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
                                     IconButton(
                                       icon: const Icon(Icons.edit_outlined,
                                           size: 18, color: Colors.grey),
-                                      onPressed: () {
-                                        Navigator.push(
+                                      onPressed: () async {
+                                        final result = await Navigator.pushNamed(
                                           context,
-                                          MaterialPageRoute(
-                                            builder: (_) =>
-                                                AddressFormPage(address: addr),
-                                          ),
+                                          '/location-picker',
+                                          arguments: {'initialAddress': addr},
                                         );
+                                        if (result != null && context.mounted) {
+                                          provider.loadAddresses();
+                                        }
                                       },
                                       constraints: const BoxConstraints(),
                                       padding: EdgeInsets.zero,
@@ -370,11 +378,12 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
           child: Material(
             color: Colors.transparent,
             child: InkWell(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const AddressFormPage()),
-                );
+              onTap: () async {
+                final result =
+                    await Navigator.pushNamed(context, '/location-picker');
+                if (result != null && context.mounted) {
+                  CartProviderScope.of(context).loadAddresses();
+                }
               },
               borderRadius: BorderRadius.circular(16),
               child: const Padding(
@@ -533,44 +542,65 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
                     order.status == 'Delivered',
                     isLast: true,
                   ),
-                  if (order.status == 'Delivered') ...[
+                  if (order.status == 'Delivered' || order.status == 'Completed') ...[
                     const SizedBox(height: 16),
                     SizedBox(
                       width: double.infinity,
-                      child: OutlinedButton.icon(
-                        onPressed: () {
-                          showDialog(
-                            context: context,
-                            builder: (context) => ReviewDialog(
-                              orderId: order.id,
-                              items: order.items
-                                  .map((i) => {
-                                        '_id': i.id,
-                                        'name': i.name,
-                                        'image': i.image,
-                                      })
-                                  .toList(),
-                              retailerId: order.retailer?['_id']?.toString() ??
-                                  '65e9f8f8f8f8f8f8f8f8f8f8',
-                              isOrderReview: true,
+                      child: order.isReviewed
+                          ? OutlinedButton.icon(
+                              onPressed: null,
+                              icon: const Icon(Icons.check_circle_outline,
+                                  color: Colors.green),
+                              label: const Text(
+                                'Rating Submitted',
+                                style: TextStyle(
+                                    color: Colors.green,
+                                    fontWeight: FontWeight.bold),
+                              ),
+                              style: OutlinedButton.styleFrom(
+                                side: const BorderSide(color: Colors.green),
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12)),
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 12),
+                              ),
+                            )
+                          : OutlinedButton.icon(
+                              onPressed: () {
+                                showDialog(
+                                  context: context,
+                                  builder: (context) => ReviewDialog(
+                                    orderId: order.id,
+                                    items: order.items
+                                        .map((i) => {
+                                              '_id': i.id,
+                                              'name': i.name,
+                                              'image': i.image,
+                                            })
+                                        .toList(),
+                                    retailerId: order.retailer?['_id']
+                                            ?.toString() ??
+                                        '65e9f8f8f8f8f8f8f8f8f8f8',
+                                    isOrderReview: true,
+                                  ),
+                                );
+                              },
+                              icon: const Icon(Icons.star_outline,
+                                  color: Color(0xFF06B6D4)),
+                              label: const Text(
+                                'Rate Items',
+                                style: TextStyle(
+                                    color: Color(0xFF06B6D4),
+                                    fontWeight: FontWeight.bold),
+                              ),
+                              style: OutlinedButton.styleFrom(
+                                side: const BorderSide(color: Color(0xFF06B6D4)),
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12)),
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 12),
+                              ),
                             ),
-                          );
-                        },
-                        icon: const Icon(Icons.star_outline,
-                            color: Color(0xFF06B6D4)),
-                        label: const Text(
-                          'Rate & Review',
-                          style: TextStyle(
-                              color: Color(0xFF06B6D4),
-                              fontWeight: FontWeight.bold),
-                        ),
-                        style: OutlinedButton.styleFrom(
-                          side: const BorderSide(color: Color(0xFF06B6D4)),
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12)),
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                        ),
-                      ),
                     ),
                   ],
                 ],
@@ -622,6 +652,8 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
     IconData icon,
     String hint, {
     IconData? trailingIcon,
+    bool readOnly = false,
+    TextEditingController? controller,
   }) {
     return Container(
       decoration: BoxDecoration(
@@ -630,6 +662,8 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
       ),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       child: TextField(
+        controller: controller,
+        readOnly: readOnly,
         decoration: InputDecoration(
           border: InputBorder.none,
           hintText: hint,
@@ -637,30 +671,36 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
           prefixIcon: Icon(icon, color: Colors.grey, size: 20),
           suffixIcon: trailingIcon != null
               ? Icon(trailingIcon, color: Colors.grey)
-              : null,
+              : (readOnly ? const Icon(Icons.lock_outline, size: 16, color: Colors.grey) : null),
         ),
       ),
     );
   }
 
-  Widget _buildSaveButton(String text) {
+  Widget _buildSaveButton(String text, {VoidCallback? onPressed, bool isLoading = false}) {
     return SizedBox(
       width: double.infinity,
       height: 52,
       child: ElevatedButton(
-        onPressed: () {},
+        onPressed: isLoading ? null : onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF06B6D4), // Darker designer green
+          backgroundColor: const Color(0xFF06B6D4),
           foregroundColor: Colors.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
           elevation: 0,
         ),
-        child: Text(
-          text,
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-        ),
+        child: isLoading
+            ? const SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+              )
+            : Text(
+                text,
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
       ),
     );
   }
@@ -784,7 +824,7 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
       return const Padding(
         padding: EdgeInsets.only(top: 40),
         child: Center(
-          child: Text('No favorites yet.',
+          child: Text('No Favorites Yet',
               style: TextStyle(color: Colors.grey, fontSize: 16)),
         ),
       );
@@ -1021,9 +1061,22 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
     );
   }
 
-  // --- ABOUT ME DESIGN (Image 4) ---
+  // Use late to avoid initialization errors
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  bool _isUpdatingProfile = false;
+
   Widget _buildAboutMeDetail(CartProvider provider) {
     final profile = provider.userProfile;
+    
+    // Refresh controllers if profile data in CartProvider has been updated externally
+    if (profile.name.isNotEmpty && _nameController.text != profile.name && !_isUpdatingProfile) {
+       _nameController.text = profile.name;
+    }
+    if (profile.email.isNotEmpty && _emailController.text != profile.email && !_isUpdatingProfile) {
+       _emailController.text = profile.email;
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1036,14 +1089,20 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
           ),
         ),
         const SizedBox(height: 16),
-        _buildIconTextField(Icons.person_outline, profile.name),
+        _buildIconTextField(Icons.person_outline, 'Full Name', controller: _nameController),
         const SizedBox(height: 12),
-        _buildIconTextField(Icons.mail_outline, profile.email),
+        // Email is now editable as per user request
+        _buildIconTextField(Icons.mail_outline, 'Email Address', controller: _emailController),
         const SizedBox(height: 12),
-        _buildIconTextField(Icons.phone_android_outlined, profile.phone),
+        _buildIconTextField(Icons.phone_android_outlined, profile.phone, readOnly: true),
+        const SizedBox(height: 12),
+        const Text(
+          'Note: Phone number cannot be changed after verification.',
+          style: TextStyle(fontSize: 11, color: Colors.grey, fontStyle: FontStyle.italic),
+        ),
         const SizedBox(height: 32),
         const Text(
-          'Change Password',
+          'Security',
           style: TextStyle(
             fontWeight: FontWeight.bold,
             fontSize: 16,
@@ -1051,17 +1110,59 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
           ),
         ),
         const SizedBox(height: 16),
-        _buildIconTextField(Icons.lock_outline, 'Current password'),
-        const SizedBox(height: 12),
-        _buildIconTextField(
-          Icons.lock_outline,
-          '••••••',
-          trailingIcon: Icons.visibility_outlined,
-        ),
-        const SizedBox(height: 12),
-        _buildIconTextField(Icons.lock_outline, 'Confirm password'),
+        _buildIconTextField(Icons.lock_outline, 'Change password', trailingIcon: Icons.chevron_right),
         const SizedBox(height: 40),
-        _buildSaveButton('Save settings'),
+        _buildSaveButton(
+          'Update Profile', 
+          isLoading: _isUpdatingProfile,
+          onPressed: () async {
+            final currentProfile = provider.userProfile;
+            final newName = _nameController.text.trim();
+            final newEmail = _emailController.text.trim();
+            
+            String? nameToUpdate;
+            String? emailToUpdate;
+            
+            if (newName != currentProfile.name) nameToUpdate = newName;
+            if (newEmail != currentProfile.email) emailToUpdate = newEmail;
+            
+            if (nameToUpdate == null && emailToUpdate == null) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('No changes to save'),
+                  backgroundColor: Colors.orange,
+                )
+              );
+              return;
+            }
+
+            setState(() => _isUpdatingProfile = true);
+            try {
+              final result = await ref.read(authServiceProvider).updateProfile(
+                fullName: nameToUpdate,
+                email: emailToUpdate,
+              );
+              
+                if (result.success && mounted) {
+                  // Sync with AuthStore to update header and other global UI
+                  if (result.data != null) {
+                    ref.read(auth_store.authStoreProvider.notifier).syncUser(result.data!);
+                  }
+                  // Refresh local profile
+                  await provider.syncUserProfile();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Profile updated successfully!'))
+                );
+              } else if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(result.message))
+                );
+              }
+            } finally {
+              if (mounted) setState(() => _isUpdatingProfile = false);
+            }
+          }
+        ),
       ],
     );
   }

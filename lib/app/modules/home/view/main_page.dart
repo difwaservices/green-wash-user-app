@@ -23,23 +23,19 @@ class MainPage extends ConsumerStatefulWidget {
 }
 
 class _MainPageState extends ConsumerState<MainPage> {
-  final MainController _controller = MainController();
   DateTime? _lastPressedAt;
 
   final List<Widget> _pages = [
     const HomePage(),
-    const SubscriptionPage(),
-    const CartPage(), // Central FAB
-    const WalletPage(),
-    const ProfilePage(),
+    const SubscriptionPage(), // Index 1: Daily
+    const CartPage(), // Index 2: Central FAB
+    const WalletPage(), // Index 3
+    const ProfilePage(), // Index 4
   ];
 
   @override
   void initState() {
     super.initState();
-    _controller.addListener(() {
-      if (mounted) setState(() {});
-    });
     // Initial cart sync from API
     WidgetsBinding.instance.addPostFrameCallback((_) {
       CartProviderScope.of(context).loadCartFromApi();
@@ -58,18 +54,18 @@ class _MainPageState extends ConsumerState<MainPage> {
     socket.onOrderDelivered((data) {
       if (!mounted) return;
 
-      // data: { orderId: "...", products: [{ _id, name, retailer }] }
       final orderId = data['orderId']?.toString() ?? '';
       final products = data['products'] as List? ?? [];
 
       if (orderId.isNotEmpty) {
-        // Show order review dialog
         showDialog(
           context: context,
           barrierDismissible: false,
           builder: (context) => ReviewDialog(
             orderId: orderId,
-            items: products.map((e) => Map<String, dynamic>.from(e as Map)).toList(),
+            items: products
+                .map((e) => Map<String, dynamic>.from(e as Map))
+                .toList(),
             retailerId: products.isNotEmpty
                 ? (products[0] as Map)['retailer']?.toString() ?? ''
                 : '',
@@ -82,7 +78,6 @@ class _MainPageState extends ConsumerState<MainPage> {
 
   @override
   void dispose() {
-    _controller.dispose();
     final socket = ref.read(socketServiceProvider);
     final user = ref.read(currentUserProvider);
     if (user != null) {
@@ -94,11 +89,11 @@ class _MainPageState extends ConsumerState<MainPage> {
 
   @override
   Widget build(BuildContext context) {
+    final currentIndex = ref.watch(mainIndexProvider);
     final cart = CartProviderScope.of(context);
     final bool showSummary =
-        cart.itemCount > 0 && _controller.currentIndex != 2;
+        cart.itemCount > 0 && currentIndex != 2; // 2 is CartPage
 
-    // Global Auth Listener to redirect on logout/session expiry
     ref.listen(isAuthenticatedProvider, (previous, next) {
       if (next == false) {
         Navigator.pushNamedAndRemoveUntil(
@@ -106,76 +101,72 @@ class _MainPageState extends ConsumerState<MainPage> {
       }
     });
 
-    return MainControllerScope(
-      controller: _controller,
-      child: PopScope(
-        canPop: false,
-        onPopInvokedWithResult: (bool didPop, Object? result) async {
-          if (didPop) return;
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (bool didPop, Object? result) async {
+        if (didPop) return;
 
-          if (_controller.currentIndex != 0) {
-            _controller.changePage(0);
-            return;
-          }
+        if (currentIndex != 0) {
+          ref.read(mainIndexProvider.notifier).setIndex(0);
+          return;
+        }
 
-          final now = DateTime.now();
-          if (_lastPressedAt == null ||
-              now.difference(_lastPressedAt!) > const Duration(seconds: 2)) {
-            _lastPressedAt = now;
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text(
-                  'Press back again to exit the app.',
-                  style: TextStyle(color: Colors.white, fontSize: 13),
-                ),
-                backgroundColor: Color(0xFF0891B2),
-                duration: Duration(seconds: 2),
-                behavior: SnackBarBehavior.floating,
-                margin: EdgeInsets.all(20),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.all(Radius.circular(10)),
-                ),
+        final now = DateTime.now();
+        if (_lastPressedAt == null ||
+            now.difference(_lastPressedAt!) > const Duration(seconds: 2)) {
+          _lastPressedAt = now;
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                'Press back again to exit the app.',
+                style: TextStyle(color: Colors.white, fontSize: 13),
               ),
-            );
-            return;
-          }
-          SystemNavigator.pop();
-        },
-        child: Scaffold(
-          backgroundColor: AppColors.secondary,
-          extendBody: true,
-          body: Stack(
-            children: [
-              Positioned.fill(
-                child: IndexedStack(
-                  index: _controller.currentIndex,
-                  children: _pages,
-                ),
+              backgroundColor: Color(0xFF0891B2),
+              duration: Duration(seconds: 2),
+              behavior: SnackBarBehavior.floating,
+              margin: EdgeInsets.all(20),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.all(Radius.circular(10)),
               ),
-              if (showSummary)
-                Positioned(
-                  bottom: 110, // Just above the custom bottom bar (height ~100)
-                  left: 0,
-                  right: 0,
-                  child: CartSummaryBar(cart: cart),
-                ),
-            ],
-          ),
-          bottomNavigationBar: _buildCustomBottomBar(),
+            ),
+          );
+          return;
+        }
+        SystemNavigator.pop();
+      },
+      child: Scaffold(
+        backgroundColor: AppColors.secondary,
+        extendBody: true,
+        body: Stack(
+          children: [
+            Positioned.fill(
+              child: IndexedStack(
+                index: currentIndex,
+                children: _pages,
+              ),
+            ),
+            if (showSummary)
+              Positioned(
+                bottom: 110,
+                left: 0,
+                right: 0,
+                child: CartSummaryBar(cart: cart),
+              ),
+          ],
         ),
+        bottomNavigationBar: _buildCustomBottomBar(currentIndex),
       ),
     );
   }
 
-  Widget _buildCustomBottomBar() {
-    bool isCartSelected = _controller.currentIndex == 2;
+  Widget _buildCustomBottomBar(int currentIndex) {
+    bool isCartSelected = currentIndex == 2;
     return Container(
       height: 100,
       decoration: const BoxDecoration(color: Colors.transparent),
       child: Stack(
         alignment: Alignment.bottomCenter,
         children: [
-          // Background Bar
           Container(
             height: 70,
             margin: const EdgeInsets.fromLTRB(16, 0, 16, 20),
@@ -188,21 +179,19 @@ class _MainPageState extends ConsumerState<MainPage> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _buildNavItem(0, Icons.home_filled, 'Home'),
-                _buildNavItem(1, Icons.local_shipping_outlined, 'Daily'),
-                const SizedBox(width: 68), // Space for FAB
-                _buildNavItem(3, Icons.wallet_rounded, 'Wallet'),
-                _buildNavItem(4, Icons.person_rounded, 'Profile'),
+                _buildNavItem(currentIndex, 0, Icons.home_filled, 'Home'),
+                _buildNavItem(currentIndex, 1, Icons.local_shipping_outlined, 'Daily'),
+                const SizedBox(width: 68),
+                _buildNavItem(currentIndex, 3, Icons.wallet_rounded, 'Wallet'),
+                _buildNavItem(currentIndex, 4, Icons.person_rounded, 'Profile'),
               ],
             ),
           ),
-          // Central FAB (Cart)
           Positioned(
             top: 5,
             child: GestureDetector(
               onTap: () {
-                // Anyone can see the cart, but they must login to checkout (handled in CartPage)
-                _controller.changePage(2);
+                ref.read(mainIndexProvider.notifier).setIndex(2);
               },
               child: Container(
                 width: 68,
@@ -234,11 +223,11 @@ class _MainPageState extends ConsumerState<MainPage> {
     );
   }
 
-  Widget _buildNavItem(int index, IconData icon, String label) {
-    bool isSelected = _controller.currentIndex == index;
+  Widget _buildNavItem(int currentIndex, int index, IconData icon, String label) {
+    bool isSelected = currentIndex == index;
     return GestureDetector(
       onTap: () {
-        _controller.changePage(index);
+        ref.read(mainIndexProvider.notifier).setIndex(index);
       },
       child: Column(
         mainAxisSize: MainAxisSize.min,

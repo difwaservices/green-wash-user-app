@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../data/models/shop_product_model.dart';
 import '../../../data/services/shop_service.dart';
 import '../../../data/services/socket_service.dart';
+import '../../../core/utils/loader_utils.dart';
 
 final shopsListProvider =
     AsyncNotifierProvider<ShopsNotifier, List<ShopModel>>(ShopsNotifier.new);
@@ -10,7 +11,7 @@ class ShopsNotifier extends AsyncNotifier<List<ShopModel>> {
   @override
   Future<List<ShopModel>> build() async {
     final service = ref.watch(shopServiceProvider);
-    final shops = await service.getShops();
+    final shops = await LoaderUtils.wrapWithSkeleton(() => service.getShops());
 
     // Listen for real-time shop status updates
     final socket = ref.watch(socketServiceProvider);
@@ -46,13 +47,13 @@ class ShopsNotifier extends AsyncNotifier<List<ShopModel>> {
 
   Future<void> refresh() async {
     state = const AsyncLoading();
-    state =
-        await AsyncValue.guard(() => ref.read(shopServiceProvider).getShops());
+    state = await AsyncValue.guard(
+        () => LoaderUtils.wrapWithSkeleton(() => ref.read(shopServiceProvider).getShops()));
   }
 }
 
 final shopProductsProvider =
     FutureProvider.family<List<ShopProduct>, String>((ref, shopId) async {
   final service = ref.watch(shopServiceProvider);
-  return service.getShopProducts(shopId);
+  return LoaderUtils.wrapWithSkeleton(() => service.getShopProducts(shopId));
 });

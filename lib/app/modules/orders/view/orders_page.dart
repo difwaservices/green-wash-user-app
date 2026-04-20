@@ -1,87 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import '../../../data/models/food_models.dart';
 import '../../../data/services/order_service.dart';
 import '../../../data/services/socket_service.dart';
 import '../../auth/provider/auth_provider.dart';
 import '../../../core/constants/app_images.dart';
 import '../../../data/models/product_model.dart';
-
 import '../../../data/services/db_service.dart';
-import 'package:intl/intl.dart';
-// Local provider removed, using shared provider from order_service.dart
-
-
-class _HeaderDelegate extends SliverPersistentHeaderDelegate {
-  final double expandedHeight;
-  _HeaderDelegate({required this.expandedHeight});
-
-  @override
-  Widget build(
-      BuildContext context, double shrinkOffset, bool overlapsContent) {
-    final double opacity =
-        (1 - (shrinkOffset / expandedHeight)).clamp(0.0, 1.0);
-
-    return OverflowBox(
-      maxWidth: MediaQuery.of(context).size.width + 50,
-      minWidth: MediaQuery.of(context).size.width + 50,
-      alignment: Alignment.center,
-      child: Transform.scale(
-        scaleX: 1.1,
-        child: Stack(
-          fit: StackFit.expand,
-          alignment: Alignment.center,
-          children: [
-            Container(
-              decoration: const BoxDecoration(
-                image: DecorationImage(
-                  image: AssetImage(AppImages.waterHero),
-                  fit: BoxFit.cover,
-                  alignment: Alignment.center,
-                ),
-              ),
-            ),
-            Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Colors.black.withValues(alpha: 0.2),
-                    Colors.black.withValues(alpha: 0.7),
-                  ],
-                ),
-              ),
-            ),
-            Center(
-              child: Opacity(
-                opacity: opacity,
-                child: const Text(
-                  'My Orders',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 22,
-                    shadows: [Shadow(color: Colors.black45, blurRadius: 15)],
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  @override
-  double get maxExtent => expandedHeight;
-  @override
-  double get minExtent => kToolbarHeight + 20;
-  @override
-  bool shouldRebuild(covariant _HeaderDelegate oldDelegate) =>
-      expandedHeight != oldDelegate.expandedHeight;
-}
+import '../../../widgets/bounce_widget.dart';
+import '../../../core/constants/app_colors.dart';
 
 class OrdersPage extends ConsumerStatefulWidget {
   const OrdersPage({super.key});
@@ -100,24 +29,21 @@ class _OrdersPageState extends ConsumerState<OrdersPage> {
   void _setupSocket() {
     final user = ref.read(currentUserProvider);
     if (user == null) return;
-    final socket = ref.read(socketServiceProvider);
-    socket.joinUserRoom(user.id);
-    socket.onOrderUpdate((data) {
-      if (!mounted) return;
-      ref.invalidate(myOrdersProvider);
-    });
-
-    socket.onRiderAssigned((data) {
-      if (!mounted) return;
-      HapticFeedback.heavyImpact();
-      _showRiderAssignedPopup(data);
-    });
-  }
-
-  @override
-  void dispose() {
-    ref.read(socketServiceProvider).offEvent('riderAssigned');
-    super.dispose();
+    try {
+      final socket = ref.read(socketServiceProvider);
+      socket.joinUserRoom(user.id);
+      socket.onOrderUpdate((data) {
+        if (!mounted) return;
+        ref.invalidate(myOrdersProvider);
+      });
+      socket.onRiderAssigned((data) {
+        if (!mounted) return;
+        HapticFeedback.heavyImpact();
+        _showRiderAssignedPopup(data);
+      });
+    } catch (e) {
+      debugPrint('OrdersPage: Socket setup error: $e');
+    }
   }
 
   void _showRiderAssignedPopup(dynamic data) {
@@ -140,74 +66,19 @@ class _OrdersPageState extends ConsumerState<OrdersPage> {
                   color: const Color(0xFF0891B2).withValues(alpha: 0.08),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.delivery_dining,
-                    size: 48, color: Color(0xFF0891B2)),
+                child: const Icon(Icons.delivery_dining, size: 48, color: Color(0xFF0891B2)),
               ),
               const SizedBox(height: 20),
-              const Text('🎉 Rider Assigned!',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900)),
+              const Text('🎉 Rider Assigned!', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
               const SizedBox(height: 8),
-              Text('$riderName is on the way to pick up your order.',
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(color: Colors.grey, fontSize: 14)),
-              const SizedBox(height: 16),
-              if (riderPhone.isNotEmpty)
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.phone, color: Color(0xFF0891B2), size: 18),
-                    const SizedBox(width: 6),
-                    Text(riderPhone,
-                        style: const TextStyle(
-                            fontWeight: FontWeight.bold, fontSize: 16)),
-                  ],
-                ),
+              Text('$riderName is on the way to pick up your order.', textAlign: TextAlign.center, style: const TextStyle(color: Colors.grey, fontSize: 14)),
               const SizedBox(height: 24),
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () => Navigator.pop(context),
-                      style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: Color(0xFF0891B2)),
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12)),
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                      ),
-                      child: const Text('OK',
-                          style: TextStyle(color: Color(0xFF0891B2))),
-                    ),
-                  ),
-                  if (riderPhone.isNotEmpty) ...[
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: ElevatedButton.icon(
-                        onPressed: () {
-                          // Launch phone call
-                          Navigator.pop(context);
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF0891B2),
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12)),
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                        ),
-                        icon: const Icon(Icons.call,
-                            size: 16, color: Colors.white),
-                        label: const Text('Call',
-                            style: TextStyle(color: Colors.white)),
-                      ),
-                    ),
-                  ],
-                ],
-              ),
+              SizedBox(width: double.infinity, child: OutlinedButton(onPressed: () => Navigator.pop(context), style: OutlinedButton.styleFrom(side: const BorderSide(color: Color(0xFF0891B2)), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))), child: const Text('OK', style: TextStyle(color: Color(0xFF0891B2))))),
             ],
           ),
         ),
       ),
     );
-
-    // Refresh orders list
     ref.invalidate(myOrdersProvider);
   }
 
@@ -215,72 +86,42 @@ class _OrdersPageState extends ConsumerState<OrdersPage> {
   Widget build(BuildContext context) {
     final ordersAsync = ref.watch(myOrdersProvider);
 
-    return MediaQuery.removePadding(
-      context: context,
-      removeLeft: true,
-      removeRight: true,
-      removeTop: true,
-      child: Material(
-        color: Colors.white,
-        child: CustomScrollView(
-          physics: const BouncingScrollPhysics(),
-          slivers: [
-            SliverPersistentHeader(
-              pinned: true,
-              delegate: _HeaderDelegate(expandedHeight: 200.0),
-            ),
-            // Refresh action
-            SliverToBoxAdapter(
-              child: Align(
-                alignment: Alignment.centerRight,
-                child: Padding(
-                  padding: const EdgeInsets.only(right: 16, top: 8),
-                  child: IconButton(
-                    icon: const Icon(Icons.refresh, color: Color(0xFF0891B2)),
-                    onPressed: () => ref.invalidate(myOrdersProvider),
-                  ),
-                ),
-              ),
-            ),
-            ordersAsync.when(
-              data: (orders) {
-                final filteredOrders = orders
-                    .where((o) => o.status.toLowerCase() != 'cancelled')
-                    .toList();
-                
-                return filteredOrders.isEmpty
-                  ? const SliverFillRemaining(
-                      child: Center(
-                        child: Text('No orders yet',
-                            style: TextStyle(color: Colors.grey, fontSize: 16)),
-                      ),
-                    )
-                  : SliverPadding(
-                      padding: const EdgeInsets.all(16),
-                      sliver: Builder(builder: (context) {
-                        final sortedOrders = List<UserOrder>.from(filteredOrders)
-                          ..sort((a, b) => b.date.compareTo(a.date));
-                        return SliverList(
-                          delegate: SliverChildBuilderDelegate(
-                            (context, index) =>
-                                _LiveOrderCard(order: sortedOrders[index]),
-                            childCount: sortedOrders.length,
-                          ),
-                        );
-                      }),
-                    );
-              },
-              loading: () => const SliverFillRemaining(
-                child: Center(
-                    child: CircularProgressIndicator(color: Color(0xFF0891B2))),
-              ),
-              error: (err, _) => SliverFillRemaining(
-                child: Center(child: Text('Error: $err')),
-              ),
-            ),
-            const SliverToBoxAdapter(child: SizedBox(height: 100)),
-          ],
+    return Scaffold(
+      backgroundColor: const Color(0xFFF8FAFC),
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new, color: Color(0xFF0891B2), size: 20),
+          onPressed: () => Navigator.pop(context),
         ),
+        title: const Text('My Orders', style: TextStyle(color: AppColors.primary, fontSize: 18, fontWeight: FontWeight.bold)),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh, color: Color(0xFF0891B2)),
+            onPressed: () => ref.invalidate(myOrdersProvider),
+          ),
+        ],
+      ),
+      body: ordersAsync.when(
+        data: (orders) {
+          final filteredOrders = orders
+              .where((o) => o.status.toLowerCase() != 'cancelled')
+              .toList()
+            ..sort((a, b) => b.date.compareTo(a.date));
+          
+          if (filteredOrders.isEmpty) return const Center(child: Text('No orders yet', style: TextStyle(color: Colors.grey)));
+
+          return ListView.builder(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
+            itemCount: filteredOrders.length,
+            physics: const BouncingScrollPhysics(),
+            itemBuilder: (context, index) => _LiveOrderCard(order: filteredOrders[index]),
+          );
+        },
+        loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF0891B2))),
+        error: (err, _) => Center(child: Text('Error: $err')),
       ),
     );
   }
@@ -289,307 +130,168 @@ class _OrdersPageState extends ConsumerState<OrdersPage> {
 class _LiveOrderCard extends StatefulWidget {
   final UserOrder order;
   const _LiveOrderCard({required this.order});
-
   @override
   State<_LiveOrderCard> createState() => _LiveOrderCardState();
 }
 
-class _LiveOrderCardState extends State<_LiveOrderCard>
-    with SingleTickerProviderStateMixin {
+class _LiveOrderCardState extends State<_LiveOrderCard> with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _scaleAnimation;
 
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 150));
-    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.96)
-        .animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+    _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 150));
+    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.96).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
   }
 
   @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
+  void dispose() { _controller.dispose(); super.dispose(); }
+
+  void _showOrderDetails(BuildContext context) {
+    showModalBottomSheet(context: context, isScrollControlled: true, backgroundColor: Colors.transparent, useSafeArea: true, builder: (context) => _OrderDetailsSheet(order: widget.order));
   }
 
-  String get _title =>
-      widget.order.items.isNotEmpty ? widget.order.items.first.name : 'Order';
-
-  String get _description =>
-      widget.order.items.map((i) => '${i.quantity}x ${i.name}').join(', ');
-
-  double get _total => widget.order.total;
-
-  String get _status => widget.order.status;
-
-  bool get _isDelivered => _status.toLowerCase() == 'delivered';
-
-  Color get _statusColor {
-    switch (_status.toLowerCase()) {
-      case 'delivered':
-        return const Color(0xFF0891B2);
-      case 'cancelled':
-        return Colors.red;
-      case 'out for delivery':
-        return Colors.blue;
-      default:
-        return const Color(0xFFE67E22);
-    }
+  void _reorder(BuildContext context) {
+    HapticFeedback.mediumImpact();
+    final cartProv = CartProviderScope.of(context);
+    for (var item in widget.order.items) { cartProv.addToCart(CartItem(id: item.id.isNotEmpty ? item.id : 'reorder_${item.name}', title: item.name, unitPrice: item.price, subtitle: 'Reorder', image: item.image, category: 'Reorder', quantity: item.quantity)); }
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Added to cart for reorder!'), backgroundColor: Color(0xFF06B6D4), behavior: SnackBarBehavior.floating));
+    _controller.forward().then((_) => _controller.reverse());
   }
-
-  Color get _statusBg {
-    switch (_status.toLowerCase()) {
-      case 'delivered':
-        return const Color(0xFFE8F5E9);
-      case 'cancelled':
-        return const Color(0xFFFFEBEE);
-      default:
-        return const Color(0xFFFFF4E5);
-    }
-  }
-
-  String get _imageUrl =>
-      widget.order.items.isNotEmpty ? widget.order.items.first.image : '';
 
   @override
   Widget build(BuildContext context) {
+    final dateFormat = DateFormat('dd MMM yyyy, hh:mm a');
+    final String imageUrl = widget.order.items.isNotEmpty ? widget.order.items.first.image : '';
+    final bool isDelivered = widget.order.status.toLowerCase() == 'delivered';
+
     return GestureDetector(
-      onDoubleTap: () {
-        if (_isDelivered) {
-          HapticFeedback.mediumImpact();
-          final cartProv = CartProviderScope.of(context);
-          for (var item in widget.order.items) {
-            cartProv.addToCart(CartItem(
-              id: item.id.isNotEmpty ? item.id : 'reorder_${item.name}',
-              title: item.name,
-              unitPrice: item.price,
-              subtitle: '1 Unit',
-              image: item.image,
-              category: 'Reorder',
-              quantity: item.quantity,
-            ));
-          }
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            content: Text('Added to cart for reorder!'),
-            backgroundColor: Color(0xFF0891B2),
-          ));
-          _controller.forward().then((_) => _controller.reverse());
-        }
-      },
+      behavior: HitTestBehavior.opaque,
+      onTap: () => _showOrderDetails(context),
       onTapDown: (_) => _controller.forward(),
       onTapUp: (_) => _controller.reverse(),
       onTapCancel: () => _controller.reverse(),
       child: AnimatedBuilder(
         animation: _scaleAnimation,
-        builder: (context, child) =>
-            Transform.scale(scale: _scaleAnimation.value, child: child),
+        builder: (context, child) => Transform.scale(scale: _scaleAnimation.value, child: child),
         child: Container(
           margin: const EdgeInsets.only(bottom: 20),
-          decoration: BoxDecoration(
-            color: const Color(0xFFFAFAFA),
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: const Color(0xFFEEEEEE), width: 1.5),
-            boxShadow: [
-              BoxShadow(
-                color: const Color(0xFF2D3436).withValues(alpha: 0.05),
-                blurRadius: 15,
-                offset: const Offset(0, 5),
-              ),
-            ],
-          ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              ClipRRect(
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(24),
-                  bottomLeft: Radius.circular(24),
+          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(24), boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 4))]),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Expanded(child: Text(widget.order.items.isNotEmpty ? widget.order.items.first.name : 'Order', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Color(0xFF1E293B)))), _buildStatusBadge(widget.order.status)]),
+                const Divider(height: 32, thickness: 1, color: Color(0xFFF3F4F6)),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(width: 70, height: 70, decoration: BoxDecoration(color: const Color(0xFFF3F4F6), borderRadius: BorderRadius.circular(12)), child: ClipRRect(borderRadius: BorderRadius.circular(12), child: imageUrl.isNotEmpty ? Image.network(imageUrl, fit: BoxFit.cover, errorBuilder: (_, __, ___) => _placeholder()) : _placeholder())),
+                    const SizedBox(width: 16),
+                    Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(widget.order.items.map((i) => '${i.quantity}x ${i.name}').join(', '), maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Color(0xFF1E293B))), const SizedBox(height: 4), _summaryText('Placed: ${dateFormat.format(widget.order.date)}'), if (isDelivered) _summaryText('Delivered: ${dateFormat.format(widget.order.date.add(const Duration(hours: 1)))}'), if (widget.order.riderName.isNotEmpty) _summaryText('Rider: ${widget.order.riderName}')])),
+                  ],
                 ),
-                child: _imageUrl.isNotEmpty
-                    ? Image.network(_imageUrl,
-                        width: 120,
-                        height: 150,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => _placeholder)
-                    : _placeholder,
-              ),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Expanded(
-                            child: Text(
-                              _title,
-                              style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16,
-                                  color: Color(0xFF2D3436)),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 6, vertical: 2),
-                                decoration: BoxDecoration(
-                                  color: _statusBg,
-                                  borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(
-                                      color:
-                                          _statusColor.withValues(alpha: 0.4)),
-                                ),
-                                child: Text(
-                                  _status,
-                                  style: TextStyle(
-                                      color: _statusColor,
-                                      fontSize: 8,
-                                      fontWeight: FontWeight.bold),
-                                ),
-                              ),
-                              const SizedBox(width: 4),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 6, vertical: 2),
-                                decoration: BoxDecoration(
-                                  color: widget.order.isSubscription
-                                      ? const Color(0xFF0891B2)
-                                          .withValues(alpha: 0.1)
-                                      : Colors.grey.shade100,
-                                  borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(
-                                      color: widget.order.isSubscription
-                                          ? const Color(0xFF0891B2)
-                                              .withValues(alpha: 0.3)
-                                          : Colors.grey.shade300),
-                                ),
-                                child: Text(
-                                  (widget.order.orderType ?? 'One-time')
-                                      .toUpperCase(),
-                                  style: TextStyle(
-                                      color: widget.order.isSubscription
-                                          ? const Color(0xFF0891B2)
-                                          : Colors.grey.shade600,
-                                      fontSize: 8,
-                                      fontWeight: FontWeight.bold),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        _description,
-                        style: const TextStyle(
-                            color: Color(0xFF636E72),
-                            fontSize: 12,
-                            height: 1.3),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        'Placed: ${DateFormat('dd MMM yyyy, hh:mm a').format(widget.order.date)}',
-                        style: TextStyle(color: Colors.grey.shade500, fontSize: 11),
-                      ),
-                      if (_isDelivered)
-                        Text(
-                          'Delivered: ${DateFormat('dd MMM yyyy, hh:mm a').format(widget.order.date.add(const Duration(hours: 1)))}',
-                          style: TextStyle(color: Colors.grey.shade500, fontSize: 11),
+                const SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Column(crossAxisAlignment: CrossAxisAlignment.start, children: [const Text('Total Bill', style: TextStyle(color: Colors.grey, fontSize: 11, fontWeight: FontWeight.w600)), const SizedBox(height: 2), Text('₹${widget.order.total.toStringAsFixed(0)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: Colors.black))]),
+                    BounceWidget(
+                      onTap: () => _reorder(context),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          border: Border.all(color: const Color(0xFFD4A017), width: 1.5),
+                          borderRadius: BorderRadius.circular(30),
                         ),
-                      if (widget.order.riderName.isNotEmpty)
-                        Text(
-                          'Rider: ${widget.order.riderName}',
-                          style: TextStyle(color: Colors.grey.shade500, fontSize: 11),
-                        ),
-                      const SizedBox(height: 16),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text('Total Bill',
-                                  style: TextStyle(
-                                      color: Color(0xFF636E72), fontSize: 10)),
-                              Text(
-                                '₹${_total.toStringAsFixed(2)}',
-                                style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 14,
-                                    color: Color(0xFF2D3436)),
-                              ),
-                            ],
-                          ),
-                          GestureDetector(
-                            onTap: () {
-                              if (_isDelivered) {
-                                HapticFeedback.mediumImpact();
-                                final cartProv = CartProviderScope.of(context);
-                                for (var item in widget.order.items) {
-                                  cartProv.addToCart(CartItem(
-                                    id: item.id.isNotEmpty ? item.id : 'reorder_${item.name}',
-                                    title: item.name,
-                                    unitPrice: item.price,
-                                    subtitle: '1 Unit',
-                                    image: item.image,
-                                    category: 'Reorder',
-                                    quantity: item.quantity,
-                                  ));
-                                }
-                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                                  content: Text('Added to cart for reorder!'),
-                                  backgroundColor: Color(0xFF0891B2),
-                                ));
-                              }
-                            },
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 16, vertical: 6),
-                              decoration: BoxDecoration(
-                                border: Border.all(
-                                    color: const Color(0xFFE67E22), width: 1.5),
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: Text(
-                                _isDelivered ? 'Reorder' : 'Track',
-                                style: const TextStyle(
-                                    color: Color(0xFF2D3436),
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 12),
-                              ),
-                            ),
-                          ),
-                        ],
+                        child: const Text('Reorder', style: TextStyle(color: Color(0xFF1E293B), fontWeight: FontWeight.bold, fontSize: 13)),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  Widget get _placeholder => Container(
-        width: 120,
-        height: 150,
-        color: const Color(0xFFE8F5E9),
-        child: const Icon(Icons.set_meal, size: 40, color: Color(0xFF0891B2)),
-      );
+  Widget _summaryText(String t) => Text(t, style: TextStyle(color: Colors.grey.shade600, fontSize: 13));
+
+  Widget _buildStatusBadge(String status) {
+    Color color = const Color(0xFF2E7D32); Color bg = const Color(0xFFE2F5E9);
+    if (status.toLowerCase() != 'delivered') { color = const Color(0xFFB45309); bg = const Color(0xFFFEF3C7); }
+    return Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4), decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(12)), child: Text(status.toUpperCase(), style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.bold)));
+  }
+
+  Widget _placeholder() => const Center(child: Icon(Icons.water_drop, color: Color(0xFF0891B2), size: 32));
 }
 
+class _OrderDetailsSheet extends StatelessWidget {
+  final UserOrder order;
+  const _OrderDetailsSheet({required this.order});
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(color: Colors.white, borderRadius: BorderRadius.vertical(top: Radius.circular(32))),
+      padding: const EdgeInsets.fromLTRB(24, 12, 24, 40),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2)))),
+          const SizedBox(height: 24),
+          const Text('Order Details', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+          Text('ID: #${order.id.length > 8 ? order.id.substring(order.id.length - 8).toUpperCase() : order.id.toUpperCase()}', style: TextStyle(color: Colors.grey.shade500, fontSize: 13, fontWeight: FontWeight.w600)),
+          if (order.plantName.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                const Icon(Icons.factory_outlined,
+                    size: 16, color: Color(0xFF0891B2)),
+                const SizedBox(width: 8),
+                Text(
+                  order.plantName,
+                  style: const TextStyle(
+                      color: Color(0xFF0891B2),
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+          ],
+          const SizedBox(height: 24),
+          const Text('ITEMS ORDERED', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey, letterSpacing: 1)),
+          const SizedBox(height: 12),
+          ...order.items.map((item) => Padding(padding: const EdgeInsets.only(bottom: 8), child: Row(children: [Container(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2), decoration: BoxDecoration(border: Border.all(color: Colors.grey.shade300), borderRadius: BorderRadius.circular(4)), child: Text('${item.quantity}x', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12))), const SizedBox(width: 12), Expanded(child: Text(item.name, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: Color(0xFF1E293B)))), Text('₹${(item.price * item.quantity).toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.bold))]))),
+          const Divider(height: 40),
+          const Text('BILL DETAILS', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey, letterSpacing: 1)),
+          _row('Item Total', order.total - order.deliveryFee),
+          _row('Delivery Fee', order.deliveryFee),
+          const SizedBox(height: 8),
+          Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [const Text('Grand Total', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)), Text('₹${order.total.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Color(0xFF1A1A1A)))]),
+          const SizedBox(height: 32),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () => Navigator.pop(context),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary, foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                elevation: 0,
+              ),
+              child: const Text('GOT IT', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+  Widget _row(String l, double v) => Padding(padding: const EdgeInsets.only(bottom: 6), child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text(l, style: const TextStyle(color: Colors.grey, fontSize: 14)), Text('₹${v.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.w600))]));
+}

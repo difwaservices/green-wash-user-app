@@ -49,17 +49,6 @@ class _LocationPickerScreenState extends ConsumerState<LocationPickerScreen> {
     _initLocation();
   }
 
-  @override
-  void dispose() {
-    _addressLineCtrl.dispose();
-    _cityCtrl.dispose();
-    _stateCtrl.dispose();
-    _postalCodeCtrl.dispose();
-    _latCtrl.dispose();
-    _lngCtrl.dispose();
-    _mapController?.dispose();
-    super.dispose();
-  }
 
   Future<void> _initLocation() async {
     setState(() {
@@ -103,41 +92,55 @@ class _LocationPickerScreenState extends ConsumerState<LocationPickerScreen> {
     }
   }
 
+  bool _isDisposed = false;
+
+  @override
+  void dispose() {
+    _isDisposed = true;
+    _addressLineCtrl.dispose();
+    _cityCtrl.dispose();
+    _stateCtrl.dispose();
+    _postalCodeCtrl.dispose();
+    _latCtrl.dispose();
+    _lngCtrl.dispose();
+    _mapController?.dispose();
+    super.dispose();
+  }
+
   Future<void> _updateSelectedLocation(LatLng location) async {
+    if (_isDisposed) return;
+    
     setState(() {
       _selectedLocation = location;
       _isMapLoading = true;
     });
 
-    // Update lat/lng fields immediately
     _latCtrl.text = location.latitude.toString();
     _lngCtrl.text = location.longitude.toString();
 
-    // Move map marker
     _updateMarker(location);
     _moveCamera(location);
 
-    // Call geocoding service to fetch address
     final geoService = ref.read(geocodingServiceProvider);
     final addressData = await geoService.getAddressFromLatLng(
       location.latitude,
       location.longitude,
     );
 
-    if (addressData != null && mounted) {
+    if (_isDisposed || !mounted) return;
+
+    if (addressData != null) {
       setState(() {
-        _addressLineCtrl.text = addressData['addressLine'] ?? '';
+        _addressLineCtrl.text = addressData['street'] ?? '';
         _cityCtrl.text = addressData['city'] ?? '';
         _stateCtrl.text = addressData['state'] ?? '';
-        _postalCodeCtrl.text = addressData['postalCode'] ?? '';
+        _postalCodeCtrl.text = addressData['pincode'] ?? '';
       });
     }
 
-    if (mounted) {
-      setState(() {
-        _isMapLoading = false;
-      });
-    }
+    setState(() {
+      _isMapLoading = false;
+    });
   }
 
   void _updateMarker(LatLng pos) {
@@ -173,10 +176,10 @@ class _LocationPickerScreenState extends ConsumerState<LocationPickerScreen> {
     }
 
     final resultData = {
-      'addressLine': _addressLineCtrl.text.trim(),
+      'street': _addressLineCtrl.text.trim(),
       'city': _cityCtrl.text.trim(),
       'state': _stateCtrl.text.trim(),
-      'postalCode': _postalCodeCtrl.text.trim(),
+      'pincode': _postalCodeCtrl.text.trim(),
       'latitude': _selectedLocation!.latitude,
       'longitude': _selectedLocation!.longitude,
     };

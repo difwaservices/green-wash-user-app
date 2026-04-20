@@ -1,1 +1,0 @@
-{"success":true,"message":"OTP sent successfully","otp":"974166"}

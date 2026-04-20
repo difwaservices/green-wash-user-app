@@ -3,11 +3,13 @@ import 'package:flutter/services.dart';
 import '../../../data/models/food_models.dart';
 import '../../../data/services/db_service.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../routes/app_routes.dart';
 
 class AddressFormPage extends StatefulWidget {
   final UserAddress? address;
+  final Map<String, dynamic>? initialData;
 
-  const AddressFormPage({super.key, this.address});
+  const AddressFormPage({super.key, this.address, this.initialData});
 
   @override
   State<AddressFormPage> createState() => _AddressFormPageState();
@@ -16,21 +18,21 @@ class AddressFormPage extends StatefulWidget {
 class _AddressFormPageState extends State<AddressFormPage> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _titleCtrl;
-  late TextEditingController _nameCtrl;
-  late TextEditingController _emailCtrl;
   late TextEditingController _streetCtrl;
   late TextEditingController _cityCtrl;
   late TextEditingController _stateCtrl;
   late TextEditingController _pincodeCtrl;
   late bool _isDefault;
+  double? _latitude;
+  double? _longitude;
 
   @override
   void initState() {
     super.initState();
-    _titleCtrl = TextEditingController(text: widget.address?.title ?? '');
-    _nameCtrl = TextEditingController(text: widget.address?.fullName ?? '');
-    _emailCtrl = TextEditingController(text: widget.address?.email ?? '');
+    _titleCtrl = TextEditingController(text: widget.address?.title ?? 'Home');
     _streetCtrl = TextEditingController(text: widget.address?.street ?? '');
+    _latitude = widget.address?.latitude;
+    _longitude = widget.address?.longitude;
 
     // Parse details string back to discrete parts if editing
     String city = '';
@@ -52,6 +54,14 @@ class _AddressFormPageState extends State<AddressFormPage> {
           }
         }
       }
+    } else if (widget.initialData != null) {
+      // Pre-fill from Map data
+      _streetCtrl.text = widget.initialData!['street'] ?? '';
+      city = widget.initialData!['city'] ?? '';
+      state = widget.initialData!['state'] ?? '';
+      pincode = widget.initialData!['pincode'] ?? '';
+      _latitude = widget.initialData!['latitude'];
+      _longitude = widget.initialData!['longitude'];
     }
 
     _cityCtrl = TextEditingController(text: city);
@@ -63,8 +73,6 @@ class _AddressFormPageState extends State<AddressFormPage> {
   @override
   void dispose() {
     _titleCtrl.dispose();
-    _nameCtrl.dispose();
-    _emailCtrl.dispose();
     _streetCtrl.dispose();
     _cityCtrl.dispose();
     _stateCtrl.dispose();
@@ -72,29 +80,81 @@ class _AddressFormPageState extends State<AddressFormPage> {
     super.dispose();
   }
 
-  void _save(BuildContext context) {
+  bool _isSaving = false;
+
+  Future<void> _save(BuildContext context) async {
     if (_formKey.currentState!.validate()) {
-      final provider = CartProviderScope.of(context);
-      
-      // Merge discrete fields into a single details string for UserAddress
-      final String details = '${_cityCtrl.text.trim()}, ${_stateCtrl.text.trim()} ${_pincodeCtrl.text.trim()}';
+      setState(() => _isSaving = true);
+      try {
+        final provider = CartProviderScope.of(context);
+        
+        // AUTO-FILL: Default to profile name/email if empty
+        final String name = provider.userProfile.name;
+        final String email = provider.userProfile.email;
+        final String title = _titleCtrl.text.trim().isEmpty ? 'Home' : _titleCtrl.text.trim();
 
-      final newAddress = UserAddress(
-        id: widget.address?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
-        title: _titleCtrl.text.trim(),
-        fullName: _nameCtrl.text.trim(),
-        email: _emailCtrl.text.trim(),
-        street: _streetCtrl.text.trim(),
-        details: details,
-        isDefault: _isDefault,
-      );
+        final String details = '${_cityCtrl.text.trim()}, ${_stateCtrl.text.trim()} ${_pincodeCtrl.text.trim()}';
 
-      if (widget.address == null) {
-        provider.addAddress(newAddress);
-      } else {
-        provider.updateAddress(newAddress);
+        final newAddress = UserAddress(
+          id: widget.address?.id ?? '',
+          title: title,
+          fullName: name, 
+          email: email,    
+          street: _streetCtrl.text.trim(),
+          details: details,
+          isDefault: _isDefault,
+          latitude: _latitude,
+          longitude: _longitude,
+        );
+
+        Map<String, dynamic> result;
+        if (widget.address == null) {
+          result = await provider.addAddress(newAddress);
+        } else {
+          result = await provider.updateAddress(newAddress);
+        }
+        
+        final bool isSuccess = result['success'] == true || result['data'] != null || result['_id'] != null;
+        if (mounted) {
+          if (isSuccess) {
+            Navigator.pop(context);
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(result['message'] ?? 'Failed to save address'),
+                backgroundColor: Colors.redAccent,
+              ),
+            );
+          }
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error saving address: $e')),
+          );
+        }
+      } finally {
+        if (mounted) setState(() => _isSaving = false);
       }
-      Navigator.pop(context);
+    }
+  }
+
+  Future<void> _pickFromMap() async {
+    final result = await Navigator.pushNamed(context, AppRoutes.locationPicker);
+
+    if (result != null && result is Map) {
+      setState(() {
+        _streetCtrl.text = result['street'] ?? '';
+        _cityCtrl.text = result['city'] ?? '';
+        _stateCtrl.text = result['state'] ?? '';
+        _pincodeCtrl.text = result['pincode'] ?? '';
+        _latitude = result['latitude'];
+        _longitude = result['longitude'];
+        // Ensure Tag is never empty for fast-track
+        if (_titleCtrl.text.isEmpty) _titleCtrl.text = 'Home';
+      });
+      // FAST-TRACK: Automatically save and return after map pick
+      if (mounted) _save(context);
     }
   }
 
@@ -126,43 +186,66 @@ class _AddressFormPageState extends State<AddressFormPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildField(
-                controller: _nameCtrl,
-                label: 'Full Name',
-                hint: 'John Doe',
-                icon: Icons.person_outline,
-                validator: (v) => v!.isEmpty ? 'Please enter your name' : null,
+              // Map Picker Button
+              InkWell(
+                onTap: _pickFromMap,
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withValues(alpha: 0.05),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
+                  ),
+                  child: Row(
+                    children: [
+                      CircleAvatar(
+                        backgroundColor: AppColors.primary,
+                        radius: 20,
+                        child: Icon(
+                            _latitude != null ? Icons.check_circle : Icons.map,
+                            color: Colors.white,
+                            size: 20),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                                _latitude != null
+                                    ? 'Location Selected'
+                                    : 'Pick from Map',
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF1A1A1A))),
+                            Text(
+                                _latitude != null && _longitude != null
+                                    ? 'Coordinates: ${_latitude!.toStringAsFixed(4)}, ${_longitude!.toStringAsFixed(4)}'
+                                    : 'Set your location for accurate delivery',
+                                style: TextStyle(
+                                    color: _latitude != null
+                                        ? AppColors.primary
+                                        : Colors.grey,
+                                    fontSize: 12)),
+                          ],
+                        ),
+                      ),
+                      const Icon(Icons.refresh, color: AppColors.primary, size: 20),
+                    ],
+                  ),
+                ),
               ),
+              const SizedBox(height: 32),
+              _buildTagSelector(),
               const SizedBox(height: 16),
-              _buildField(
-                controller: _emailCtrl,
-                label: 'Email Address',
-                hint: 'john@example.com',
-                icon: Icons.mail_outline,
-                keyboardType: TextInputType.emailAddress,
-                validator: (v) {
-                  if (v!.isEmpty) return 'Please enter email';
-                  if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(v)) {
-                    return 'Please enter a valid email address';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              _buildField(
-                controller: _titleCtrl,
-                label: 'Tag (e.g. Home, Office)',
-                hint: 'Home',
-                icon: Icons.label_outline,
-                validator: (v) => v!.isEmpty ? 'Please enter a tag' : null,
-              ),
+
               const SizedBox(height: 16),
               _buildField(
                 controller: _streetCtrl,
-                label: 'Street / House No.',
-                hint: '123 MG Road',
-                icon: Icons.map_outlined,
-                validator: (v) => v!.isEmpty ? 'Please enter street info' : null,
+                label: 'House / Flat / Floor *',
+                hint: 'Flat No, Floor, etc.',
+                icon: Icons.home_work_outlined,
+                validator: (v) => v!.isEmpty ? 'Required' : null,
               ),
               const SizedBox(height: 16),
               Row(
@@ -231,7 +314,7 @@ class _AddressFormPageState extends State<AddressFormPage> {
                 width: double.infinity,
                 height: 56,
                 child: ElevatedButton(
-                  onPressed: () => _save(context),
+                  onPressed: _isSaving ? null : () => _save(context),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
                     foregroundColor: Colors.white,
@@ -240,16 +323,89 @@ class _AddressFormPageState extends State<AddressFormPage> {
                     ),
                     elevation: 0,
                   ),
-                  child: const Text(
-                    'Save Address',
-                    style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
-                  ),
+                  child: _isSaving
+                      ? const SizedBox(
+                          height: 24,
+                          width: 24,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : Text(
+                          widget.address == null ? 'Save Address' : 'Update Address',
+                          style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
+                        ),
                 ),
               ),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildTagSelector() {
+    final tags = [
+      {'label': 'Home', 'icon': Icons.home_rounded},
+      {'label': 'Office', 'icon': Icons.work_rounded},
+      {'label': 'Other', 'icon': Icons.near_me_rounded},
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Save as',
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+            color: Color(0xFF1A1A1A),
+          ),
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: tags.map((tag) {
+            final isSelected = _titleCtrl.text.toLowerCase() == tag['label'].toString().toLowerCase();
+            return GestureDetector(
+              onTap: () {
+                setState(() {
+                  _titleCtrl.text = tag['label'].toString();
+                });
+              },
+              child: Container(
+                margin: const EdgeInsets.only(right: 12),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                decoration: BoxDecoration(
+                  color: isSelected ? Colors.black : const Color(0xFFF1F4F8),
+                  borderRadius: BorderRadius.circular(30),
+                  border: Border.all(
+                    color: isSelected ? Colors.black : Colors.transparent,
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      tag['icon'] as IconData,
+                      size: 18,
+                      color: isSelected ? Colors.white : Colors.black87,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      tag['label'].toString(),
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13,
+                        color: isSelected ? Colors.white : Colors.black87,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+      ],
     );
   }
 

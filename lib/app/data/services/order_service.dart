@@ -15,14 +15,21 @@ class OrderService {
     required Map<String, dynamic> deliveryAddress,
     required String paymentMethod,
     String? deliverySlot,
+    Map<String, double>? coordinates,
   }) async {
     try {
+      // Add coordinates to deliveryAddress if available
+      final Map<String, dynamic> finalDeliveryAddress = Map.from(deliveryAddress);
+      if (coordinates != null) {
+        finalDeliveryAddress['coordinates'] = coordinates;
+      }
+
       final response = await _apiClient.post(
         '${ApiClient.baseUrl}/orders',
         data: {
           'items': items,
           'totalAmount': totalAmount,
-          'deliveryAddress': deliveryAddress,
+          'deliveryAddress': finalDeliveryAddress,
           'paymentMethod': paymentMethod,
           'orderType': 'One-time',
           if (deliverySlot != null) 'deliverySlot': deliverySlot,
@@ -35,6 +42,30 @@ class OrderService {
         'order': response['order'] ?? response['data'],
         'message': response['message'],
       };
+    } catch (e) {
+      return {
+        'success': false,
+        'message': e.toString(),
+      };
+    }
+  }
+
+  Future<Map<String, dynamic>> calculateDeliveryCharge({
+    required String vendorId,
+    required double userLat,
+    required double userLng,
+  }) async {
+    try {
+      final response = await _apiClient.post(
+        '/delivery-charge/calculate',
+        data: {
+          'vendorId': vendorId,
+          'userLat': userLat,
+          'userLng': userLng,
+        },
+        requiresAuth: true,
+      );
+      return response;
     } catch (e) {
       return {
         'success': false,
@@ -292,3 +323,14 @@ final orderByIdProvider = FutureProvider.autoDispose
     .family<Map<String, dynamic>, String>((ref, mongoId) {
   return ref.watch(orderServiceProvider).getOrderById(mongoId);
 });
+
+class RatedOrdersNotifier extends Notifier<Set<String>> {
+  @override
+  Set<String> build() => {};
+
+  void add(String orderId) {
+    state = {...state, orderId};
+  }
+}
+
+final ratedOrdersProvider = NotifierProvider<RatedOrdersNotifier, Set<String>>(RatedOrdersNotifier.new);

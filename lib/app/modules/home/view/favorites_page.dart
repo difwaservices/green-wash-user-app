@@ -7,6 +7,7 @@ import '../../../data/models/product_model.dart';
 import '../controller/main_controller.dart';
 import '../widgets/quantity_selector.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../categories/controller/categories_controller.dart';
 
 class FavoritesPage extends ConsumerWidget {
   const FavoritesPage({super.key});
@@ -42,7 +43,7 @@ class FavoritesPage extends ConsumerWidget {
         ),
         error: (err, _) => _buildError(context, ref, err),
         data: (products) => products.isEmpty
-            ? _buildEmptyState(context)
+            ? _buildEmptyState(context, ref)
             : _buildGrid(context, ref, products),
       ),
     );
@@ -64,52 +65,52 @@ class FavoritesPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildEmptyState(BuildContext context) {
-    return Center(
+  Widget _buildEmptyState(BuildContext context, WidgetRef ref) {
+    return SingleChildScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Container(
-            padding: const EdgeInsets.all(28),
-            decoration: BoxDecoration(
-              color: const Color(0xFFCFFAFE),
-              shape: BoxShape.circle,
+          const SizedBox(height: 60),
+          Center(
+            child: Column(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(28),
+                  decoration: const BoxDecoration(
+                    color: Color(0xFFCFFAFE),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.favorite_outline_rounded,
+                    size: 72,
+                    color: Color(0xFF06B6D4),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                const SizedBox(height: 32),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    ref.read(mainIndexProvider.notifier).setIndex(0);
+                    Navigator.pop(context);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16)),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 28, vertical: 14),
+                    elevation: 0,
+                  ),
+                  icon: const Icon(Icons.storefront_outlined),
+                  label: const Text('Explore Products',
+                      style:
+                          TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                ),
+              ],
             ),
-            child: const Icon(
-              Icons.favorite_outline_rounded,
-              size: 72,
-              color: Color(0xFF06B6D4),
-            ),
           ),
-          const SizedBox(height: 24),
-          const Text(
-            'Nothing in Favorites yet',
-            style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF1A1A1A)),
-          ),
-          const SizedBox(height: 10),
-          const Text(
-            'Tap the ❤️ on any product\nto save it here!',
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 14, color: Colors.grey, height: 1.5),
-          ),
-          const SizedBox(height: 32),
-          ElevatedButton.icon(
-            onPressed: () => MainControllerScope.of(context).changePage(0),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16)),
-              padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
-              elevation: 0,
-            ),
-            icon: const Icon(Icons.storefront_outlined),
-            label: const Text('Explore Products',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-          ),
+          const SizedBox(height: 100),
         ],
       ),
     );
@@ -136,7 +137,7 @@ class FavoritesPage extends ConsumerWidget {
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12)),
-              side: const BorderSide(color: AppColors.primary), // Added for focused border effect
+              side: const BorderSide(color: AppColors.primary),
             ),
             icon: const Icon(Icons.refresh, size: 18),
             label: const Text('Retry'),
@@ -146,8 +147,6 @@ class FavoritesPage extends ConsumerWidget {
     );
   }
 }
-
-// ── Favorite Product Card ─────────────────────────────────────────────────────
 
 class _FavProductCard extends ConsumerWidget {
   final ShopProduct product;
@@ -189,7 +188,6 @@ class _FavProductCard extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── Image + heart button ─────────────────────────────────────────
           Stack(
             children: [
               ClipRRect(
@@ -205,7 +203,6 @@ class _FavProductCard extends ConsumerWidget {
                       )
                     : _placeholder(),
               ),
-              // Out of stock badge
               if (p.stockStatus == 'Out of Stock' || p.stock <= 0)
                 Positioned.fill(
                   child: ClipRRect(
@@ -226,7 +223,6 @@ class _FavProductCard extends ConsumerWidget {
                     ),
                   ),
                 ),
-              // Low Stock Badge
               if (p.stockStatus == 'Low Stock' && p.stock > 0)
                 Positioned(
                   top: 8,
@@ -250,7 +246,6 @@ class _FavProductCard extends ConsumerWidget {
                     ),
                   ),
                 ),
-              // Live heart toggle (unfav removes from list)
               Positioned(
                 top: 8,
                 right: 8,
@@ -272,24 +267,16 @@ class _FavProductCard extends ConsumerWidget {
                         ),
                       ],
                     ),
-                    child: AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 200),
-                      transitionBuilder: (child, anim) =>
-                          ScaleTransition(scale: anim, child: child),
-                      child: Icon(
-                        isFav ? Icons.favorite : Icons.favorite_border,
-                        key: ValueKey(isFav),
-                        color: isFav ? Colors.red : Colors.grey,
-                        size: 16,
-                      ),
+                    child: Icon(
+                      isFav ? Icons.favorite : Icons.favorite_border,
+                      color: isFav ? Colors.red : Colors.grey,
+                      size: 16,
                     ),
                   ),
                 ),
               ),
             ],
           ),
-
-          // ── Info ─────────────────────────────────────────────────────────
           Padding(
             padding: const EdgeInsets.fromLTRB(10, 8, 10, 0),
             child: Column(
@@ -315,10 +302,7 @@ class _FavProductCard extends ConsumerWidget {
               ],
             ),
           ),
-
           const Spacer(),
-
-          // ── Price + cart ─────────────────────────────────────────────────
           Padding(
             padding: const EdgeInsets.fromLTRB(10, 0, 10, 10),
             child: Row(
@@ -333,35 +317,17 @@ class _FavProductCard extends ConsumerWidget {
                   ),
                 ),
                 if (p.stockStatus == 'Out of Stock' || p.stock <= 0)
-                  Container(
-                    width: 30,
-                    height: 30,
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade100,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Icon(Icons.add, color: Colors.grey, size: 18),
-                  )
+                  const Icon(Icons.add, color: Colors.grey, size: 18)
                 else if (cartItem.quantity == 0)
                   GestureDetector(
-                    onTap: () {
-                      cart.addToCart(CartItem(
-                        id: p.id,
-                        title: p.name,
-                        unitPrice: p.price,
-                        subtitle: p.category?.name ?? 'Difwa',
-                        image: p.primaryImage,
-                        category: 'restaurant',
-                      ));
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                        content: Text('${p.name} added to cart!'),
-                        duration: const Duration(seconds: 1),
-                        backgroundColor: AppColors.primary,
-                        behavior: SnackBarBehavior.floating,
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10)),
-                      ));
-                    },
+                    onTap: () => cart.addToCart(CartItem(
+                      id: p.id,
+                      title: p.name,
+                      unitPrice: p.price,
+                      subtitle: p.category?.name ?? 'Difwa',
+                      image: p.primaryImage,
+                      category: 'restaurant',
+                    )),
                     child: Container(
                       width: 30,
                       height: 30,
@@ -396,5 +362,3 @@ class _FavProductCard extends ConsumerWidget {
         ),
       );
 }
-
-

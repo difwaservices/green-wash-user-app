@@ -82,7 +82,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                 const Text(
                   'Quick Actions',
                   style: TextStyle(
-                      color: Color(0xFF0891B2),
+                      color: AppColors.primaryDark,
                       fontSize: 16,
                       fontWeight: FontWeight.bold),
                 ),
@@ -148,50 +148,53 @@ class _ProfileHeader extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Text(
-                    'Hello, ${name.isNotEmpty ? name.split(' ').first : 'User'}!',
-                    style: const TextStyle(
-                      color: Color(0xFF0891B2),
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
+          child: GestureDetector(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const EditProfilePage()),
+              );
+            },
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'Hello, ${name.isNotEmpty ? name.split(' ').first : 'User'}!',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: AppColors.primaryDark,
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
-                  ),
-                  if (name.isEmpty || name.toLowerCase() == 'user')
-                    Padding(
-                      padding: const EdgeInsets.only(left: 12),
-                      child: GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => const EditProfilePage()),
-                          );
-                        },
+                    if (name.isEmpty || name.toLowerCase() == 'user')
+                      Padding(
+                        padding: const EdgeInsets.only(left: 12),
                         child: Container(
                           padding: const EdgeInsets.symmetric(
                               horizontal: 10, vertical: 4),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF0891B2).withValues(alpha: 0.1),
+                            color: AppColors.primaryDark.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
-                              color: const Color(0xFF0891B2),
+                              color: AppColors.primaryDark,
                               width: 1,
                             ),
                           ),
                           child: const Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(Icons.add, size: 14, color: Color(0xFF0891B2)),
+                              Icon(Icons.add, size: 14, color: AppColors.primaryDark),
                               SizedBox(width: 4),
                               Text(
                                 'Add Profile',
                                 style: TextStyle(
-                                  color: Color(0xFF0891B2),
+                                  color: AppColors.primaryDark,
                                   fontSize: 10,
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -200,70 +203,75 @@ class _ProfileHeader extends StatelessWidget {
                           ),
                         ),
                       ),
+                  ],
+                ),
+                if (email.isNotEmpty)
+                  Text(
+                    email,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: Colors.black45,
+                      fontSize: 13,
                     ),
+                  ),
+                if (phone.isNotEmpty)
+                  Text(
+                    phone,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: Colors.black38,
+                      fontSize: 12,
+                    ),
+                  ),
+                if (user.role == 'retailer') ...[
+                  const SizedBox(height: 8),
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: user.isShopActive
+                          ? AppColors.primary.withOpacity(0.1)
+                          : Colors.red.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: user.isShopActive ? AppColors.primary : Colors.red,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: 8,
+                          height: 8,
+                          decoration: BoxDecoration(
+                            color: user.isShopActive
+                                ? AppColors.primary
+                                : Colors.red,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          user.isShopActive ? 'SHOP OPEN' : 'SHOP CLOSED',
+                          style: TextStyle(
+                            color: user.isShopActive
+                                ? AppColors.primaryDark
+                                : Colors.red,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ],
-              ),
-              if (email.isNotEmpty)
-                Text(
-                  email,
-                  style: const TextStyle(
-                    color: Colors.black45,
-                    fontSize: 13,
-                  ),
-                ),
-              if (phone.isNotEmpty)
-                Text(
-                  phone,
-                  style: const TextStyle(
-                    color: Colors.black38,
-                    fontSize: 12,
-                  ),
-                ),
-              if (user.role == 'retailer') ...[
-                const SizedBox(height: 8),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: user.isShopActive
-                        ? AppColors.primary.withOpacity(0.1)
-                        : Colors.red.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: user.isShopActive ? AppColors.primary : Colors.red,
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        width: 8,
-                        height: 8,
-                        decoration: BoxDecoration(
-                          color: user.isShopActive
-                              ? AppColors.primary
-                              : Colors.red,
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        user.isShopActive ? 'SHOP OPEN' : 'SHOP CLOSED',
-                        style: TextStyle(
-                          color: user.isShopActive
-                              ? AppColors.primaryDark
-                              : Colors.red,
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
               ],
-            ],
+            ),
           ),
         ),
+
         GestureDetector(
           onTap: () {
             Navigator.push(

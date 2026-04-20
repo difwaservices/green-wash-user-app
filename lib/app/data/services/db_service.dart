@@ -6,8 +6,11 @@ import 'wallet_service.dart';
 import 'address_service.dart';
 import 'shop_service.dart';
 import 'order_service.dart';
+import 'auth_service.dart';
 import '../network/api_client.dart';
 import '../../core/constants/app_images.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:geocoding/geocoding.dart';
 
 class CartProvider extends ChangeNotifier {
   final CartService? _service;
@@ -15,6 +18,7 @@ class CartProvider extends ChangeNotifier {
   final AddressService? _addressService;
   final ShopService? _shopService;
   final OrderService? _orderService;
+  final AuthService? _authService;
   final List<CartItem> _items = [];
 
   CartProvider({
@@ -23,12 +27,14 @@ class CartProvider extends ChangeNotifier {
     AddressService? addressService,
     ShopService? shopService,
     OrderService? orderService,
+    AuthService? authService,
     UserProfile? user,
   })  : _service = service,
         _walletService = walletService,
         _addressService = addressService,
         _shopService = shopService,
-        _orderService = orderService {
+        _orderService = orderService,
+        _authService = authService {
     if (user != null) {
       _userProfile = user;
     }
@@ -59,7 +65,8 @@ class CartProvider extends ChangeNotifier {
     profileImage: AppImages.defaultAvatar,
   );
 
-  bool get isLoggedIn => _userProfile.email.isNotEmpty || _userProfile.phone.isNotEmpty;
+  bool get isLoggedIn =>
+      _userProfile.email.isNotEmpty || _userProfile.phone.isNotEmpty;
 
   List<FoodCategory> _foodCategories = [];
   final List<Restaurant> _restaurants = [];
@@ -114,6 +121,25 @@ class CartProvider extends ChangeNotifier {
     }
   }
 
+  Future<void> syncUserProfile() async {
+    if (_authService == null) return;
+    try {
+      final response = await _authService!.getProfile();
+      if (response.success && response.data != null) {
+        final u = response.data!;
+        _userProfile = UserProfile(
+          name: u.fullName,
+          email: u.email,
+          phone: u.phoneNumber,
+          profileImage: AppImages.defaultAvatar,
+        );
+        notifyListeners();
+      }
+    } catch (e) {
+      debugPrint('CartProvider: Error syncing profile: $e');
+    }
+  }
+
   List<UserAddress> _addresses = [];
   bool _isAddressesLoading = false;
   int _selectedAddressIndex = 0;
@@ -122,8 +148,12 @@ class CartProvider extends ChangeNotifier {
   int get selectedAddressIndex => _selectedAddressIndex;
 
   void selectAddress(int index) {
-    _selectedAddressIndex = index;
-    notifyListeners();
+    if (_selectedAddressIndex != index) {
+      _selectedAddressIndex = index;
+      notifyListeners();
+      // Important: Update delivery fee whenever a DIFFERENT address is selected
+      updateDeliveryCharge();
+    }
   }
 
   UserAddress? get selectedAddress {
@@ -137,6 +167,98 @@ class CartProvider extends ChangeNotifier {
   }
 
   final List<UserPaymentMethod> _payments = [];
+  
+  // ── Delivery Charge Logic ──────────────────────────────────────────────
+  double _deliveryFee = 0.0;
+  bool _isDeliverable = true;
+  String _deliveryMessage = '';
+  bool _isCalculatingDelivery = false;
+  String? _lastCalculatedAddressId;
+  String? _lastCalculatedCartHash;
+
+  double get deliveryFee => _deliveryFee;
+  bool get isDeliverable => _isDeliverable;
+  String get deliveryMessage => _deliveryMessage;
+  bool get isCalculatingDelivery => _isCalculatingDelivery;
+
+  Future<void> updateDeliveryCharge() async {
+    final addr = selectedAddress;
+    final vendorId = cartShopId;
+
+    if (addr == null || vendorId == null) {
+      _deliveryFee = 0.0;
+      _isDeliverable = true;
+      _deliveryMessage = '';
+      notifyListeners();
+      return;
+    }
+
+    // Hash of cart items to detect quantity changes
+    final cartHash =
+        _items.map((e) => '${e.id}:${e.quantity}').join('|');
+
+    if (_lastCalculatedAddressId == addr.id &&
+        _lastCalculatedCartHash == cartHash) {
+      return; // Already calculated for this state
+    }
+
+    if (_isCalculatingDelivery) return;
+    _isCalculatingDelivery = true;
+    notifyListeners();
+
+    try {
+      double userLat = 0.0;
+      double userLng = 0.0;
+      bool hasCoordinates = false;
+
+      // PRIORITY 1: USE ADDRESS COORDINATES (Senior Dev Best Practice)
+      // Use the coordinates explicitly saved with the address (from Map Picker)
+      if (addr.latitude != null && addr.longitude != null && addr.latitude != 0 && addr.longitude != 0) {
+        userLat = addr.latitude!;
+        userLng = addr.longitude!;
+        hasCoordinates = true;
+      } 
+      
+      // PRIORITY 2: USE CURRENT GPS (Fallback only)
+      if (!hasCoordinates) {
+        try {
+          LocationPermission permission = await Geolocator.checkPermission();
+          if (permission == LocationPermission.denied) {
+            permission = await Geolocator.requestPermission();
+          }
+          if (permission == LocationPermission.always ||
+              permission == LocationPermission.whileInUse) {
+            final position = await Geolocator.getCurrentPosition(
+                desiredAccuracy: LocationAccuracy.high);
+            userLat = position.latitude;
+            userLng = position.longitude;
+            hasCoordinates = true;
+          }
+        } catch (e) {
+          debugPrint('CartProvider: GPS fallback error: $e');
+        }
+      }
+
+      final result = await _orderService!.calculateDeliveryCharge(
+        vendorId: vendorId,
+        userLat: userLat,
+        userLng: userLng,
+      );
+
+      if (result['success']) {
+        _deliveryFee = (result['deliveryFee'] as num? ?? 0.0).toDouble();
+        _isDeliverable = result['deliverable'] ?? true;
+        _deliveryMessage = result['message'] ?? '';
+        _lastCalculatedAddressId = addr.id;
+        _lastCalculatedCartHash = cartHash;
+      }
+    } catch (e) {
+      debugPrint('CartProvider: Error calculating delivery charge: $e');
+    } finally {
+      _isCalculatingDelivery = false;
+      notifyListeners();
+    }
+  }
 
   void updateUserProfile(UserProfile profile) {
     _userProfile = profile;
@@ -163,7 +285,7 @@ class CartProvider extends ChangeNotifier {
   /// Syncs local guest cart items to the server after login.
   Future<void> syncLocalCartToServer() async {
     if (!isLoggedIn || _service == null || _items.isEmpty) return;
-    
+
     debugPrint('🛒 Syncing ${_items.length} local items to server...');
     for (final item in _items) {
       try {
@@ -252,45 +374,84 @@ class CartProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void addAddress(UserAddress address) async {
+  Future<Map<String, dynamic>> addAddress(UserAddress address) async {
     if (_addressService != null) {
-      final addressParts = address.details.split(',');
-      final cityName =
-          addressParts.isNotEmpty ? addressParts.first.trim() : 'City';
       try {
+        // Robust parsing of details string (matches AddressFormPage.initState)
+        final detailsStr = address.details;
+        final parts = detailsStr.split(',');
+        String cityName = 'City';
+        String stateName = '';
+        String pincodeStr = '';
+
+        if (parts.isNotEmpty) {
+          cityName = parts[0].trim();
+          if (parts.length > 1) {
+            final statePin = parts[1].trim();
+            if (statePin.contains(' ')) {
+              pincodeStr = statePin.split(' ').last;
+              stateName = statePin.substring(0, statePin.lastIndexOf(' ')).trim();
+            } else {
+              stateName = statePin;
+            }
+          }
+        }
+
+        // Fallback geocoding if coordinates are missing
+        double? lat = address.latitude;
+        double? lng = address.longitude;
+        if (lat == null || lng == null || (lat == 0 && lng == 0)) {
+          try {
+            final fullAddr = '${address.street}, ${address.details}';
+            final locations = await locationFromAddress(fullAddr);
+            if (locations.isNotEmpty) {
+              lat = locations.first.latitude;
+              lng = locations.first.longitude;
+            }
+          } catch (e) {
+            debugPrint('CartProvider: Geocoding fallback failed for Add: $e');
+          }
+        }
+
         final result = await _addressService!.saveAddress(
           fullName: address.fullName,
           email: address.email,
           label: address.title,
           fullAddress: address.street,
           city: cityName,
-          state: address.details.contains(',')
-              ? address.details.split(',')[1].trim()
-              : '',
-          pincode: address.details.split(' ').last,
+          state: stateName,
+          pincode: pincodeStr,
           isDefault: address.isDefault,
+          latitude: lat,
+          longitude: lng,
         );
-        if (result['success']) {
-          loadAddresses();
+        final bool isSuccess = result['success'] == true || result['data'] != null || result['_id'] != null;
+        if (isSuccess) {
+          await loadAddresses();
+          // Auto-select the newly added address
+          if (_addresses.isNotEmpty) {
+            final newIdx = _addresses.indexWhere((a) => a.title == address.title && a.street == address.street);
+            if (newIdx != -1) {
+              _selectedAddressIndex = newIdx;
+              notifyListeners();
+            }
+          }
         }
+        return result;
       } catch (e) {
         debugPrint('CartProvider: Error adding address: $e');
-        // Prevent unhandled exception from crashing the app
+        return {'success': false, 'message': e.toString()};
       }
     } else {
+      // Offline fallback
       if (address.isDefault) {
         for (int i = 0; i < _addresses.length; i++) {
-          _addresses[i] = UserAddress(
-            id: _addresses[i].id,
-            title: _addresses[i].title,
-            street: _addresses[i].street,
-            details: _addresses[i].details,
-            isDefault: false,
-          );
+          _addresses[i] = _addresses[i].copyWith(isDefault: false);
         }
       }
       _addresses.add(address);
       notifyListeners();
+      return {'success': true};
     }
   }
 
@@ -321,6 +482,22 @@ class CartProvider extends ChangeNotifier {
             detailsStr += ' $pincode';
           }
 
+          double? lat = (json['latitude'] as num?)?.toDouble();
+          double? lng = (json['longitude'] as num?)?.toDouble();
+
+          // Fallback to coordinates field (Map or GeoJSON List)
+          if (lat == null || lng == null) {
+            final coords = json['coordinates'];
+            if (coords is Map) {
+              lat = _parseNum(coords['latitude'] ?? coords['lat']);
+              lng = _parseNum(coords['longitude'] ?? coords['lng']);
+            } else if (coords is List && coords.length >= 2) {
+              // GeoJSON standard: [longitude, latitude]
+              lng = _parseNum(coords[0]);
+              lat = _parseNum(coords[1]);
+            }
+          }
+
           return UserAddress(
             id: json['_id'] ?? '',
             title: json['label'] ?? 'Address',
@@ -329,6 +506,8 @@ class CartProvider extends ChangeNotifier {
             fullName: json['fullName'] ?? '',
             email: json['email'] ?? '',
             isDefault: json['isDefault'] ?? false,
+            latitude: lat,
+            longitude: lng,
           );
         }).toList();
 
@@ -344,37 +523,111 @@ class CartProvider extends ChangeNotifier {
     } finally {
       _isAddressesLoading = false;
       notifyListeners();
+      // Calculate delivery fee for the newly loaded/selected address
+      updateDeliveryCharge();
     }
   }
 
-  void updateAddress(UserAddress address) {
-    final index = _addresses.indexWhere((a) => a.id == address.id);
-    if (index != -1) {
-      if (address.isDefault) {
-        for (int i = 0; i < _addresses.length; i++) {
-          _addresses[i] = UserAddress(
-            id: _addresses[i].id,
-            title: _addresses[i].title,
-            street: _addresses[i].street,
-            details: _addresses[i].details,
-            isDefault: false,
-          );
+  Future<Map<String, dynamic>> updateAddress(UserAddress address) async {
+    if (_addressService != null) {
+      // Robust parsing of details string (matches AddressFormPage.initState)
+      final detailsStr = address.details;
+      final parts = detailsStr.split(',');
+      String cityName = 'City';
+      String stateName = '';
+      String pincodeStr = '';
+
+      if (parts.isNotEmpty) {
+        cityName = parts[0].trim();
+        if (parts.length > 1) {
+          final statePin = parts[1].trim();
+          if (statePin.contains(' ')) {
+            pincodeStr = statePin.split(' ').last;
+            stateName = statePin.substring(0, statePin.lastIndexOf(' ')).trim();
+          } else {
+            stateName = statePin;
+          }
         }
       }
-      _addresses[index] = address;
+
+      try {
+        // Fallback geocoding if coordinates are missing
+        double? lat = address.latitude;
+        double? lng = address.longitude;
+        if (lat == null || lng == null || (lat == 0 && lng == 0)) {
+          try {
+            final fullAddr = '${address.street}, ${address.details}';
+            final locations = await locationFromAddress(fullAddr);
+            if (locations.isNotEmpty) {
+              lat = locations.first.latitude;
+              lng = locations.first.longitude;
+            }
+          } catch (e) {
+            debugPrint('CartProvider: Geocoding fallback failed for Update: $e');
+          }
+        }
+
+        final result = await _addressService!.updateAddress(
+          id: address.id,
+          fullName: address.fullName,
+          email: address.email,
+          label: address.title,
+          fullAddress: address.street,
+          city: cityName,
+          state: stateName,
+          pincode: pincodeStr,
+          isDefault: address.isDefault,
+          latitude: lat,
+          longitude: lng,
+        );
+        final bool isSuccess = result['success'] == true || result['data'] != null || result['_id'] != null;
+        if (isSuccess) {
+          await loadAddresses();
+        }
+        return result;
+      } catch (e) {
+        debugPrint('CartProvider: Error updating address: $e');
+        return {'success': false, 'message': e.toString()};
+      }
+    } else {
+      final index = _addresses.indexWhere((a) => a.id == address.id);
+      if (index != -1) {
+        if (address.isDefault) {
+          for (int i = 0; i < _addresses.length; i++) {
+            _addresses[i] = _addresses[i].copyWith(isDefault: false);
+          }
+        }
+        _addresses[index] = address;
+        notifyListeners();
+      }
+      return {'success': true};
+    }
+  }
+
+  Future<void> removeAddress(String id) async {
+    if (_addressService != null) {
+      try {
+        final result = await _addressService!.deleteAddress(id);
+        if (result['success'] ?? true) {
+          // Refresh the address list from the server
+          await loadAddresses();
+        }
+      } catch (e) {
+        debugPrint('CartProvider: Error deleting address: $e');
+      }
+    } else {
+      _addresses.removeWhere((a) => a.id == id);
+      if (_lastCalculatedAddressId == id) {
+        _lastCalculatedAddressId = null;
+      }
       notifyListeners();
     }
   }
 
-  void removeAddress(String id) {
-    _addresses.removeWhere((a) => a.id == id);
-    notifyListeners();
-  }
-
   int get itemCount => _items.fold(0, (sum, item) => sum + item.quantity);
   double get subtotal => _items.fold(0.0, (sum, item) => sum + item.totalPrice);
-  double get shippingCharges => 0.0;
-  double get total => subtotal;
+  double get shippingCharges => _deliveryFee;
+  double get total => subtotal + shippingCharges;
 
   bool isInCart(String title) {
     return _items.any((item) => item.title == title);
@@ -404,6 +657,7 @@ class CartProvider extends ChangeNotifier {
       }
     }
     notifyListeners();
+    updateDeliveryCharge();
   }
 
   void increment(String id) {
@@ -414,6 +668,7 @@ class CartProvider extends ChangeNotifier {
         _service!.updateQuantity(_items[idx].id, _items[idx].quantity);
       }
       notifyListeners();
+      updateDeliveryCharge();
     }
   }
 
@@ -433,6 +688,7 @@ class CartProvider extends ChangeNotifier {
         }
       }
       notifyListeners();
+      updateDeliveryCharge();
     }
   }
 
@@ -445,6 +701,7 @@ class CartProvider extends ChangeNotifier {
         _service!.removeFromCart(itemId);
       }
       notifyListeners();
+      updateDeliveryCharge();
     }
   }
 
@@ -454,6 +711,7 @@ class CartProvider extends ChangeNotifier {
       _service!.clearCart();
     }
     notifyListeners();
+    updateDeliveryCharge();
   }
 
   Future<Map<String, dynamic>> checkout({
@@ -467,27 +725,41 @@ class CartProvider extends ChangeNotifier {
 
     final addr = selectedAddress!;
     // Parse address details back to parts for the API
-    final detailsParts = addr.details.split(',');
-    final city = detailsParts.isNotEmpty ? detailsParts[0].trim() : '';
-    final statePin = detailsParts.length > 1 ? detailsParts[1].trim() : '';
-    final pin = statePin.contains(' ') ? statePin.split(' ').last : '';
-    final state = statePin.contains(' ')
-        ? statePin.substring(0, statePin.lastIndexOf(' ')).trim()
-        : statePin;
+    // Robust parsing for checkout
+    final detailsStr = addr.details;
+    final parts = detailsStr.split(',');
+    String cityName = '';
+    String stateName = '';
+    String pincodeStr = '';
+
+    if (parts.isNotEmpty) {
+      cityName = parts[0].trim();
+      if (parts.length > 1) {
+        final statePin = parts[1].trim();
+        if (statePin.contains(' ')) {
+          pincodeStr = statePin.split(' ').last;
+          stateName = statePin.substring(0, statePin.lastIndexOf(' ')).trim();
+        } else {
+          stateName = statePin;
+        }
+      }
+    }
 
     final deliveryAddress = {
       'address': addr.street,
-      'city': city,
-      'state': state,
-      'pincode': pin,
+      'city': cityName,
+      'state': stateName,
+      'pincode': pincodeStr,
     };
 
-    final itemsMap = _items.map((item) => {
-      'product': item.id,
-      'retailer': item.shopId,
-      'quantity': item.quantity,
-      'price': item.unitPrice,
-    }).toList();
+    final itemsMap = _items
+        .map((item) => {
+              'product': item.id,
+              'retailer': item.shopId,
+              'quantity': item.quantity,
+              'price': item.unitPrice,
+            })
+        .toList();
 
     final result = await _orderService!.placeOrder(
       items: itemsMap,
@@ -504,6 +776,13 @@ class CartProvider extends ChangeNotifier {
       syncWallet();
     }
     return result;
+  }
+
+  double? _parseNum(dynamic value) {
+    if (value == null) return null;
+    if (value is num) return value.toDouble();
+    if (value is String) return double.tryParse(value);
+    return null;
   }
 }
 

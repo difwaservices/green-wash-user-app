@@ -73,7 +73,7 @@ class _ShopsList extends ConsumerWidget {
               ),
               const Spacer(),
               Text(
-                '${shops.length} places',
+                '${shops.length} Plants',
                 style: const TextStyle(
                   fontSize: 12,
                   color: Colors.grey,
@@ -91,7 +91,8 @@ class _ShopsList extends ConsumerWidget {
                           priceRange: searchState.priceRange ??
                               const RangeValues(10, 2000),
                           selectedCategoryIds: searchState.selectedCategoryIds,
-                          selectedDeliverySlots: searchState.selectedDeliverySlots,
+                          selectedDeliverySlots:
+                              searchState.selectedDeliverySlots,
                         )
                       : null;
 
@@ -336,7 +337,6 @@ class _ShopCard extends StatelessWidget {
                           ],
                         ),
                       ),
-
 
                       const SizedBox(height: 12),
                     ]),

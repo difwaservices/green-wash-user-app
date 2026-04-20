@@ -83,6 +83,9 @@ class _MobileLoginPageState extends ConsumerState<MobileLoginPage> {
 
   @override
   Widget build(BuildContext context) {
+    final screenSize = MediaQuery.of(context).size;
+    final bool isSmallScreen = screenSize.height < 600;
+
     return Scaffold(
       backgroundColor: const Color(0xFFE0F7FA),
       body: SafeArea(
@@ -90,13 +93,15 @@ class _MobileLoginPageState extends ConsumerState<MobileLoginPage> {
           physics: const BouncingScrollPhysics(),
           child: Column(
             children: [
-              const SizedBox(height: 60),
+              // Dynamic top spacing
+              SizedBox(height: isSmallScreen ? 30 : 60),
               Container(
                 width: double.infinity,
                 constraints: BoxConstraints(
-                  minHeight: MediaQuery.of(context).size.height - 120,
+                  // Ensures the container takes at least the remaining screen height
+                  minHeight: screenSize.height - (isSmallScreen ? 80 : 120),
                 ),
-                padding: const EdgeInsets.fromLTRB(28, 40, 28, 40),
+                padding: EdgeInsets.fromLTRB(28, isSmallScreen ? 25 : 40, 28, 40),
                 decoration: const BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.only(
@@ -110,24 +115,26 @@ class _MobileLoginPageState extends ConsumerState<MobileLoginPage> {
                     Center(
                       child: Image.asset(
                         AppImages.difwaLogoPng,
-                        width: 160,
+                        width: isSmallScreen ? 120 : 160,
                       ),
                     ),
-                    const SizedBox(height: 32),
-                    const Text(
+                    SizedBox(height: isSmallScreen ? 20 : 32),
+                    Text(
                       'Login with Mobile Number',
                       style: TextStyle(
-                          fontSize: 24,
+                          fontSize: isSmallScreen ? 20 : 24,
                           fontWeight: FontWeight.w900,
-                          color: Color(0xFF1E293B)),
+                          color: const Color(0xFF1E293B)),
                     ),
                     const SizedBox(height: 10),
-                    const Text(
+                    Text(
                       'Enter your 10-digit mobile number to receive an OTP.',
                       style: TextStyle(
-                          fontSize: 14, color: Color(0xFF64748B), height: 1.5),
+                          fontSize: isSmallScreen ? 13 : 14, 
+                          color: const Color(0xFF64748B), 
+                          height: 1.5),
                     ),
-                    const SizedBox(height: 38),
+                    SizedBox(height: isSmallScreen ? 25 : 38),
                     InputField(
                       controller: _phoneController,
                       label: 'Mobile Number',
@@ -137,7 +144,7 @@ class _MobileLoginPageState extends ConsumerState<MobileLoginPage> {
                       maxLength: 10,
                       inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                     ),
-                    const SizedBox(height: 32),
+                    SizedBox(height: isSmallScreen ? 24 : 32),
                     GestureDetector(
                       onTap: _isSubmitting ? null : _handleContinue,
                       child: Container(
@@ -178,7 +185,7 @@ class _MobileLoginPageState extends ConsumerState<MobileLoginPage> {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 40),
+                    SizedBox(height: isSmallScreen ? 30 : 40),
                     const Center(
                       child: Text(
                         "Secure and Fast login with OTP",

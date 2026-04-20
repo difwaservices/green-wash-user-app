@@ -18,7 +18,7 @@ import '../modules/wallet/view/wallet_page.dart';
 import '../modules/wallet/view/wallet_statement_screen.dart';
 import '../modules/orders/view/track_order_page.dart';
 import '../modules/rider/view/rider_order_details_page.dart';
-import '../modules/location/view/location_picker_screen.dart';
+import '../modules/profile/view/location_picker_page.dart';
 import '../modules/cart/view/payment_page.dart';
 import '../modules/wallet/view/top_up_page.dart';
 import '../modules/orders/view/active_orders_page.dart';
@@ -72,7 +72,10 @@ class AppPages {
             orderId: args?['orderId'],
           );
         },
-        AppRoutes.locationPicker: (context) => const LocationPickerScreen(),
+        AppRoutes.locationPicker: (context) {
+          final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+          return LocationPickerPage(initialAddress: args?['initialAddress']);
+        },
         AppRoutes.payment: (context) => const PaymentPage(),
         AppRoutes.topUp: (context) => const TopUpPage(),
         AppRoutes.activeOrders: (context) => const ActiveOrdersPage(),

@@ -195,6 +195,17 @@ class _RiderOrderDetailsPageState extends ConsumerState<RiderOrderDetailsPage> {
         order['instructions']?.toString() ??
         'None';
 
+    final retailer = order['retailer'] ?? (items.isNotEmpty ? items.first['retailer'] : null);
+    String plantName = '';
+    String plantPhone = '';
+    if (retailer is Map) {
+      plantName = retailer['businessDetails']?['storeDisplayName'] ?? 
+                  retailer['fullName'] ?? 
+                  retailer['name'] ?? 
+                  '';
+      plantPhone = retailer['phoneNumber'] ?? retailer['phone'] ?? '';
+    }
+
     return Scaffold(
       backgroundColor: const Color(0xFFF7F8FA),
       appBar: AppBar(
@@ -263,6 +274,27 @@ class _RiderOrderDetailsPageState extends ConsumerState<RiderOrderDetailsPage> {
                 ],
               ),
             ).animate(delay: 80.ms).fadeIn().slideY(begin: 0.1, end: 0),
+
+            const SizedBox(height: 16),
+
+            // ── Plant Info ─────────────────────────────────────────────
+            if (plantName.isNotEmpty)
+              _SectionCard(
+                title: 'Plant / Retailer',
+                child: Column(
+                  children: [
+                    _InfoRow(
+                        icon: Icons.factory_outlined,
+                        label: 'Name',
+                        value: plantName),
+                    if (plantPhone.isNotEmpty)
+                      _InfoRow(
+                          icon: Icons.phone_android_rounded,
+                          label: 'Phone',
+                          value: plantPhone),
+                  ],
+                ),
+              ).animate(delay: 100.ms).fadeIn().slideY(begin: 0.1, end: 0),
 
             const SizedBox(height: 16),
 

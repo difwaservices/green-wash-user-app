@@ -1,26 +1,15 @@
-import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class MainController extends ChangeNotifier {
-  int _currentIndex = 0;
-  int get currentIndex => _currentIndex;
+// The actual state notifier
+class MainIndexNotifier extends Notifier<int> {
+  @override
+  int build() => 0;
 
-  void changePage(int index) {
-    if (_currentIndex == index) return;
-    _currentIndex = index;
-    notifyListeners();
+  void setIndex(int index) {
+    state = index;
   }
 }
 
-class MainControllerScope extends InheritedNotifier<MainController> {
-  const MainControllerScope({
-    super.key,
-    required MainController controller,
-    required super.child,
-  }) : super(notifier: controller);
-
-  static MainController of(BuildContext context) {
-    return context
-        .dependOnInheritedWidgetOfExactType<MainControllerScope>()!
-        .notifier!;
-  }
-}
+final mainIndexProvider = NotifierProvider<MainIndexNotifier, int>(() {
+  return MainIndexNotifier();
+});

@@ -65,7 +65,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
             onSubmitted: _onSearch,
             textInputAction: TextInputAction.search,
             decoration: InputDecoration(
-              hintText: 'Search for products...',
+              hintText: 'Search water plants with name',
               hintStyle: const TextStyle(fontSize: 14, color: Colors.grey),
               prefixIcon:
                   Icon(Icons.search, color: AppColors.primary, size: 20),
@@ -106,56 +106,109 @@ class _SearchPageState extends ConsumerState<SearchPage> {
   }
 
   Widget _buildFilters(SearchState state) {
+    final bool isFiltering = state.priceRange != null ||
+        state.selectedCategoryIds.isNotEmpty ||
+        state.selectedDeliverySlots.isNotEmpty;
+
     return Container(
-      height: 50,
-      color: Colors.white,
-      child: ListView(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        border: Border(bottom: BorderSide(color: Color(0xFFF1F5F9))),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          _FilterChip(
-            label: 'Products',
-            isSelected: true,
-            count: state.result?.products.length ?? state.paginatedResult?.products.length ?? 0,
-            onTap: () {},
+          Row(
+            children: [
+              Container(
+                width: 4,
+                height: 20,
+                decoration: BoxDecoration(
+                  color: AppColors.primary,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                isFiltering ? 'Product Results' : 'Water Plants',
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                  color: Color(0xFF0F172A),
+                  letterSpacing: -0.5,
+                ),
+              ),
+              const SizedBox(width: 6),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  isFiltering
+                      ? '${state.paginatedResult?.products.length ?? 0}'
+                      : '${state.result?.shops.length ?? 0}',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.primary,
+                  ),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(width: 8),
           GestureDetector(
             onTap: () async {
-               final initialResult = state.priceRange != null || state.selectedCategoryIds.isNotEmpty || state.selectedDeliverySlots.isNotEmpty
+              final initialResult = isFiltering
                   ? FilterResult(
                       priceRange: state.priceRange ?? const RangeValues(10, 2000),
                       selectedCategoryIds: state.selectedCategoryIds,
                       selectedDeliverySlots: state.selectedDeliverySlots,
                     )
                   : null;
-               
-               final result = await FilterBottomSheet.show(context, initialResult: initialResult);
-               if (result != null) {
-                  ref.read(searchProvider.notifier).applyAdvancedFilters(
-                    priceRange: result.priceRange,
-                    selectedCategoryIds: result.selectedCategoryIds,
-                    selectedDeliverySlots: result.selectedDeliverySlots,
-                  );
-               }
+
+              final result = await FilterBottomSheet.show(context,
+                  initialResult: initialResult);
+              if (result != null) {
+                ref.read(searchProvider.notifier).applyAdvancedFilters(
+                      priceRange: result.priceRange,
+                      selectedCategoryIds: result.selectedCategoryIds,
+                      selectedDeliverySlots: result.selectedDeliverySlots,
+                    );
+              }
             },
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: AppColors.primary),
+                color: isFiltering ? AppColors.primary : Colors.white,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                    color: isFiltering ? AppColors.primary : const Color(0xFFF1F5F9)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.04),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
-              child: const Center(
-                child: Row(
-                  children: [
-                    Icon(Icons.tune, size: 16, color: AppColors.primary),
-                    SizedBox(width: 4),
-                    Text(
-                      'Filters',
-                      style: TextStyle(color: AppColors.primary, fontSize: 13, fontWeight: FontWeight.bold),
+              child: Row(
+                children: [
+                  Icon(Icons.tune_rounded,
+                      size: 18,
+                      color: isFiltering ? Colors.white : const Color(0xFF334155)),
+                  const SizedBox(width: 6),
+                  Text(
+                    isFiltering ? 'Applied' : 'Filter',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: isFiltering ? Colors.white : const Color(0xFF334155),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -193,42 +246,163 @@ class _SearchPageState extends ConsumerState<SearchPage> {
           'Type something to search...', Icons.search_outlined);
     }
 
-    if (!state.hasResults) {
-      return _buildEmptyState('No results found for "${state.query}"',
-          Icons.sentiment_dissatisfied);
+    final bool isFiltering = state.priceRange != null ||
+        state.selectedCategoryIds.isNotEmpty ||
+        state.selectedDeliverySlots.isNotEmpty;
+
+    // SCENARIO 1: Filter is Active -> Show Product Grid
+    if (isFiltering) {
+      final filteredProducts = state.paginatedResult?.products ?? [];
+      if (filteredProducts.isEmpty && !state.isLoading) {
+        return _buildEmptyState(
+            'No products match these filters', Icons.filter_list_off);
+      }
+      return GridView.builder(
+        padding: const EdgeInsets.all(16),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          childAspectRatio: 0.72,
+          crossAxisSpacing: 16,
+          mainAxisSpacing: 16,
+        ),
+        itemCount: filteredProducts.length,
+        itemBuilder: (context, index) => RepaintBoundary(
+          child: _buildGridProductCard(filteredProducts[index]),
+        ),
+      );
     }
 
-    final products = state.result?.products ?? [];
-    final filteredProducts = state.paginatedResult?.products ?? [];
-
-    if (state.priceRange != null || state.selectedCategoryIds.isNotEmpty || state.selectedDeliverySlots.isNotEmpty) {
-       // Filtered view (Product Grid)
-       if (filteredProducts.isEmpty) {
-          return _buildEmptyState('No products match these filters', Icons.filter_list_off);
-       }
-       return GridView.builder(
-         padding: const EdgeInsets.all(16),
-         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-           crossAxisCount: 2,
-           childAspectRatio: 0.72,
-           crossAxisSpacing: 16,
-           mainAxisSpacing: 16,
-         ),
-         itemCount: filteredProducts.length,
-         itemBuilder: (context, index) => _buildGridProductCard(filteredProducts[index]),
-       );
-    }
-
-    if (products.isEmpty) {
-       return _buildEmptyState('No products found for "${state.query}"', Icons.sentiment_dissatisfied);
+    // SCENARIO 2: Search is Active -> Show Plant List
+    final shops = state.result?.shops ?? [];
+    if (shops.isEmpty) {
+      return _buildEmptyState(
+          'No plants found for "${state.query}"', Icons.sentiment_dissatisfied);
     }
 
     return ListView.builder(
       padding: const EdgeInsets.all(16),
-      itemCount: products.length,
+      itemCount: shops.length,
       itemBuilder: (context, index) {
-        return _buildProductCard(products[index]);
+        return RepaintBoundary(
+          child: _buildShopCard(shops[index]),
+        );
       },
+    );
+  }
+
+  Widget _buildShopCard(SearchShop shop) {
+    return GestureDetector(
+      onTap: () {
+        final shopModel = ShopModel(id: shop.id, name: shop.name);
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => RestaurantMenuPage(shop: shopModel),
+          ),
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 16),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.04),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Stack(
+                children: [
+                   Image.network(
+                    shop.image,
+                    width: 70,
+                    height: 70,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => Container(
+                      width: 70,
+                      height: 70,
+                      color: Colors.grey.shade100,
+                      child: const Icon(Icons.business_rounded, color: Colors.grey),
+                    ),
+                  ),
+                  if (!shop.isShopActive)
+                    Container(
+                      width: 70,
+                      height: 70,
+                      color: Colors.black.withOpacity(0.4),
+                      child: const Center(
+                        child: Text('CLOSED', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          shop.name,
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: Colors.green.shade50,
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.star, size: 10, color: Colors.green),
+                            const SizedBox(width: 2),
+                            Text(shop.rating.toString(), style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.green)),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      const Icon(Icons.location_on_outlined, size: 12, color: Colors.grey),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          shop.location,
+                          style: const TextStyle(color: Colors.grey, fontSize: 12),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    'Delivers in ${shop.deliveryTime}',
+                    style: const TextStyle(color: Color(0xFF06B6D4), fontSize: 11, fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.chevron_right, color: Colors.grey),
+          ],
+        ),
+      ),
     );
   }
 

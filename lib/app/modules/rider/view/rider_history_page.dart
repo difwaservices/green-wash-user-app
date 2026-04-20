@@ -8,7 +8,11 @@ import 'package:intl/intl.dart';
 final deliveryHistoryProvider =
     FutureProvider.autoDispose<List<dynamic>>((ref) async {
   final all = await ref.read(riderServiceProvider).getDeliveryHistory();
-  return all;
+  // Ensure only delivered/completed orders are shown in history
+  return all.where((o) {
+    final s = (o['status']?.toString() ?? '').toLowerCase();
+    return s == 'delivered' || s == 'completed';
+  }).toList();
 });
 
 class RiderHistoryPage extends ConsumerWidget {
@@ -309,10 +313,33 @@ class _DeliveryHistoryCard extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             _Row(
+              icon: Icons.factory_outlined,
+              label: 'Plant / Vendor',
+              value: (() {
+                final items = (item['items'] as List?) ?? [];
+                final retailer = item['retailer'] ?? (items.isNotEmpty ? items.first['retailer'] : null);
+                if (retailer is Map) {
+                  return (retailer['businessDetails']?['storeDisplayName'] ?? 
+                          retailer['fullName'] ?? 
+                          retailer['name'] ?? 
+                          'RETAILER').toString().toUpperCase();
+                }
+                return 'RETAILER';
+              })(),
+            ),
+            const SizedBox(height: 12),
+            _Row(
               icon: Icons.set_meal_outlined,
               label: 'Items',
               value: itemsSummary,
               maxLines: 2,
+            ),
+            const SizedBox(height: 12),
+            _Row(
+              icon: Icons.currency_rupee_rounded,
+              label: 'Bill Amount',
+              value: '₹${(item['totalAmount'] ?? item['total'] ?? 0).toString()}',
+              isBoldValue: true,
             ),
 
             const SizedBox(height: 8),
@@ -328,12 +355,14 @@ class _Row extends StatelessWidget {
   final String label;
   final String value;
   final int maxLines;
+  final bool isBoldValue;
 
   const _Row({
     required this.icon,
     required this.label,
     required this.value,
     this.maxLines = 1,
+    this.isBoldValue = false,
   });
 
   @override
@@ -359,8 +388,11 @@ class _Row extends StatelessWidget {
               const SizedBox(height: 2),
               Text(
                 value,
-                style:
-                    const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+                style: TextStyle(
+                  fontWeight: isBoldValue ? FontWeight.bold : FontWeight.w600,
+                  fontSize: 13,
+                  color: isBoldValue ? AppColors.accentGreen : null,
+                ),
                 maxLines: maxLines,
                 overflow: TextOverflow.ellipsis,
               ),

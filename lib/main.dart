@@ -26,6 +26,7 @@ final cartProviderManager = Provider<CartProvider>((ref) {
     addressService: ref.watch(addressServiceProvider),
     shopService: ref.watch(shopServiceProvider),
     orderService: ref.watch(orderServiceProvider),
+    authService: ref.watch(authServiceProvider),
     user: user != null
         ? UserProfile(
             name: user.fullName,

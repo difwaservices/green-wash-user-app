@@ -810,19 +810,21 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage> {
     final hasSlot = sub.deliverySlot != null && sub.deliverySlot!.isNotEmpty;
     final hasAddress = addressStr.isNotEmpty;
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.withValues(alpha: 0.12)),
-        boxShadow: [
-          BoxShadow(
-              color: Colors.black.withValues(alpha: 0.03),
-              blurRadius: 8,
-              offset: const Offset(0, 2))
-        ],
-      ),
+    return GestureDetector(
+      onTap: () => _showPlanDetailsSheet(sub),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.grey.withValues(alpha: 0.12)),
+          boxShadow: [
+            BoxShadow(
+                color: Colors.black.withValues(alpha: 0.03),
+                blurRadius: 8,
+                offset: const Offset(0, 2))
+          ],
+        ),
       child: Column(
         children: [
           // ── Main row ─────────────────────────────────────────────────────
@@ -973,10 +975,150 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage> {
             ),
         ],
       ),
+    ));
+  }
+
+  void _showPlanDetailsSheet(UserSubscription sub) {
+    final hasSlot = sub.deliverySlot != null && sub.deliverySlot!.isNotEmpty;
+    final address = sub.deliveryAddress ?? {};
+    final fullAddress = (address['fullAddress'] ?? address['address'] ?? '').toString();
+    final area = address['label']?.toString() ?? 'Home';
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        padding: const EdgeInsets.fromLTRB(24, 12, 24, 32),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text('Plan Details',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: Color(0xFF1A1A1A))),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: (sub.status == 'Active' ? Colors.green : Colors.orange).withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Text(
+                    sub.status.toUpperCase(),
+                    style: TextStyle(
+                      color: sub.status == 'Active' ? Colors.green : Colors.orange,
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+            
+            // Product Info
+            Row(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: sub.productImage.isNotEmpty 
+                    ? Image.network(sub.productImage, width: 60, height: 60, fit: BoxFit.cover)
+                    : _imagePlaceholder,
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(sub.productName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                      Text('By ${sub.retailerName}', style: TextStyle(color: Colors.grey.shade600, fontSize: 13)),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+            const Divider(),
+            const SizedBox(height: 16),
+
+            // Details Table-like Rows
+            _detailRow(Icons.repeat, 'Frequency', sub.frequency),
+            _detailRow(Icons.water_drop_outlined, 'Quantity', 'Qty ${sub.quantity}'),
+            _detailRow(Icons.schedule, 'Delivery Slot', hasSlot ? sub.deliverySlot! : 'Morning (Standard)'),
+            _detailRow(Icons.calendar_today_outlined, 'Started On', DateFormat('dd MMM yyyy').format(sub.startDate)),
+            if (fullAddress.isNotEmpty)
+              _detailRow(Icons.location_on_outlined, 'Delivery to', '$area: $fullAddress'),
+            
+            const SizedBox(height: 16),
+            const Divider(),
+            const SizedBox(height: 16),
+            
+            // Price info
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text('Price per delivery', style: TextStyle(color: Colors.grey, fontWeight: FontWeight.w500)),
+                Text('₹${(sub.price * sub.quantity).toStringAsFixed(2)}', 
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Color(0xFF0891B2))),
+              ],
+            ),
+            const SizedBox(height: 24),
+            
+            // Quick action in sheet
+            SizedBox(
+              width: double.infinity,
+              height: 54,
+              child: ElevatedButton(
+                onPressed: () => Navigator.pop(context),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF06B6D4),
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  elevation: 0,
+                ),
+                child: const Text('Close Details', style: TextStyle(fontWeight: FontWeight.bold)),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
-  /// Shows a bottom sheet with full delivery address details for the subscription
+  Widget _detailRow(IconData icon, String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 18, color: const Color(0xFF06B6D4)),
+          const SizedBox(width: 12),
+          Text('$label:', style: const TextStyle(color: Colors.grey, fontWeight: FontWeight.w500)),
+          const SizedBox(width: 8),
+          Expanded(child: Text(value, style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1A1A1A)))),
+        ],
+      ),
+    );
+  }
+
+  /// Shows a bottom sheet with full delivery address details
   void _showAddressSheet(UserSubscription sub) {
     final m = sub.deliveryAddress ?? {};
     final fullName = m['fullName']?.toString() ?? '';

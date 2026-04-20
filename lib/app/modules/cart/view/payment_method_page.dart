@@ -90,7 +90,9 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
     // Sync wallet balance when page is opened to reflect latest money
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
-        CartProviderScope.of(context).syncWallet();
+        final cart = CartProviderScope.of(context);
+        cart.syncWallet();
+        cart.updateDeliveryCharge();
       }
     });
   }
@@ -146,6 +148,28 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
           const SizedBox(height: 20),
           const _CheckoutStepper(currentStep: 2),
           const SizedBox(height: 20),
+          if (!cartProvider.isDeliverable)
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.red.shade50,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.red.shade100),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.warning_amber_rounded, color: Colors.red.shade700),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      cartProvider.deliveryMessage,
+                      style: TextStyle(color: Colors.red.shade700, fontSize: 13, fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -241,11 +265,18 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Text('Shipping',
+                            const Text('Delivery Charges',
                                 style: TextStyle(color: Colors.grey)),
-                            Text(
-                                '₹${cartProvider.shippingCharges.toStringAsFixed(0)}',
-                                style: const TextStyle(color: Colors.grey)),
+                            if (cartProvider.isCalculatingDelivery)
+                              const SizedBox(width: 12, height: 12, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.grey))
+                            else
+                              Text(
+                                '₹${cartProvider.deliveryFee.toStringAsFixed(0)}',
+                                style: TextStyle(
+                                  color: cartProvider.deliveryFee > 0 ? Colors.black : Colors.green,
+                                  fontWeight: cartProvider.deliveryFee > 0 ? FontWeight.bold : FontWeight.w500,
+                                ),
+                              ),
                           ],
                         ),
                         const SizedBox(height: 8),
@@ -484,7 +515,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
               width: double.infinity,
               height: 56,
               child: ElevatedButton(
-                onPressed: _isLoading
+                onPressed: (_isLoading || !cartProvider.isDeliverable || cartProvider.isCalculatingDelivery)
                     ? null
                     : () async {
                         // ── Validate user inputs BEFORE setting loading ────────
@@ -509,13 +540,40 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                         setState(() => _isLoading = true);
                         final navigator = Navigator.of(context);
                         try {
+                          final String fullName = cartProvider.userProfile.name;
+                          final parts = selectedAddr.details.split(',');
+                          final city = parts.isNotEmpty ? parts[0].trim() : '';
+                          String state = '';
+                          String pincode = '';
+                          if (parts.length > 1) {
+                            final stateParts = parts[1].trim().split(' ');
+                            if (stateParts.length > 1) {
+                              pincode = stateParts.last;
+                              state = stateParts.sublist(0, stateParts.length - 1).join(' ');
+                            } else {
+                              state = parts[1].trim();
+                            }
+                          }
+
                           final deliveryAddressMap = {
-                            'address': selectedAddr.street,
-                            'city': selectedAddr.details.split(',').first.trim(),
-                            'state': selectedAddr.details.contains(',')
-                                ? selectedAddr.details.split(',')[1].trim().split(' ').first
-                                : 'Unknown',
-                            'pincode': selectedAddr.details.split(' ').last,
+                            'fullName': fullName,
+                            'street': selectedAddr.street,
+                            'city': city,
+                            'state': state,
+                            'pincode': pincode,
+                            'latitude': selectedAddr.latitude,
+                            'longitude': selectedAddr.longitude,
+                            // Priority fix: added lat/lng for backend compatibility
+                            'lat': selectedAddr.latitude,
+                            'lng': selectedAddr.longitude,
+                            if (selectedAddr.latitude != null &&
+                                selectedAddr.longitude != null)
+                              'coordinates': {
+                                'latitude': selectedAddr.latitude,
+                                'longitude': selectedAddr.longitude,
+                                'lat': selectedAddr.latitude,
+                                'lng': selectedAddr.longitude,
+                              },
                           };
 
                           if (_orderType == 1) {
@@ -526,6 +584,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                                 productId: item.id,
                                 frequency: _frequency,
                                 quantity: item.quantity,
+                                deliveryAddress: deliveryAddressMap,
                                 customDays: _frequency == 'Weekly' ? _selectedDays : [],
                                 startDate: _startDate,
                                 deliverySlot: _selectedSlot,
@@ -555,7 +614,16 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                                 totalAmount: cartProvider.total,
                                 deliveryAddress: deliveryAddressMap,
                                 paymentMethod: 'Wallet',
-                                deliverySlot: _selectedSlot);
+                                deliverySlot: _selectedSlot,
+                                coordinates: (selectedAddr.latitude != null &&
+                                        selectedAddr.longitude != null)
+                                    ? {
+                                        'latitude': selectedAddr.latitude!,
+                                        'longitude': selectedAddr.longitude!,
+                                        'lat': selectedAddr.latitude!,
+                                        'lng': selectedAddr.longitude!,
+                                      }
+                                    : null);
 
                             if (response['success'] == true) {
                               await _refreshAfterPurchase(ref, cartProvider);

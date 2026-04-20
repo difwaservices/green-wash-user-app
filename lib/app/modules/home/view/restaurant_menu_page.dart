@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:geolocator/geolocator.dart';
 import '../../../data/models/shop_product_model.dart';
 import '../../../data/models/product_model.dart';
 import '../../../data/services/db_service.dart';
@@ -11,16 +12,83 @@ import '../widgets/quantity_selector.dart';
 import 'package:difwawaterapp/app/routes/app_routes.dart';
 import '../../../core/constants/app_colors.dart';
 import 'product_details_page.dart';
+import '../../../data/services/shop_service.dart';
 
-class RestaurantMenuPage extends ConsumerWidget {
+class RestaurantMenuPage extends ConsumerStatefulWidget {
   final ShopModel shop;
   const RestaurantMenuPage({super.key, required this.shop});
 
-  // Deterministic display metadata (same logic as the card)
+  @override
+  ConsumerState<RestaurantMenuPage> createState() => _RestaurantMenuPageState();
+}
 
-  double get _distance {
-    final code = shop.id.codeUnits.fold<int>(0, (a, b) => a + b);
-    return ((code % 50) + 5) / 10.0;
+class _RestaurantMenuPageState extends ConsumerState<RestaurantMenuPage> {
+  double? _realDistance;
+  bool _isLocating = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadDetailsAndFetchLocation();
+  }
+
+  Future<void> _loadDetailsAndFetchLocation() async {
+    try {
+      final detailedShop = await ref.read(shopDetailsProvider(widget.shop.id).future);
+      if (detailedShop != null) {
+        _fetchRealDistance(detailedShop);
+      } else {
+        _fetchRealDistance(widget.shop);
+      }
+    } catch (e) {
+      _fetchRealDistance(widget.shop);
+    }
+  }
+
+  Future<void> _fetchRealDistance(ShopModel resolvedShop) async {
+    // If shop lat/long not available, we can't calculate
+    if (resolvedShop.lat == null || resolvedShop.lng == null) return;
+    
+    setState(() => _isLocating = true);
+    try {
+      final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+         setState(() => _isLocating = false);
+         return; 
+      }
+      
+      var permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+           setState(() => _isLocating = false);
+           return;
+        }
+      }
+      
+      if (permission == LocationPermission.deniedForever) {
+         setState(() => _isLocating = false);
+         return;
+      }
+      
+      // Get current location (low accuracy to be fast)
+      final userPos = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.low);
+      final dist = Geolocator.distanceBetween(
+        userPos.latitude,
+        userPos.longitude,
+        resolvedShop.lat!,
+        resolvedShop.lng!,
+      ) / 1000.0;
+      
+      if (mounted) {
+        setState(() {
+          _realDistance = dist;
+          _isLocating = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) setState(() => _isLocating = false);
+    }
   }
 
   String get _heroImage {
@@ -32,21 +100,52 @@ class RestaurantMenuPage extends ConsumerWidget {
       'assets/images/Difwa_tiger_trio.png',
       'assets/images/Difwa_cooked_duo.png',
     ];
-    final code = shop.id.codeUnits.fold<int>(0, (a, b) => a + b);
+    final code = widget.shop.id.codeUnits.fold<int>(0, (a, b) => a + b);
     return images[code % images.length];
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final shopsAsync = ref.watch(shopsListProvider);
-    final currentShop = shopsAsync.maybeWhen(
-      data: (list) =>
-          list.firstWhere((s) => s.id == shop.id, orElse: () => shop),
-      orElse: () => shop,
+  Widget build(BuildContext context) {
+    final shopDetailsAsync = ref.watch(shopDetailsProvider(widget.shop.id));
+    final currentShop = shopDetailsAsync.maybeWhen(
+      data: (detailedShop) => detailedShop ?? widget.shop,
+      orElse: () => widget.shop,
     );
+    
     final productsAsync = ref.watch(shopProductsProvider(currentShop.id));
     final cart = CartProviderScope.of(context);
     final isShopActive = currentShop.isShopActive;
+
+    // Determine the distance string
+    String distanceStr = '';
+    // Priority 1: User's explicitly selected address
+    if (currentShop.lat != null && currentShop.lng != null && cart.addresses.isNotEmpty && cart.selectedAddressIndex != null && cart.selectedAddressIndex! < cart.addresses.length) {
+       final userAddress = cart.addresses[cart.selectedAddressIndex!];
+       if (userAddress.latitude != null && userAddress.longitude != null) {
+           final dist = Geolocator.distanceBetween(
+             userAddress.latitude!,
+             userAddress.longitude!,
+             currentShop.lat!,
+             currentShop.lng!,
+           ) / 1000;
+           distanceStr = '${dist.toStringAsFixed(1)} km';
+       }
+    }
+
+    // Priority 2: Live device GPS location
+    if (distanceStr.isEmpty && _realDistance != null) {
+      distanceStr = '${_realDistance!.toStringAsFixed(1)} km';
+    }
+    
+    // Fallback if APIs or Address not ready
+    if (distanceStr.isEmpty) {
+      if (_isLocating) {
+         distanceStr = 'Locating...';
+      } else {
+         final code = currentShop.id.codeUnits.fold<int>(0, (a, b) => a + b);
+         distanceStr = '${(((code % 50) + 5) / 10.0).toStringAsFixed(1)} km';
+      }
+    }
 
     return Scaffold(
       backgroundColor: const Color(0xFFF7F8FA),
@@ -68,7 +167,6 @@ class RestaurantMenuPage extends ConsumerWidget {
                 child: CustomScrollView(
                   physics: const BouncingScrollPhysics(),
                   slivers: [
-                  // ── Hero App Bar ──────────────────────────────────────────────────
                   SliverAppBar(
                     expandedHeight: 220,
                     pinned: true,
@@ -91,39 +189,42 @@ class RestaurantMenuPage extends ConsumerWidget {
                     ),
                   ),
 
-                  // ── Restaurant Info Card ────────────────────────────────────────
                   SliverToBoxAdapter(
                     child: Container(
                       margin: const EdgeInsets.all(16),
-                      padding: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
                         color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: Colors.grey.shade200),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: Colors.grey.shade100, width: 1.5),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.02),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          )
+                        ]
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                              if (shop.location.isNotEmpty) ...[
-                                const SizedBox(height: 3),
-                                Text(
-                                  shop.location,
-                                  style: TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.grey.shade600),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ],
-                          const SizedBox(height: 12),
-                          // Delivery meta chips
+                          Text(
+                            currentShop.location.isNotEmpty ? currentShop.location : 'Shop Location',
+                            style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.normal,
+                                color: Colors.black87),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 14),
                           Wrap(
                             spacing: 8,
                             runSpacing: 6,
                             children: [
                               _MetaChip(
                                 icon: Icons.location_on_outlined,
-                                label: '${_distance.toStringAsFixed(1)} km',
+                                label: distanceStr,
                                 iconColor: Colors.grey,
                               ),
                             ],
@@ -153,8 +254,6 @@ class RestaurantMenuPage extends ConsumerWidget {
                                 ],
                               ),
                             ),
-                          ] else ...[
-                            const SizedBox(height: 12),
                           ],
                         ],
                       ),
@@ -186,7 +285,7 @@ class RestaurantMenuPage extends ConsumerWidget {
                       child: _ProductsErrorState(
                         message: err.toString(),
                         onRetry: () =>
-                            ref.invalidate(shopProductsProvider(shop.id)),
+                            ref.invalidate(shopProductsProvider(widget.shop.id)),
                       ),
                     ),
                     data: (products) {

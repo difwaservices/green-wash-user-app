@@ -49,4 +49,14 @@ class SecureStorageService {
       debugPrint('SecureStorage Error (Clear All): $e');
     }
   }
+
+  Future<void> setBool(String key, bool value) async {
+    await _storage.write(key: key, value: value.toString());
+  }
+
+  Future<bool?> getBool(String key) async {
+    final val = await _storage.read(key: key);
+    if (val == null) return null;
+    return val == 'true';
+  }
 }

@@ -312,6 +312,9 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage>
   // ── Build ─────────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
+    final screenSize = MediaQuery.of(context).size;
+    final bool isSmallScreen = screenSize.height < 600;
+
     ref.listen<ProviderAuthState>(authProvider, (previous, next) {
       if (next is AuthOtpSent && next.otp != null) {
         _showSnackBar('New OTP: ${next.otp}',
@@ -395,9 +398,9 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage>
                   Container(
                     width: double.infinity,
                     constraints: BoxConstraints(
-                      minHeight: MediaQuery.of(context).size.height - 100,
+                      minHeight: screenSize.height - (isSmallScreen ? 80 : 120),
                     ),
-                    padding: const EdgeInsets.fromLTRB(28, 40, 28, 40),
+                    padding: EdgeInsets.fromLTRB(28, isSmallScreen ? 30 : 40, 28, 40),
                     decoration: const BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.only(
@@ -430,12 +433,13 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage>
                         ),
                         const SizedBox(height: 32),
 
-                        const Text(
+                         Text(
                           'Enter 6-Digit Code',
+                          textAlign: TextAlign.center,
                           style: TextStyle(
-                            fontSize: 28,
+                            fontSize: isSmallScreen ? 22 : 28,
                             fontWeight: FontWeight.w900,
-                            color: Color(0xFF1E293B),
+                            color: const Color(0xFF1E293B),
                           ),
                         ),
                         const SizedBox(height: 12),
@@ -508,87 +512,58 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage>
                               offset: Offset(_shakeAnim.value, 0),
                               child: child,
                             ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: List.generate(_otpLength, (i) {
-                                return AnimatedContainer(
-                                  duration: const Duration(milliseconds: 200),
-                                  curve: Curves.easeOut,
-                                  margin:
-                                      const EdgeInsets.symmetric(horizontal: 5),
-                                  width: 48,
-                                  height: 56,
-                                  decoration: BoxDecoration(
-                                    color: _filled[i]
-                                        ? const Color(0xFF06B6D4)
-                                            .withValues(alpha: 0.12)
-                                        : const Color(0xFFEDF8FA),
-                                    borderRadius: BorderRadius.circular(16),
-                                    border: Border.all(
-                                      color: _filled[i]
-                                          ? const Color(0xFF06B6D4)
-                                          : Colors.transparent,
-                                      width: 2,
-                                    ),
-                                    boxShadow: _filled[i]
-                                        ? [
-                                            BoxShadow(
-                                              color: const Color(0xFF06B6D4)
-                                                  .withValues(alpha: 0.15),
-                                              blurRadius: 8,
-                                              offset: const Offset(0, 3),
-                                            )
-                                          ]
-                                        : [],
-                                  ),
-                                  child: Center(
-                                    child: TextField(
-                                      controller: _controllers[i],
-                                      focusNode: _focusNodes[i],
-                                      keyboardType: TextInputType.number,
-                                      inputFormatters: [
-                                        FilteringTextInputFormatter.digitsOnly,
-                                      ],
-                                      textAlign: TextAlign.center,
-                                      textAlignVertical:
-                                          TextAlignVertical.center,
-                                      maxLength: 1,
-                                      style: TextStyle(
-                                        fontSize: 22,
-                                        fontWeight: FontWeight.bold,
+                            child: LayoutBuilder(
+                              builder: (context, constraints) {
+                                // Calculate width based on available space to prevent overflow
+                                final double availableWidth = constraints.maxWidth;
+                                final double boxWidth = (availableWidth / _otpLength) - 8;
+                                final double finalWidth = boxWidth.clamp(35.0, 50.0);
+
+                                return Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: List.generate(_otpLength, (i) {
+                                    return AnimatedContainer(
+                                      duration: const Duration(milliseconds: 200),
+                                      curve: Curves.easeOut,
+                                      margin: const EdgeInsets.symmetric(horizontal: 4),
+                                      width: finalWidth,
+                                      height: isSmallScreen ? 50 : 56,
+                                      decoration: BoxDecoration(
                                         color: _filled[i]
-                                            ? const Color(0xFF06B6D4)
-                                            : const Color(0xFF1E293B),
-                                      ),
-                                      decoration: InputDecoration(
-                                        counterText: '',
-                                        contentPadding: EdgeInsets.zero,
-                                        enabledBorder: OutlineInputBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(16),
-                                          borderSide: const BorderSide(
-                                              color: Colors.transparent,
-                                              width: 0),
-                                        ),
-                                        focusedBorder: OutlineInputBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(16),
-                                          borderSide: const BorderSide(
-                                              color: Colors.transparent,
-                                              width: 0),
-                                        ),
-                                        border: OutlineInputBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(16),
-                                          borderSide: BorderSide.none,
+                                            ? const Color(0xFF06B6D4).withValues(alpha: 0.12)
+                                            : const Color(0xFFEDF8FA),
+                                        borderRadius: BorderRadius.circular(isSmallScreen ? 12 : 16),
+                                        border: Border.all(
+                                          color: _filled[i] ? const Color(0xFF06B6D4) : Colors.transparent,
+                                          width: 2,
                                         ),
                                       ),
-                                      onChanged: (v) =>
-                                          _onDigitChanged(i, v),
-                                    ),
-                                  ),
+                                      child: Center(
+                                        child: TextField(
+                                          controller: _controllers[i],
+                                          focusNode: _focusNodes[i],
+                                          keyboardType: TextInputType.number,
+                                          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                                          textAlign: TextAlign.center,
+                                          textAlignVertical: TextAlignVertical.center,
+                                          maxLength: 1,
+                                          style: TextStyle(
+                                            fontSize: isSmallScreen ? 18 : 22,
+                                            fontWeight: FontWeight.bold,
+                                            color: _filled[i] ? const Color(0xFF06B6D4) : const Color(0xFF1E293B),
+                                          ),
+                                          decoration: const InputDecoration(
+                                            counterText: '',
+                                            contentPadding: EdgeInsets.zero,
+                                            border: InputBorder.none,
+                                          ),
+                                          onChanged: (v) => _onDigitChanged(i, v),
+                                        ),
+                                      ),
+                                    );
+                                  }),
                                 );
-                              }),
+                              },
                             ),
                           ),
 

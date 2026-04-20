@@ -66,6 +66,18 @@ android/key.properties
 !.env.example
 !.env.sample
 
+# Temporary and Scratch Files
+*.txt
+*.log
+!README.md
+analyze*
+status*
+test*
+importantfile
+otp*
+*.jks
+*.keystore
+
 # API Keys and Secrets
 api_keys.dart
 secrets.dart

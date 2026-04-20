@@ -118,19 +118,20 @@ class AuthService {
   }
 
   Future<AuthResponseModel> updateProfile({
-    required String fullName,
-    required String email,
+    String? fullName,
+    String? email,
   }) async {
     try {
-      final data = await _client.put(
+      final Map<String, dynamic> data = {};
+      if (fullName != null) data['fullName'] = fullName;
+      if (email != null) data['email'] = email;
+
+      final json = await _client.put(
         '${ApiClient.baseUrl}/profile',
-        data: {
-          'fullName': fullName,
-          'email': email,
-        },
+        data: data,
         requiresAuth: true,
       );
-      return AuthResponseModel.fromJson(data);
+      return AuthResponseModel.fromJson(json);
     } on ApiException catch (e) {
       return AuthResponseModel(success: false, message: e.message);
     } catch (e) {

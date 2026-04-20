@@ -46,7 +46,12 @@ class _TopUpPageState extends ConsumerState<TopUpPage> {
     final amount = double.tryParse(_amountController.text) ?? 0.0;
     
     debugPrint('TopUpPage: Verifying payment with backend (amount: $amount)...');
-    final result = await ref.read(walletServiceProvider).topUpSuccess(
+    
+    // Capture the cart scope before the async gap to avoid deactivated context lookup
+    final cartScope = CartProviderScope.of(context);
+    final walletRef = ref.read(walletServiceProvider);
+    
+    final result = await walletRef.topUpSuccess(
           amount: amount,
           razorpayOrderId: response.orderId!,
           razorpayPaymentId: response.paymentId!,
@@ -58,18 +63,21 @@ class _TopUpPageState extends ConsumerState<TopUpPage> {
     if (mounted) {
       setState(() => _isLoading = false);
       if (result['success'] == true) {
-        CartProviderScope.of(context).syncWallet();
+        cartScope.syncWallet();
         ref.invalidate(walletBalanceProvider);
         ref.invalidate(walletHistoryProvider);
         
-        ScaffoldMessenger.of(context).showSnackBar(
+        _messenger?.showSnackBar(
           const SnackBar(
               content: Text('Wallet topped up successfully!'),
               backgroundColor: Color(0xFF06B6D4)),
         );
-        Navigator.pop(context);
+        
+        if (Navigator.canPop(context)) {
+          Navigator.pop(context);
+        }
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
+        _messenger?.showSnackBar(
           SnackBar(
               content: Text(result['message'] ?? 'Verification failed'),
               backgroundColor: AppColors.error),

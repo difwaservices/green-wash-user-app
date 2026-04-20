@@ -4,6 +4,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../auth/provider/auth_provider.dart';
 import '../../../routes/app_routes.dart';
+import '../../../core/utils/auth_helper.dart';
 
 class RiderProfilePage extends ConsumerWidget {
   const RiderProfilePage({super.key});
@@ -105,10 +106,16 @@ class RiderProfilePage extends ConsumerWidget {
               label: 'Logout',
               color: Colors.redAccent,
               onTap: () async {
-                await ref.read(authProvider.notifier).logout();
-                if (context.mounted) {
-                  Navigator.pushNamedAndRemoveUntil(context, AppRoutes.login, (r) => false);
-                }
+                AuthHelper.confirmSignOut(
+                  context: context,
+                  onConfirm: () async {
+                    await ref.read(authProvider.notifier).logout();
+                    if (context.mounted) {
+                      Navigator.pushNamedAndRemoveUntil(
+                          context, AppRoutes.login, (r) => false);
+                    }
+                  },
+                );
               },
             ).animate(delay: 200.ms).fadeIn().slideY(begin: 0.1, end: 0),
 
