@@ -337,6 +337,26 @@ class _ShippingAddressPageState extends ConsumerState<ShippingAddressPage> {
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
+                      if (isSelected) ...[
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: AppColors.accentGreen.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(4),
+                            border: Border.all(color: AppColors.accentGreen.withValues(alpha: 0.3)),
+                          ),
+                          child: Text(
+                            'SELECTED',
+                            style: TextStyle(
+                              fontSize: 8,
+                              fontWeight: FontWeight.w900,
+                              color: AppColors.accentGreen,
+                            ),
+                          ),
+                        ),
+                      ],
                       if (addr.isDefault) ...[
                         const SizedBox(width: 8),
                         Container(

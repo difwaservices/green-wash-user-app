@@ -471,7 +471,13 @@ class CartProvider extends ChangeNotifier {
       final result = await _addressService!.getAddresses();
       if (result['success']) {
         final List<dynamic> data = result['data'] ?? [];
+        // Preserve selection by ID if possible
+        final previousId = _addresses.isNotEmpty && _selectedAddressIndex < _addresses.length 
+            ? _addresses[_selectedAddressIndex].id 
+            : null;
+
         _addresses = data.map((json) {
+          // ... (mapping logic)
           final city = json['city'] ?? '';
           final state = json['state'] ?? '';
           final pincode = json['pincode'] ?? '';
@@ -485,14 +491,12 @@ class CartProvider extends ChangeNotifier {
           double? lat = (json['latitude'] as num?)?.toDouble();
           double? lng = (json['longitude'] as num?)?.toDouble();
 
-          // Fallback to coordinates field (Map or GeoJSON List)
           if (lat == null || lng == null) {
             final coords = json['coordinates'];
             if (coords is Map) {
               lat = _parseNum(coords['latitude'] ?? coords['lat']);
               lng = _parseNum(coords['longitude'] ?? coords['lng']);
             } else if (coords is List && coords.length >= 2) {
-              // GeoJSON standard: [longitude, latitude]
               lng = _parseNum(coords[0]);
               lat = _parseNum(coords[1]);
             }
@@ -511,11 +515,19 @@ class CartProvider extends ChangeNotifier {
           );
         }).toList();
 
-        final defaultIdx = _addresses.indexWhere((a) => a.isDefault);
-        if (defaultIdx != -1) {
-          _selectedAddressIndex = defaultIdx;
-        } else if (_addresses.isNotEmpty) {
-          _selectedAddressIndex = 0;
+        if (previousId != null) {
+          final newIdx = _addresses.indexWhere((a) => a.id == previousId);
+          if (newIdx != -1) {
+            _selectedAddressIndex = newIdx;
+          } else {
+            // Fallback to default if previous selection is gone
+            final defaultIdx = _addresses.indexWhere((a) => a.isDefault);
+            _selectedAddressIndex = defaultIdx != -1 ? defaultIdx : 0;
+          }
+        } else {
+          // Initial load
+          final defaultIdx = _addresses.indexWhere((a) => a.isDefault);
+          _selectedAddressIndex = defaultIdx != -1 ? defaultIdx : 0;
         }
       }
     } catch (e) {

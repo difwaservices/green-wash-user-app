@@ -5,6 +5,7 @@ import '../../core/constants/app_images.dart';
 import 'widgets/input_field.dart';
 import '../../routes/app_routes.dart';
 import '../../../../core/state/auth_store.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 
 class MobileLoginPage extends ConsumerStatefulWidget {
   const MobileLoginPage({super.key});
@@ -117,7 +118,7 @@ class _MobileLoginPageState extends ConsumerState<MobileLoginPage> {
                         AppImages.difwaLogoPng,
                         width: isSmallScreen ? 120 : 160,
                       ),
-                    ),
+                    ).animate().fadeIn(duration: 600.ms).scale(delay: 200.ms),
                     SizedBox(height: isSmallScreen ? 20 : 32),
                     Text(
                       'Login with Mobile Number',
@@ -125,7 +126,7 @@ class _MobileLoginPageState extends ConsumerState<MobileLoginPage> {
                           fontSize: isSmallScreen ? 20 : 24,
                           fontWeight: FontWeight.w900,
                           color: const Color(0xFF1E293B)),
-                    ),
+                    ).animate().fadeIn(delay: 300.ms).slideX(begin: -0.1),
                     const SizedBox(height: 10),
                     Text(
                       'Enter your 10-digit mobile number to receive an OTP.',
@@ -133,7 +134,7 @@ class _MobileLoginPageState extends ConsumerState<MobileLoginPage> {
                           fontSize: isSmallScreen ? 13 : 14, 
                           color: const Color(0xFF64748B), 
                           height: 1.5),
-                    ),
+                    ).animate().fadeIn(delay: 400.ms),
                     SizedBox(height: isSmallScreen ? 25 : 38),
                     InputField(
                       controller: _phoneController,
@@ -143,7 +144,7 @@ class _MobileLoginPageState extends ConsumerState<MobileLoginPage> {
                       keyboardType: TextInputType.phone,
                       maxLength: 10,
                       inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                    ),
+                    ).animate().fadeIn(delay: 500.ms).slideY(begin: 0.1),
                     SizedBox(height: isSmallScreen ? 24 : 32),
                     GestureDetector(
                       onTap: _isSubmitting ? null : _handleContinue,

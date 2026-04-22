@@ -8,6 +8,8 @@ import '../../data/services/db_service.dart';
 import '../../data/services/fcm_service.dart';
 import '../../data/services/socket_service.dart';
 import '../../routes/app_routes.dart';
+import 'package:pinput/pinput.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 
 class OtpVerificationPage extends ConsumerStatefulWidget {
   final String phoneNumber;
@@ -27,9 +29,8 @@ class OtpVerificationPage extends ConsumerStatefulWidget {
 class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage>
     with TickerProviderStateMixin {
   // ── Controllers & Focus ──────────────────────────────────────────────────
-  final List<TextEditingController> _controllers =
-      List.generate(6, (_) => TextEditingController());
-  final List<FocusNode> _focusNodes = List.generate(6, (_) => FocusNode());
+  final TextEditingController _pinController = TextEditingController();
+  final FocusNode _pinFocusNode = FocusNode();
 
   // ── State ────────────────────────────────────────────────────────────────
   int _resendTimer = 30;
@@ -88,140 +89,21 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage>
       });
     }
 
-    // Setup focus nodes with key event listeners for backspace support
-    for (int i = 0; i < _otpLength; i++) {
-      _focusNodes[i].onKeyEvent = (node, event) => _handleKeyEvent(i, event)
-          ? KeyEventResult.handled
-          : KeyEventResult.ignored;
-    }
   }
 
-  // ── Paste / Clipboard detection ──────────────────────────────────────────
-  /// Called automatically when field 0 gains focus, and also via paste gesture.
-  Future<void> _checkClipboard() async {
-    try {
-      final data = await Clipboard.getData(Clipboard.kTextPlain);
-      final text = data?.text?.trim() ?? '';
-      final digits = text.replaceAll(RegExp(r'\D'), '');
-      if (digits.length == _otpLength) {
-        _fillOtp(digits);
-      } else if (digits.isNotEmpty && digits.length < _otpLength) {
-        // Option to help if user has a partial code
-        _fillOtp(digits);
-      }
-    } catch (e) {
-      debugPrint('Error checking clipboard: $e');
-    }
-  }
 
+
+  // Pinput handles most logic now.
+  // Normalizing old methods to avoid breakages if called elsewhere.
   void _fillOtp(String digits) {
-    if (!mounted) return;
-    
-    // Clear all first to be sure
-    for (var c in _controllers) {
-      c.clear();
-    }
-
-    final len = digits.length > _otpLength ? _otpLength : digits.length;
-    for (int i = 0; i < len; i++) {
-      _controllers[i].text = digits[i];
-      _filled[i] = true;
-    }
-    
-    setState(() {});
-
-    if (len == _otpLength) {
-      _focusNodes[_otpLength - 1].unfocus();
-      // Auto-verify after brief delay so user can see the fill
-      Future.delayed(const Duration(milliseconds: 400), () {
-        if (mounted) _verifyOtp();
-      });
-    } else {
-      _focusNodes[len.clamp(0, _otpLength - 1)].requestFocus();
+    _pinController.text = digits;
+    if (digits.length == _otpLength) {
+      _verifyOtp();
     }
   }
 
-  // ── onChanged handler ────────────────────────────────────────────────────
-  void _onDigitChanged(int index, String value) {
-    // If user deleted the character
-    if (value.isEmpty) {
-      if (_filled[index]) {
-        setState(() => _filled[index] = false);
-      }
-      if (index > 0) {
-        _focusNodes[index - 1].requestFocus();
-      }
-      return;
-    }
-
-    // Handle paste: if more than 1 character was typed/pasted
-    if (value.length > 1) {
-      final digits = value.replaceAll(RegExp(r'\D'), '');
-      if (digits.isEmpty) {
-        _controllers[index].clear();
-        return;
-      }
-
-      // If it's a full code, start from index 0 regardless of where they pasted
-      if (digits.length == _otpLength) {
-        _fillOtp(digits);
-        return;
-      }
-
-      // Partial paste: fill from this index onwards
-      int digitIdx = 0;
-      for (int i = index; i < _otpLength && digitIdx < digits.length; i++) {
-        _controllers[i].text = digits[digitIdx];
-        _filled[i] = true;
-        digitIdx++;
-      }
-      
-      setState(() {});
-
-      final nextFocus = (index + digits.length).clamp(0, _otpLength - 1);
-      _focusNodes[nextFocus].requestFocus();
-      
-      // If we filled till the end, auto verify
-      if (nextFocus == _otpLength - 1 && _controllers[nextFocus].text.isNotEmpty) {
-        Future.delayed(const Duration(milliseconds: 300), () {
-          if (mounted) _verifyOtp();
-        });
-      }
-      return;
-    }
-
-    // Normal single digit entry
-    if (value.isNotEmpty) {
-      if (!_filled[index]) {
-        setState(() => _filled[index] = true);
-      }
-      
-      if (index < _otpLength - 1) {
-        _focusNodes[index + 1].requestFocus();
-      } else {
-        _focusNodes[index].unfocus();
-        // Auto-verify on last digit
-        Future.delayed(const Duration(milliseconds: 300), () {
-          if (mounted) _verifyOtp();
-        });
-      }
-    }
-  }
-
-  // ── Backspace key handler ────────────────────────────────────────────────
-  bool _handleKeyEvent(int index, KeyEvent event) {
-    if (event is KeyDownEvent &&
-        event.logicalKey == LogicalKeyboardKey.backspace) {
-      // If current field is empty, move back and clear previous
-      if (_controllers[index].text.isEmpty && index > 0) {
-        _controllers[index - 1].clear();
-        setState(() => _filled[index - 1] = false);
-        _focusNodes[index - 1].requestFocus();
-        return true;
-      }
-    }
-    return false;
-  }
+  void _onDigitChanged(int index, String value) {}
+  bool _handleKeyEvent(int index, KeyEvent event) => false;
 
   // ── Timer ─────────────────────────────────────────────────────────────────
   void _startTimer() {
@@ -254,7 +136,7 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage>
   Future<void> _verifyOtp() async {
     if (_isVerifying) return;
     
-    final otp = _controllers.map((c) => c.text).join();
+    final otp = _pinController.text;
     if (otp.length < _otpLength) {
       _shakeCtrl.forward(from: 0);
       _showSnackBar('Please enter the complete 6-digit OTP.',
@@ -300,12 +182,8 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage>
     _fadeCtrl.dispose();
     _slideCtrl.dispose();
     _shakeCtrl.dispose();
-    for (var c in _controllers) {
-      c.dispose();
-    }
-    for (var n in _focusNodes) {
-      n.dispose();
-    }
+    _pinController.dispose();
+    _pinFocusNode.dispose();
     super.dispose();
   }
 
@@ -412,28 +290,21 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage>
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         // Key icon
-                        TweenAnimationBuilder<double>(
-                          tween: Tween(begin: 0.6, end: 1.0),
-                          duration: const Duration(milliseconds: 500),
-                          curve: Curves.elasticOut,
-                          builder: (context, scale, child) =>
-                              Transform.scale(scale: scale, child: child),
-                          child: Container(
-                            padding: const EdgeInsets.all(20),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFEDF8FA),
-                              borderRadius: BorderRadius.circular(24),
-                            ),
-                            child: const Icon(
-                              Icons.vpn_key_outlined,
-                              size: 44,
-                              color: Color(0xFF06B6D4),
-                            ),
+                        Container(
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFEDF8FA),
+                            borderRadius: BorderRadius.circular(24),
                           ),
-                        ),
+                          child: const Icon(
+                            Icons.vpn_key_outlined,
+                            size: 44,
+                            color: Color(0xFF06B6D4),
+                          ),
+                        ).animate().fadeIn(duration: 600.ms).scale(curve: Curves.elasticOut),
                         const SizedBox(height: 32),
 
-                         Text(
+                        Text(
                           'Enter 6-Digit Code',
                           textAlign: TextAlign.center,
                           style: TextStyle(
@@ -441,7 +312,7 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage>
                             fontWeight: FontWeight.w900,
                             color: const Color(0xFF1E293B),
                           ),
-                        ),
+                        ).animate().fadeIn(delay: 200.ms).slideY(begin: 0.2),
                         const SizedBox(height: 12),
                         RichText(
                           textAlign: TextAlign.center,
@@ -461,40 +332,10 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage>
                               ),
                             ],
                           ),
-                        ),
+                        ).animate().fadeIn(delay: 300.ms),
                         const SizedBox(height: 12),
 
-                        // Paste hint
-                        GestureDetector(
-                          onTap: _checkClipboard,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 14, vertical: 6),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFEDF8FA),
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(
-                                  color: const Color(0xFF06B6D4)
-                                      .withValues(alpha: 0.3)),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: const [
-                                Icon(Icons.content_paste_rounded,
-                                    size: 14, color: Color(0xFF06B6D4)),
-                                SizedBox(width: 6),
-                                Text(
-                                  'Tap to paste OTP',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: Color(0xFF06B6D4),
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
+
 
                         const SizedBox(height: 36),
 
@@ -506,66 +347,75 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage>
                                 color: Color(0xFF06B6D4)),
                           )
                         else
-                          AnimatedBuilder(
-                            animation: _shakeAnim,
-                            builder: (context, child) => Transform.translate(
-                              offset: Offset(_shakeAnim.value, 0),
-                              child: child,
+                          Pinput(
+                            length: _otpLength,
+                            controller: _pinController,
+                            focusNode: _pinFocusNode,
+                            onCompleted: (_) => _verifyOtp(),
+                            defaultPinTheme: PinTheme(
+                              width: 50,
+                              height: 56,
+                              textStyle: const TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF1E293B),
+                              ),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFEDF8FA),
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(color: Colors.transparent),
+                              ),
                             ),
-                            child: LayoutBuilder(
-                              builder: (context, constraints) {
-                                // Calculate width based on available space to prevent overflow
-                                final double availableWidth = constraints.maxWidth;
-                                final double boxWidth = (availableWidth / _otpLength) - 8;
-                                final double finalWidth = boxWidth.clamp(35.0, 50.0);
-
-                                return Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: List.generate(_otpLength, (i) {
-                                    return AnimatedContainer(
-                                      duration: const Duration(milliseconds: 200),
-                                      curve: Curves.easeOut,
-                                      margin: const EdgeInsets.symmetric(horizontal: 4),
-                                      width: finalWidth,
-                                      height: isSmallScreen ? 50 : 56,
-                                      decoration: BoxDecoration(
-                                        color: _filled[i]
-                                            ? const Color(0xFF06B6D4).withValues(alpha: 0.12)
-                                            : const Color(0xFFEDF8FA),
-                                        borderRadius: BorderRadius.circular(isSmallScreen ? 12 : 16),
-                                        border: Border.all(
-                                          color: _filled[i] ? const Color(0xFF06B6D4) : Colors.transparent,
-                                          width: 2,
-                                        ),
-                                      ),
-                                      child: Center(
-                                        child: TextField(
-                                          controller: _controllers[i],
-                                          focusNode: _focusNodes[i],
-                                          keyboardType: TextInputType.number,
-                                          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                                          textAlign: TextAlign.center,
-                                          textAlignVertical: TextAlignVertical.center,
-                                          maxLength: 1,
-                                          style: TextStyle(
-                                            fontSize: isSmallScreen ? 18 : 22,
-                                            fontWeight: FontWeight.bold,
-                                            color: _filled[i] ? const Color(0xFF06B6D4) : const Color(0xFF1E293B),
-                                          ),
-                                          decoration: const InputDecoration(
-                                            counterText: '',
-                                            contentPadding: EdgeInsets.zero,
-                                            border: InputBorder.none,
-                                          ),
-                                          onChanged: (v) => _onDigitChanged(i, v),
-                                        ),
-                                      ),
-                                    );
-                                  }),
-                                );
-                              },
+                            focusedPinTheme: PinTheme(
+                              width: 50,
+                              height: 56,
+                              textStyle: const TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF06B6D4),
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(color: const Color(0xFF06B6D4), width: 2),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: const Color(0xFF06B6D4).withValues(alpha: 0.1),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
+                            submittedPinTheme: PinTheme(
+                              width: 50,
+                              height: 56,
+                              textStyle: const TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF06B6D4),
+                              ),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF06B6D4).withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(color: const Color(0xFF06B6D4)),
+                              ),
+                            ),
+                            keyboardType: TextInputType.number,
+                            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                            showCursor: true,
+                            cursor: Column(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                Container(
+                                  margin: const EdgeInsets.only(bottom: 12),
+                                  width: 20,
+                                  height: 2,
+                                  color: const Color(0xFF06B6D4),
+                                ),
+                              ],
+                            ),
+                          ).animate().fadeIn(duration: 400.ms).scale(begin: const Offset(0.9, 0.9), curve: Curves.easeOutBack),
 
                         const SizedBox(height: 40),
 
