@@ -380,7 +380,7 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage>
                                 border: Border.all(color: const Color(0xFF06B6D4), width: 2),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: const Color(0xFF06B6D4).withValues(alpha: 0.1),
+                                    color: Colors.black.withOpacity(0.1),
                                     blurRadius: 10,
                                     offset: const Offset(0, 4),
                                   ),
@@ -487,11 +487,9 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage>
                                     ? []
                                     : [
                                         BoxShadow(
-                                          color: const Color(0xFF00ACC1)
-                                              .withValues(alpha: 0.35),
-                                          blurRadius: 16,
-                                          spreadRadius: 1,
-                                          offset: const Offset(0, 6),
+                                          color: Colors.black.withOpacity(0.1),
+                                          blurRadius: 10,
+                                          offset: const Offset(0, 4),
                                         ),
                                       ],
                               ),

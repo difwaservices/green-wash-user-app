@@ -266,9 +266,10 @@ class ProductDetailsPage extends ConsumerWidget {
                 color: Colors.white,
                 boxShadow: [
                   BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.05),
-                      blurRadius: 10,
-                      offset: const Offset(0, -5))
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 8,
+                    offset: const Offset(0, -2),
+                  ),
                 ],
                 border: Border(top: BorderSide(color: Colors.grey.shade100)),
               ),

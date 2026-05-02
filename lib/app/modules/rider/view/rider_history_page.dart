@@ -6,7 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:intl/intl.dart';
 
 final deliveryHistoryProvider =
-    FutureProvider.autoDispose<List<dynamic>>((ref) async {
+    FutureProvider<List<dynamic>>((ref) async {
   final all = await ref.read(riderServiceProvider).getDeliveryHistory();
   // Ensure only delivered/completed orders are shown in history
   return all.where((o) {
@@ -201,11 +201,15 @@ class _DeliveryHistoryCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
         ],
+        border: Border.all(
+          color: const Color(0xFF00ACC1).withOpacity(0.1),
+          width: 1.0,
+        ),
       ),
       child: Padding(
         padding: const EdgeInsets.all(24),

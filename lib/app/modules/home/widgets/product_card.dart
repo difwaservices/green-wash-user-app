@@ -78,7 +78,17 @@ class ProductCard extends ConsumerWidget {
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.grey.shade100),
+              border: Border.all(
+                color: const Color(0xFF00ACC1).withOpacity(0.2),
+                width: 1.0,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
             ),
             child: Stack(
               children: [
@@ -102,8 +112,8 @@ class ProductCard extends ConsumerWidget {
                               height: 100,
                               color: Colors.grey.shade200,
                               child: const Center(
-                                child:
-                                    Icon(Icons.broken_image, color: Colors.grey),
+                                child: Icon(Icons.broken_image,
+                                    color: Colors.grey),
                               ),
                             );
                           },
@@ -151,12 +161,15 @@ class ProductCard extends ConsumerWidget {
                               // Dynamic Cart Controls
                               if (!isInCart)
                                 BounceWidget(
-                                  onTap: (product.isShopActive && !isOutOfStock) ? onAdd : () {},
+                                  onTap: (product.isShopActive && !isOutOfStock)
+                                      ? onAdd
+                                      : () {},
                                   scaleFactor: 0.9,
                                   child: Container(
                                     padding: const EdgeInsets.all(6),
                                     decoration: BoxDecoration(
-                                      color: (product.isShopActive && !isOutOfStock)
+                                      color: (product.isShopActive &&
+                                              !isOutOfStock)
                                           ? AppColors.primary
                                           : Colors.grey,
                                       borderRadius: BorderRadius.circular(8),
@@ -171,12 +184,14 @@ class ProductCard extends ConsumerWidget {
                               else
                                 QuantitySelector(
                                   quantity: cartItem.quantity,
-                                  onIncrement: (product.isShopActive && !isOutOfStock)
-                                      ? () => cart.increment(product.name)
-                                      : () {},
-                                  onDecrement: (product.isShopActive && !isOutOfStock)
-                                      ? () => cart.decrement(product.name)
-                                      : () {},
+                                  onIncrement:
+                                      (product.isShopActive && !isOutOfStock)
+                                          ? () => cart.increment(product.name)
+                                          : () {},
+                                  onDecrement:
+                                      (product.isShopActive && !isOutOfStock)
+                                          ? () => cart.decrement(product.name)
+                                          : () {},
                                   size: 32, // Compact size for grid card
                                 ),
                             ],
@@ -218,38 +233,39 @@ class ProductCard extends ConsumerWidget {
                   ),
 
                 // Out of Stock Badge
-                                if (isOutOfStock && product.isShopActive)
-                                  Positioned.fill(
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        color: Colors.black.withOpacity(0.3),
-                                        borderRadius: BorderRadius.circular(16),
-                                      ),
-                                      child: Center(
-                                        child: Container(
-                                          padding: const EdgeInsets.symmetric(
-                                              horizontal: 8, vertical: 4),
-                                          decoration: BoxDecoration(
-                                            color: Colors.red.withOpacity(0.9),
-                                            borderRadius: BorderRadius.circular(4),
-                                          ),
-                                          child: const Text(
-                                            'OUT OF STOCK',
-                                            style: TextStyle(
-                                              color: Colors.white,
-                                              fontSize: 10,
-                                              fontWeight: FontWeight.w900,
-                                              letterSpacing: 1,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
+                if (isOutOfStock && product.isShopActive)
+                  Positioned.fill(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.3),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Center(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: Colors.red.withOpacity(0.9),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: const Text(
+                            'OUT OF STOCK',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 10,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 1,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
 
                 // Badge (Offer/New/Low Stock)
-                if ((product.badgeText.isNotEmpty || isLowStock) && 
-                    product.isShopActive && !isOutOfStock)
+                if ((product.badgeText.isNotEmpty || isLowStock) &&
+                    product.isShopActive &&
+                    !isOutOfStock)
                   Positioned(
                     top: 8,
                     left: 8,
@@ -263,9 +279,11 @@ class ProductCard extends ConsumerWidget {
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: Text(
-                        isLowStock 
-                          ? (product.stock > 0 ? 'Only ${product.stock} left!' : 'Selling Fast!')
-                          : product.badgeText,
+                        isLowStock
+                            ? (product.stock > 0
+                                ? 'Only ${product.stock} left!'
+                                : 'Selling Fast!')
+                            : product.badgeText,
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 10,
@@ -367,9 +385,9 @@ class _ProductHeartState extends ConsumerState<_ProductHeart>
             shape: BoxShape.circle,
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.05),
-                blurRadius: 4,
-                offset: const Offset(0, 2),
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
               ),
             ],
           ),

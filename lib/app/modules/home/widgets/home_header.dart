@@ -113,39 +113,6 @@ class _HomeHeaderState extends ConsumerState<HomeHeader> {
                 ),
               ),
               const SizedBox(width: 12),
-              // Profile Button
-              const SizedBox(width: 8),
-              BounceWidget(
-                onTap: () {
-                  final isAuth = ref.read(isAuthenticatedProvider);
-                  if (!isAuth) {
-                    Navigator.pushNamed(context, AppRoutes.login);
-                    return;
-                  }
-                  ref.read(mainIndexProvider.notifier).setIndex(3);
-                },
-                child: Hero(
-                  tag: 'profile_pic',
-                  child: Container(
-                    width: 36,
-                    height: 36,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.grey.shade200),
-                    ),
-                    child: ClipOval(
-                      child: Padding(
-                        padding: const EdgeInsets.all(4.0),
-                        child: Image.asset(
-                          'assets/images/app_icon.png',
-                          fit: BoxFit.contain,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
               const SizedBox(width: 12),
               // Notification Button
               Consumer(

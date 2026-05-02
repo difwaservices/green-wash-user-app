@@ -71,7 +71,8 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                             child: Text(
                               'Could not load profile. Pull down to refresh.',
                               textAlign: TextAlign.center,
-                              style: TextStyle(color: Colors.grey, fontSize: 14),
+                              style:
+                                  TextStyle(color: Colors.grey, fontSize: 14),
                             ),
                           ),
                         ),
@@ -152,7 +153,8 @@ class _ProfileHeader extends StatelessWidget {
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const EditProfilePage()),
+                MaterialPageRoute(
+                    builder: (context) => const EditProfilePage()),
               );
             },
             child: Column(
@@ -172,37 +174,6 @@ class _ProfileHeader extends StatelessWidget {
                         ),
                       ),
                     ),
-                    if (name.isEmpty || name.toLowerCase() == 'user')
-                      Padding(
-                        padding: const EdgeInsets.only(left: 12),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 10, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: AppColors.primaryDark.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: AppColors.primaryDark,
-                              width: 1,
-                            ),
-                          ),
-                          child: const Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(Icons.add, size: 14, color: AppColors.primaryDark),
-                              SizedBox(width: 4),
-                              Text(
-                                'Add Profile',
-                                style: TextStyle(
-                                  color: AppColors.primaryDark,
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
                   ],
                 ),
                 if (email.isNotEmpty)
@@ -236,7 +207,8 @@ class _ProfileHeader extends StatelessWidget {
                           : Colors.red.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                        color: user.isShopActive ? AppColors.primary : Colors.red,
+                        color:
+                            user.isShopActive ? AppColors.primary : Colors.red,
                       ),
                     ),
                     child: Row(
@@ -271,7 +243,6 @@ class _ProfileHeader extends StatelessWidget {
             ),
           ),
         ),
-
         GestureDetector(
           onTap: () {
             Navigator.push(
@@ -279,32 +250,65 @@ class _ProfileHeader extends StatelessWidget {
               MaterialPageRoute(builder: (context) => const EditProfilePage()),
             );
           },
-          child: Container(
-            width: 80,
-            height: 80,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.primaryDark.withValues(alpha: 0.3),
-                  blurRadius: 20,
-                  spreadRadius: 2,
-                  offset: const Offset(0, 5),
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: const Color(0xFF00ACC1).withOpacity(0.1),
+                    width: 1.0,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-            child: CircleAvatar(
-              backgroundColor: AppColors.primaryLight,
-              radius: 40,
-              child: Text(
-                name.isNotEmpty ? name[0].toUpperCase() : 'U',
-                style: const TextStyle(
-                  fontSize: 32,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.primaryDark,
+                child: CircleAvatar(
+                  backgroundColor: AppColors.primaryLight,
+                  radius: 40,
+                  child: Text(
+                    name.isNotEmpty ? name[0].toUpperCase() : 'U',
+                    style: const TextStyle(
+                      fontSize: 32,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.primaryDark,
+                    ),
+                  ),
                 ),
               ),
-            ),
+              Positioned(
+                bottom: 0,
+                right: 0,
+                child: Container(
+                  width: 26,
+                  height: 26,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF00ACC1),
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.white, width: 2),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.15),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: const Icon(
+                    Icons.edit,
+                    color: Colors.white,
+                    size: 13,
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ],
@@ -544,7 +548,17 @@ class _QuickActionBtn extends StatelessWidget {
         alignment: Alignment.center,
         decoration: BoxDecoration(
           color: Colors.white,
-          border: Border.all(color: Colors.grey.shade200),
+          border: Border.all(
+            color: const Color(0xFF00ACC1).withOpacity(0.1),
+            width: 1.0,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
           borderRadius: BorderRadius.circular(16),
         ),
         child: Column(
@@ -615,32 +629,32 @@ class _ListTilesSection extends ConsumerWidget {
     return Column(
       children: [
         _ListTileItem(
-          icon: Icons.notifications_none_rounded, 
-          title: 'Notifications', 
+          icon: Icons.notifications_none_rounded,
+          title: 'Notifications',
           color: const Color(0xFF0EA5E9),
           badgeCount: unreadCount,
         ),
         const SizedBox(height: 12),
         const _ListTileItem(
-          icon: Icons.help_outline_rounded, 
+          icon: Icons.help_outline_rounded,
           title: 'Help & Support',
           color: Color(0xFF8B5CF6),
         ),
         const SizedBox(height: 12),
         const _ListTileItem(
-          icon: Icons.info_outline_rounded, 
+          icon: Icons.info_outline_rounded,
           title: 'About Difwa',
           color: Color(0xFF10B981),
         ),
         const SizedBox(height: 12),
         const _ListTileItem(
-          icon: Icons.contact_support_outlined, 
+          icon: Icons.contact_support_outlined,
           title: 'Contact Us',
           color: Color(0xFFF59E0B),
         ),
         const SizedBox(height: 12),
         const _ListTileItem(
-          icon: Icons.star_outline_rounded, 
+          icon: Icons.star_outline_rounded,
           title: 'Rate Us',
           color: Color(0xFFEF4444),
         ),
@@ -656,8 +670,8 @@ class _ListTileItem extends StatelessWidget {
   final int badgeCount;
 
   const _ListTileItem({
-    required this.icon, 
-    required this.title, 
+    required this.icon,
+    required this.title,
     required this.color,
     this.badgeCount = 0,
   });
@@ -672,7 +686,8 @@ class _ListTileItem extends StatelessWidget {
     } else if (title == 'Help & Support') {
       Navigator.pushNamed(context, AppRoutes.help);
     } else if (title == 'Rate Us') {
-      final Uri url = Uri.parse('https://play.google.com/store/apps/details?id=com.difmo.difwa');
+      final Uri url = Uri.parse(
+          'https://play.google.com/store/apps/details?id=com.difmo.difwa');
       if (await canLaunchUrl(url)) {
         await launchUrl(url, mode: LaunchMode.externalApplication);
       }
@@ -693,11 +708,14 @@ class _ListTileItem extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
           color: Colors.white,
-          border: Border.all(color: const Color(0xFFE2E8F0)),
+          border: Border.all(
+            color: const Color(0xFF00ACC1).withOpacity(0.1),
+            width: 1.0,
+          ),
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.02),
+              color: Colors.black.withOpacity(0.1),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -728,7 +746,8 @@ class _ListTileItem extends StatelessWidget {
                   if (badgeCount > 0) ...[
                     const SizedBox(width: 8),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 6, vertical: 2),
                       decoration: BoxDecoration(
                         color: Colors.red,
                         borderRadius: BorderRadius.circular(10),

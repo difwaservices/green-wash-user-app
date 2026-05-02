@@ -12,7 +12,7 @@ import '../../../core/utils/auth_helper.dart';
 import '../../../../core/api/api_provider.dart';
 
 final riderOrdersProvider =
-    FutureProvider.autoDispose<List<dynamic>>((ref) async {
+    FutureProvider<List<dynamic>>((ref) async {
   final riderService = ref.watch(riderServiceProvider);
   final all = await riderService.getAssignedOrders();
   // Only show orders that are actively assigned (not delivered/cancelled/rejected)
@@ -32,7 +32,7 @@ class _RiderStats {
       {required this.orders, required this.rating});
 }
 
-final riderStatsProvider = FutureProvider.autoDispose<_RiderStats>((ref) async {
+final riderStatsProvider = FutureProvider<_RiderStats>((ref) async {
   final riderService = ref.read(riderServiceProvider);
   
   int orders = 0;
@@ -555,11 +555,15 @@ class _RiderHomePageState extends ConsumerState<RiderHomePage> {
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: const Color(0xFF00ACC1).withOpacity(0.1),
+                    width: 1.0,
+                  ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.05),
-                      blurRadius: 15,
-                      offset: const Offset(0, 5),
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
                     ),
                   ],
                 ),
@@ -800,12 +804,15 @@ class _RiderHomePageState extends ConsumerState<RiderHomePage> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
         ],
-        border: Border.all(color: const Color(0xFFF1F4F8)),
+        border: Border.all(
+          color: const Color(0xFF00ACC1).withOpacity(0.1),
+          width: 1.0,
+        ),
       ),
       child: Row(
         children: [
@@ -872,12 +879,15 @@ class _RiderHomePageState extends ConsumerState<RiderHomePage> {
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 15,
-              offset: const Offset(0, 5),
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
             ),
           ],
-          border: Border.all(color: const Color(0xFFF1F4F8)),
+          border: Border.all(
+            color: const Color(0xFF00ACC1).withOpacity(0.1),
+            width: 1.0,
+          ),
         ),
         child: Column(
           children: [
@@ -1286,11 +1296,15 @@ class _NewOrderBanner extends StatelessWidget {
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: const Color(0xFF00ACC1).withOpacity(0.1),
+          width: 1.0,
+        ),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF06B6D4).withValues(alpha: 0.4),
-            blurRadius: 16,
-            offset: const Offset(0, 6),
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
         ],
       ),

@@ -160,11 +160,10 @@ class _MobileLoginPageState extends ConsumerState<MobileLoginPage> {
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: const Color(0xFF00ACC1).withValues(alpha: 0.3),
-                              blurRadius: 15,
-                              spreadRadius: 2,
-                              offset: const Offset(0, 5),
-                            )
+                              color: Colors.black.withOpacity(0.1),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
                           ],
                         ),
                         child: Center(

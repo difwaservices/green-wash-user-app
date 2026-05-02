@@ -191,9 +191,7 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: isSelected
-                        ? const Color(0xFF06B6D4).withValues(alpha: 0.1)
-                        : Colors.black.withValues(alpha: 0.05),
+                    color: Colors.black.withOpacity(0.1),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
@@ -440,6 +438,13 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         children: [
@@ -775,6 +780,13 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -859,10 +871,9 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.3),
-            blurRadius: 15,
-            spreadRadius: 0,
-            offset: const Offset(0, 8),
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -995,6 +1006,13 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Row(
         children: [
@@ -1240,9 +1258,9 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
             borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF06B6D4).withValues(alpha: 0.32),
-                blurRadius: 18,
-                offset: const Offset(0, 8),
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
               ),
             ],
           ),
@@ -1324,10 +1342,9 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
         ),
         boxShadow: [
           BoxShadow(
-            color: planColor.withValues(alpha: isSelected ? 0.22 : 0.10),
-            blurRadius: 18,
-            spreadRadius: 0,
-            offset: const Offset(0, 8),
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
         ],
       ),

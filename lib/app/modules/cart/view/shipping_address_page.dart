@@ -285,11 +285,9 @@ class _ShippingAddressPageState extends ConsumerState<ShippingAddressPage> {
           ),
           boxShadow: [
             BoxShadow(
-              color: isSelected
-                  ? AppColors.accentGreen.withValues(alpha: 0.15)
-                  : Colors.black.withValues(alpha: 0.05),
-              blurRadius: 15,
-              offset: const Offset(0, 8),
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
             ),
           ],
         ),
@@ -792,9 +790,9 @@ class _ShippingAddressPageState extends ConsumerState<ShippingAddressPage> {
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: Colors.black.withOpacity(0.1),
             blurRadius: 10,
-            offset: const Offset(0, -5),
+            offset: const Offset(0, 4),
           )
         ],
       ),

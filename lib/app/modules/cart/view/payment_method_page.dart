@@ -189,6 +189,13 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                       decoration: BoxDecoration(
                         color: AppColors.primary.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
                         border: Border.all(
                             color:
                                 AppColors.primary.withValues(alpha: 0.3)),
@@ -238,6 +245,13 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
                       border:
                           Border.all(color: Colors.grey.withValues(alpha: 0.1)),
                     ),
@@ -690,6 +704,13 @@ class _TypeButton extends StatelessWidget {
           decoration: BoxDecoration(
             color: selected ? AppColors.primary : Colors.grey.shade200,
             borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
           child: Column(
             children: [

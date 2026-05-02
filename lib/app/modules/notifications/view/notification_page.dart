@@ -166,12 +166,11 @@ class _NotificationItem extends StatelessWidget {
           borderRadius: BorderRadius.circular(24),
           border: Border.all(color: isRead ? Colors.grey.shade100 : AppColors.primary.withValues(alpha: 0.1)),
           boxShadow: [
-            if (!isRead)
-              BoxShadow(
-                color: AppColors.primary.withValues(alpha: 0.05),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
           ],
         ),
         child: Row(
