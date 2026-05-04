@@ -52,30 +52,7 @@ class WalletPage extends ConsumerWidget {
             }
           },
         ),
-        actions: [
-          Container(
-            margin: const EdgeInsets.only(right: 12),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.05),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: IconButton(
-              icon: const Icon(Icons.refresh_rounded,
-                  color: Color(0xFF0891B2), size: 22),
-              onPressed: () {
-                ref.invalidate(walletBalanceProvider);
-                ref.invalidate(walletHistoryProvider);
-              },
-            ),
-          ),
-        ],
+        actions: const [],
       ),
       body: RefreshIndicator(
         onRefresh: () async {
