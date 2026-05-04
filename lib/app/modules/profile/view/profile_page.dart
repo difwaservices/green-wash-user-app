@@ -366,8 +366,17 @@ class _ActiveOrdersAndSubscriptions extends ConsumerWidget {
               decoration: BoxDecoration(
                 color: const Color(0xFFE0F7FA),
                 border: Border.all(
-                    color: const Color(0xFF00ACC1).withValues(alpha: 0.1)),
+                  color: const Color(0xFF00ACC1).withValues(alpha: 0.2),
+                  width: 1.0,
+                ),
                 borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.03),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -426,8 +435,15 @@ class _ActiveOrdersAndSubscriptions extends ConsumerWidget {
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: const Color(0xFF00ACC1),
-                border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
                 borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.03),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -549,12 +565,12 @@ class _QuickActionBtn extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.white,
           border: Border.all(
-            color: const Color(0xFF00ACC1).withOpacity(0.1),
+            color: const Color(0xFF00ACC1).withValues(alpha: 0.2),
             width: 1.0,
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: Colors.black.withValues(alpha: 0.03),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -709,13 +725,13 @@ class _ListTileItem extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.white,
           border: Border.all(
-            color: const Color(0xFF00ACC1).withOpacity(0.1),
+            color: const Color(0xFF00ACC1).withValues(alpha: 0.2),
             width: 1.0,
           ),
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: Colors.black.withValues(alpha: 0.03),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),

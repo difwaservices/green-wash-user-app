@@ -177,7 +177,21 @@ class _LiveOrderCardState extends State<_LiveOrderCard> with SingleTickerProvide
         builder: (context, child) => Transform.scale(scale: _scaleAnimation.value, child: child),
         child: Container(
           margin: const EdgeInsets.only(bottom: 20),
-          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(24), boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 4))]),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(
+              color: const Color(0xFF00ACC1).withValues(alpha: 0.2),
+              width: 1.0,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.03),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
           child: Padding(
             padding: const EdgeInsets.all(20),
             child: Column(

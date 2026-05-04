@@ -338,9 +338,16 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage> {
             : const Color(0xFFCFFAFE).withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
-            color: showVacationStyle
-                ? Colors.blue.withValues(alpha: 0.2)
-                : const Color(0xFF06B6D4).withValues(alpha: 0.2)),
+          color: const Color(0xFF00ACC1).withValues(alpha: 0.2),
+          width: 1.0,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -436,7 +443,7 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage> {
                     errorBuilder: (_, __, ___) => _imagePlaceholder)
                 : _imagePlaceholder,
           ),
-          const SizedBox(width: 14),
+          const SizedBox(width: 10),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -445,7 +452,7 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage> {
                   itemsNames,
                   style: const TextStyle(
                       fontWeight: FontWeight.bold, fontSize: 13),
-                  maxLines: 2,
+                  maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 2),
@@ -495,7 +502,7 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage> {
               ],
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 6),
           Builder(builder: (context) {
             final now = DateTime.now();
             final today = DateTime(now.year, now.month, now.day);
@@ -503,71 +510,80 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage> {
                 _selectedDate.year, _selectedDate.month, _selectedDate.day);
             final isFuture = selected.isAfter(today);
 
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                GestureDetector(
-                  onTap: isFuture
-                      ? null
-                      : () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => OrderTrackingPage(order: {
-                                '_id': order.id,
-                                'status': order.status,
-                              }),
-                            ),
-                          );
-                        },
-                  child: Row(
-                    children: [
-                      Icon(Icons.location_on_outlined,
-                          color:
-                              isFuture ? Colors.grey : const Color(0xFF06B6D4),
-                          size: 14),
-                      const SizedBox(width: 2),
-                      Text(
-                        status.toUpperCase(),
-                        style: TextStyle(
-                          color:
-                              isFuture ? Colors.grey : const Color(0xFF06B6D4),
-                          fontWeight: FontWeight.w900,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                if (!isFuture) ...[
-                  const SizedBox(height: 4),
+            return ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 80),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
                   GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => OrderTrackingPage(order: {
-                            '_id': order.id,
-                            'status': order.status,
-                          }),
+                    onTap: isFuture
+                        ? null
+                        : () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => OrderTrackingPage(order: {
+                                  '_id': order.id,
+                                  'status': order.status,
+                                }),
+                              ),
+                            );
+                          },
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.location_on_outlined,
+                            color:
+                                isFuture ? Colors.grey : const Color(0xFF06B6D4),
+                            size: 14),
+                        const SizedBox(width: 2),
+                        Flexible(
+                          child: Text(
+                            status.toUpperCase(),
+                            style: TextStyle(
+                              color:
+                                  isFuture ? Colors.grey : const Color(0xFF06B6D4),
+                              fontWeight: FontWeight.w900,
+                              fontSize: 10,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
-                      );
-                    },
-                    child: const Text(
-                      'Track',
-                      style: TextStyle(
-                        color: Colors.grey,
-                        fontSize: 10,
-                        decoration: TextDecoration.underline,
-                      ),
+                      ],
                     ),
                   ),
+                  if (!isFuture) ...[
+                    const SizedBox(height: 4),
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => OrderTrackingPage(order: {
+                              '_id': order.id,
+                              'status': order.status,
+                            }),
+                          ),
+                        );
+                      },
+                      child: const Text(
+                        'Track',
+                        style: TextStyle(
+                          color: Colors.grey,
+                          fontSize: 10,
+                          decoration: TextDecoration.underline,
+                        ),
+                      ),
+                    ),
+                  ],
                 ],
-              ],
+              ),
             );
           }),
-          const SizedBox(width: 12),
+          const SizedBox(width: 8),
           Icon(isDelivered ? Icons.check_circle : Icons.radio_button_checked,
+              size: 20,
               color: const Color(0xFF06B6D4)),
         ],
       ),
@@ -589,15 +605,19 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage> {
                     errorBuilder: (_, __, ___) => _imagePlaceholder)
                 : _imagePlaceholder,
           ),
-          const SizedBox(width: 14),
+          const SizedBox(width: 10),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(sub.productName,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: const TextStyle(fontWeight: FontWeight.bold)),
                 if (sub.retailerName.isNotEmpty)
                   Text(sub.retailerName,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                           color: const Color(0xFF0891B2).withValues(alpha: 0.7),
                           fontSize: 11,
@@ -646,7 +666,7 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage> {
               ],
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 6),
           Builder(builder: (context) {
             final now = DateTime.now();
             final today = DateTime(now.year, now.month, now.day);
@@ -680,8 +700,8 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage> {
               ],
             );
           }),
-          const SizedBox(width: 12),
-          const Icon(Icons.check_circle, color: Color(0xFF06B6D4)),
+          const SizedBox(width: 8),
+          const Icon(Icons.check_circle, size: 20, color: Color(0xFF06B6D4)),
         ],
       ),
     );
@@ -817,10 +837,13 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage> {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.grey.withValues(alpha: 0.12)),
+          border: Border.all(
+            color: const Color(0xFF00ACC1).withValues(alpha: 0.2),
+            width: 1.0,
+          ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: Colors.black.withValues(alpha: 0.03),
               blurRadius: 10,
               offset: const Offset(0, 4),
             )

@@ -94,8 +94,18 @@ class _HelpSupportPageState extends ConsumerState<HelpSupportPage> {
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  border: Border.all(color: Colors.grey.shade200),
+                  border: Border.all(
+                    color: const Color(0xFF00ACC1).withValues(alpha: 0.2),
+                    width: 1.0,
+                  ),
                   borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.03),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
                 ),
                 child: DropdownButtonHideUnderline(
                   child: DropdownButton<String>(
@@ -114,6 +124,14 @@ class _HelpSupportPageState extends ConsumerState<HelpSupportPage> {
                 decoration: InputDecoration(
                   labelText: 'Subject',
                   prefixIcon: const Icon(Icons.subject),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide(color: const Color(0xFF00ACC1).withValues(alpha: 0.2)),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: const BorderSide(color: Color(0xFF00ACC1), width: 1.5),
+                  ),
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
                 ),
                 validator: (v) => v?.isEmpty == true ? 'Required' : null,
@@ -126,6 +144,14 @@ class _HelpSupportPageState extends ConsumerState<HelpSupportPage> {
                   labelText: 'Describe your issue',
                   prefixIcon: const Icon(Icons.help_outline),
                   alignLabelWithHint: true,
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide(color: const Color(0xFF00ACC1).withValues(alpha: 0.2)),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: const BorderSide(color: Color(0xFF00ACC1), width: 1.5),
+                  ),
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
                 ),
                 validator: (v) => v?.isEmpty == true ? 'Required' : null,
@@ -171,7 +197,17 @@ class CardExposed extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade100),
+        border: Border.all(
+          color: const Color(0xFF00ACC1).withValues(alpha: 0.2),
+          width: 1.0,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: child,
     );

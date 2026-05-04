@@ -186,12 +186,12 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
                 border: Border.all(
                   color: isSelected
                       ? const Color(0xFF06B6D4)
-                      : Colors.transparent,
-                  width: 2,
+                      : const Color(0xFF00ACC1).withValues(alpha: 0.2),
+                  width: isSelected ? 2 : 1.0,
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
+                    color: Colors.black.withValues(alpha: 0.03),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
@@ -371,7 +371,16 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
             color: const Color(0xFFF1F4F8),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-                color: Colors.grey.shade300, style: BorderStyle.solid),
+              color: const Color(0xFF00ACC1).withValues(alpha: 0.2),
+              width: 1.0,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.03),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
           child: Material(
             color: Colors.transparent,
@@ -438,9 +447,13 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: const Color(0xFF00ACC1).withValues(alpha: 0.2),
+          width: 1.0,
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.03),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -780,9 +793,13 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: const Color(0xFF00ACC1).withValues(alpha: 0.2),
+          width: 1.0,
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.03),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),

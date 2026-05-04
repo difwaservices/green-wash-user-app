@@ -80,25 +80,23 @@ class AnimatedFooterText extends StatefulWidget {
 class _AnimatedFooterTextState extends State<AnimatedFooterText>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
-  late Animation<double> _scaleAnimation;
-  late Animation<double> _opacityAnimation;
+  late Animation<int> _characterCount;
+  final String _text = 'With love from Difwa.';
 
   @override
   void initState() {
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1500),
-    )..repeat(reverse: true);
+      duration: const Duration(seconds: 4),
+    )..repeat();
 
-    _scaleAnimation = Tween<double>(
-      begin: 0.98,
-      end: 1.02,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
-    _opacityAnimation = Tween<double>(
-      begin: 0.7,
-      end: 1.0,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+    _characterCount = IntTween(begin: 0, end: _text.length).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.0, 0.6, curve: Curves.easeIn),
+      ),
+    );
   }
 
   @override
@@ -109,17 +107,28 @@ class _AnimatedFooterTextState extends State<AnimatedFooterText>
 
   @override
   Widget build(BuildContext context) {
-    return const Padding(
-      padding: EdgeInsets.only(left: 20, right: 20, top: 20, bottom: 129),
-      child: Text(
-        'With love,\nfrom Difwa.',
-        textAlign: TextAlign.left,
-        style: TextStyle(
-          fontSize: 48,
-          fontWeight: FontWeight.w900,
-          color: Color(0xFFB4B4B4),
-          height: 1.1,
-          letterSpacing: -1.5,
+    return Padding(
+      padding: const EdgeInsets.only(left: 20, right: 20, top: 12, bottom: 16),
+      child: Center(
+        child: AnimatedBuilder(
+          animation: _characterCount,
+          builder: (context, child) {
+            String visibleText = _text.substring(0, _characterCount.value);
+            bool showCursor = (_controller.value * 10).toInt() % 2 == 0;
+            
+            return Text(
+              '$visibleText${showCursor && _characterCount.value < _text.length ? "|" : ""}',
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              style: const TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.w700,
+                color: Color(0xFFB4B4B4),
+                height: 1.2,
+                letterSpacing: -0.5,
+              ),
+            );
+          },
         ),
       ),
     );
