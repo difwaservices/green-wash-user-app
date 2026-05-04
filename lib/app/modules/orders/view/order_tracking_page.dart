@@ -23,7 +23,7 @@ class _OrderTrackingPageState extends ConsumerState<OrderTrackingPage> {
     super.initState();
     _order = Map<String, dynamic>.from(widget.order);
     _statusHistory = List<dynamic>.from(_order['statusHistory'] ?? []);
-    
+
     _loadOrderDetails();
     _setupSocket();
   }
@@ -122,11 +122,15 @@ class _OrderTrackingPageState extends ConsumerState<OrderTrackingPage> {
 
   IconData _statusIcon(String status) {
     final s = status.toLowerCase();
-    if (s.contains('pending') || s.contains('placed')) return Icons.receipt_long_rounded;
-    if (s.contains('accepted') && s.contains('rider')) return Icons.delivery_dining_rounded;
+    if (s.contains('pending') || s.contains('placed'))
+      return Icons.receipt_long_rounded;
+    if (s.contains('accepted') && s.contains('rider'))
+      return Icons.delivery_dining_rounded;
     if (s.contains('accepted')) return Icons.check_circle_rounded;
-    if (s.contains('processing') || s.contains('preparing')) return Icons.restaurant_rounded;
-    if (s.contains('shipped') || s.contains('out for delivery')) return Icons.moped_rounded;
+    if (s.contains('processing') || s.contains('preparing'))
+      return Icons.restaurant_rounded;
+    if (s.contains('shipped') || s.contains('out for delivery'))
+      return Icons.moped_rounded;
     if (s.contains('delivered')) return Icons.home_rounded;
     return Icons.radio_button_checked_rounded;
   }
@@ -221,7 +225,7 @@ class _OrderTrackingPageState extends ConsumerState<OrderTrackingPage> {
         subtitle = '${items.length} items in this order';
       }
     }
-    
+
     // Get retailer name if possible
     String shopName = '';
     if (items.isNotEmpty) {
@@ -230,8 +234,9 @@ class _OrderTrackingPageState extends ConsumerState<OrderTrackingPage> {
       if (retailer is Map) {
         final bizDetails = retailer['businessDetails'];
         if (bizDetails is Map) {
-          shopName = bizDetails['storeDisplayName']?.toString() ?? 
-                     bizDetails['businessName']?.toString() ?? '';
+          shopName = bizDetails['storeDisplayName']?.toString() ??
+              bizDetails['businessName']?.toString() ??
+              '';
         }
       }
     }
@@ -296,17 +301,28 @@ class _OrderTrackingPageState extends ConsumerState<OrderTrackingPage> {
               if (subtitle.isNotEmpty) ...[
                 const SizedBox(height: 4),
                 Text(subtitle,
-                    style: TextStyle(color: Colors.grey.shade500, fontSize: 16)),
+                    style:
+                        TextStyle(color: Colors.grey.shade500, fontSize: 16)),
               ],
-              
+
               if (shopName.isNotEmpty) ...[
                 const SizedBox(height: 16),
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF06B6D4).withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: const Color(0xFF06B6D4).withValues(alpha: 0.15)),
+                    color: const Color(0xFF06B6D4).withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: const Color(0xFF00ACC1).withValues(alpha: 0.2),
+                      width: 1.0,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.03),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
                   ),
                   child: Row(
                     children: [
@@ -316,7 +332,8 @@ class _OrderTrackingPageState extends ConsumerState<OrderTrackingPage> {
                           color: Color(0xFF06B6D4),
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(Icons.storefront, color: Colors.white, size: 18),
+                        child: const Icon(Icons.storefront,
+                            color: Colors.white, size: 18),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
@@ -470,16 +487,24 @@ class _OrderTrackingPageState extends ConsumerState<OrderTrackingPage> {
       children: [
         const Text('ORDER SUMMARY',
             style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-                color: Colors.grey)),
+                fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey)),
         const SizedBox(height: 12),
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: const Color(0xFFF7F8FA),
+            color: Colors.white,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: const Color(0xFFEEEEEE)),
+            border: Border.all(
+              color: const Color(0xFF00ACC1).withValues(alpha: 0.2),
+              width: 1.0,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.03),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
           child: Column(
             children: [
@@ -524,8 +549,7 @@ class _OrderTrackingPageState extends ConsumerState<OrderTrackingPage> {
                   paymentStatus,
                   icon: Icons.verified_outlined,
                   valueStyle: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: payStatusColor),
+                      fontWeight: FontWeight.bold, color: payStatusColor),
                 ),
               ],
               if (orderType.isNotEmpty) ...[
@@ -569,9 +593,19 @@ class _OrderTrackingPageState extends ConsumerState<OrderTrackingPage> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFFF7F8FA),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFEEEEEE)),
+        border: Border.all(
+          color: const Color(0xFF00ACC1).withValues(alpha: 0.2),
+          width: 1.0,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         children: items.map((item) {
@@ -643,7 +677,11 @@ class _OrderTrackingPageState extends ConsumerState<OrderTrackingPage> {
       );
     }
 
-    final street = addr['address'] ?? addr['street'] ?? addr['flat'] ?? addr['houseNo'] ?? '';
+    final street = addr['address'] ??
+        addr['street'] ??
+        addr['flat'] ??
+        addr['houseNo'] ??
+        '';
     final city = addr['city'] ?? '';
     final state = addr['state'] ?? '';
     final pincode = addr['pincode'] ?? '';
@@ -666,7 +704,8 @@ class _OrderTrackingPageState extends ConsumerState<OrderTrackingPage> {
             color: const Color(0xFF0891B2).withValues(alpha: 0.1),
             shape: BoxShape.circle,
           ),
-          child: const Icon(Icons.location_on, color: Color(0xFF0891B2), size: 20),
+          child:
+              const Icon(Icons.location_on, color: Color(0xFF0891B2), size: 20),
         ),
         const SizedBox(width: 12),
         Expanded(
@@ -718,7 +757,7 @@ class _OrderTrackingPageState extends ConsumerState<OrderTrackingPage> {
     // Filter duplicates and sequential identical statuses
     final filteredHistory = <dynamic>[];
     String lastStatus = '';
-    
+
     for (var item in _statusHistory) {
       final currentStatus = item['status']?.toString() ?? '';
       if (currentStatus != lastStatus) {
@@ -789,7 +828,9 @@ class _OrderTrackingPageState extends ConsumerState<OrderTrackingPage> {
                         style: TextStyle(
                             fontWeight: FontWeight.w900,
                             fontSize: 16,
-                            color: isLast ? const Color(0xFF0891B2) : const Color(0xFF2C3E50))),
+                            color: isLast
+                                ? const Color(0xFF0891B2)
+                                : const Color(0xFF2C3E50))),
                     const SizedBox(height: 6),
                     Row(
                       children: [
@@ -799,7 +840,7 @@ class _OrderTrackingPageState extends ConsumerState<OrderTrackingPage> {
                         ],
                         Text(ts,
                             style: TextStyle(
-                                color: Colors.grey.shade500, 
+                                color: Colors.grey.shade500,
                                 fontSize: 12,
                                 fontWeight: FontWeight.w500)),
                       ],
@@ -889,7 +930,9 @@ class _OrderTrackingPageState extends ConsumerState<OrderTrackingPage> {
                         style: TextStyle(
                             fontWeight: FontWeight.w900,
                             fontSize: 16,
-                            color: isLast ? const Color(0xFF0891B2) : const Color(0xFF2C3E50))),
+                            color: isLast
+                                ? const Color(0xFF0891B2)
+                                : const Color(0xFF2C3E50))),
                     const SizedBox(height: 6),
                     Row(
                       children: [
@@ -898,8 +941,7 @@ class _OrderTrackingPageState extends ConsumerState<OrderTrackingPage> {
                           const SizedBox(width: 8),
                         ],
                         const Text('Done',
-                            style: TextStyle(
-                                color: Colors.grey, fontSize: 13)),
+                            style: TextStyle(color: Colors.grey, fontSize: 13)),
                       ],
                     ),
                   ],
@@ -912,4 +954,3 @@ class _OrderTrackingPageState extends ConsumerState<OrderTrackingPage> {
     );
   }
 }
-

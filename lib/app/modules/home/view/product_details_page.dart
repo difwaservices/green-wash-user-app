@@ -18,7 +18,6 @@ class ProductDetailsPage extends ConsumerWidget {
 
   const ProductDetailsPage({super.key, required this.product});
 
-
   void _addToCart(BuildContext context, CartProvider cart, CartItem newItem) {
     if (!cart.isSameShop(newItem.shopId)) {
       _showReplaceCartDialog(context, cart, newItem);
@@ -249,7 +248,8 @@ class ProductDetailsPage extends ConsumerWidget {
           // Cart Summary Overlay
           if (cart.itemCount > 0)
             Positioned(
-              bottom: 94, // Adjusted position to be above the new bottom action bar
+              bottom:
+                  94, // Adjusted position to be above the new bottom action bar
               left: 0,
               right: 0,
               child: CartSummaryBar(
@@ -300,11 +300,11 @@ class ProductDetailsPage extends ConsumerWidget {
                           height: 56,
                           padding: const EdgeInsets.symmetric(horizontal: 16),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFF7F8FA),
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(
-                                color: AppColors.primary
-                                    .withValues(alpha: 0.2))),
+                              color: const Color(0xFFF7F8FA),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                  color: AppColors.primary
+                                      .withValues(alpha: 0.2))),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [

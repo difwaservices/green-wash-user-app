@@ -7,8 +7,7 @@ import '../../../data/services/rider_service.dart';
 
 // ── Provider ────────────────────────────────────────────────────────────────
 
-final riderEarningsProvider =
-    FutureProvider<Map<String, dynamic>>((ref) async {
+final riderEarningsProvider = FutureProvider<Map<String, dynamic>>((ref) async {
   final riderService = ref.read(riderServiceProvider);
   final result = await riderService.getEarnings();
 
@@ -515,4 +514,3 @@ class _PayoutRow extends StatelessWidget {
     );
   }
 }
-

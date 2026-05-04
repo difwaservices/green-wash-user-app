@@ -94,9 +94,9 @@ class _HomeHeaderState extends ConsumerState<HomeHeader> {
                         children: [
                           Expanded(
                             child: Text(
-                              address != null 
-                                ? "${address.street}, ${address.details}" 
-                                : 'Tap to set your delivery location',
+                              address != null
+                                  ? "${address.street}, ${address.details}"
+                                  : 'Tap to set your delivery location',
                               style: TextStyle(
                                 fontSize: 12,
                                 color: Colors.grey.shade600,
@@ -117,7 +117,8 @@ class _HomeHeaderState extends ConsumerState<HomeHeader> {
               // Notification Button
               Consumer(
                 builder: (context, ref, child) {
-                  final unreadCount = ref.watch(unreadNotificationsCountProvider);
+                  final unreadCount =
+                      ref.watch(unreadNotificationsCountProvider);
                   return BounceWidget(
                     onTap: () {
                       final isAuth = ref.read(isAuthenticatedProvider);
@@ -137,7 +138,8 @@ class _HomeHeaderState extends ConsumerState<HomeHeader> {
                             shape: BoxShape.circle,
                             border: Border.all(color: Colors.grey.shade200),
                           ),
-                          child: const Icon(Icons.notifications_none_rounded, size: 20, color: AppColors.textPrimary),
+                          child: const Icon(Icons.notifications_none_rounded,
+                              size: 20, color: AppColors.textPrimary),
                         ),
                         if (unreadCount > 0)
                           Positioned(
@@ -145,11 +147,16 @@ class _HomeHeaderState extends ConsumerState<HomeHeader> {
                             top: 0,
                             child: Container(
                               padding: const EdgeInsets.all(4),
-                              decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
-                              constraints: const BoxConstraints(minWidth: 14, minHeight: 14),
+                              decoration: const BoxDecoration(
+                                  color: Colors.red, shape: BoxShape.circle),
+                              constraints: const BoxConstraints(
+                                  minWidth: 14, minHeight: 14),
                               child: Text(
                                 unreadCount > 9 ? '9+' : unreadCount.toString(),
-                                style: const TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.bold),
+                                style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 8,
+                                    fontWeight: FontWeight.bold),
                                 textAlign: TextAlign.center,
                               ),
                             ),
@@ -168,16 +175,29 @@ class _HomeHeaderState extends ConsumerState<HomeHeader> {
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.grey.shade200),
+              border: Border.all(
+                color: const Color(0xFF00ACC1).withValues(alpha: 0.2),
+                width: 1.0,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
             ),
             child: TextField(
               readOnly: true,
               onTap: () => Navigator.pushNamed(context, AppRoutes.search),
               decoration: InputDecoration(
-                hintText: 'Search water plants with name',
+                hintStyle: const TextStyle(fontSize: 14),
+                label: const _AnimatedSearchHint(),
+                floatingLabelBehavior: FloatingLabelBehavior.never,
                 fillColor: Colors.white,
                 filled: true,
-                contentPadding: const EdgeInsets.symmetric(vertical: 0),
+                contentPadding:
+                    const EdgeInsets.symmetric(vertical: 0, horizontal: 0),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide.none,
@@ -206,5 +226,94 @@ class _HomeHeaderState extends ConsumerState<HomeHeader> {
         .animate()
         .fadeIn(duration: 400.ms)
         .slideY(begin: -0.1, duration: 400.ms, curve: Curves.easeOut);
+  }
+}
+
+class _AnimatedSearchHint extends StatefulWidget {
+  const _AnimatedSearchHint();
+
+  @override
+  State<_AnimatedSearchHint> createState() => _AnimatedSearchHintState();
+}
+
+class _AnimatedSearchHintState extends State<_AnimatedSearchHint>
+    with SingleTickerProviderStateMixin {
+  final List<String> _hints = [
+    'Search "Water Lily"',
+    'Search "Lotus"',
+    'Search "Hydrilla"',
+    'Search "Duckweed"',
+    'Search "Water Hyacinth"',
+    'Search "Vallisneria"',
+    'Search "Hornwort"',
+    'Search "Water Lettuce"',
+  ];
+
+  int _currentIndex = 0;
+  late AnimationController _controller;
+  late Animation<int> _characterCount;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 3),
+    );
+
+    _setupAnimation();
+
+    _controller.addStatusListener((status) {
+      if (status == AnimationStatus.completed) {
+        Future.delayed(const Duration(seconds: 1), () {
+          if (mounted) {
+            setState(() {
+              _currentIndex = (_currentIndex + 1) % _hints.length;
+              _setupAnimation();
+              _controller.forward(from: 0.0);
+            });
+          }
+        });
+      }
+    });
+
+    _controller.forward();
+  }
+
+  void _setupAnimation() {
+    _characterCount = IntTween(begin: 0, end: _hints[_currentIndex].length)
+        .animate(CurvedAnimation(
+      parent: _controller,
+      curve: const Interval(0.0, 0.8, curve: Curves.easeIn),
+    ));
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) {
+        final text = _hints[_currentIndex].substring(0, _characterCount.value);
+        // Blinking cursor logic
+        bool showCursor = (_controller.value * 20).toInt() % 2 == 0;
+        final isFinished =
+            _characterCount.value == _hints[_currentIndex].length;
+
+        return Text(
+          '$text${!isFinished && showCursor ? "|" : ""}',
+          style: const TextStyle(
+            fontSize: 14,
+            color: Colors.grey,
+            fontWeight: FontWeight.w400,
+          ),
+        );
+      },
+    );
   }
 }

@@ -94,6 +94,10 @@ class _FilterBottomSheetState extends ConsumerState<FilterBottomSheet> {
       decoration: BoxDecoration(
         color: _bgColor,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        border: Border.all(
+          color: const Color(0xFF00ACC1).withValues(alpha: 0.2),
+          width: 1.0,
+        ),
       ),
       child: Column(
         children: [
@@ -217,7 +221,9 @@ class _FilterBottomSheetState extends ConsumerState<FilterBottomSheet> {
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                           side: BorderSide(
-                            color: isSelected ? _primaryColor : Colors.grey.shade300,
+                            color: isSelected
+                                ? _primaryColor
+                                : const Color(0xFF00ACC1).withValues(alpha: 0.2),
                           ),
                         ),
                       );
@@ -262,7 +268,9 @@ class _FilterBottomSheetState extends ConsumerState<FilterBottomSheet> {
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
                               side: BorderSide(
-                                color: isSelected ? _primaryColor : Colors.grey.shade300,
+                                color: isSelected
+                                    ? _primaryColor
+                                    : const Color(0xFF00ACC1).withValues(alpha: 0.2),
                               ),
                             ),
                           );
@@ -279,6 +287,12 @@ class _FilterBottomSheetState extends ConsumerState<FilterBottomSheet> {
             padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
             decoration: BoxDecoration(
               color: Colors.white,
+              border: Border(
+                top: BorderSide(
+                  color: const Color(0xFF00ACC1).withValues(alpha: 0.2),
+                  width: 1.0,
+                ),
+              ),
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withValues(alpha: 0.05),
@@ -325,6 +339,10 @@ class _FilterBottomSheetState extends ConsumerState<FilterBottomSheet> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: const Color(0xFF00ACC1).withValues(alpha: 0.2),
+          width: 1.0,
+        ),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.03),

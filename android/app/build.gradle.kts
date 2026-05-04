@@ -50,7 +50,7 @@ android {
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = 24
         targetSdk = 36
-        versionCode = 43
+        versionCode = 44
         versionName = "1.0.43"
 
         // Inject Maps API key into AndroidManifest.xml as ${MAPS_API_KEY}

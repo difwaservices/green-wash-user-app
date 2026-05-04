@@ -131,6 +131,14 @@ class _ContactUsPageState extends ConsumerState<ContactUsPage> {
                         prefixIcon: const Icon(Icons.subject, color: AppColors.primary),
                         fillColor: Colors.white,
                         filled: true,
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          borderSide: BorderSide(color: const Color(0xFF00ACC1).withValues(alpha: 0.2)),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          borderSide: const BorderSide(color: Color(0xFF00ACC1), width: 1.5),
+                        ),
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
                       ),
                       validator: (v) => v?.isEmpty == true ? 'Required' : null,
@@ -144,6 +152,14 @@ class _ContactUsPageState extends ConsumerState<ContactUsPage> {
                         prefixIcon: const Icon(Icons.message_outlined, color: AppColors.primary),
                         fillColor: Colors.white,
                         filled: true,
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          borderSide: BorderSide(color: const Color(0xFF00ACC1).withValues(alpha: 0.2)),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          borderSide: const BorderSide(color: Color(0xFF00ACC1), width: 1.5),
+                        ),
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
                       ),
                       validator: (v) => v?.isEmpty == true ? 'Required' : null,
@@ -188,9 +204,19 @@ class _ContactInfoTile extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: const Color(0xFFF8FAFC),
+          color: Colors.white,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Colors.grey.shade100),
+          border: Border.all(
+            color: const Color(0xFF00ACC1).withValues(alpha: 0.2),
+            width: 1.0,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.03),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
         child: Row(
           children: [

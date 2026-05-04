@@ -110,12 +110,12 @@ class CartPage extends ConsumerWidget {
             height: 52,
             child: ElevatedButton(
               onPressed: () {
-                if (Navigator.canPop(context)) {
-                  Navigator.pop(context);
-                }
-                try {
-                  ref.read(mainIndexProvider.notifier).setIndex(0); // Go to Home tab
-                } catch (_) {}
+                ref.read(mainIndexProvider.notifier).setIndex(0);
+                Navigator.pushNamedAndRemoveUntil(
+                  context,
+                  AppRoutes.home,
+                  (route) => false,
+                );
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF06B6D4),
@@ -146,7 +146,7 @@ class CartPage extends ConsumerWidget {
           image: item.image,
           price: item.unitPrice,
           weight: item.subtitle,
-          category: '', 
+          category: '',
           description: '',
           whyChoose: [],
         );
@@ -162,9 +162,13 @@ class CartPage extends ConsumerWidget {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: const Color(0xFF00ACC1).withValues(alpha: 0.2),
+            width: 1.0,
+          ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: Colors.black.withValues(alpha: 0.03),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -255,12 +259,23 @@ class CartPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildSummarySection(BuildContext context, WidgetRef ref, CartProvider cart) {
+  Widget _buildSummarySection(
+      BuildContext context, WidgetRef ref, CartProvider cart) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-        border: Border(top: BorderSide(color: Colors.grey.shade300)),
+        border: Border.all(
+          color: const Color(0xFF00ACC1).withValues(alpha: 0.2),
+          width: 1.0,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 20,
+            offset: const Offset(0, -4),
+          ),
+        ],
       ),
       padding: const EdgeInsets.fromLTRB(24, 24, 24, 110),
       child: Column(
@@ -308,7 +323,7 @@ class CartPage extends ConsumerWidget {
                   ref: ref,
                   message: 'Please log in to proceed with your order.',
                 )) return;
-                
+
                 Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -376,5 +391,3 @@ class CartPage extends ConsumerWidget {
     );
   }
 }
-
-
