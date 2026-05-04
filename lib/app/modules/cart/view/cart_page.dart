@@ -111,9 +111,11 @@ class CartPage extends ConsumerWidget {
             child: ElevatedButton(
               onPressed: () {
                 ref.read(mainIndexProvider.notifier).setIndex(0);
-                if (Navigator.canPop(context)) {
-                  Navigator.popUntil(context, (route) => route.isFirst);
-                }
+                Navigator.pushNamedAndRemoveUntil(
+                  context,
+                  AppRoutes.home,
+                  (route) => false,
+                );
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF06B6D4),
