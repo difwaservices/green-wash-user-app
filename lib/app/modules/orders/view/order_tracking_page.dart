@@ -250,22 +250,15 @@ class _OrderTrackingPageState extends ConsumerState<OrderTrackingPage> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('', style: TextStyle(color: Colors.black)),
+        title: const Text('Order Details', 
+          style: TextStyle(color: Colors.black, fontSize: 18, fontWeight: FontWeight.bold)),
         backgroundColor: Colors.white,
         elevation: 0,
+        centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () => Navigator.pop(context),
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh, color: Colors.black),
-            onPressed: () {
-              setState(() => _isLoading = true);
-              _loadOrderDetails();
-            },
-          ),
-        ],
       ),
       body: RefreshIndicator(
         onRefresh: _loadOrderDetails,
@@ -277,12 +270,6 @@ class _OrderTrackingPageState extends ConsumerState<OrderTrackingPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // ── Header Information ─────────────────────────────────────────
-              Text('Order Details',
-                  style: TextStyle(
-                      color: Colors.grey.shade600,
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 0.5)),
               const SizedBox(height: 4),
               Text('#${_order['orderId'] ?? _order['_id'] ?? ''}',
                   style: const TextStyle(

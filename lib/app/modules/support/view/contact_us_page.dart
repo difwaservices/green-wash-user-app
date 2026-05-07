@@ -232,7 +232,7 @@ class _ContactInfoTile extends StatelessWidget {
                 children: [
                   Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
                   const SizedBox(height: 4),
-                  Text(content, style: const TextStyle(color: Colors.black54, fontSize: 13)),
+                  Text(content, style: const TextStyle(color: Colors.black, fontSize: 13)),
                 ],
               ),
             ),

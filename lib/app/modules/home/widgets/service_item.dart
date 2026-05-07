@@ -24,6 +24,10 @@ class ServiceItem extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: AppColors.primary.withValues(alpha: 0.2),
+            width: 1.0,
+          ),
         ),
         child: Row(
           children: [

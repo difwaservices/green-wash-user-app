@@ -124,7 +124,7 @@ class _NotificationPageState extends ConsumerState<NotificationPage> {
         children: [
           Icon(Icons.notifications_none_rounded, size: 80, color: Colors.grey[300]),
           const SizedBox(height: 16),
-          const Text('No notifications yet', style: TextStyle(color: Colors.black45, fontSize: 16, fontWeight: FontWeight.w600)),
+          const Text('No notifications yet', style: TextStyle(color: Colors.black, fontSize: 16, fontWeight: FontWeight.w600)),
         ],
       ),
     );
@@ -162,12 +162,15 @@ class _NotificationItem extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: isRead ? Colors.white : AppColors.primary.withValues(alpha: 0.03),
+          color: isRead ? Colors.white : const Color(0xFFE0F7FA).withValues(alpha: 0.5),
           borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: isRead ? Colors.grey.shade100 : AppColors.primary.withValues(alpha: 0.1)),
+          border: Border.all(
+            color: const Color(0xFF00ACC1).withValues(alpha: 0.2),
+            width: isRead ? 1.0 : 1.5,
+          ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: Colors.black.withValues(alpha: isRead ? 0.03 : 0.05),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -177,15 +180,15 @@ class _NotificationItem extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
-              padding: const EdgeInsets.all(10),
+              padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: (isRead ? Colors.grey : AppColors.primary).withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
+                color: (isRead ? const Color(0xFF94A3B8) : const Color(0xFF06B6D4)).withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(16),
               ),
               child: Icon(
-                Icons.notifications_outlined,
-                color: isRead ? Colors.grey : AppColors.primary,
-                size: 20,
+                isRead ? Icons.notifications_none_rounded : Icons.notifications_active_rounded,
+                color: isRead ? const Color(0xFF64748B) : const Color(0xFF06B6D4),
+                size: 24,
               ),
             ),
             const SizedBox(width: 16),
@@ -196,15 +199,51 @@ class _NotificationItem extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(title, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: isRead ? Colors.black87 : AppColors.primaryDark)),
+                      Expanded(
+                        child: Text(
+                          title, 
+                          style: TextStyle(
+                            fontWeight: isRead ? FontWeight.w700 : FontWeight.w900, 
+                            fontSize: 16, 
+                            color: isRead ? const Color(0xFF475569) : const Color(0xFF083344),
+                            letterSpacing: -0.3,
+                          ),
+                        ),
+                      ),
                       if (!isRead)
-                        Container(width: 8, height: 8, decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle)),
+                        Container(
+                          width: 10, 
+                          height: 10, 
+                          decoration: const BoxDecoration(
+                            color: Colors.red, 
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(color: Colors.redAccent, blurRadius: 4),
+                            ],
+                          ),
+                        ),
                     ],
                   ),
                   const SizedBox(height: 6),
-                  Text(message, style: const TextStyle(color: Colors.black54, fontSize: 13, height: 1.4)),
-                  const SizedBox(height: 8),
-                  Text(date, style: const TextStyle(color: Colors.black26, fontSize: 11, fontWeight: FontWeight.w600)),
+                  Text(
+                    message, 
+                    style: TextStyle(
+                      color: isRead ? const Color(0xFF64748B) : const Color(0xFF1E293B), 
+                      fontSize: 14, 
+                      height: 1.5,
+                      fontWeight: isRead ? FontWeight.w400 : FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    date, 
+                    style: TextStyle(
+                      color: isRead ? const Color(0xFF94A3B8) : const Color(0xFF06B6D4), 
+                      fontSize: 11, 
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
                 ],
               ),
             ),

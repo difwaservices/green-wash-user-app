@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../constants/app_colors.dart';
 
 class AppTheme {
@@ -73,6 +74,11 @@ class AppTheme {
           foregroundColor: AppColors.black,
           elevation: 0,
           centerTitle: true,
+          systemOverlayStyle: SystemUiOverlayStyle(
+            statusBarColor: Colors.transparent,
+            statusBarIconBrightness: Brightness.dark, // Dark icons for white bg
+            statusBarBrightness: Brightness.light, // For iOS
+          ),
           titleTextStyle: TextStyle(
             color: AppColors.black,
             fontSize: 18,

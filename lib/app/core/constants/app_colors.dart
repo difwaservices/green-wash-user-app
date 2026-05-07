@@ -4,7 +4,7 @@ class AppColors {
   AppColors._();
 
   // Unified Brand Colors (Water-Inspired)
-  static const Color primary = Color(0xFF06B6D4); // Vibrant Cyan / Water Blue
+  static const Color primary = Color(0xFF00ACC1); // Premium Cyan
   static const Color primaryDark = Color(0xFF0891B2); // Deeper Cyan
   static const Color primaryLight = Color(0xFFCFFAFE); // Very Light Aqua
   

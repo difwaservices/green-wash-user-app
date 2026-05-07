@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import './profile_detail_page.dart';
@@ -47,54 +48,61 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     final user = coreState is AuthAuthenticated ? coreState.user : null;
     return Scaffold(
       backgroundColor: Colors.white,
-      body: SafeArea(
-        child: RefreshIndicator(
-          onRefresh: () => ref.refresh(auth.userProfileProvider.future),
-          color: AppColors.primaryDark,
-          child: SingleChildScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            padding:
-                const EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Prefer cached user; fall back to network fetch for real sessions
-                if (user != null)
-                  _ProfileHeader(user: user)
-                else
-                  ref.watch(auth.userProfileProvider).when(
-                        data: (user) => _ProfileHeader(user: user),
-                        loading: () => const _ProfileHeaderSkeleton(),
-                        error: (e, _) => const Center(
-                          child: Padding(
-                            padding: EdgeInsets.all(16),
-                            child: Text(
-                              'Could not load profile. Pull down to refresh.',
-                              textAlign: TextAlign.center,
-                              style:
-                                  TextStyle(color: Colors.grey, fontSize: 14),
+      body: AnnotatedRegion<SystemUiOverlayStyle>(
+        value: const SystemUiOverlayStyle(
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness: Brightness.dark,
+          statusBarBrightness: Brightness.light,
+        ),
+        child: SafeArea(
+          child: RefreshIndicator(
+            onRefresh: () => ref.refresh(auth.userProfileProvider.future),
+            color: AppColors.primaryDark,
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Prefer cached user; fall back to network fetch for real sessions
+                  if (user != null)
+                    _ProfileHeader(user: user)
+                  else
+                    ref.watch(auth.userProfileProvider).when(
+                          data: (user) => _ProfileHeader(user: user),
+                          loading: () => const _ProfileHeaderSkeleton(),
+                          error: (e, _) => const Center(
+                            child: Padding(
+                              padding: EdgeInsets.all(16),
+                              child: Text(
+                                'Could not load profile. Pull down to refresh.',
+                                textAlign: TextAlign.center,
+                                style:
+                                    TextStyle(color: Colors.grey, fontSize: 14),
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                const SizedBox(height: 30),
-                const _ActiveOrdersAndSubscriptions(),
-                const SizedBox(height: 24),
-                const Text(
-                  'Quick Actions',
-                  style: TextStyle(
-                      color: AppColors.primaryDark,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 12),
-                const _QuickActionsRow(),
-                const SizedBox(height: 24),
-                const _ListTilesSection(),
-                const SizedBox(height: 32),
-                const _SignOutButton(),
-                const SizedBox(height: 100),
-              ],
+                  const SizedBox(height: 30),
+                  const _ActiveOrdersAndSubscriptions(),
+                  const SizedBox(height: 24),
+                  const Text(
+                    'Quick Actions',
+                    style: TextStyle(
+                        color: AppColors.primaryDark,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 12),
+                  const _QuickActionsRow(),
+                  const SizedBox(height: 24),
+                  const _ListTilesSection(),
+                  const SizedBox(height: 32),
+                  const _SignOutButton(),
+                  const SizedBox(height: 100),
+                ],
+              ),
             ),
           ),
         ),
@@ -182,7 +190,7 @@ class _ProfileHeader extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
-                      color: Colors.black45,
+                      color: Colors.black,
                       fontSize: 13,
                     ),
                   ),
@@ -192,7 +200,7 @@ class _ProfileHeader extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
-                      color: Colors.black38,
+                      color: Colors.black,
                       fontSize: 12,
                     ),
                   ),

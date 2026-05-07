@@ -84,14 +84,34 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage>
     // Show test OTP
     if (widget.otp != null && widget.otp!.isNotEmpty) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        _showSnackBar('Test OTP: ${widget.otp}',
-            backgroundColor: const Color(0xFF06B6D4));
+        _showOtpSnackBar(widget.otp!);
       });
     }
-
   }
 
-
+  void _showOtpSnackBar(String otp) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Test OTP: $otp',
+            style: const TextStyle(fontWeight: FontWeight.bold)),
+        backgroundColor: const Color(0xFF06B6D4),
+        behavior: SnackBarBehavior.floating,
+        margin: EdgeInsets.only(
+          bottom: MediaQuery.of(context).size.height - 160,
+          left: 20,
+          right: 20,
+        ),
+        action: SnackBarAction(
+          label: 'Auto Fill',
+          textColor: Colors.white,
+          onPressed: () {
+            _pinController.text = otp;
+            _verifyOtp();
+          },
+        ),
+      ),
+    );
+  }
 
   // Pinput handles most logic now.
   // Normalizing old methods to avoid breakages if called elsewhere.
@@ -124,7 +144,7 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage>
           .read(authProvider.notifier)
           .sendOtp(phoneNumber: widget.phoneNumber);
     } catch (_) {}
-    
+
     if (!mounted) return;
     setState(() {
       _isSendingOtp = false;
@@ -135,7 +155,7 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage>
 
   Future<void> _verifyOtp() async {
     if (_isVerifying) return;
-    
+
     final otp = _pinController.text;
     if (otp.length < _otpLength) {
       _shakeCtrl.forward(from: 0);
@@ -143,7 +163,7 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage>
           backgroundColor: Colors.orange.shade700);
       return;
     }
-    
+
     setState(() => _isVerifying = true);
     try {
       await ref.read(authProvider.notifier).verifyOtp(
@@ -166,8 +186,9 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage>
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(message, 
-          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500)),
+        content: Text(message,
+            style: const TextStyle(
+                color: Colors.white, fontWeight: FontWeight.w500)),
         backgroundColor: backgroundColor,
         behavior: SnackBarBehavior.floating,
         margin: const EdgeInsets.all(20),
@@ -195,8 +216,7 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage>
 
     ref.listen<ProviderAuthState>(authProvider, (previous, next) {
       if (next is AuthOtpSent && next.otp != null) {
-        _showSnackBar('New OTP: ${next.otp}',
-            backgroundColor: const Color(0xFF06B6D4));
+        _showOtpSnackBar(next.otp!);
       } else if (next is AuthAuthenticated) {
         final role = (next.user.role).toLowerCase();
 
@@ -278,7 +298,8 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage>
                     constraints: BoxConstraints(
                       minHeight: screenSize.height - (isSmallScreen ? 80 : 120),
                     ),
-                    padding: EdgeInsets.fromLTRB(28, isSmallScreen ? 30 : 40, 28, 40),
+                    padding: EdgeInsets.fromLTRB(
+                        28, isSmallScreen ? 30 : 40, 28, 40),
                     decoration: const BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.only(
@@ -301,7 +322,10 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage>
                             size: 44,
                             color: Color(0xFF06B6D4),
                           ),
-                        ).animate().fadeIn(duration: 600.ms).scale(curve: Curves.elasticOut),
+                        )
+                            .animate()
+                            .fadeIn(duration: 600.ms)
+                            .scale(curve: Curves.elasticOut),
                         const SizedBox(height: 32),
 
                         Text(
@@ -335,8 +359,6 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage>
                         ).animate().fadeIn(delay: 300.ms),
                         const SizedBox(height: 12),
 
-
-
                         const SizedBox(height: 36),
 
                         // ── OTP boxes ────────────────────────────────────────
@@ -352,6 +374,8 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage>
                             controller: _pinController,
                             focusNode: _pinFocusNode,
                             onCompleted: (_) => _verifyOtp(),
+                            androidSmsAutofillMethod:
+                                AndroidSmsAutofillMethod.smsUserConsentApi,
                             defaultPinTheme: PinTheme(
                               width: 50,
                               height: 56,
@@ -363,7 +387,11 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage>
                               decoration: BoxDecoration(
                                 color: const Color(0xFFEDF8FA),
                                 borderRadius: BorderRadius.circular(16),
-                                border: Border.all(color: Colors.transparent),
+                                border: Border.all(
+                                  color: const Color(0xFF06B6D4)
+                                      .withValues(alpha: 0.2),
+                                  width: 1,
+                                ),
                               ),
                             ),
                             focusedPinTheme: PinTheme(
@@ -377,7 +405,8 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage>
                               decoration: BoxDecoration(
                                 color: Colors.white,
                                 borderRadius: BorderRadius.circular(16),
-                                border: Border.all(color: const Color(0xFF06B6D4), width: 2),
+                                border: Border.all(
+                                    color: const Color(0xFF06B6D4), width: 2),
                                 boxShadow: [
                                   BoxShadow(
                                     color: Colors.black.withOpacity(0.1),
@@ -396,13 +425,17 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage>
                                 color: Color(0xFF06B6D4),
                               ),
                               decoration: BoxDecoration(
-                                color: const Color(0xFF06B6D4).withValues(alpha: 0.1),
+                                color: const Color(0xFF06B6D4)
+                                    .withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(16),
-                                border: Border.all(color: const Color(0xFF06B6D4)),
+                                border:
+                                    Border.all(color: const Color(0xFF06B6D4)),
                               ),
                             ),
                             keyboardType: TextInputType.number,
-                            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                            inputFormatters: [
+                              FilteringTextInputFormatter.digitsOnly
+                            ],
                             showCursor: true,
                             cursor: Column(
                               mainAxisAlignment: MainAxisAlignment.end,
@@ -415,7 +448,9 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage>
                                 ),
                               ],
                             ),
-                          ).animate().fadeIn(duration: 400.ms).scale(begin: const Offset(0.9, 0.9), curve: Curves.easeOutBack),
+                          ).animate().fadeIn(duration: 400.ms).scale(
+                              begin: const Offset(0.9, 0.9),
+                              curve: Curves.easeOutBack),
 
                         const SizedBox(height: 40),
 

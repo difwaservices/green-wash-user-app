@@ -117,11 +117,7 @@ class _FilterBottomSheetState extends ConsumerState<FilterBottomSheet> {
             padding: const EdgeInsets.symmetric(horizontal: 8.0),
             child: Row(
               children: [
-                IconButton(
-                  icon: const Icon(Icons.close),
-                  onPressed: () => Navigator.pop(context),
-                  splashRadius: 24,
-                ),
+                const SizedBox(width: 48), // Spacer to maintain centering
                 const Expanded(
                   child: Text(
                     'Filters',

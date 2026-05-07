@@ -79,7 +79,7 @@ class ProductCard extends ConsumerWidget {
               color: Colors.white,
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: const Color(0xFF00ACC1).withOpacity(0.2),
+                color: AppColors.primary.withValues(alpha: 0.2),
                 width: 1.0,
               ),
               boxShadow: [

@@ -88,7 +88,7 @@ class _HelpSupportPageState extends ConsumerState<HelpSupportPage> {
             children: [
               const Text('How can we help you?', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.primaryDark)),
               const SizedBox(height: 24),
-              const Text('Category', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black54)),
+              const Text('Category', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black)),
               const SizedBox(height: 8),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16),

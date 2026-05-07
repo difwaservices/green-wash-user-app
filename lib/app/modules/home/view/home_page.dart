@@ -37,16 +37,18 @@ class HomePage extends ConsumerWidget {
             child: CustomScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
               slivers: [
-                SliverToBoxAdapter(
-                  child: Container(
-                    height: MediaQuery.of(context).padding.top,
-                    color: const Color(
-                        0xFFF7F8FA), // Light grey blending with header
+                // Sticky Header: Location & Search
+                SliverAppBar(
+                  pinned: true,
+                  floating: false,
+                  backgroundColor: const Color(0xFFF7F8FA),
+                  elevation: 0,
+                  automaticallyImplyLeading: false,
+                  toolbarHeight: 88 + MediaQuery.of(context).padding.top,
+                  flexibleSpace: const FlexibleSpaceBar(
+                    background: HomeHeader(),
                   ),
                 ),
-
-                // Header: Location & Search
-                const SliverToBoxAdapter(child: HomeHeader()),
 
                 // Banner (Horizontal Scrolling Carousel)
                 const SliverToBoxAdapter(child: HomeBanner()),
@@ -115,7 +117,7 @@ class _AnimatedFooterTextState extends State<AnimatedFooterText>
           builder: (context, child) {
             String visibleText = _text.substring(0, _characterCount.value);
             bool showCursor = (_controller.value * 10).toInt() % 2 == 0;
-            
+
             return Text(
               '$visibleText${showCursor && _characterCount.value < _text.length ? "|" : ""}',
               textAlign: TextAlign.center,

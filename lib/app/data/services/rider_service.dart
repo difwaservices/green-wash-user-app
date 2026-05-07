@@ -146,12 +146,13 @@ class RiderService {
     try {
       final socketUrl = ApiConfig.socketUrl;
       final dio = Dio(BaseOptions(baseUrl: socketUrl));
-      
+
       // Determine endpoint based on status
       String endpoint = '/api/order/status-update'; // Generic fallback
       if (status == 'delivered') endpoint = '/api/order/delivered';
       if (status == 'accepted') endpoint = '/api/order/accepted';
-      if (status == 'out-for-delivery') endpoint = '/api/order/out-for-delivery';
+      if (status == 'out-for-delivery')
+        endpoint = '/api/order/out-for-delivery';
 
       await dio.post(
         endpoint,

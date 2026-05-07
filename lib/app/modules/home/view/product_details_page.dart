@@ -199,8 +199,8 @@ class ProductDetailsPage extends ConsumerWidget {
                       ),
                       const SizedBox(height: 8),
                       Text(product.weight,
-                          style: TextStyle(
-                              fontSize: 16, color: Colors.grey.shade600)),
+                          style: const TextStyle(
+                              fontSize: 16, color: Colors.black)),
                       const SizedBox(height: 24),
                       const Text('Product Description',
                           style: TextStyle(
@@ -209,10 +209,10 @@ class ProductDetailsPage extends ConsumerWidget {
                               color: Color(0xFF1A1A1A))),
                       const SizedBox(height: 12),
                       Text(product.description,
-                          style: TextStyle(
+                          style: const TextStyle(
                               fontSize: 15,
                               height: 1.6,
-                              color: Colors.grey.shade800)),
+                              color: Colors.black)),
                       const SizedBox(height: 24),
                       if (product.whyChoose.isNotEmpty) ...[
                         const Text('Why Choose Our Water',
@@ -233,7 +233,7 @@ class ProductDetailsPage extends ConsumerWidget {
                                       child: Text(point,
                                           style: TextStyle(
                                               fontSize: 15,
-                                              color: Colors.grey.shade800))),
+                                              color: Colors.black))),
                                 ],
                               ),
                             )),

@@ -202,7 +202,7 @@ class _FaqTileState extends State<_FaqTile> {
                   widget.answer,
                   textAlign: TextAlign.left,
                   style: const TextStyle(
-                    color: Colors.black54,
+                    color: Colors.black,
                     fontSize: 14,
                     height: 1.5,
                   ),

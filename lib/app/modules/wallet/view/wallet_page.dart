@@ -265,7 +265,8 @@ class WalletPage extends ConsumerWidget {
             label: 'Statement',
             icon: Icons.receipt_long_rounded,
             color: const Color(0xFF64748B),
-            onTap: () => Navigator.pushNamed(context, AppRoutes.walletStatement),
+            onTap: () =>
+                Navigator.pushNamed(context, AppRoutes.walletStatement),
           ),
         ),
       ],
@@ -286,7 +287,7 @@ class WalletPage extends ConsumerWidget {
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.03),
+              color: Colors.black.withValues(alpha: 0.2),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -300,7 +301,7 @@ class WalletPage extends ConsumerWidget {
             const Text(
               'No transactions yet',
               style: TextStyle(
-                  color: Color(0xFF64748B),
+                  color: Color(0xFF47000000),
                   fontWeight: FontWeight.w600,
                   fontSize: 15),
             ),
@@ -356,8 +357,18 @@ class WalletPage extends ConsumerWidget {
         return 'Today, ${dt.hour}:${dt.minute.toString().padLeft(2, '0')}';
       }
       final months = [
-        'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+        'Jan',
+        'Feb',
+        'Mar',
+        'Apr',
+        'May',
+        'Jun',
+        'Jul',
+        'Aug',
+        'Sep',
+        'Oct',
+        'Nov',
+        'Dec'
       ];
       return '${dt.day} ${months[dt.month - 1]}, ${dt.year}';
     } catch (_) {
@@ -467,8 +478,8 @@ class _TransactionItem extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: (isCredit ? Colors.green : Colors.red)
-                  .withValues(alpha: 0.1),
+              color:
+                  (isCredit ? Colors.green : Colors.red).withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(14),
             ),
             child: Icon(
@@ -487,14 +498,14 @@ class _TransactionItem extends StatelessWidget {
                   style: const TextStyle(
                     fontWeight: FontWeight.w700,
                     fontSize: 15,
-                    color: Color(0xFF334155),
+                    color: Color(0xFF1E293B),
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   date,
                   style: const TextStyle(
-                    color: Color(0xFF94A3B8),
+                    color: Color(0xFF475569),
                     fontSize: 12,
                     fontWeight: FontWeight.w500,
                   ),
@@ -515,4 +526,3 @@ class _TransactionItem extends StatelessWidget {
     );
   }
 }
-

@@ -107,9 +107,13 @@ class SubscriptionDashboardPage extends ConsumerWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: const Color(0xFF00ACC1).withValues(alpha: 0.2),
+          width: 1.0,
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.03),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -210,7 +214,7 @@ class SubscriptionDashboardPage extends ConsumerWidget {
                     children: [
                       const Text('Next Delivery',
                           style: TextStyle(
-                              color: Colors.black54,
+                              color: Colors.black,
                               fontSize: 11,
                               fontWeight: FontWeight.bold)),
                       const SizedBox(height: 2),

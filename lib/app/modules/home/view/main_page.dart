@@ -137,14 +137,20 @@ class _MainPageState extends ConsumerState<MainPage> {
       child: Scaffold(
         backgroundColor: AppColors.secondary,
         extendBody: true,
-        body: Stack(
-          children: [
-            Positioned.fill(
-              child: IndexedStack(
-                index: currentIndex,
-                children: _pages,
+        body: AnnotatedRegion<SystemUiOverlayStyle>(
+          value: const SystemUiOverlayStyle(
+            statusBarColor: Colors.transparent,
+            statusBarIconBrightness: Brightness.dark,
+            statusBarBrightness: Brightness.light,
+          ),
+          child: Stack(
+            children: [
+              Positioned.fill(
+                child: IndexedStack(
+                  index: currentIndex,
+                  children: _pages,
+                ),
               ),
-            ),
             if (showSummary)
               Positioned(
                 bottom: 110,
@@ -152,7 +158,8 @@ class _MainPageState extends ConsumerState<MainPage> {
                 right: 0,
                 child: CartSummaryBar(cart: cart),
               ),
-          ],
+            ],
+          ),
         ),
         bottomNavigationBar: _buildCustomBottomBar(currentIndex),
       ),

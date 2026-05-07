@@ -209,27 +209,43 @@ class _RestaurantMenuPageState extends ConsumerState<RestaurantMenuPage> {
                         ]
                       ),
                       child: Column(
+                        mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
+                            currentShop.name,
+                            style: const TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.w900,
+                              color: Colors.black,
+                              letterSpacing: -0.5,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
                             currentShop.location.isNotEmpty ? currentShop.location : 'Shop Location',
                             style: const TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.normal,
-                                color: Colors.black87),
-                            maxLines: 2,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.black54),
+                            maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
-                          const SizedBox(height: 14),
-                          Wrap(
-                            spacing: 8,
-                            runSpacing: 6,
+                          const SizedBox(height: 16),
+                          Row(
                             children: [
                               _MetaChip(
-                                icon: Icons.location_on_outlined,
+                                icon: Icons.location_on_rounded,
                                 label: distanceStr,
-                                iconColor: Colors.grey,
+                                iconColor: const Color(0xFF06B6D4),
                               ),
+                              const SizedBox(width: 12),
+                              if (currentShop.rating != null)
+                                _MetaChip(
+                                  icon: Icons.star_rounded,
+                                  label: '${currentShop.rating}',
+                                  iconColor: Colors.amber,
+                                ),
                             ],
                           ),
                           if (!isShopActive) ...[
@@ -237,17 +253,17 @@ class _RestaurantMenuPageState extends ConsumerState<RestaurantMenuPage> {
                             Container(
                               padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
-                                color: Colors.black87,
+                                color: const Color(0xFF1E293B),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: const Row(
                                 children: [
                                   Icon(Icons.error_outline,
-                                      color: Colors.white),
+                                      color: Colors.white, size: 20),
                                   SizedBox(width: 12),
                                   Expanded(
                                     child: Text(
-                                      'This water plant is currently offline and not accepting orders.',
+                                      'This plant is currently offline.',
                                       style: TextStyle(
                                           color: Colors.white,
                                           fontSize: 12,
@@ -273,7 +289,7 @@ class _RestaurantMenuPageState extends ConsumerState<RestaurantMenuPage> {
                           fontSize: 12,
                           fontWeight: FontWeight.w800,
                           letterSpacing: 1.5,
-                          color: Colors.grey,
+                          color: Colors.black,
                         ),
                       ),
                     ),
@@ -302,7 +318,7 @@ class _RestaurantMenuPageState extends ConsumerState<RestaurantMenuPage> {
                           gridDelegate:
                               const SliverGridDelegateWithFixedCrossAxisCount(
                             crossAxisCount: 2,
-                            childAspectRatio: 0.70,
+                            childAspectRatio: 0.78,
                             crossAxisSpacing: 12,
                             mainAxisSpacing: 12,
                           ),
@@ -524,14 +540,14 @@ class _ProductCardState extends ConsumerState<_ProductCard> {
                   if (p.category != null)
                     Text(
                       p.category!.name,
-                      style: const TextStyle(fontSize: 11, color: Colors.grey),
+                      style: const TextStyle(fontSize: 11, color: Colors.black),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
                   if (p.description.isNotEmpty)
                     Text(
                       p.description,
-                      style: TextStyle(fontSize: 10, color: Colors.grey.shade500),
+                      style: const TextStyle(fontSize: 10, color: Colors.black),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -539,7 +555,7 @@ class _ProductCardState extends ConsumerState<_ProductCard> {
               ),
             ),
 
-            const Spacer(),
+            const SizedBox(height: 8),
 
             // ── Price + Add to Cart ──────────────────────────────────────
             Padding(

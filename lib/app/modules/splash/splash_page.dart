@@ -58,6 +58,8 @@ class _SplashPageState extends ConsumerState<SplashPage>
           role.contains('driver') ||
           role.contains('staff')) {
         Navigator.pushReplacementNamed(context, AppRoutes.riderHome);
+      } else if (role.contains('retailer') || role.contains('vendor')) {
+        Navigator.pushReplacementNamed(context, AppRoutes.retailerHome);
       } else {
         Navigator.pushReplacementNamed(context, AppRoutes.home);
       }

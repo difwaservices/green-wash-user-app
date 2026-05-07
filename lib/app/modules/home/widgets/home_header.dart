@@ -24,7 +24,12 @@ class _HomeHeaderState extends ConsumerState<HomeHeader> {
     final address = cart.selectedAddress;
 
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 16),
+      padding: EdgeInsets.only(
+        top: MediaQuery.of(context).padding.top + 8,
+        bottom: 12,
+        left: 16,
+        right: 16,
+      ),
       decoration: const BoxDecoration(color: Color(0xFFF7F8FA)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

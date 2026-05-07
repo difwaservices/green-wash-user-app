@@ -30,4 +30,5 @@ class AppRoutes {
   static const String contact = '/contact';
   static const String help = '/help';
   static const String faq = '/faq';
+  static const String retailerHome = '/retailer-home';
 }
