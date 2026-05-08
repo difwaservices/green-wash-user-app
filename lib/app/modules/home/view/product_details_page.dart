@@ -238,7 +238,7 @@ class ProductDetailsPage extends ConsumerWidget {
                               ),
                             )),
                       ],
-                      const SizedBox(height: 80),
+                      const SizedBox(height: 180),
                     ],
                   ),
                 ),
@@ -248,8 +248,7 @@ class ProductDetailsPage extends ConsumerWidget {
           // Cart Summary Overlay
           if (cart.itemCount > 0)
             Positioned(
-              bottom:
-                  94, // Adjusted position to be above the new bottom action bar
+              bottom: MediaQuery.of(context).padding.bottom + 85,
               left: 0,
               right: 0,
               child: CartSummaryBar(
@@ -261,7 +260,7 @@ class ProductDetailsPage extends ConsumerWidget {
             left: 0,
             right: 0,
             child: Container(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
               decoration: BoxDecoration(
                 color: Colors.white,
                 boxShadow: [
@@ -273,60 +272,63 @@ class ProductDetailsPage extends ConsumerWidget {
                 ],
                 border: Border(top: BorderSide(color: Colors.grey.shade100)),
               ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  !isInCart
-                      ? ElevatedButton(
-                          onPressed: isAvailable
-                              ? () => _addToCart(
-                                  context, cart, CartItem.fromProduct(product))
-                              : null,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor:
-                                isAvailable ? AppColors.primary : Colors.grey,
-                            foregroundColor: Colors.white,
-                            minimumSize: const Size(double.infinity, 56),
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16)),
-                            elevation: 0,
+              child: SafeArea(
+                top: false,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    !isInCart
+                        ? ElevatedButton(
+                            onPressed: isAvailable
+                                ? () => _addToCart(context, cart,
+                                    CartItem.fromProduct(product))
+                                : null,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor:
+                                  isAvailable ? AppColors.primary : Colors.grey,
+                              foregroundColor: Colors.white,
+                              minimumSize: const Size(double.infinity, 56),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16)),
+                              elevation: 0,
+                            ),
+                            child: Text(
+                                isOutOfStock ? 'Out of Stock' : 'Add to Cart',
+                                style: const TextStyle(
+                                    fontSize: 18, fontWeight: FontWeight.bold)),
+                          )
+                        : Container(
+                            height: 56,
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            decoration: BoxDecoration(
+                                color: const Color(0xFFF7F8FA),
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(
+                                    color: AppColors.primary
+                                        .withValues(alpha: 0.2))),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                const Text('Selected Quantity',
+                                    style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF1A1A1A))),
+                                QuantitySelector(
+                                  quantity: cartItem.quantity,
+                                  onIncrement: isAvailable
+                                      ? () => cart.increment(product.name)
+                                      : () {},
+                                  onDecrement: isAvailable
+                                      ? () => cart.decrement(product.name)
+                                      : () {},
+                                  size: 40,
+                                ),
+                              ],
+                            ),
                           ),
-                          child: Text(
-                              isOutOfStock ? 'Out of Stock' : 'Add to Cart',
-                              style: const TextStyle(
-                                  fontSize: 18, fontWeight: FontWeight.bold)),
-                        )
-                      : Container(
-                          height: 56,
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          decoration: BoxDecoration(
-                              color: const Color(0xFFF7F8FA),
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(
-                                  color: AppColors.primary
-                                      .withValues(alpha: 0.2))),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              const Text('Selected Quantity',
-                                  style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                      color: Color(0xFF1A1A1A))),
-                              QuantitySelector(
-                                quantity: cartItem.quantity,
-                                onIncrement: isAvailable
-                                    ? () => cart.increment(product.name)
-                                    : () {},
-                                onDecrement: isAvailable
-                                    ? () => cart.decrement(product.name)
-                                    : () {},
-                                size: 40,
-                              ),
-                            ],
-                          ),
-                        ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),

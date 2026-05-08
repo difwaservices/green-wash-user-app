@@ -267,14 +267,15 @@ class _TrackOrderPageState extends ConsumerState<TrackOrderPage>
             style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
         centerTitle: true,
       ),
-      body: _isLoading
-          ? const Center(
-              child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF0891B2)),
-              ),
-            )
-          : ListView(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+      body: SafeArea(
+        child: _isLoading
+            ? const Center(
+                child: CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF0891B2)),
+                ),
+              )
+            : ListView(
+                padding: const EdgeInsets.fromLTRB(24, 24, 24, 100),
               children: [
                 // ── Live Status Header ─────────────────────────────────
                 Container(
@@ -409,6 +410,7 @@ class _TrackOrderPageState extends ConsumerState<TrackOrderPage>
                 const SizedBox(height: 40),
               ],
             ),
+      ),
     );
   }
 

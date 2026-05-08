@@ -253,7 +253,7 @@ class _OrderDetailsSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: const BoxDecoration(color: Colors.white, borderRadius: BorderRadius.vertical(top: Radius.circular(32))),
-      padding: const EdgeInsets.fromLTRB(24, 12, 24, 40),
+      padding: const EdgeInsets.fromLTRB(24, 12, 24, 100),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,

@@ -42,32 +42,34 @@ class _ActiveOrdersPageState extends ConsumerState<ActiveOrdersPage> {
         ),
 
       ),
-      body: activeOrdersAsync.when(
-        data: (orders) {
-          final pendingCancelledOrders = orders
-              .where((o) =>
-                  o.status.toLowerCase() != 'delivered')
-              .toList();
+      body: SafeArea(
+        child: activeOrdersAsync.when(
+          data: (orders) {
+            final pendingCancelledOrders = orders
+                .where((o) =>
+                    o.status.toLowerCase() != 'delivered')
+                .toList();
 
-          if (pendingCancelledOrders.isEmpty) {
-            return _buildEmptyState(context);
-          }
-          final sortedOrders = List<UserOrder>.from(pendingCancelledOrders)
-            ..sort((a, b) => b.date.compareTo(a.date));
-          return RefreshIndicator(
-            color: const Color(0xFF0891B2),
-            onRefresh: () async =>
-                ref.read(activeOrdersProvider.notifier).refresh(),
-            child: ListView.builder(
-              padding: const EdgeInsets.fromLTRB(20, 12, 20, 100),
-              itemCount: sortedOrders.length,
-              itemBuilder: (context, index) =>
-                  _ActiveOrderCard(order: sortedOrders[index]),
-            ),
-          );
-        },
-        loading: () => _buildLoading(),
-        error: (err, _) => _buildError(err),
+            if (pendingCancelledOrders.isEmpty) {
+              return _buildEmptyState(context);
+            }
+            final sortedOrders = List<UserOrder>.from(pendingCancelledOrders)
+              ..sort((a, b) => b.date.compareTo(a.date));
+            return RefreshIndicator(
+              color: const Color(0xFF0891B2),
+              onRefresh: () async =>
+                  ref.read(activeOrdersProvider.notifier).refresh(),
+              child: ListView.builder(
+                padding: const EdgeInsets.fromLTRB(20, 12, 20, 100),
+                itemCount: sortedOrders.length,
+                itemBuilder: (context, index) =>
+                    _ActiveOrderCard(order: sortedOrders[index]),
+              ),
+            );
+          },
+          loading: () => _buildLoading(),
+          error: (err, _) => _buildError(err),
+        ),
       ),
     );
   }

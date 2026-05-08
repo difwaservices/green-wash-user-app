@@ -97,7 +97,7 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage>
         backgroundColor: const Color(0xFF06B6D4),
         behavior: SnackBarBehavior.floating,
         margin: EdgeInsets.only(
-          bottom: MediaQuery.of(context).size.height - 160,
+          bottom: MediaQuery.of(context).size.height - 200,
           left: 20,
           right: 20,
         ),

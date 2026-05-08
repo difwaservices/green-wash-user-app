@@ -89,7 +89,7 @@ class SubscriptionDashboardPage extends ConsumerWidget {
   Widget _buildSubscriptionList(BuildContext context, WidgetRef ref,
       List<UserSubscription> subscriptions) {
     return ListView.builder(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
       itemCount: subscriptions.length,
       itemBuilder: (context, index) {
         final sub = subscriptions[index];

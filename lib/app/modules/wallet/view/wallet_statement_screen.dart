@@ -4,6 +4,8 @@ import '../../../data/models/food_models.dart';
 import '../../../data/services/wallet_service.dart';
 import 'package:intl/intl.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/utils/pdf_generator.dart';
+import '../../../data/services/db_service.dart';
 
 class WalletStatementScreen extends ConsumerStatefulWidget {
   const WalletStatementScreen({super.key});
@@ -40,36 +42,40 @@ class _WalletStatementScreenState extends ConsumerState<WalletStatementScreen> {
           ),
         ],
       ),
-      body: Column(
-        children: [
-          _buildFilters(),
-          Expanded(
-            child: transactionsAsync.when(
-              data: (transactions) {
-                final filteredTx = _applyFilters(transactions);
-                if (filteredTx.isEmpty) return _buildEmptyState();
+      body: SafeArea(
+        child: Column(
+          children: [
+            _buildFilters(),
+            Expanded(
+              child: transactionsAsync.when(
+                data: (transactions) {
+                  final filteredTx = _applyFilters(transactions);
+                  if (filteredTx.isEmpty) return _buildEmptyState();
 
-                return _buildTransactionList(filteredTx);
-              },
-              loading: () => const Center(
-                  child: CircularProgressIndicator(color: AppColors.primary)),
-              error: (err, _) => Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.cloud_off_rounded, size: 56, color: Colors.grey.shade300),
-                    const SizedBox(height: 12),
-                    const Text('Could not load transactions',
-                        style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)),
-                    const SizedBox(height: 6),
-                    const Text('Pull down to try again',
-                        style: TextStyle(color: Colors.grey, fontSize: 13)),
-                  ],
+                  return _buildTransactionList(filteredTx);
+                },
+                loading: () => const Center(
+                    child: CircularProgressIndicator(color: AppColors.primary)),
+                error: (err, _) => Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.cloud_off_rounded,
+                          size: 56, color: Colors.grey.shade300),
+                      const SizedBox(height: 12),
+                      const Text('Could not load transactions',
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold, color: Colors.grey)),
+                      const SizedBox(height: 6),
+                      const Text('Pull down to try again',
+                          style: TextStyle(color: Colors.grey, fontSize: 13)),
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -149,8 +155,7 @@ class _WalletStatementScreenState extends ConsumerState<WalletStatementScreen> {
                   child: ChoiceChip(
                     label: Text(filter,
                         style: const TextStyle(
-                            fontSize: 12,
-                            color: Colors.white)),
+                            fontSize: 12, color: Colors.white)),
                     selected: true,
                     onSelected: (val) {},
                     selectedColor: AppColors.primaryDark,
@@ -180,7 +185,7 @@ class _WalletStatementScreenState extends ConsumerState<WalletStatementScreen> {
     }
 
     return ListView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
       children: [
         _buildOpeningBalanceCard(transactions),
         const SizedBox(height: 20),
@@ -318,10 +323,25 @@ class _WalletStatementScreenState extends ConsumerState<WalletStatementScreen> {
               leading: const Icon(Icons.picture_as_pdf_rounded,
                   color: Colors.redAccent),
               title: const Text('Download as PDF'),
-              onTap: () {
+              onTap: () async {
                 Navigator.pop(context);
+                final transactions = ref.read(walletTransactionsProvider).value ?? [];
+                final filtered = _applyFilters(transactions);
+                final userName = CartProviderScope.of(context).userProfile.name;
+
+                if (filtered.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('No transactions to download')));
+                  return;
+                }
+
                 ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Downloading PDF...')));
+                    const SnackBar(content: Text('Generating PDF Statement...')));
+
+                await PdfGenerator.generateWalletStatement(
+                  transactions: filtered,
+                  userName: userName,
+                );
               },
             ),
             ListTile(

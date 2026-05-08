@@ -187,144 +187,154 @@ class _LocationPickerPageState extends State<LocationPickerPage> {
             right: 24,
             top: 32,
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Complete your address',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF1A1A1A),
-                ),
-              ),
-              const SizedBox(height: 24),
-              const Text(
-                'HOUSE / FLAT / BLOCK NO.',
-                style: TextStyle(
-                    fontSize: 11,
+          child: SafeArea(
+            top: false,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Complete your address',
+                  style: TextStyle(
+                    fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    color: Colors.grey,
-                    letterSpacing: 1.1),
-              ),
-              const SizedBox(height: 8),
-              TextField(
-                controller: houseCtrl,
-                decoration: InputDecoration(
-                  hintText: 'e.g. Flat 101, Block B',
-                  filled: true,
-                  fillColor: const Color(0xFFF7F8FA),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    borderSide: BorderSide.none,
+                    color: Color(0xFF1A1A1A),
                   ),
                 ),
-              ),
-              const SizedBox(height: 24),
-              const Text(
-                'SAVE AS',
-                style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.grey,
-                    letterSpacing: 1.1),
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  {'tag': 'Home', 'icon': Icons.home_rounded},
-                  {'tag': 'Office', 'icon': Icons.work_rounded},
-                  {'tag': 'Other', 'icon': Icons.near_me_rounded},
-                ].map((item) {
-                  final tag = item['tag'] as String;
-                  final icon = item['icon'] as IconData;
-                  bool isSelected = selectedTag == tag;
-                  return Padding(
-                    padding: const EdgeInsets.only(right: 12),
-                    child: ChoiceChip(
-                      label: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            icon,
-                            size: 16,
-                            color: isSelected ? Colors.white : Colors.grey,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(tag),
-                        ],
-                      ),
-                      selected: isSelected,
-                      onSelected: (val) {
-                        if (val) setSheetState(() => selectedTag = tag);
-                      },
-                      selectedColor: const Color(0xFF06B6D4),
-                      labelStyle: TextStyle(
-                        color: isSelected ? Colors.white : Colors.grey,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      showCheckmark: false,
+                const SizedBox(height: 24),
+                const Text(
+                  'HOUSE / FLAT / BLOCK NO.',
+                  style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey,
+                      letterSpacing: 1.1),
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: houseCtrl,
+                  decoration: InputDecoration(
+                    hintText: 'e.g. Flat 101, Block B',
+                    filled: true,
+                    fillColor: const Color(0xFFF7F8FA),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: BorderSide.none,
                     ),
-                  );
-                }).toList(),
-              ),
-              const SizedBox(height: 40),
-              SizedBox(
-                width: double.infinity,
-                height: 56,
-                child: ElevatedButton(
-                  onPressed: isSavingLocal ? null : () async {
-                    setSheetState(() => isSavingLocal = true);
-                    try {
-                      final provider = CartProviderScope.of(context);
-                      final String details = "${_currentPlacemark?.locality ?? ''}, ${_currentPlacemark?.administrativeArea ?? ''} ${_currentPlacemark?.postalCode ?? ''}";
-                      
-                      final isUpdate = widget.initialAddress != null;
-                      
-                      final newAddress = UserAddress(
-                        id: isUpdate ? widget.initialAddress!.id : '',
-                        title: selectedTag,
-                        fullName: provider.userProfile.name,
-                        email: provider.userProfile.email,
-                        street: houseCtrl.text.trim(),
-                        details: details,
-                        isDefault: isUpdate ? widget.initialAddress!.isDefault : provider.addresses.isEmpty,
-                        latitude: _lastPickedLocation.latitude,
-                        longitude: _lastPickedLocation.longitude,
-                      );
-
-                      final result = await LoaderUtils.timedAction(context, () async {
-                        return isUpdate 
-                          ? await provider.updateAddress(newAddress)
-                          : await provider.addAddress(newAddress);
-                      });
-                      if (result['success'] == true && mounted) {
-                        Navigator.pop(sheetContext); // Close sheet
-                        Navigator.pop(context, result['data']); // Return with data
-                      } else if (mounted) {
-                         ScaffoldMessenger.of(sheetContext).showSnackBar(SnackBar(content: Text(result['message'] ?? 'Failed to save address')));
-                      }
-                    } catch (e) {
-                      if (mounted) ScaffoldMessenger.of(sheetContext).showSnackBar(SnackBar(content: Text('Error: $e')));
-                    } finally {
-                      if (mounted) setSheetState(() => isSavingLocal = false);
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF06B6D4),
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                   ),
-                  child: isSavingLocal 
-                    ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                    : const Text('Save Address', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                 ),
-              ),
-            ],
+                const SizedBox(height: 24),
+                const Text(
+                  'SAVE AS',
+                  style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey,
+                      letterSpacing: 1.1),
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    {'tag': 'Home', 'icon': Icons.home_rounded},
+                    {'tag': 'Office', 'icon': Icons.work_rounded},
+                    {'tag': 'Other', 'icon': Icons.near_me_rounded},
+                  ].map((item) {
+                    final tag = item['tag'] as String;
+                    final icon = item['icon'] as IconData;
+                    bool isSelected = selectedTag == tag;
+                    return Expanded(
+                      child: Padding(
+                        padding: EdgeInsets.only(
+                            right: tag == 'Other' ? 0 : 8),
+                        child: ChoiceChip(
+                          padding: const EdgeInsets.symmetric(horizontal: 4),
+                          label: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                icon,
+                                size: 14,
+                                color: isSelected ? Colors.white : Colors.grey,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                tag,
+                                style: const TextStyle(fontSize: 11),
+                              ),
+                            ],
+                          ),
+                          selected: isSelected,
+                          onSelected: (val) {
+                            if (val) setSheetState(() => selectedTag = tag);
+                          },
+                          selectedColor: const Color(0xFF06B6D4),
+                          labelStyle: TextStyle(
+                            color: isSelected ? Colors.white : Colors.grey,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          showCheckmark: false,
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+                const SizedBox(height: 40),
+                SizedBox(
+                  width: double.infinity,
+                  height: 56,
+                  child: ElevatedButton(
+                    onPressed: isSavingLocal ? null : () async {
+                      setSheetState(() => isSavingLocal = true);
+                      try {
+                        final provider = CartProviderScope.of(context);
+                        final String details = "${_currentPlacemark?.locality ?? ''}, ${_currentPlacemark?.administrativeArea ?? ''} ${_currentPlacemark?.postalCode ?? ''}";
+                        
+                        final isUpdate = widget.initialAddress != null;
+                        
+                        final newAddress = UserAddress(
+                          id: isUpdate ? widget.initialAddress!.id : '',
+                          title: selectedTag,
+                          fullName: provider.userProfile.name,
+                          email: provider.userProfile.email,
+                          street: houseCtrl.text.trim(),
+                          details: details,
+                          isDefault: isUpdate ? widget.initialAddress!.isDefault : provider.addresses.isEmpty,
+                          latitude: _lastPickedLocation.latitude,
+                          longitude: _lastPickedLocation.longitude,
+                        );
+  
+                        final result = await LoaderUtils.timedAction(context, () async {
+                          return isUpdate 
+                            ? await provider.updateAddress(newAddress)
+                            : await provider.addAddress(newAddress);
+                        });
+                        if (result['success'] == true && mounted) {
+                          Navigator.pop(sheetContext); // Close sheet
+                          Navigator.pop(context, result['data']); // Return with data
+                        } else if (mounted) {
+                           ScaffoldMessenger.of(sheetContext).showSnackBar(SnackBar(content: Text(result['message'] ?? 'Failed to save address')));
+                        }
+                      } catch (e) {
+                        if (mounted) ScaffoldMessenger.of(sheetContext).showSnackBar(SnackBar(content: Text('Error: $e')));
+                      } finally {
+                        if (mounted) setSheetState(() => isSavingLocal = false);
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF06B6D4),
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    ),
+                    child: isSavingLocal 
+                      ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                      : const Text('Save Address', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -448,43 +458,46 @@ class _LocationPickerPageState extends State<LocationPickerPage> {
             left: 0,
             right: 0,
             child: Container(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
               decoration: const BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
                 boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 10, offset: Offset(0, -5))],
               ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                   const Text("SELECT LOCATION", style: TextStyle(color: Colors.grey, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
-                   const SizedBox(height: 8),
-                   Row(
-                     children: [
-                       const Icon(Icons.location_pin, color: Color(0xFF06B6D4), size: 20),
-                       const SizedBox(width: 8),
-                       Expanded(
-                         child: Text(_address, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15), maxLines: 2, overflow: TextOverflow.ellipsis),
-                       ),
-                     ],
-                   ),
-                   const SizedBox(height: 24),
-                   SizedBox(
-                     width: double.infinity,
-                     height: 54,
-                     child: ElevatedButton(
-                       onPressed: _showRefinementSheet,
-                       style: ElevatedButton.styleFrom(
-                         backgroundColor: const Color(0xFF06B6D4),
-                         foregroundColor: Colors.white,
-                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                         elevation: 0,
-                       ),
-                       child: const Text("Confirm Location", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              child: SafeArea(
+                top: false,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                     const Text("SELECT LOCATION", style: TextStyle(color: Colors.grey, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
+                     const SizedBox(height: 8),
+                     Row(
+                       children: [
+                         const Icon(Icons.location_pin, color: Color(0xFF06B6D4), size: 20),
+                         const SizedBox(width: 8),
+                         Expanded(
+                           child: Text(_address, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15), maxLines: 2, overflow: TextOverflow.ellipsis),
+                         ),
+                       ],
                      ),
-                   ),
-                ],
+                     const SizedBox(height: 24),
+                     SizedBox(
+                       width: double.infinity,
+                       height: 54,
+                       child: ElevatedButton(
+                         onPressed: _showRefinementSheet,
+                         style: ElevatedButton.styleFrom(
+                           backgroundColor: const Color(0xFF06B6D4),
+                           foregroundColor: Colors.white,
+                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                           elevation: 0,
+                         ),
+                         child: const Text("Confirm Location", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                       ),
+                     ),
+                  ],
+                ),
               ),
             ),
           ),

@@ -118,7 +118,22 @@ class _HomeHeaderState extends ConsumerState<HomeHeader> {
                 ),
               ),
               const SizedBox(width: 12),
-              const SizedBox(width: 12),
+              // Communication Hub Button
+              BounceWidget(
+                onTap: () => Navigator.pushNamed(context, AppRoutes.communicationHub),
+                child: Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.grey.shade200),
+                  ),
+                  child: const Icon(Icons.campaign_outlined,
+                      size: 20, color: AppColors.textPrimary),
+                ),
+              ),
+              const SizedBox(width: 8),
               // Notification Button
               Consumer(
                 builder: (context, ref, child) {
@@ -176,7 +191,6 @@ class _HomeHeaderState extends ConsumerState<HomeHeader> {
           const SizedBox(height: 20),
           // Search Bar Row
           Container(
-            height: 50,
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(12),
@@ -194,15 +208,16 @@ class _HomeHeaderState extends ConsumerState<HomeHeader> {
             ),
             child: TextField(
               readOnly: true,
+              textAlignVertical: TextAlignVertical.center,
               onTap: () => Navigator.pushNamed(context, AppRoutes.search),
               decoration: InputDecoration(
+                isDense: true,
                 hintStyle: const TextStyle(fontSize: 14),
                 label: const _AnimatedSearchHint(),
                 floatingLabelBehavior: FloatingLabelBehavior.never,
                 fillColor: Colors.white,
                 filled: true,
-                contentPadding:
-                    const EdgeInsets.symmetric(vertical: 0, horizontal: 0),
+                contentPadding: const EdgeInsets.symmetric(vertical: 15),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide.none,

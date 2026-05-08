@@ -124,11 +124,13 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
             ),
         ],
       ),
-      body: SingleChildScrollView(
-        physics: const BouncingScrollPhysics(),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-          child: _buildContent(widget.title, cartProvider, context),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 20, 16, 80),
+            child: _buildContent(widget.title, cartProvider, context),
+          ),
         ),
       ),
     );

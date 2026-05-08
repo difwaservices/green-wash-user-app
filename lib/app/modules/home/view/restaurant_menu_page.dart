@@ -149,220 +149,232 @@ class _RestaurantMenuPageState extends ConsumerState<RestaurantMenuPage> {
 
     return Scaffold(
       backgroundColor: const Color(0xFFF7F8FA),
-      body: Stack(
-        children: [
-          ColorFiltered(
-            colorFilter: isShopActive
-                ? const ColorFilter.mode(Colors.transparent, BlendMode.multiply)
-                : const ColorFilter.mode(Colors.grey, BlendMode.saturation),
-            child: Opacity(
-              opacity: isShopActive ? 1.0 : 0.8,
-              child: RefreshIndicator(
-                color: AppColors.primary,
-                onRefresh: () async {
-                  ref.invalidate(shopsListProvider);
-                  ref.invalidate(shopProductsProvider(currentShop.id));
-                  await ref.read(shopProductsProvider(currentShop.id).future);
-                },
-                child: CustomScrollView(
-                  physics: const BouncingScrollPhysics(),
-                  slivers: [
-                  SliverAppBar(
-                    expandedHeight: 220,
-                    pinned: true,
-                    backgroundColor: Colors.white,
-                    elevation: 0,
-                    leading: Padding(
-                      padding: const EdgeInsets.only(left: 12),
-                      child: CircleAvatar(
-                        backgroundColor: Colors.white.withValues(alpha: 0.9),
-                        child: IconButton(
-                          icon: const Icon(Icons.arrow_back,
-                              color: Colors.black87, size: 20),
-                          onPressed: () => Navigator.pop(context),
-                        ),
-                      ),
-                    ),
-                    actions: [],
-                    flexibleSpace: FlexibleSpaceBar(
-                      background: _buildHeroBanner(currentShop),
-                    ),
-                  ),
-
-                  SliverToBoxAdapter(
-                    child: Container(
-                      margin: const EdgeInsets.all(16),
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: const Color(0xFF00ACC1).withValues(alpha: 0.2),
-                          width: 1.0,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.03),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
-                          )
-                        ]
-                      ),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            currentShop.name,
-                            style: const TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.w900,
-                              color: Colors.black,
-                              letterSpacing: -0.5,
+      body: SafeArea(
+        bottom: false, // Keep status bar behavior, but handle bottom separately
+        child: Stack(
+          children: [
+            ColorFiltered(
+              colorFilter: isShopActive
+                  ? const ColorFilter.mode(Colors.transparent, BlendMode.multiply)
+                  : const ColorFilter.mode(Colors.grey, BlendMode.saturation),
+              child: Opacity(
+                opacity: isShopActive ? 1.0 : 0.8,
+                child: RefreshIndicator(
+                  color: AppColors.primary,
+                  onRefresh: () async {
+                    ref.invalidate(shopsListProvider);
+                    ref.invalidate(shopProductsProvider(currentShop.id));
+                    await ref.read(shopProductsProvider(currentShop.id).future);
+                  },
+                  child: SafeArea(
+                    bottom: true, // This handles the navigation bar area
+                    child: CustomScrollView(
+                      physics: const BouncingScrollPhysics(),
+                      slivers: [
+                        SliverAppBar(
+                          expandedHeight: 220,
+                          pinned: true,
+                          backgroundColor: Colors.white,
+                          elevation: 0,
+                          leading: Padding(
+                            padding: const EdgeInsets.only(left: 12),
+                            child: CircleAvatar(
+                              backgroundColor: Colors.white.withValues(alpha: 0.9),
+                              child: IconButton(
+                                icon: const Icon(Icons.arrow_back,
+                                    color: Colors.black87, size: 20),
+                                onPressed: () => Navigator.pop(context),
+                              ),
                             ),
                           ),
-                          const SizedBox(height: 4),
-                          Text(
-                            currentShop.location.isNotEmpty ? currentShop.location : 'Shop Location',
-                            style: const TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                                color: Colors.black54),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                          actions: [],
+                          flexibleSpace: FlexibleSpaceBar(
+                            background: _buildHeroBanner(currentShop),
                           ),
-                          const SizedBox(height: 16),
-                          Row(
-                            children: [
-                              _MetaChip(
-                                icon: Icons.location_on_rounded,
-                                label: distanceStr,
-                                iconColor: const Color(0xFF06B6D4),
-                              ),
-                              const SizedBox(width: 12),
-                              if (currentShop.rating != null)
-                                _MetaChip(
-                                  icon: Icons.star_rounded,
-                                  label: '${currentShop.rating}',
-                                  iconColor: Colors.amber,
+                        ),
+
+                        SliverToBoxAdapter(
+                          child: Container(
+                            margin: const EdgeInsets.all(16),
+                            padding: const EdgeInsets.all(20),
+                            decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(
+                                  color: const Color(0xFF00ACC1)
+                                      .withValues(alpha: 0.2),
+                                  width: 1.0,
                                 ),
-                            ],
-                          ),
-                          if (!isShopActive) ...[
-                            const SizedBox(height: 16),
-                            Container(
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF1E293B),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: const Row(
-                                children: [
-                                  Icon(Icons.error_outline,
-                                      color: Colors.white, size: 20),
-                                  SizedBox(width: 12),
-                                  Expanded(
-                                    child: Text(
-                                      'This plant is currently offline.',
-                                      style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.bold),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.03),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 4),
+                                  )
+                                ]),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  currentShop.name,
+                                  style: const TextStyle(
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.w900,
+                                    color: Colors.black,
+                                    letterSpacing: -0.5,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  currentShop.location.isNotEmpty
+                                      ? currentShop.location
+                                      : 'Shop Location',
+                                  style: const TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
+                                      color: Colors.black54),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                const SizedBox(height: 16),
+                                Row(
+                                  children: [
+                                    _MetaChip(
+                                      icon: Icons.location_on_rounded,
+                                      label: distanceStr,
+                                      iconColor: const Color(0xFF06B6D4),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    if (currentShop.rating != null)
+                                      _MetaChip(
+                                        icon: Icons.star_rounded,
+                                        label: '${currentShop.rating}',
+                                        iconColor: Colors.amber,
+                                      ),
+                                  ],
+                                ),
+                                if (!isShopActive) ...[
+                                  const SizedBox(height: 16),
+                                  Container(
+                                    padding: const EdgeInsets.all(12),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFF1E293B),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: const Row(
+                                      children: [
+                                        Icon(Icons.error_outline,
+                                            color: Colors.white, size: 20),
+                                        SizedBox(width: 12),
+                                        Expanded(
+                                          child: Text(
+                                            'This plant is currently offline.',
+                                            style: TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.bold),
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ),
                                 ],
+                              ],
+                            ),
+                          ),
+                        ),
+
+                        // ── Products Section Header ────────────────────────────────────
+                        const SliverPadding(
+                          padding: EdgeInsets.fromLTRB(16, 4, 16, 12),
+                          sliver: SliverToBoxAdapter(
+                            child: Text(
+                              'WATER VARIETIES',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 1.5,
+                                color: Colors.black,
                               ),
                             ),
-                          ],
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  // ── Products Section Header ────────────────────────────────────
-                  const SliverPadding(
-                    padding: EdgeInsets.fromLTRB(16, 4, 16, 12),
-                    sliver: SliverToBoxAdapter(
-                      child: Text(
-                        'WATER VARIETIES',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 1.5,
-                          color: Colors.black,
-                        ),
-                      ),
-                    ),
-                  ),
-
-                  // ── Products Grid ─────────────────────────────────────────────
-                  productsAsync.when(
-                    loading: () => const SliverToBoxAdapter(
-                      child: _ProductsLoadingGrid(),
-                    ),
-                    error: (err, _) => SliverToBoxAdapter(
-                      child: _ProductsErrorState(
-                        message: err.toString(),
-                        onRetry: () =>
-                            ref.invalidate(shopProductsProvider(widget.shop.id)),
-                      ),
-                    ),
-                    data: (products) {
-                      if (products.isEmpty) {
-                        return const SliverToBoxAdapter(
-                            child: _ProductsEmptyState());
-                      }
-                      return SliverPadding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        sliver: SliverGrid(
-                          gridDelegate:
-                              const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 2,
-                            childAspectRatio: 0.78,
-                            crossAxisSpacing: 12,
-                            mainAxisSpacing: 12,
-                          ),
-                          delegate: SliverChildBuilderDelegate(
-                            (context, index) {
-                              final product = products[index];
-                              return _ProductCard(
-                                product: product,
-                                index: index,
-                                shopId: currentShop.id,
-                                shopName: currentShop.name,
-                                isShopActive: isShopActive,
-                              );
-                            },
-                            childCount: products.length,
                           ),
                         ),
-                      );
+
+                        // ── Products Grid ─────────────────────────────────────────────
+                        productsAsync.when(
+                          loading: () => const SliverToBoxAdapter(
+                            child: _ProductsLoadingGrid(),
+                          ),
+                          error: (err, _) => SliverToBoxAdapter(
+                            child: _ProductsErrorState(
+                              message: err.toString(),
+                              onRetry: () => ref.invalidate(
+                                  shopProductsProvider(widget.shop.id)),
+                            ),
+                          ),
+                          data: (products) {
+                            if (products.isEmpty) {
+                              return const SliverToBoxAdapter(
+                                  child: _ProductsEmptyState());
+                            }
+                            return SliverPadding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 16),
+                              sliver: SliverGrid(
+                                gridDelegate:
+                                    const SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: 2,
+                                  childAspectRatio: 0.65,
+                                  crossAxisSpacing: 12,
+                                  mainAxisSpacing: 12,
+                                ),
+                                delegate: SliverChildBuilderDelegate(
+                                  (context, index) {
+                                    final product = products[index];
+                                    return _ProductCard(
+                                      product: product,
+                                      index: index,
+                                      shopId: currentShop.id,
+                                      shopName: currentShop.name,
+                                      isShopActive: isShopActive,
+                                    );
+                                  },
+                                  childCount: products.length,
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+
+                        const SliverPadding(
+                            padding: EdgeInsets.only(bottom: 200)),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
+            // ── Floating Back Button removed (handled by SliverAppBar) ────────
+
+            if (cart.itemCount > 0 && isShopActive)
+              Positioned(
+                bottom:
+                    20, // Reduced but wrapped in SafeArea if needed, or just let it sit high
+                left: 0,
+                right: 0,
+                child: SafeArea(
+                  child: CartSummaryBar(
+                    cart: cart,
+                    onTap: () {
+                      Navigator.pushNamed(context, AppRoutes.cart);
                     },
                   ),
-
-                  const SliverPadding(padding: EdgeInsets.only(bottom: 120)),
-                ],
+                ),
               ),
-            ),
-          ),
+          ],
         ),
-
-          // ── Floating Back Button removed (handled by SliverAppBar) ────────
-
-          if (cart.itemCount > 0 && isShopActive)
-            Positioned(
-              bottom:
-                  30, // Positioned near bottom since this page doesn't have a persistent bottom bar like MainPage
-              left: 0,
-              right: 0,
-              child: CartSummaryBar(
-                cart: cart,
-                onTap: () {
-                  Navigator.pushNamed(context, AppRoutes.cart);
-                },
-              ),
-            ),
-        ],
       ),
     );
   }

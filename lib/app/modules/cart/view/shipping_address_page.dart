@@ -147,36 +147,38 @@ class _ShippingAddressPageState extends ConsumerState<ShippingAddressPage> {
           ),
         ),
       ),
-      body: Column(
-        children: [
-          Container(
-            color: Colors.white,
-            padding: const EdgeInsets.only(bottom: 20, top: 10),
-            child: const _CheckoutStepper(currentStep: 1),
-          ),
-          Expanded(
-            child: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 400),
-              transitionBuilder: (child, animation) => FadeTransition(
-                opacity: animation,
-                child: SlideTransition(
-                  position: animation.drive(Tween<Offset>(
-                          begin: const Offset(0.05, 0), end: Offset.zero)
-                      .chain(CurveTween(curve: Curves.easeOutCubic))),
-                  child: child,
-                ),
-              ),
-              child: cart.isAddressesLoading
-                  ? const Center(
-                      child: CircularProgressIndicator(
-                          color: AppColors.accentGreen))
-                  : _showAddForm
-                      ? _buildAddAddressView()
-                      : _buildAddressListView(cart),
+      body: SafeArea(
+        child: Column(
+          children: [
+            Container(
+              color: Colors.white,
+              padding: const EdgeInsets.only(bottom: 20, top: 10),
+              child: const _CheckoutStepper(currentStep: 1),
             ),
-          ),
-          if (!_showAddForm && addresses.isNotEmpty) _buildBottomAction(cart),
-        ],
+            Expanded(
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 400),
+                transitionBuilder: (child, animation) => FadeTransition(
+                  opacity: animation,
+                  child: SlideTransition(
+                    position: animation.drive(Tween<Offset>(
+                            begin: const Offset(0.05, 0), end: Offset.zero)
+                        .chain(CurveTween(curve: Curves.easeOutCubic))),
+                    child: child,
+                  ),
+                ),
+                child: cart.isAddressesLoading
+                    ? const Center(
+                        child: CircularProgressIndicator(
+                            color: AppColors.accentGreen))
+                    : _showAddForm
+                        ? _buildAddAddressView()
+                        : _buildAddressListView(cart),
+              ),
+            ),
+            if (!_showAddForm && addresses.isNotEmpty) _buildBottomAction(cart),
+          ],
+        ),
       ),
     );
   }

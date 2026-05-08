@@ -260,12 +260,13 @@ class _OrderTrackingPageState extends ConsumerState<OrderTrackingPage> {
           onPressed: () => Navigator.pop(context),
         ),
       ),
-      body: RefreshIndicator(
-        onRefresh: _loadOrderDetails,
-        color: const Color(0xFF0891B2),
-        child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.all(20),
+      body: SafeArea(
+        child: RefreshIndicator(
+          onRefresh: _loadOrderDetails,
+          color: const Color(0xFF0891B2),
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -441,8 +442,9 @@ class _OrderTrackingPageState extends ConsumerState<OrderTrackingPage> {
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildOrderSummary() {
     final totalAmount = _order['totalAmount'];

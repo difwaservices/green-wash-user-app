@@ -148,7 +148,7 @@ class _FilterBottomSheetState extends ConsumerState<FilterBottomSheet> {
 
           Expanded(
             child: ListView(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+              padding: const EdgeInsets.fromLTRB(16, 20, 16, 100),
               children: [
                 // Price Range
                 _buildCard([
@@ -280,7 +280,7 @@ class _FilterBottomSheetState extends ConsumerState<FilterBottomSheet> {
 
           // Bottom Sticky CTA
           Container(
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
             decoration: BoxDecoration(
               color: Colors.white,
               border: Border(
@@ -297,29 +297,32 @@ class _FilterBottomSheetState extends ConsumerState<FilterBottomSheet> {
                 ),
               ],
             ),
-            child: ElevatedButton(
-              onPressed: () {
-                final result = FilterResult(
-                  priceRange: _priceRange,
-                  selectedCategoryIds: _selectedCategoryIds,
-                  selectedDeliverySlots: _selectedDeliverySlots,
-                );
-                Navigator.pop(context, result);
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: _primaryColor,
-                foregroundColor: Colors.white,
-                minimumSize: const Size(double.infinity, 56),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
+            child: SafeArea(
+              top: false,
+              child: ElevatedButton(
+                onPressed: () {
+                  final result = FilterResult(
+                    priceRange: _priceRange,
+                    selectedCategoryIds: _selectedCategoryIds,
+                    selectedDeliverySlots: _selectedDeliverySlots,
+                  );
+                  Navigator.pop(context, result);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: _primaryColor,
+                  foregroundColor: Colors.white,
+                  minimumSize: const Size(double.infinity, 56),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  elevation: 0,
                 ),
-                elevation: 0,
-              ),
-              child: const Text(
-                'Apply Filters',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
+                child: const Text(
+                  'Apply Filters',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
               ),
             ),

@@ -100,7 +100,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                   const _ListTilesSection(),
                   const SizedBox(height: 32),
                   const _SignOutButton(),
-                  const SizedBox(height: 100),
+                  const SizedBox(height: 140),
                 ],
               ),
             ),

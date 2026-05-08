@@ -151,13 +151,13 @@ class _MainPageState extends ConsumerState<MainPage> {
                   children: _pages,
                 ),
               ),
-            if (showSummary)
-              Positioned(
-                bottom: 110,
-                left: 0,
-                right: 0,
-                child: CartSummaryBar(cart: cart),
-              ),
+              if (showSummary)
+                Positioned(
+                  bottom: MediaQuery.of(context).padding.bottom + 95,
+                  left: 0,
+                  right: 0,
+                  child: CartSummaryBar(cart: cart),
+                ),
             ],
           ),
         ),
@@ -169,50 +169,19 @@ class _MainPageState extends ConsumerState<MainPage> {
   Widget _buildCustomBottomBar(int currentIndex) {
     bool isCartSelected = currentIndex == 2;
     return Container(
-      height: 100,
-      decoration: const BoxDecoration(color: Colors.transparent),
-      child: Stack(
-        alignment: Alignment.bottomCenter,
-        children: [
-          Container(
-            height: 70,
-            margin: const EdgeInsets.fromLTRB(16, 0, 16, 20),
-            decoration: BoxDecoration(
-              color: AppColors.secondary,
-              borderRadius: BorderRadius.circular(35),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-              border:
-                  Border.all(color: AppColors.primary.withValues(alpha: 0.1)),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _buildNavItem(currentIndex, 0, Icons.home_filled, 'Home'),
-                _buildNavItem(currentIndex, 1, Icons.local_shipping_outlined, 'Daily'),
-                const SizedBox(width: 68),
-                _buildNavItem(currentIndex, 3, Icons.wallet_rounded, 'Wallet'),
-                _buildNavItem(currentIndex, 4, Icons.person_rounded, 'Profile'),
-              ],
-            ),
-          ),
-          Positioned(
-            top: 5,
-            child: GestureDetector(
-              onTap: () {
-                ref.read(mainIndexProvider.notifier).setIndex(2);
-              },
-              child: Container(
-                width: 68,
-                height: 68,
+      color: Colors.white,
+      child: SafeArea(
+        child: Container(
+          height: 80,
+          child: Stack(
+            alignment: Alignment.bottomCenter,
+            children: [
+              Container(
+                height: 70,
+                margin: const EdgeInsets.fromLTRB(16, 0, 16, 10),
                 decoration: BoxDecoration(
-                  color: Colors.white,
-                  shape: BoxShape.circle,
+                  color: AppColors.secondary,
+                  borderRadius: BorderRadius.circular(35),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withOpacity(0.1),
@@ -221,30 +190,69 @@ class _MainPageState extends ConsumerState<MainPage> {
                     ),
                   ],
                   border: Border.all(
-                    color: isCartSelected
-                        ? AppColors.primary
-                        : AppColors.primary.withValues(alpha: 0.2),
-                    width: 2,
-                  ),
+                      color: AppColors.primary.withValues(alpha: 0.1)),
                 ),
-                child: Center(
-                  child: Icon(
-                    Icons.shopping_cart_outlined,
-                    color: isCartSelected
-                        ? AppColors.primary
-                        : const Color.fromARGB(255, 69, 68, 66),
-                    size: 34,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    _buildNavItem(currentIndex, 0, Icons.home_filled, 'Home'),
+                    _buildNavItem(currentIndex, 1,
+                        Icons.local_shipping_outlined, 'Daily'),
+                    const SizedBox(width: 68),
+                    _buildNavItem(
+                        currentIndex, 3, Icons.wallet_rounded, 'Wallet'),
+                    _buildNavItem(
+                        currentIndex, 4, Icons.person_rounded, 'Profile'),
+                  ],
+                ),
+              ),
+              Positioned(
+                top: 5,
+                child: GestureDetector(
+                  onTap: () {
+                    ref.read(mainIndexProvider.notifier).setIndex(2);
+                  },
+                  child: Container(
+                    width: 68,
+                    height: 68,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                      border: Border.all(
+                        color: isCartSelected
+                            ? AppColors.primary
+                            : AppColors.primary.withValues(alpha: 0.2),
+                        width: 2,
+                      ),
+                    ),
+                    child: Center(
+                      child: Icon(
+                        Icons.shopping_cart_outlined,
+                        color: isCartSelected
+                            ? AppColors.primary
+                            : const Color.fromARGB(255, 69, 68, 66),
+                        size: 34,
+                      ),
+                    ),
                   ),
                 ),
               ),
-            ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
 
-  Widget _buildNavItem(int currentIndex, int index, IconData icon, String label) {
+  Widget _buildNavItem(
+      int currentIndex, int index, IconData icon, String label) {
     bool isSelected = currentIndex == index;
     return GestureDetector(
       behavior: HitTestBehavior.opaque,

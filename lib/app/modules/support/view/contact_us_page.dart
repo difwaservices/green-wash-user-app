@@ -76,8 +76,10 @@ class _ContactUsPageState extends ConsumerState<ContactUsPage> {
         elevation: 0,
         foregroundColor: Colors.black,
       ),
-      body: SingleChildScrollView(
-        child: Column(
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.only(bottom: 100),
+          child: Column(
           children: [
             Container(
               padding: const EdgeInsets.all(24),
@@ -185,8 +187,9 @@ class _ContactUsPageState extends ConsumerState<ContactUsPage> {
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }
 
 class _ContactInfoTile extends StatelessWidget {

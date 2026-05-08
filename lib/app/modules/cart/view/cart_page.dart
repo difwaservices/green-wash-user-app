@@ -277,92 +277,95 @@ class CartPage extends ConsumerWidget {
           ),
         ],
       ),
-      padding: const EdgeInsets.fromLTRB(24, 24, 24, 110),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _buildSummaryRow('Subtotal', '₹${cart.subtotal.toStringAsFixed(0)}'),
-          const SizedBox(height: 12),
-          _buildSummaryRow(
-            'Shipping',
-            '₹${cart.shippingCharges.toStringAsFixed(0)}',
-          ),
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 16),
-            child: Divider(height: 1, thickness: 1, color: Color(0xFFF1F4F8)),
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                'Total',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF1A1A1A),
+      padding: const EdgeInsets.fromLTRB(24, 24, 24, 24),
+      child: SafeArea(
+        top: false,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _buildSummaryRow('Subtotal', '₹${cart.subtotal.toStringAsFixed(0)}'),
+            const SizedBox(height: 12),
+            _buildSummaryRow(
+              'Shipping',
+              '₹${cart.shippingCharges.toStringAsFixed(0)}',
+            ),
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 16),
+              child: Divider(height: 1, thickness: 1, color: Color(0xFFF1F4F8)),
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Total',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF1A1A1A),
+                  ),
                 ),
-              ),
-              Text(
-                '₹${cart.total.toStringAsFixed(0)}',
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF06B6D4),
+                Text(
+                  '₹${cart.total.toStringAsFixed(0)}',
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF06B6D4),
+                  ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-          SizedBox(
-            width: double.infinity,
-            height: 56,
-            child: ElevatedButton(
-              onPressed: () {
-                if (!AuthHelper.checkAuth(
-                  context: context,
-                  ref: ref,
-                  message: 'Please log in to proceed with your order.',
-                )) return;
+              ],
+            ),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              height: 56,
+              child: ElevatedButton(
+                onPressed: () {
+                  if (!AuthHelper.checkAuth(
+                    context: context,
+                    ref: ref,
+                    message: 'Please log in to proceed with your order.',
+                  )) return;
 
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (_) => const ShippingAddressPage()),
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF06B6D4),
-                foregroundColor: Colors.white,
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (_) => const ShippingAddressPage()),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF06B6D4),
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
                 ),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'Proceed to Checkout',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  Row(
-                    children: [
-                      Text(
-                        '₹${cart.total.toStringAsFixed(0)}',
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w900,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Proceed to Checkout',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                    Row(
+                      children: [
+                        Text(
+                          '₹${cart.total.toStringAsFixed(0)}',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w900,
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 8),
-                      const Icon(Icons.arrow_forward_rounded, size: 20),
-                    ],
-                  ),
-                ],
+                        const SizedBox(width: 8),
+                        const Icon(Icons.arrow_forward_rounded, size: 20),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

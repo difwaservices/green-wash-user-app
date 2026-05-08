@@ -28,6 +28,7 @@ import '../modules/support/view/contact_us_page.dart';
 import '../modules/support/view/help_support_page.dart';
 import '../modules/support/view/faq_page.dart';
 import '../modules/retailer/view/retailer_home_page.dart';
+import '../modules/communication_hub/view/communication_hub_page.dart';
 
 class AppPages {
   static Map<String, WidgetBuilder> get routes => {
@@ -86,5 +87,6 @@ class AppPages {
         AppRoutes.help: (context) => const HelpSupportPage(),
         AppRoutes.faq: (context) => const FaqPage(),
         AppRoutes.retailerHome: (context) => const RetailerHomePage(),
+        AppRoutes.communicationHub: (context) => const CommunicationHubPage(),
       };
 }

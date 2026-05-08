@@ -1,3 +1,4 @@
+import 'package:difwawaterapp/app/core/constants/app_colors.dart';
 import 'package:flutter/material.dart';
 import '../../../data/models/food_models.dart';
 
@@ -40,7 +41,8 @@ class WaterPlantCard extends StatelessWidget {
                         width: 160,
                         height: 120,
                         color: Colors.grey.shade200,
-                        child: const Icon(Icons.water_drop_outlined, color: Colors.grey),
+                        child: const Icon(Icons.water_drop_outlined,
+                            color: Colors.grey),
                       );
                     },
                   ),
@@ -55,7 +57,7 @@ class WaterPlantCard extends StatelessWidget {
                       vertical: 4,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha:  0.7),
+                      color: Colors.black.withValues(alpha: 0.7),
                       borderRadius: const BorderRadius.only(
                         topLeft: Radius.circular(16),
                         bottomRight: Radius.circular(12),
@@ -135,5 +137,3 @@ class WaterPlantCard extends StatelessWidget {
     );
   }
 }
-
-

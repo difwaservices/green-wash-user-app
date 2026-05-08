@@ -79,8 +79,9 @@ class _HelpSupportPageState extends ConsumerState<HelpSupportPage> {
         elevation: 0,
         foregroundColor: Colors.black,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24.0),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(24, 24, 24, 100),
         child: Form(
           key: _formKey,
           child: Column(
@@ -184,8 +185,9 @@ class _HelpSupportPageState extends ConsumerState<HelpSupportPage> {
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }
 
 class CardExposed extends StatelessWidget {

@@ -63,15 +63,19 @@ class _ShopsList extends ConsumerWidget {
           padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
           child: Row(
             children: [
-              const Text(
-                'Water Plants Near You',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w800,
-                  color: Color(0xFF1A1A1A),
+              Expanded(
+                child: const Text(
+                  'Water Plants Near You',
+                  style: TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w800,
+                    color: Color(0xFF1A1A1A),
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
-              const Spacer(),
+              const SizedBox(width: 6),
               Text(
                 '${shops.length} Plants',
                 style: const TextStyle(
@@ -80,7 +84,7 @@ class _ShopsList extends ConsumerWidget {
                   fontWeight: FontWeight.w500,
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 6),
               InkWell(
                 onTap: () async {
                   final searchState = ref.read(searchProvider);
@@ -112,7 +116,7 @@ class _ShopsList extends ConsumerWidget {
                 borderRadius: BorderRadius.circular(8),
                 child: Container(
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
                   decoration: BoxDecoration(
                     color: const Color(0xFF06B6D4).withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),

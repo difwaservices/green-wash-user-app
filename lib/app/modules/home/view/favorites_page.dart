@@ -37,14 +37,16 @@ class FavoritesPage extends ConsumerWidget {
           ),
         ],
       ),
-      body: productsAsync.when(
-        loading: () => const Center(
-          child: CircularProgressIndicator(color: Color(0xFF06B6D4)),
+      body: SafeArea(
+        child: productsAsync.when(
+          loading: () => const Center(
+            child: CircularProgressIndicator(color: Color(0xFF06B6D4)),
+          ),
+          error: (err, _) => _buildError(context, ref, err),
+          data: (products) => products.isEmpty
+              ? _buildEmptyState(context, ref)
+              : _buildGrid(context, ref, products),
         ),
-        error: (err, _) => _buildError(context, ref, err),
-        data: (products) => products.isEmpty
-            ? _buildEmptyState(context, ref)
-            : _buildGrid(context, ref, products),
       ),
     );
   }
