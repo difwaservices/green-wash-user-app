@@ -29,8 +29,10 @@ class HomePage extends ConsumerWidget {
           child: RefreshIndicator(
             onRefresh: () async {
               await ref.read(shopsListProvider.notifier).refresh();
-              CartProviderScope.of(context).loadAddresses();
-              CartProviderScope.of(context).syncWallet();
+              if (context.mounted) {
+                CartProviderScope.of(context).loadAddresses();
+                CartProviderScope.of(context).syncWallet();
+              }
               ref.invalidate(walletBalanceProvider);
               ref.invalidate(walletHistoryProvider);
             },

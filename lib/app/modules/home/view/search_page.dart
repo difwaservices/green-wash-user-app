@@ -171,7 +171,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
 
               final result = await FilterBottomSheet.show(context,
                   initialResult: initialResult);
-              if (result != null) {
+              if (result != null && mounted) {
                 ref.read(searchProvider.notifier).applyAdvancedFilters(
                       priceRange: result.priceRange,
                       selectedCategoryIds: result.selectedCategoryIds,
@@ -266,9 +266,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
           mainAxisSpacing: 16,
         ),
         itemCount: filteredProducts.length,
-        itemBuilder: (context, index) => RepaintBoundary(
-          child: _buildGridProductCard(filteredProducts[index]),
-        ),
+        itemBuilder: (context, index) => _buildGridProductCard(filteredProducts[index]),
       );
     }
 
@@ -283,9 +281,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
       padding: const EdgeInsets.all(16),
       itemCount: shops.length,
       itemBuilder: (context, index) {
-        return RepaintBoundary(
-          child: _buildShopCard(shops[index]),
-        );
+        return _buildShopCard(shops[index]);
       },
     );
   }
