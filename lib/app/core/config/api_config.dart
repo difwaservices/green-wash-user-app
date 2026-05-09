@@ -6,10 +6,10 @@ class ApiConfig {
   static String get baseUrl =>
       dotenv.env['API_BASE_URL'] ??
       'https://nontragic-rodney-allogenically.ngrok-free.dev/api';
-  // dotenv.env['API_BASE_URL'] ?? 'https://api.difwa.com/api';
+  // dotenv.env['API_BASE_URL'] ?? 'https://nontragic-rodney-allogenically.ngrok-free.dev/api';
   static String get socketUrl =>
       dotenv.env['SOCKET_URL'] ??
       'https://nontragic-rodney-allogenically.ngrok-free.dev';
-  // dotenv.env['SOCKET_URL'] ?? 'https://api.difwa.com';
+  // dotenv.env['SOCKET_URL'] ?? 'https://nontragic-rodney-allogenically.ngrok-free.dev';
   static String get googleMapsApiKey => dotenv.env['GOOGLE_MAPS_API_KEY'] ?? '';
 }
