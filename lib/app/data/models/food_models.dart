@@ -78,6 +78,38 @@ class UserOrder {
     this.isReviewed = false,
   });
 
+  UserOrder copyWith({
+    String? id,
+    String? status,
+    double? total,
+    double? deliveryFee,
+    double? distance,
+    DateTime? date,
+    List<UserOrderItem>? items,
+    Map<String, dynamic>? rider,
+    Map<String, dynamic>? deliveryAddressMap,
+    bool? isReviewed,
+    String? deliverySlot,
+    String? orderType,
+    Map<String, dynamic>? retailer,
+  }) {
+    return UserOrder(
+      id: id ?? this.id,
+      status: status ?? this.status,
+      total: total ?? this.total,
+      deliveryFee: deliveryFee ?? this.deliveryFee,
+      distance: distance ?? this.distance,
+      date: date ?? this.date,
+      items: items ?? this.items,
+      rider: rider ?? this.rider,
+      deliveryAddressMap: deliveryAddressMap ?? this.deliveryAddressMap,
+      isReviewed: isReviewed ?? this.isReviewed,
+      deliverySlot: deliverySlot ?? this.deliverySlot,
+      orderType: orderType ?? this.orderType,
+      retailer: retailer ?? this.retailer,
+    );
+  }
+
   final String? deliverySlot;
   final String? orderType;
   final Map<String, dynamic>? retailer;

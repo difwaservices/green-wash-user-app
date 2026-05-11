@@ -33,19 +33,37 @@ class _ContactUsPageState extends ConsumerState<ContactUsPage> {
       if (mounted) {
         if (data['success']) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Message sent successfully!'), backgroundColor: Colors.green),
+            SnackBar(
+              content: const Text('Message sent successfully!'),
+              backgroundColor: const Color(0xFF06B6D4),
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              margin: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+            ),
           );
           _subjectController.clear();
           _messageController.clear();
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(data['message'] ?? 'Failed to send message')),
+            SnackBar(
+              content: Text(data['message'] ?? 'Failed to send message'),
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              margin: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+            ),
           );
         }
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Error sending message')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Error sending message'),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            margin: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+          ),
+        );
       }
     } finally {
       if (mounted) setState(() => _isSending = false);
@@ -69,127 +87,154 @@ class _ContactUsPageState extends ConsumerState<ContactUsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: const Color(0xFFF7F8FA),
       appBar: AppBar(
-        title: const Text('Contact Us', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text(
+          'Contact Us',
+          style: TextStyle(
+            fontWeight: FontWeight.w900,
+            fontSize: 20,
+            color: Color(0xFF1E293B),
+            letterSpacing: -0.5,
+          ),
+        ),
         backgroundColor: Colors.white,
         elevation: 0,
-        foregroundColor: Colors.black,
+        centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new, size: 20, color: Color(0xFF1E293B)),
+          onPressed: () => Navigator.pop(context),
+        ),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1),
+          child: Container(
+            color: const Color(0xFF00ACC1).withOpacity(0.1),
+            height: 1,
+          ),
+        ),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.only(bottom: 100),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
           child: Column(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(24),
-              color: Colors.white,
-              child: Column(
-                children: [
-                   _ContactInfoTile(
-                    icon: Icons.phone_android_rounded,
-                    title: 'Phone',
-                    content: '+91 8853-3893-95',
-                    onTap: () => _launchURL('tel:+918853389395'),
-                  ),
-                  const SizedBox(height: 16),
-                  _ContactInfoTile(
-                    icon: Icons.email_outlined,
-                    title: 'Email',
-                    content: 'difwaservices@gmail.com',
-                    onTap: () => _launchURL('mailto:difwaservices@gmail.com'),
-                  ),
-                   const SizedBox(height: 16),
-                  _ContactInfoTile(
-                    icon: Icons.location_on_outlined,
-                    title: 'Address',
-                    content: '4/37 Vibhav Khand, Lucknow, India',
-                    onTap: () => _launchURL('https://maps.apple.com/?address=4/37,Vibhav+Khand,Lucknow,India'),
-                  ),
-                   const SizedBox(height: 16),
-                  _ContactInfoTile(
-                    icon: Icons.public_rounded,
-                    title: 'Website',
-                    content: 'www.difwa.com',
-                    onTap: () => _launchURL('https://www.difwa.com'),
-                  ),
-                ],
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _ContactInfoTile(
+                icon: Icons.phone_android_rounded,
+                title: 'Phone',
+                content: '+91 8853-3893-95',
+                onTap: () => _launchURL('tel:+918853389395'),
               ),
-            ),
-            const SizedBox(height: 12),
-            Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: Form(
+              const SizedBox(height: 16),
+              _ContactInfoTile(
+                icon: Icons.email_outlined,
+                title: 'Email',
+                content: 'difwaservices@gmail.com',
+                onTap: () => _launchURL('mailto:difwaservices@gmail.com'),
+              ),
+              const SizedBox(height: 16),
+              _ContactInfoTile(
+                icon: Icons.location_on_outlined,
+                title: 'Address',
+                content: '4/37 Vibhav Khand, Lucknow, India',
+                onTap: () => _launchURL('https://maps.apple.com/?address=4/37,Vibhav+Khand,Lucknow,India'),
+              ),
+              const SizedBox(height: 16),
+              _ContactInfoTile(
+                icon: Icons.public_rounded,
+                title: 'Website',
+                content: 'www.difwa.com',
+                onTap: () => _launchURL('https://www.difwa.com'),
+              ),
+              const SizedBox(height: 32),
+              const Text('Send us a message', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.primaryDark)),
+              const SizedBox(height: 20),
+              Form(
                 key: _formKey,
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Send us a message', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.primaryDark)),
-                    const SizedBox(height: 20),
-                    TextFormField(
-                      controller: _subjectController,
-                      decoration: InputDecoration(
-                        labelText: 'Subject',
-                        prefixIcon: const Icon(Icons.subject, color: AppColors.primary),
-                        fillColor: Colors.white,
-                        filled: true,
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(16),
-                          borderSide: BorderSide(color: const Color(0xFF00ACC1).withValues(alpha: 0.2)),
+                    _buildPremiumInput(
+                      child: TextFormField(
+                        controller: _subjectController,
+                        style: const TextStyle(fontWeight: FontWeight.w600, color: Color(0xFF1E293B)),
+                        decoration: const InputDecoration(
+                          labelText: 'Subject',
+                          labelStyle: TextStyle(color: Colors.grey),
+                          prefixIcon: Icon(Icons.subject_rounded, color: Color(0xFF00ACC1)),
+                          border: InputBorder.none,
+                          enabledBorder: InputBorder.none,
+                          focusedBorder: InputBorder.none,
+                          errorBorder: InputBorder.none,
+                          disabledBorder: InputBorder.none,
+                          contentPadding: EdgeInsets.symmetric(vertical: 12),
                         ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(16),
-                          borderSide: const BorderSide(color: Color(0xFF00ACC1), width: 1.5),
-                        ),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+                        validator: (v) => v?.isEmpty == true ? 'Required' : null,
                       ),
-                      validator: (v) => v?.isEmpty == true ? 'Required' : null,
                     ),
                     const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _messageController,
-                      maxLines: 4,
-                      decoration: InputDecoration(
-                        labelText: 'Message',
-                        prefixIcon: const Icon(Icons.message_outlined, color: AppColors.primary),
-                        fillColor: Colors.white,
-                        filled: true,
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(16),
-                          borderSide: BorderSide(color: const Color(0xFF00ACC1).withValues(alpha: 0.2)),
+                    _buildPremiumInput(
+                      child: TextFormField(
+                        controller: _messageController,
+                        maxLines: 4,
+                        style: const TextStyle(fontWeight: FontWeight.w600, color: Color(0xFF1E293B)),
+                        decoration: const InputDecoration(
+                          labelText: 'Message',
+                          labelStyle: TextStyle(color: Colors.grey),
+                          prefixIcon: Icon(Icons.message_rounded, color: Color(0xFF00ACC1)),
+                          border: InputBorder.none,
+                          enabledBorder: InputBorder.none,
+                          focusedBorder: InputBorder.none,
+                          errorBorder: InputBorder.none,
+                          disabledBorder: InputBorder.none,
+                          contentPadding: EdgeInsets.symmetric(vertical: 12),
                         ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(16),
-                          borderSide: const BorderSide(color: Color(0xFF00ACC1), width: 1.5),
-                        ),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
-                      ),
-                      validator: (v) => v?.isEmpty == true ? 'Required' : null,
-                    ),
-                    const SizedBox(height: 32),
-                    SizedBox(
-                      width: double.infinity,
-                      height: 56,
-                      child: ElevatedButton(
-                        onPressed: _isSending ? null : _sendContactRequest,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primary,
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                        ),
-                        child: _isSending ? const CircularProgressIndicator(color: Colors.white) : const Text('Send Message', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                        validator: (v) => v?.isEmpty == true ? 'Required' : null,
                       ),
                     ),
                   ],
                 ),
               ),
-            ),
-          ],
+              const SizedBox(height: 32),
+              SizedBox(
+                width: double.infinity,
+                height: 56,
+                child: ElevatedButton(
+                  onPressed: _isSending ? null : _sendContactRequest,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  ),
+                  child: _isSending ? const CircularProgressIndicator(color: Colors.white) : const Text('Send Message', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
-    ),
-  );
-}
+    );
+  }
+  Widget _buildPremiumInput({required Widget child}) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: const Color(0xFF00ACC1).withOpacity(0.2),
+          width: 1.0,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: child,
+    );
+  }
 }
 
 class _ContactInfoTile extends StatelessWidget {
@@ -210,12 +255,12 @@ class _ContactInfoTile extends StatelessWidget {
           color: Colors.white,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: const Color(0xFF00ACC1).withValues(alpha: 0.2),
+            color: const Color(0xFF00ACC1).withOpacity(0.2),
             width: 1.0,
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.03),
+              color: Colors.black.withOpacity(0.05),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -225,7 +270,7 @@ class _ContactInfoTile extends StatelessWidget {
           children: [
             Container(
               padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(color: AppColors.primary.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
+              decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
               child: Icon(icon, color: AppColors.primary, size: 24),
             ),
             const SizedBox(width: 16),

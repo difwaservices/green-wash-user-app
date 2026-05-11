@@ -30,7 +30,16 @@ class _HomeHeaderState extends ConsumerState<HomeHeader> {
         left: 16,
         right: 16,
       ),
-      decoration: const BoxDecoration(color: Color(0xFFF7F8FA)),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF7F8FA),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -118,22 +127,7 @@ class _HomeHeaderState extends ConsumerState<HomeHeader> {
                 ),
               ),
               const SizedBox(width: 12),
-              // Communication Hub Button
-              BounceWidget(
-                onTap: () => Navigator.pushNamed(context, AppRoutes.communicationHub),
-                child: Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.grey.shade200),
-                  ),
-                  child: const Icon(Icons.campaign_outlined,
-                      size: 20, color: AppColors.textPrimary),
-                ),
-              ),
-              const SizedBox(width: 8),
+
               // Notification Button
               Consumer(
                 builder: (context, ref, child) {
@@ -195,12 +189,12 @@ class _HomeHeaderState extends ConsumerState<HomeHeader> {
               color: Colors.white,
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: const Color(0xFF00ACC1).withValues(alpha: 0.2),
+                color: const Color(0xFF00ACC1).withOpacity(0.2),
                 width: 1.0,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.05),
+                  color: Colors.black.withOpacity(0.05),
                   blurRadius: 10,
                   offset: const Offset(0, 4),
                 ),

@@ -6,6 +6,8 @@ import '../../../data/services/order_service.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_images.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../../../core/state/auth_store.dart';
+import '../../../data/services/socket_service.dart';
 import 'track_order_page.dart';
 
 class ActiveOrdersPage extends ConsumerStatefulWidget {
@@ -19,6 +21,12 @@ class _ActiveOrdersPageState extends ConsumerState<ActiveOrdersPage> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final user = ref.read(currentUserProvider);
+      if (user != null) {
+        ref.read(socketServiceProvider).joinUserRoom(user.id);
+      }
+    });
   }
 
   @override
@@ -26,21 +34,32 @@ class _ActiveOrdersPageState extends ConsumerState<ActiveOrdersPage> {
     final activeOrdersAsync = ref.watch(activeOrdersProvider);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF1F5EF), // Very light greenish background from screenshot
+      backgroundColor: const Color(0xFFF7F8FA),
       appBar: AppBar(
-        title: const Text('Active Orders',
-            style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 18,
-                color: Colors.white)),
-        backgroundColor: AppColors.primaryDark,
+        title: const Text(
+          'Active Orders',
+          style: TextStyle(
+            fontWeight: FontWeight.w900,
+            fontSize: 20,
+            color: Color(0xFF1E293B),
+            letterSpacing: -0.5,
+          ),
+        ),
+        backgroundColor: Colors.white,
         elevation: 0,
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          icon: const Icon(Icons.arrow_back_ios_new,
+              size: 20, color: Color(0xFF1E293B)),
           onPressed: () => Navigator.pop(context),
         ),
-
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1),
+          child: Container(
+            color: const Color(0xFF00ACC1).withValues(alpha: 0.1),
+            height: 1,
+          ),
+        ),
       ),
       body: SafeArea(
         child: activeOrdersAsync.when(
@@ -92,42 +111,50 @@ class _ActiveOrdersPageState extends ConsumerState<ActiveOrdersPage> {
 
   Widget _buildEmptyState(BuildContext context) {
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(28),
-            decoration: const BoxDecoration(
-              color: Color(0xFFCFFAFE),
-              shape: BoxShape.circle,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 40),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(28),
+              decoration: const BoxDecoration(
+                color: Color(0xFFCFFAFE),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.inventory_2_outlined,
+                  size: 56, color: Color(0xFF06B6D4)),
             ),
-            child: const Icon(Icons.inventory_2_outlined,
-                size: 56, color: Color(0xFF06B6D4)),
-          ),
-          const SizedBox(height: 24),
-          const Text('No Active Orders',
-              style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 20,
-                  color: Color(0xFF0891B2))),
-          const SizedBox(height: 8),
-          Text('Place an order and track it live here!',
-              style: TextStyle(color: Colors.grey.shade500, fontSize: 14)),
-          const SizedBox(height: 32),
-          ElevatedButton.icon(
-            onPressed: () => Navigator.pop(context),
-            icon: const Icon(Icons.storefront_outlined),
-            label: const Text('Order Something'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF0891B2),
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16)),
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-              elevation: 0,
+            const SizedBox(height: 24),
+            const Text('No Active Orders',
+                style: TextStyle(
+                    fontWeight: FontWeight.w900,
+                    fontSize: 22,
+                    color: Color(0xFF1E293B))),
+            const SizedBox(height: 8),
+            Text('Place an order and track it live here!',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.grey.shade500, fontSize: 14)),
+            const SizedBox(height: 40),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () => Navigator.pop(context),
+                icon: const Icon(Icons.storefront_outlined),
+                label: const Text('Order Something',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF0891B2),
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20)),
+                  padding: const EdgeInsets.symmetric(vertical: 18),
+                  elevation: 0,
+                ),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -197,7 +224,7 @@ class _ActiveOrderCard extends StatelessWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),

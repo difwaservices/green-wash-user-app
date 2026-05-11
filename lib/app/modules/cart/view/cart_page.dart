@@ -24,29 +24,26 @@ class CartPage extends ConsumerWidget {
       backgroundColor: const Color(0xFFF7F8FA),
       // ... appBar ...
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         backgroundColor: Colors.white,
-        elevation: 0.5,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF1A1A1A)),
-          onPressed: () {
-            if (Navigator.canPop(context)) {
-              Navigator.pop(context);
-            } else {
-              try {
-                ref.read(mainIndexProvider.notifier).setIndex(0);
-              } catch (_) {}
-            }
-          },
-        ),
+        elevation: 0,
         title: const Text(
           'Shopping Cart',
           style: TextStyle(
-            color: Color(0xFF1A1A1A),
-            fontWeight: FontWeight.bold,
-            fontSize: 18,
+            fontWeight: FontWeight.w900,
+            fontSize: 20,
+            color: Color(0xFF1E293B),
+            letterSpacing: -0.5,
           ),
         ),
         centerTitle: true,
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1),
+          child: Container(
+            color: const Color(0xFF00ACC1).withOpacity(0.1),
+            height: 1,
+          ),
+        ),
       ),
       body: items.isEmpty
           ? _buildEmptyCart(context, ref)
@@ -163,12 +160,12 @@ class CartPage extends ConsumerWidget {
           color: Colors.white,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: const Color(0xFF00ACC1).withValues(alpha: 0.2),
+            color: const Color(0xFF00ACC1).withOpacity(0.2),
             width: 1.0,
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.03),
+              color: Colors.black.withOpacity(0.05),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -265,17 +262,17 @@ class CartPage extends ConsumerWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-        border: Border.all(
-          color: const Color(0xFF00ACC1).withValues(alpha: 0.2),
-          width: 1.0,
-        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: Colors.black.withOpacity(0.05),
             blurRadius: 20,
             offset: const Offset(0, -4),
           ),
         ],
+        border: Border.all(
+          color: const Color(0xFF00ACC1).withOpacity(0.2),
+          width: 1.0,
+        ),
       ),
       padding: const EdgeInsets.fromLTRB(24, 24, 24, 24),
       child: SafeArea(

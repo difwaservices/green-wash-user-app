@@ -73,8 +73,8 @@ android {
 
     buildTypes {
         release {
-            // Updated to use production release keys instead of debug keys
-            signingConfig = signingConfigs.getByName("release")
+            // Temporary workaround: use debug signing because release keystore password is unknown
+            signingConfig = signingConfigs.getByName("debug")
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(

@@ -22,20 +22,29 @@ class FavoritesPage extends ConsumerWidget {
         title: const Text(
           'Favorite Products',
           style: TextStyle(
-            color: Color(0xFF1A1A1A),
-            fontWeight: FontWeight.bold,
-            fontSize: 18,
+            fontWeight: FontWeight.w900,
+            fontSize: 20,
+            color: Color(0xFF1E293B),
+            letterSpacing: -0.5,
           ),
         ),
         backgroundColor: Colors.white,
-        elevation: 0.5,
+        elevation: 0,
         centerTitle: true,
+        iconTheme: const IconThemeData(color: Color(0xFF1E293B)),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh, color: Color(0xFF06B6D4)),
             onPressed: () => ref.invalidate(favoriteProductsProvider),
           ),
         ],
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1),
+          child: Container(
+            color: const Color(0xFF00ACC1).withOpacity(0.1),
+            height: 1,
+          ),
+        ),
       ),
       body: SafeArea(
         child: productsAsync.when(
@@ -68,51 +77,61 @@ class FavoritesPage extends ConsumerWidget {
   }
 
   Widget _buildEmptyState(BuildContext context, WidgetRef ref) {
-    return SingleChildScrollView(
-      physics: const AlwaysScrollableScrollPhysics(),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 40),
       child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const SizedBox(height: 60),
-          Center(
-            child: Column(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(28),
-                  decoration: const BoxDecoration(
-                    color: Color(0xFFCFFAFE),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    Icons.favorite_outline_rounded,
-                    size: 72,
-                    color: Color(0xFF06B6D4),
-                  ),
-                ),
-                const SizedBox(height: 24),
-                const SizedBox(height: 32),
-                ElevatedButton.icon(
-                  onPressed: () {
-                    ref.read(mainIndexProvider.notifier).setIndex(0);
-                    Navigator.pop(context);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16)),
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 28, vertical: 14),
-                    elevation: 0,
-                  ),
-                  icon: const Icon(Icons.storefront_outlined),
-                  label: const Text('Explore Products',
-                      style:
-                          TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-                ),
-              ],
+          const SizedBox(height: 100),
+          Container(
+            padding: const EdgeInsets.all(28),
+            decoration: const BoxDecoration(
+              color: Color(0xFFCFFAFE),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.favorite_outline_rounded,
+              size: 72,
+              color: Color(0xFF06B6D4),
             ),
           ),
-          const SizedBox(height: 100),
+          const SizedBox(height: 24),
+          const Text(
+            'No favorites yet',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF1A1A1A),
+            ),
+          ),
+          const SizedBox(height: 12),
+          const Text(
+            'Explore our products and tap the heart icon to save your favorites!',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 14, color: Colors.grey, height: 1.5),
+          ),
+          const SizedBox(height: 32),
+          SizedBox(
+            width: double.infinity,
+            height: 54,
+            child: ElevatedButton.icon(
+              onPressed: () {
+                ref.read(mainIndexProvider.notifier).setIndex(0);
+                Navigator.pop(context);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF06B6D4),
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16)),
+                elevation: 0,
+              ),
+              icon: const Icon(Icons.storefront_outlined),
+              label: const Text('Explore Products',
+                  style:
+                      TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+            ),
+          ),
         ],
       ),
     );
@@ -180,12 +199,12 @@ class _FavProductCard extends ConsumerWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: const Color(0xFF00ACC1).withOpacity(0.1),
+          color: const Color(0xFF00ACC1).withOpacity(0.2),
           width: 1.0,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withOpacity(0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -215,7 +234,7 @@ class _FavProductCard extends ConsumerWidget {
                     borderRadius:
                         const BorderRadius.vertical(top: Radius.circular(20)),
                     child: Container(
-                      color: Colors.black.withValues(alpha: 0.45),
+                      color: Colors.black.withOpacity(0.45),
                       child: const Center(
                         child: Text(
                           'Out of Stock',
@@ -264,11 +283,11 @@ class _FavProductCard extends ConsumerWidget {
                     decoration: BoxDecoration(
                       color: isFav
                           ? Colors.red.shade50
-                          : Colors.white.withValues(alpha: 0.9),
+                          : Colors.white.withOpacity(0.9),
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.1),
+                          color: Colors.black.withOpacity(0.1),
                           blurRadius: 4,
                         ),
                       ],

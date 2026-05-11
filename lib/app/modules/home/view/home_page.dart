@@ -6,8 +6,8 @@ import '../widgets/home_header.dart';
 import '../../../data/services/wallet_service.dart';
 import '../widgets/home_banner.dart';
 import '../widgets/restaurant_list_section.dart';
-import '../widgets/communication_banner.dart';
 
+import '../widgets/active_subscriptions_section.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../provider/shop_provider.dart';
 
@@ -56,10 +56,10 @@ class HomePage extends ConsumerWidget {
                 // Banner (Horizontal Scrolling Carousel)
                 const SliverToBoxAdapter(child: HomeBanner()),
 
-                // Communication Hub Banner (Broadcasts)
-                const SliverToBoxAdapter(child: CommunicationBanner()),
+                // Active Subscriptions Section
+                const SliverToBoxAdapter(child: ActiveSubscriptionsSection()),
 
-                const SliverToBoxAdapter(child: SizedBox(height: 24)),
+                const SliverToBoxAdapter(child: SizedBox(height: 8)),
 
                 // Restaurants Section
                 const SliverToBoxAdapter(child: RestaurantListSection()),

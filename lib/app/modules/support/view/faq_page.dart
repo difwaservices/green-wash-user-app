@@ -23,9 +23,28 @@ class _FaqPageState extends ConsumerState<FaqPage> {
       final client = ref.read(apiClientProvider);
       await client.delete('/faq/$id', requiresAuth: true);
       ref.invalidate(faqsProvider);
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('FAQ deleted')));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('FAQ deleted'),
+            backgroundColor: const Color(0xFF06B6D4),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            margin: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+          ),
+        );
+      }
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Failed to delete')));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Failed to delete'),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            margin: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+          ),
+        );
+      }
     }
   }
 
@@ -60,10 +79,27 @@ class _FaqPageState extends ConsumerState<FaqPage> {
                 ref.invalidate(faqsProvider);
                 if (mounted) {
                   Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(isEditing ? 'Updated' : 'Created')));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(isEditing ? 'Updated' : 'Created'),
+                      backgroundColor: const Color(0xFF06B6D4),
+                      behavior: SnackBarBehavior.floating,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      margin: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                    ),
+                  );
                 }
               } catch (e) {
-                if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Error saving FAQ')));
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: const Text('Error saving FAQ'),
+                      behavior: SnackBarBehavior.floating,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      margin: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                    ),
+                  );
+                }
               }
             },
             child: const Text('Save'),
@@ -80,12 +116,28 @@ class _FaqPageState extends ConsumerState<FaqPage> {
     final isAdmin = userAsync.when(data: (u) => u.role == 'admin', loading: () => false, error: (_, __) => false);
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFF7F8FA),
       appBar: AppBar(
-        title: const Text('Common Questions', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text(
+          'Common Questions',
+          style: TextStyle(
+            fontWeight: FontWeight.w900,
+            fontSize: 20,
+            color: Color(0xFF1E293B),
+            letterSpacing: -0.5,
+          ),
+        ),
         backgroundColor: Colors.white,
         elevation: 0,
-        foregroundColor: Colors.black,
+        centerTitle: true,
+        iconTheme: const IconThemeData(color: Color(0xFF1E293B)),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1),
+          child: Container(
+            color: const Color(0xFF00ACC1).withOpacity(0.1),
+            height: 1,
+          ),
+        ),
         actions: [
           if (isAdmin)
              IconButton(icon: const Icon(Icons.add_circle_outline), onPressed: () => _showAddEditDialog()),
@@ -130,7 +182,7 @@ class _FaqPageState extends ConsumerState<FaqPage> {
               },
             );
           },
-          loading: () => const Center(child: CircularProgressIndicator()),
+          loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF06B6D4))),
           error: (e, _) => const Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -169,9 +221,16 @@ class _FaqTileState extends State<_FaqTile> {
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeInOut,
       decoration: BoxDecoration(
-        color: _isExpanded ? AppColors.primary.withValues(alpha: 0.02) : Colors.white,
+        color: _isExpanded ? AppColors.primary.withOpacity(0.02) : Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: _isExpanded ? AppColors.primary.withValues(alpha: 0.2) : const Color(0xFFE2E8F0)),
+        border: Border.all(color: const Color(0xFF00ACC1).withOpacity(0.2)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         children: [

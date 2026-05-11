@@ -29,30 +29,28 @@ class WalletPage extends ConsumerWidget {
     final historyAsync = ref.watch(walletHistoryProvider);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: const Color(0xFFF7F8FA),
       appBar: AppBar(
-        title: const Text('My Wallet',
-            style: TextStyle(
-                fontWeight: FontWeight.w800,
-                fontSize: 20,
-                color: Color(0xFF1E293B))),
-        backgroundColor: Colors.transparent,
+        automaticallyImplyLeading: false,
+        title: const Text(
+          'My Wallet',
+          style: TextStyle(
+            fontWeight: FontWeight.w900,
+            fontSize: 20,
+            color: Color(0xFF1E293B),
+            letterSpacing: -0.5,
+          ),
+        ),
+        backgroundColor: Colors.white,
         elevation: 0,
         centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new,
-              size: 20, color: Color(0xFF1E293B)),
-          onPressed: () {
-            if (Navigator.canPop(context)) {
-              Navigator.pop(context);
-            } else {
-              try {
-                ref.read(mainIndexProvider.notifier).setIndex(0);
-              } catch (_) {}
-            }
-          },
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1),
+          child: Container(
+            color: const Color(0xFF00ACC1).withValues(alpha: 0.1),
+            height: 1,
+          ),
         ),
-        actions: const [],
       ),
       body: RefreshIndicator(
         onRefresh: () async {
@@ -401,6 +399,7 @@ class _QuickActionButton extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
           decoration: BoxDecoration(
+            color: Colors.white,
             borderRadius: BorderRadius.circular(24),
             border: Border.all(
               color: const Color(0xFF00ACC1).withValues(alpha: 0.2),
@@ -408,7 +407,7 @@ class _QuickActionButton extends StatelessWidget {
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.03),
+                color: Colors.black.withValues(alpha: 0.05),
                 blurRadius: 10,
                 offset: const Offset(0, 4),
               ),
@@ -462,12 +461,12 @@ class _TransactionItem extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: const Color(0xFF00ACC1).withValues(alpha: 0.2),
+          color: const Color(0xFF00ACC1).withValues(alpha: 0.15),
           width: 1.0,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),

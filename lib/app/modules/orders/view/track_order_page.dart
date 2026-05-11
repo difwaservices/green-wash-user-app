@@ -1,22 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/state/auth_store.dart';
 import '../../../data/services/socket_service.dart';
 import '../../../data/services/order_service.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:intl/intl.dart';
 
 /// Maps every backend status string → a 0-based step index (0 = just placed).
 int _statusToStep(String status) {
-  switch (status.toLowerCase()) {
+  switch (status.toLowerCase().replaceAll('_', ' ').replaceAll('-', ' ')) {
     case 'pending':
       return 0;
     case 'accepted':
+    case 'rider assigned':
+    case 'riderassigned':
       return 1;
     case 'pickedup':
-    case 'picked_up':
-    case 'out_for_delivery':
+    case 'picked up':
     case 'out for delivery':
+    case 'out_for_delivery':
     case 'ontheway':
+    case 'on the way':
       return 2;
     case 'delivered':
       return 3;
@@ -26,16 +31,19 @@ int _statusToStep(String status) {
 }
 
 String _stepLabel(String status) {
-  switch (status.toLowerCase()) {
+  switch (status.toLowerCase().replaceAll('_', ' ').replaceAll('-', ' ')) {
     case 'pending':
       return 'Order Placed';
     case 'accepted':
-      return 'Accepted by Rider';
+    case 'rider assigned':
+    case 'riderassigned':
+      return 'Rider Assigned';
     case 'pickedup':
-    case 'picked_up':
-    case 'out_for_delivery':
+    case 'picked up':
     case 'out for delivery':
+    case 'out_for_delivery':
     case 'ontheway':
+    case 'on the way':
       return 'Out for Delivery';
     case 'delivered':
       return 'Delivered!';
@@ -69,6 +77,8 @@ class _TrackOrderPageState extends ConsumerState<TrackOrderPage>
   String _plantName = '';
   String _plantPhone = '';
   bool _isLoading = true;
+  String _lastRiderUpdate = '';
+  late void Function(dynamic) _onRiderLocation;
 
   // Socket callbacks
   late void Function(dynamic) _onOrderUpdate;
@@ -128,6 +138,11 @@ class _TrackOrderPageState extends ConsumerState<TrackOrderPage>
     final socketService = ref.read(socketServiceProvider);
     socketService.joinOrderRoom(widget.orderId);
 
+    final user = ref.read(currentUserProvider);
+    if (user != null) {
+      socketService.joinUserRoom(user.id);
+    }
+
     _onOrderUpdate = (data) {
       if (!mounted) return;
       final String statusStr = (data['status'] ?? '').toString();
@@ -181,8 +196,17 @@ class _TrackOrderPageState extends ConsumerState<TrackOrderPage>
       });
     };
 
+    _onRiderLocation = (data) {
+      if (!mounted) return;
+      debugPrint('📍 Rider location updated: $data');
+      setState(() {
+        _lastRiderUpdate = 'Last updated: ${DateFormat('hh:mm a').format(DateTime.now())}';
+      });
+    };
+
     socketService.onOrderUpdate(_onOrderUpdate);
     socketService.onRiderAssigned(_onRiderAssigned);
+    socketService.onRiderLocation(_onRiderLocation);
   }
 
   void _showDeliverySuccess() {
@@ -236,6 +260,7 @@ class _TrackOrderPageState extends ConsumerState<TrackOrderPage>
     socketService.leaveOrderRoom(widget.orderId);
     socketService.offOrderUpdate(_onOrderUpdate);
     socketService.offRiderAssigned(_onRiderAssigned);
+    socketService.offRiderLocation(_onRiderLocation);
     super.dispose();
   }
 
@@ -719,6 +744,20 @@ class _TrackOrderPageState extends ConsumerState<TrackOrderPage>
                     ),
                   ],
                 ),
+                if (_lastRiderUpdate.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.location_on, color: Colors.green, size: 12),
+                        const SizedBox(width: 4),
+                        Text(
+                          _lastRiderUpdate,
+                          style: const TextStyle(color: Colors.green, fontSize: 11, fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                  ),
               ],
             ),
           ),
@@ -745,16 +784,19 @@ class _TrackOrderPageState extends ConsumerState<TrackOrderPage>
   }
 
   String _getStatusSubtitle(String status) {
-    switch (status.toLowerCase()) {
+    switch (status.toLowerCase().replaceAll('_', ' ').replaceAll('-', ' ')) {
       case 'pending':
         return 'Your order has been received';
       case 'accepted':
+      case 'rider assigned':
+      case 'riderassigned':
         return 'Rider is heading to pick up your order';
       case 'pickedup':
-      case 'picked_up':
-      case 'out_for_delivery':
+      case 'picked up':
       case 'out for delivery':
+      case 'out_for_delivery':
       case 'ontheway':
+      case 'on the way':
         return 'Your order is on the way! 🛵';
       case 'delivered':
         return 'Enjoy your fresh water! 💧';

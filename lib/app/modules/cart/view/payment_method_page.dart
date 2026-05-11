@@ -187,18 +187,19 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                     child: Container(
                       padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
-                        color: AppColors.primary.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(16),
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: const Color(0xFF00ACC1).withOpacity(0.2),
+                          width: 1.0,
+                        ),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
+                            color: Colors.black.withOpacity(0.05),
                             blurRadius: 10,
                             offset: const Offset(0, 4),
                           ),
                         ],
-                        border: Border.all(
-                            color:
-                                AppColors.primary.withValues(alpha: 0.3)),
                       ),
                       child: Row(
                         children: [
@@ -244,16 +245,18 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: const Color(0xFF00ACC1).withOpacity(0.2),
+                        width: 1.0,
+                      ),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
+                          color: Colors.black.withOpacity(0.05),
                           blurRadius: 10,
                           offset: const Offset(0, 4),
                         ),
                       ],
-                      border:
-                          Border.all(color: Colors.grey.withValues(alpha: 0.1)),
                     ),
                     child: Column(
                       children: [
@@ -345,22 +348,43 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                             color: Color(0xFF1F2937))),
                     const SizedBox(height: 12),
                     Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
+                      spacing: 10,
+                      runSpacing: 10,
                       children: _frequencies.map((f) {
                         bool isSel = _frequency == f;
-                        return ChoiceChip(
-                          label: Text(f),
-                          selected: isSel,
-                          onSelected: (_) => setState(() {
+                        return GestureDetector(
+                          onTap: () => setState(() {
                             _frequency = f;
                             if (f != 'Weekly') _selectedDays = [];
                           }),
-                          selectedColor: AppColors.primary,
-                          labelStyle: TextStyle(
-                              color: isSel ? Colors.white : Colors.black,
-                              fontWeight:
-                                  isSel ? FontWeight.bold : FontWeight.normal),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                            decoration: BoxDecoration(
+                              color: isSel ? AppColors.primary : Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: isSel
+                                    ? AppColors.primary
+                                    : const Color(0xFF00ACC1).withOpacity(0.2),
+                                width: 1.0,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.05),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: Text(
+                              f,
+                              style: TextStyle(
+                                color: isSel ? Colors.white : Colors.black,
+                                fontWeight: isSel ? FontWeight.bold : FontWeight.w500,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ),
                         );
                       }).toList(),
                     ),
@@ -393,12 +417,20 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                                 color: selected
                                     ? AppColors.primary
                                     : Colors.white,
-                                borderRadius: BorderRadius.circular(10),
+                                borderRadius: BorderRadius.circular(12),
                                 border: Border.all(
                                   color: selected
                                       ? AppColors.primary
-                                      : Colors.grey.shade300,
+                                      : const Color(0xFF00ACC1).withOpacity(0.2),
+                                  width: 1.0,
                                 ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.05),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
                               ),
                               alignment: Alignment.center,
                               child: Text(short,
@@ -435,8 +467,18 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                             horizontal: 16, vertical: 14),
                         decoration: BoxDecoration(
                           color: Colors.white,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: AppColors.primary),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: const Color(0xFF00ACC1).withOpacity(0.2),
+                            width: 1.0,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.05),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
                         ),
                         child: Row(
                           children: [
@@ -488,20 +530,39 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                                 final slot = slots[index];
                                 final isSelected = _selectedSlot == slot;
                                 return Padding(
-                                  padding: const EdgeInsets.only(right: 8),
-                                  child: ChoiceChip(
-                                    label: Text(slot),
-                                    selected: isSelected,
-                                    onSelected: (val) =>
-                                        setState(() => _selectedSlot = slot),
-                                    selectedColor: AppColors.primary,
-                                    labelStyle: TextStyle(
-                                        color: isSelected
-                                            ? Colors.white
-                                            : Colors.black,
-                                        fontWeight: isSelected
-                                            ? FontWeight.bold
-                                            : FontWeight.normal),
+                                  padding: const EdgeInsets.only(right: 8, bottom: 8),
+                                  child: GestureDetector(
+                                    onTap: () => setState(() => _selectedSlot = slot),
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                                      decoration: BoxDecoration(
+                                        color: isSelected ? AppColors.primary : Colors.white,
+                                        borderRadius: BorderRadius.circular(12),
+                                        border: Border.all(
+                                          color: isSelected
+                                              ? AppColors.primary
+                                              : const Color(0xFF00ACC1).withOpacity(0.2),
+                                          width: 1.0,
+                                        ),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.black.withOpacity(0.05),
+                                            blurRadius: 10,
+                                            offset: const Offset(0, 4),
+                                          ),
+                                        ],
+                                      ),
+                                      child: Center(
+                                        child: Text(
+                                          slot,
+                                          style: TextStyle(
+                                            color: isSelected ? Colors.white : Colors.black,
+                                            fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                                            fontSize: 13,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
                                   ),
                                 );
                               },
@@ -702,11 +763,17 @@ class _TypeButton extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
           decoration: BoxDecoration(
-            color: selected ? AppColors.primary : Colors.grey.shade200,
-            borderRadius: BorderRadius.circular(12),
+            color: selected ? AppColors.primary : Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: selected
+                  ? AppColors.primary
+                  : const Color(0xFF00ACC1).withOpacity(0.2),
+              width: 1.0,
+            ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.1),
+                color: Colors.black.withOpacity(0.05),
                 blurRadius: 10,
                 offset: const Offset(0, 4),
               ),

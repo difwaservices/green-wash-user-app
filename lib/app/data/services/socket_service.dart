@@ -21,6 +21,7 @@ class SocketService {
   io.Socket? _socket;
   bool _initialized = false;
   final List<Map<String, dynamic>> _emitQueue = [];
+  final Set<String> _activeRooms = {};
   final Dio _dio = Dio();
   ProviderContainer? _container;
 
@@ -30,7 +31,7 @@ class SocketService {
     try {
       debugPrint('🚀 Poking Render server to wake up: $url');
       // Just a quick HTTP ping to wake the server up
-      await _dio.get(url);
+      await _dio.get(url, options: Options(receiveTimeout: const Duration(seconds: 5), sendTimeout: const Duration(seconds: 5)));
       debugPrint('✅ Render Poked!');
     } catch (e) {
       // Ignore errors, we just need to hit the server
@@ -46,15 +47,15 @@ class SocketService {
     final baseUrl = ApiConfig.socketUrl;
     final apiBaseUrl = ApiConfig.baseUrl;
 
-    // 1. Poke Render (both API and Socket URLs) to wake up
-    unawaited(_wakeUpRender(baseUrl));
+    // 1. Poke Render/Backend (both API and Socket URLs) to wake up (background)
+    _wakeUpRender(baseUrl);
     if (apiBaseUrl.isNotEmpty) {
-      unawaited(_wakeUpRender(apiBaseUrl));
+      _wakeUpRender(apiBaseUrl);
     }
 
-    // Give the server more time to boot up if it's cold
-    debugPrint('⏳ Giving Render 12s head start to boot...');
-    await Future.delayed(const Duration(seconds: 12));
+    // REMOVED: 12s delay. It's too long and causes "not working immediately" issues.
+    // The socket's internal reconnection logic will handle it if the server is still booting.
+    debugPrint('🔌 Initializing socket for $baseUrl...');
 
     _socket?.disconnect();
     _socket?.dispose();
@@ -62,23 +63,23 @@ class SocketService {
     final Map<String, dynamic> headers =
         token != null ? {'Authorization': 'Bearer $token'} : {};
 
-    debugPrint('🔌 Initializing socket with autoConnect...');
     _socket = io.io(
       baseUrl,
       <String, dynamic>{
-        'transports': ['polling', 'websocket'],
+        'transports': ['websocket', 'polling'], // websocket first for speed
         'autoConnect': true,
         'extraHeaders': headers,
         'reconnection': true,
-        'reconnectionAttempts': 30, // Increase for very slow cold starts
-        'reconnectionDelay': 8000,
-        'timeout': 180000, // 3 minutes timeout
+        'reconnectionAttempts': 50,
+        'reconnectionDelay': 2000, // Reduced from 8000 for faster recovery
+        'timeout': 60000, // 1 minute timeout
       },
     );
 
 
     _socket!.onConnect((_) {
       debugPrint('✅ SocketService connected');
+      _rejoinRooms();
       _flushQueue();
     });
 
@@ -112,7 +113,10 @@ class SocketService {
     _socket!.onError((err) => debugPrint('💥 SocketService error: $err'));
 
     // Reconnection logs
-    _socket!.onReconnect((_) => debugPrint('♻️ SocketService reconnected'));
+    _socket!.onReconnect((_) {
+      debugPrint('♻️ SocketService reconnected');
+      _rejoinRooms();
+    });
     _socket!.onReconnectAttempt((count) =>
         debugPrint('🔄 SocketService reconnection attempt: $count'));
     _socket!.onReconnectError(
@@ -121,6 +125,14 @@ class SocketService {
         (_) => debugPrint('🛑 SocketService reconnection failed'));
 
     _initialized = true;
+  }
+
+  void _rejoinRooms() {
+    if (_activeRooms.isEmpty) return;
+    debugPrint('🔄 Rejoining ${_activeRooms.length} active rooms');
+    for (final room in _activeRooms) {
+      _socket?.emit('join', room);
+    }
   }
 
   void _flushQueue() {
@@ -145,48 +157,64 @@ class SocketService {
   /// JOIN user room — call immediately after login for all-orders updates.
   /// `socket.emit("join", "user_{userId}")`
   void joinUserRoom(String userId) {
-    _emit('join', 'user_$userId');
-    debugPrint('👤 Joined user room: user_$userId');
+    final room = 'user_$userId';
+    _activeRooms.add(room);
+    _emit('join', room);
+    debugPrint('👤 Joined user room: $room');
   }
 
   void leaveUserRoom(String userId) {
-    _emit('leave', 'user_$userId');
-    debugPrint('👤 Left user room: user_$userId');
+    final room = 'user_$userId';
+    _activeRooms.remove(room);
+    _emit('leave', room);
+    debugPrint('👤 Left user room: $room');
   }
 
   /// JOIN rider room — rider receives new order assignments here.
   /// `socket.emit("join", "rider_{riderId}")`
   void joinRiderRoom(String riderId) {
-    _emit('join', 'rider_$riderId');
-    debugPrint('🛵 Joined rider room: rider_$riderId');
+    final room = 'rider_$riderId';
+    _activeRooms.add(room);
+    _emit('join', room);
+    debugPrint('🛵 Joined rider room: $room');
   }
 
   void leaveRiderRoom(String riderId) {
-    _emit('leave', 'rider_$riderId');
-    debugPrint('🛵 Left rider room: rider_$riderId');
+    final room = 'rider_$riderId';
+    _activeRooms.remove(room);
+    _emit('leave', room);
+    debugPrint('🛵 Left rider room: $room');
   }
 
   /// JOIN specific order room — for real-time status during tracking.
   /// `socket.emit("join", "order_{orderId}")`
   void joinOrderRoom(String orderId) {
-    _emit('join', 'order_$orderId');
-    debugPrint('📦 Joined order room: order_$orderId');
+    final room = 'order_$orderId';
+    _activeRooms.add(room);
+    _emit('join', room);
+    debugPrint('📦 Joined order room: $room');
   }
 
   void leaveOrderRoom(String orderId) {
-    _emit('leave', 'order_$orderId');
+    final room = 'order_$orderId';
+    _activeRooms.remove(room);
+    _emit('leave', room);
   }
 
   /// JOIN retailer notifications room — for real-time app notifications.
   /// `socket.emit("join", "retailer_notifications_{userId}")`
   void joinRetailerNotificationRoom(String userId) {
-    _emit('join', 'retailer_notifications_$userId');
-    debugPrint('🔔 Joined retailer notification room: retailer_notifications_$userId');
+    final room = 'retailer_notifications_$userId';
+    _activeRooms.add(room);
+    _emit('join', room);
+    debugPrint('🔔 Joined retailer notification room: $room');
   }
 
   void leaveRetailerNotificationRoom(String userId) {
-    _emit('leave', 'retailer_notifications_$userId');
-    debugPrint('🔔 Left retailer notification room: retailer_notifications_$userId');
+    final room = 'retailer_notifications_$userId';
+    _activeRooms.remove(room);
+    _emit('leave', room);
+    debugPrint('🔔 Left retailer notification room: $room');
   }
 
   // ── Rider location broadcasting ──────────────────────────────────────────
@@ -229,6 +257,18 @@ class SocketService {
       _socket?.off(_riderAssignedEvent, callback);
     } else {
       _socket?.off(_riderAssignedEvent);
+    }
+  }
+
+  void onRiderLocation(void Function(dynamic) callback) {
+    _socket?.on('riderLocation', callback);
+  }
+
+  void offRiderLocation([void Function(dynamic)? callback]) {
+    if (callback != null) {
+      _socket?.off('riderLocation', callback);
+    } else {
+      _socket?.off('riderLocation');
     }
   }
 

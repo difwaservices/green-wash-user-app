@@ -29,14 +29,29 @@ class _WalletStatementScreenState extends ConsumerState<WalletStatementScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF7F8FA),
       appBar: AppBar(
-        title: const Text('Wallet Statement',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+        title: const Text(
+          'Wallet Statement',
+          style: TextStyle(
+            fontWeight: FontWeight.w900,
+            fontSize: 20,
+            color: Color(0xFF1E293B),
+            letterSpacing: -0.5,
+          ),
+        ),
         backgroundColor: Colors.white,
-        elevation: 0.5,
-        foregroundColor: Colors.black,
+        elevation: 0,
+        centerTitle: true,
+        iconTheme: const IconThemeData(color: Color(0xFF1E293B)),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1),
+          child: Container(
+            color: const Color(0xFF00ACC1).withValues(alpha: 0.1),
+            height: 1,
+          ),
+        ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.download_rounded),
+            icon: const Icon(Icons.download_rounded, color: Color(0xFF00ACC1)),
             onPressed: () => _showDownloadOptions(context),
             tooltip: 'Download Statement',
           ),
@@ -92,8 +107,19 @@ class _WalletStatementScreenState extends ConsumerState<WalletStatementScreen> {
             child: Container(
               height: 48,
               decoration: BoxDecoration(
-                color: const Color(0xFFF1F4F8),
+                color: Colors.white,
                 borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: AppColors.primary.withValues(alpha: 0.2),
+                  width: 1.0,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
               child: TextField(
                 onChanged: (val) => setState(() => _searchQuery = val),
@@ -129,10 +155,14 @@ class _WalletStatementScreenState extends ConsumerState<WalletStatementScreen> {
                     onSelected: (val) =>
                         setState(() => _selectedDateFilter = filter),
                     selectedColor: AppColors.primary,
-                    backgroundColor: const Color(0xFFF1F4F8),
+                    backgroundColor: Colors.white,
                     elevation: 0,
                     pressElevation: 0,
-                    side: BorderSide.none,
+                    side: BorderSide(
+                      color: isSelected 
+                          ? AppColors.primary 
+                          : Colors.grey.withValues(alpha: 0.2),
+                    ),
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(20)),
                   ),
@@ -159,10 +189,10 @@ class _WalletStatementScreenState extends ConsumerState<WalletStatementScreen> {
                     selected: true,
                     onSelected: (val) {},
                     selectedColor: AppColors.primaryDark,
-                    backgroundColor: const Color(0xFFF1F4F8),
+                    backgroundColor: Colors.white,
                     elevation: 0,
                     pressElevation: 0,
-                    side: BorderSide.none,
+                    side: const BorderSide(color: AppColors.primaryDark),
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(20)),
                   ),
@@ -224,13 +254,24 @@ class _WalletStatementScreenState extends ConsumerState<WalletStatementScreen> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: const Color(0xFF1A1A1A),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: AppColors.primary.withValues(alpha: 0.2),
+          width: 1.0,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         children: [
           const Text('Statement Summary',
-              style: TextStyle(color: Colors.white70, fontSize: 13)),
+              style: TextStyle(color: Colors.grey, fontSize: 13)),
           const SizedBox(height: 12),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -238,7 +279,7 @@ class _WalletStatementScreenState extends ConsumerState<WalletStatementScreen> {
               _buildSummaryItem(
                   'Total money added', '+₹${totalCredit.toStringAsFixed(0)}',
                   AppColors.primary),
-              Container(width: 1, height: 30, color: Colors.white24),
+              Container(width: 1, height: 30, color: Colors.grey.shade200),
               _buildSummaryItem('Expense', '-₹${totalDebit.toStringAsFixed(0)}',
                   Colors.redAccent),
             ],
@@ -252,7 +293,7 @@ class _WalletStatementScreenState extends ConsumerState<WalletStatementScreen> {
     return Column(
       children: [
         Text(label,
-            style: const TextStyle(color: Colors.white54, fontSize: 11)),
+            style: const TextStyle(color: Colors.grey, fontSize: 11)),
         const SizedBox(height: 4),
         Text(value,
             style: TextStyle(
@@ -376,7 +417,17 @@ class _TransactionItemWidget extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFF1F4F8)),
+        border: Border.all(
+          color: AppColors.primary.withValues(alpha: 0.2),
+          width: 1.0,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Row(
         children: [

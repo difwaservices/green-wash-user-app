@@ -89,7 +89,7 @@ class ProductDetailsPage extends ConsumerWidget {
                 leading: Padding(
                   padding: const EdgeInsets.only(left: 16),
                   child: CircleAvatar(
-                    backgroundColor: Colors.white.withValues(alpha: 0.9),
+                    backgroundColor: Colors.white.withOpacity(0.9),
                     child: IconButton(
                       icon: const Icon(Icons.arrow_back, color: Colors.black87),
                       onPressed: () => Navigator.pop(context),
@@ -100,7 +100,7 @@ class ProductDetailsPage extends ConsumerWidget {
                   Padding(
                     padding: const EdgeInsets.only(right: 16),
                     child: CircleAvatar(
-                      backgroundColor: Colors.white.withValues(alpha: 0.9),
+                      backgroundColor: Colors.white.withOpacity(0.9),
                       child: IconButton(
                         icon: Icon(
                           product.isFavorite
@@ -264,13 +264,16 @@ class ProductDetailsPage extends ConsumerWidget {
               decoration: BoxDecoration(
                 color: Colors.white,
                 boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 8,
-                    offset: const Offset(0, -2),
-                  ),
-                ],
-                border: Border(top: BorderSide(color: Colors.grey.shade100)),
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, -4),
+                ),
+              ],
+              border: Border.all(
+                color: const Color(0xFF00ACC1).withOpacity(0.2),
+                width: 1.0,
+              ),
               ),
               child: SafeArea(
                 top: false,
@@ -305,7 +308,7 @@ class ProductDetailsPage extends ConsumerWidget {
                                 borderRadius: BorderRadius.circular(16),
                                 border: Border.all(
                                     color: AppColors.primary
-                                        .withValues(alpha: 0.2))),
+                                        .withOpacity(0.2))),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [

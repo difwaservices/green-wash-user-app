@@ -228,12 +228,12 @@ class _OrderCard extends ConsumerWidget {
           color: Colors.white,
           borderRadius: BorderRadius.circular(24),
           border: Border.all(
-            color: const Color(0xFF00ACC1).withValues(alpha: 0.2),
+            color: const Color(0xFF00ACC1).withOpacity(0.2),
             width: 1.0,
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.03),
+              color: Colors.black.withOpacity(0.05),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),

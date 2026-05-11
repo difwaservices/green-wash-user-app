@@ -249,7 +249,7 @@ class _ShippingAddressPageState extends ConsumerState<ShippingAddressPage> {
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: AppColors.accentGreen.withValues(alpha: 0.1),
+              color: AppColors.accentGreen.withOpacity(0.1),
               shape: BoxShape.circle,
             ),
             child: Icon(Icons.location_off_rounded,
@@ -282,12 +282,12 @@ class _ShippingAddressPageState extends ConsumerState<ShippingAddressPage> {
           color: Colors.white,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: isSelected ? AppColors.accentGreen : Colors.transparent,
-            width: 2,
+            color: isSelected ? AppColors.accentGreen : const Color(0xFF00ACC1).withOpacity(0.2),
+            width: isSelected ? 2 : 1,
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: Colors.black.withOpacity(0.05),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -302,7 +302,7 @@ class _ShippingAddressPageState extends ConsumerState<ShippingAddressPage> {
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color: isSelected
-                      ? AppColors.accentGreen.withValues(alpha: 0.1)
+                      ? AppColors.accentGreen.withOpacity(0.1)
                       : const Color(0xFFF1F4F8),
                   shape: BoxShape.circle,
                 ),
@@ -343,9 +343,9 @@ class _ShippingAddressPageState extends ConsumerState<ShippingAddressPage> {
                           padding: const EdgeInsets.symmetric(
                               horizontal: 6, vertical: 2),
                           decoration: BoxDecoration(
-                            color: AppColors.accentGreen.withValues(alpha: 0.1),
+                            color: AppColors.accentGreen.withOpacity(0.1),
                             borderRadius: BorderRadius.circular(4),
-                            border: Border.all(color: AppColors.accentGreen.withValues(alpha: 0.3)),
+                            border: Border.all(color: AppColors.accentGreen.withOpacity(0.3)),
                           ),
                           child: Text(
                             'SELECTED',
@@ -446,7 +446,7 @@ class _ShippingAddressPageState extends ConsumerState<ShippingAddressPage> {
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Icon(Icons.edit_location_alt_rounded,
-                        color: AppColors.accentGreen.withValues(alpha: 0.8),
+                        color: AppColors.accentGreen.withOpacity(0.8),
                         size: 20),
                   ),
                 ),
@@ -472,7 +472,7 @@ class _ShippingAddressPageState extends ConsumerState<ShippingAddressPage> {
         padding: const EdgeInsets.symmetric(vertical: 20),
         decoration: BoxDecoration(
           border: Border.all(
-            color: AppColors.accentGreen.withValues(alpha: 0.3),
+            color: AppColors.accentGreen.withOpacity(0.3),
             style: BorderStyle.solid,
             width: 1.5,
           ),
@@ -529,9 +529,9 @@ class _ShippingAddressPageState extends ConsumerState<ShippingAddressPage> {
               child: Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: AppColors.accentGreen.withValues(alpha: 0.05),
+                  color: AppColors.accentGreen.withOpacity(0.05),
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.accentGreen.withValues(alpha: 0.2)),
+                  border: Border.all(color: AppColors.accentGreen.withOpacity(0.2)),
                 ),
                 child: Row(
                   children: [
@@ -581,7 +581,7 @@ class _ShippingAddressPageState extends ConsumerState<ShippingAddressPage> {
                             ? [
                                 BoxShadow(
                                   color: AppColors.accentGreen
-                                      .withValues(alpha: 0.2),
+                                      .withOpacity(0.2),
                                   blurRadius: 10,
                                   offset: const Offset(0, 4),
                                 )
@@ -688,7 +688,7 @@ class _ShippingAddressPageState extends ConsumerState<ShippingAddressPage> {
                   Switch.adaptive(
                     value: _isDefault,
                     activeTrackColor:
-                        AppColors.accentGreen.withValues(alpha: 0.5),
+                        AppColors.accentGreen.withOpacity(0.5),
                     activeThumbColor: AppColors.accentGreen,
                     onChanged: (val) => setState(() => _isDefault = val),
                   ),
