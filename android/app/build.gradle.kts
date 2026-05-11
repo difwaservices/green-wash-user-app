@@ -50,8 +50,8 @@ android {
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = 24
         targetSdk = 36
-        versionCode = 44
-        versionName = "1.0.43"
+        versionCode = 47
+        versionName = "1.0.46"
 
         // Inject Maps API key into AndroidManifest.xml as ${MAPS_API_KEY}
         manifestPlaceholders["MAPS_API_KEY"] = mapsApiKey
@@ -73,8 +73,7 @@ android {
 
     buildTypes {
         release {
-            // Temporary workaround: use debug signing because release keystore password is unknown
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(
