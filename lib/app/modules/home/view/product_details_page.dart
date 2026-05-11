@@ -130,14 +130,14 @@ class ProductDetailsPage extends ConsumerWidget {
                           : product.image.startsWith('http')
                               ? Image.network(
                                   product.image,
-                                  fit: BoxFit.cover,
+                                  fit: BoxFit.contain,
                                   errorBuilder: (_, __, ___) => const Center(
                                       child: Icon(Icons.water_drop_outlined,
                                           size: 64, color: Colors.grey)),
                                 )
                               : Image.asset(
                                   product.image,
-                                  fit: BoxFit.cover,
+                                  fit: BoxFit.contain,
                                   errorBuilder: (_, __, ___) => const Center(
                                       child: Icon(Icons.water_drop_outlined,
                                           size: 64, color: Colors.grey)),

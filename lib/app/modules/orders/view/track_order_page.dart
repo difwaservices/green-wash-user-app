@@ -13,6 +13,7 @@ int _statusToStep(String status) {
     case 'pending':
       return 0;
     case 'accepted':
+    case 'working':
     case 'rider assigned':
     case 'riderassigned':
       return 1;
@@ -35,9 +36,10 @@ String _stepLabel(String status) {
     case 'pending':
       return 'Order Placed';
     case 'accepted':
+    case 'working':
     case 'rider assigned':
     case 'riderassigned':
-      return 'Rider Assigned';
+      return 'Rider Working';
     case 'pickedup':
     case 'picked up':
     case 'out for delivery':
@@ -186,12 +188,12 @@ class _TrackOrderPageState extends ConsumerState<TrackOrderPage>
 
     _onRiderAssigned = (data) {
       if (!mounted) return;
-      debugPrint('🛵 Rider assigned: ${data['riderName']}');
+      debugPrint('🛵 Rider assigned/working: ${data['riderName']}');
       setState(() {
         _riderName = data['riderName']?.toString() ?? _riderName;
         _riderPhone = data['riderPhone']?.toString() ?? _riderPhone;
         if (_currentStatus.toLowerCase() == 'pending') {
-          _currentStatus = 'Accepted';
+          _currentStatus = 'Working';
         }
       });
     };

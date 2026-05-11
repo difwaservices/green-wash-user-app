@@ -218,15 +218,18 @@ class _FavProductCard extends ConsumerWidget {
               ClipRRect(
                 borderRadius:
                     const BorderRadius.vertical(top: Radius.circular(20)),
-                child: p.primaryImage.isNotEmpty
-                    ? Image.network(
-                        p.primaryImage,
-                        height: 120,
-                        width: double.infinity,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => _placeholder(),
-                      )
-                    : _placeholder(),
+                child: Container(
+                  height: 120,
+                  width: double.infinity,
+                  color: const Color(0xFFF1F5F9),
+                  child: p.primaryImage.isNotEmpty
+                      ? Image.network(
+                          p.primaryImage,
+                          fit: BoxFit.contain,
+                          errorBuilder: (_, __, ___) => _placeholder(),
+                        )
+                      : _placeholder(),
+                ),
               ),
               if (p.stockStatus == 'Out of Stock' || p.stock <= 0)
                 Positioned.fill(

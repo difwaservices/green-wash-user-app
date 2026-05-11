@@ -18,15 +18,32 @@ class ActiveOrdersPage extends ConsumerStatefulWidget {
 }
 
 class _ActiveOrdersPageState extends ConsumerState<ActiveOrdersPage> {
+  late void Function(dynamic) _onOrderUpdate;
+  
   @override
   void initState() {
     super.initState();
+    _onOrderUpdate = (data) {
+      if (!mounted) return;
+      debugPrint('📦 Order status updated via socket: $data');
+      ref.invalidate(activeOrdersProvider);
+    };
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final user = ref.read(currentUserProvider);
       if (user != null) {
-        ref.read(socketServiceProvider).joinUserRoom(user.id);
+        final socket = ref.read(socketServiceProvider);
+        socket.joinUserRoom(user.id);
+        socket.onOrderUpdate(_onOrderUpdate);
       }
     });
+  }
+
+  @override
+  void dispose() {
+    final socket = ref.read(socketServiceProvider);
+    socket.offOrderUpdate(_onOrderUpdate);
+    super.dispose();
   }
 
   @override
@@ -497,8 +514,9 @@ class _ActiveOrderCard extends StatelessWidget {
       case 'pending':
         return 'PENDING';
       case 'accepted':
+      case 'working':
       case 'rider_assigned':
-        return 'RIDER ASSIGNED';
+        return 'WORKING';
       case 'pickedup':
       case 'picked_up':
         return 'PICKED UP';

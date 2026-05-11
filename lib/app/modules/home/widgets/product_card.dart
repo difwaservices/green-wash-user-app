@@ -102,21 +102,23 @@ class ProductCard extends ConsumerWidget {
                         borderRadius: const BorderRadius.vertical(
                           top: Radius.circular(16),
                         ),
-                        child: Image.network(
-                          product.image,
-                          height: 100,
+                        child: Container(
+                          height: 120, // Increased height slightly for better visibility
                           width: double.infinity,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Container(
-                              height: 100,
-                              color: Colors.grey.shade200,
-                              child: const Center(
-                                child: Icon(Icons.broken_image,
-                                    color: Colors.grey),
-                              ),
-                            );
-                          },
+                          color: const Color(0xFFF1F5F9), // Light grey background
+                          child: Image.network(
+                            product.image,
+                            fit: BoxFit.contain,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Container(
+                                color: Colors.grey.shade200,
+                                child: const Center(
+                                  child: Icon(Icons.broken_image,
+                                      color: Colors.grey),
+                                ),
+                              );
+                            },
+                          ),
                         ),
                       ),
                     ),
