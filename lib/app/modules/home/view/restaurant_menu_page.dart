@@ -394,7 +394,7 @@ class _RestaurantMenuPageState extends ConsumerState<RestaurantMenuPage> {
   Widget _localHero() {
     return Image.asset(
       _heroImage,
-      fit: BoxFit.cover,
+      fit: BoxFit.contain,
       errorBuilder: (_, __, ___) => Container(
         color: Colors.grey.shade200,
         child: const Center(
@@ -473,7 +473,7 @@ class _ProductCardState extends ConsumerState<_ProductCard> {
                           p.primaryImage,
                           height: 110,
                           width: double.infinity,
-                          fit: BoxFit.cover,
+                          fit: BoxFit.contain,
                           errorBuilder: (_, __, ___) => _imagePlaceholder(),
                         )
                       : _imagePlaceholder(),

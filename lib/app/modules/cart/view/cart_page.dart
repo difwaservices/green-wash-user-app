@@ -185,7 +185,7 @@ class CartPage extends ConsumerWidget {
                   child: item.image.startsWith('http')
                       ? Image.network(
                           item.image,
-                          fit: BoxFit.cover,
+                          fit: BoxFit.contain,
                           errorBuilder: (context, error, stackTrace) =>
                               const Icon(
                             Icons.water_drop_outlined,
@@ -195,7 +195,7 @@ class CartPage extends ConsumerWidget {
                         )
                       : Image.asset(
                           item.image,
-                          fit: BoxFit.cover,
+                          fit: BoxFit.contain,
                           errorBuilder: (context, error, stackTrace) =>
                               const Icon(
                             Icons.water_drop_outlined,

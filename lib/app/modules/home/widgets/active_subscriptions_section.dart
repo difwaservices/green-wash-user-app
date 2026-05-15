@@ -116,7 +116,7 @@ class _SubscriptionCard extends ConsumerWidget {
                       subscription.productImage,
                       width: 60,
                       height: 60,
-                      fit: BoxFit.cover,
+                      fit: BoxFit.contain,
                       errorBuilder: (_, __, ___) => _placeholder(),
                     )
                   : _placeholder(),

@@ -538,7 +538,7 @@ class _ActiveOrderCard extends StatelessWidget {
     if (imageUrl.startsWith('http')) {
       return Image.network(
         imageUrl,
-        fit: BoxFit.cover,
+        fit: BoxFit.contain,
         errorBuilder: (_, __, ___) => _fallbackImage(),
       );
     }
