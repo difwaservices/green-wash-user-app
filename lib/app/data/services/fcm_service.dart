@@ -37,10 +37,12 @@ class FCMService {
       FlutterLocalNotificationsPlugin();
 
   static const _androidChannel = AndroidNotificationChannel(
-    'difwa_high_importance',
+    'difwa_high_importance_v3',
     'Difwa Notifications',
     description: 'Important notifications for orders, OTPs, and updates',
     importance: Importance.max,
+    sound: RawResourceAndroidNotificationSound('bell_sound'),
+    playSound: true,
   );
 
   static ProviderContainer? _container;
@@ -59,9 +61,9 @@ class FCMService {
     const androidSettings =
         AndroidInitializationSettings('@mipmap/ic_launcher');
     const iosSettings = DarwinInitializationSettings(
-      requestAlertPermission: false,
-      requestBadgePermission: false,
-      requestSoundPermission: false,
+      requestAlertPermission: true,
+      requestBadgePermission: true,
+      requestSoundPermission: true,
     );
     await _localNotifications.initialize(
       const InitializationSettings(android: androidSettings, iOS: iosSettings),
@@ -248,8 +250,13 @@ class FCMService {
             importance: Importance.max,
             priority: Priority.high,
             icon: '@mipmap/ic_launcher',
+            sound: const RawResourceAndroidNotificationSound('bell_sound'),
+            playSound: true,
           ),
-          iOS: const DarwinNotificationDetails(),
+          iOS: const DarwinNotificationDetails(
+            presentSound: true,
+            sound: 'bell_sound.mp3',
+          ),
         ),
         payload: payload,
       );

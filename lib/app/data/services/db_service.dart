@@ -758,10 +758,16 @@ class CartProvider extends ChangeNotifier {
     }
 
     final deliveryAddress = {
+      'fullName': addr.fullName.isNotEmpty ? addr.fullName : _userProfile.name,
       'address': addr.street,
+      'fullAddress': addr.street,
+      'street': addr.street,
       'city': cityName,
       'state': stateName,
       'pincode': pincodeStr,
+      'phone': addr.email.isNotEmpty ? addr.email : _userProfile.phone, // fallback or direct if stored
+      'phoneNumber': _userProfile.phone,
+      'label': addr.title,
     };
 
     final itemsMap = _items

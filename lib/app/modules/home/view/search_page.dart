@@ -257,11 +257,17 @@ class _SearchPageState extends ConsumerState<SearchPage> {
         return _buildEmptyState(
             'No products match these filters', Icons.filter_list_off);
       }
+      final double screenWidth = MediaQuery.of(context).size.width;
+      final int crossAxisCount = screenWidth > 900 ? 4 : (screenWidth > 600 ? 3 : 2);
+      final double itemWidth = (screenWidth - 32 - (crossAxisCount - 1) * 16) / crossAxisCount;
+      final double targetHeight = (itemWidth * 1.5).clamp(230.0, 265.0);
+      final double childAspectRatio = itemWidth / targetHeight;
+
       return GridView.builder(
         padding: const EdgeInsets.all(16),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          childAspectRatio: 0.72,
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: crossAxisCount,
+          childAspectRatio: childAspectRatio,
           crossAxisSpacing: 16,
           mainAxisSpacing: 16,
         ),

@@ -116,6 +116,12 @@ class _RestaurantMenuPageState extends ConsumerState<RestaurantMenuPage> {
     final cart = CartProviderScope.of(context);
     final isShopActive = currentShop.isShopActive;
 
+    final double screenWidth = MediaQuery.of(context).size.width;
+    final int crossAxisCount = screenWidth > 900 ? 4 : (screenWidth > 600 ? 3 : 2);
+    final double itemWidth = (screenWidth - 32 - (crossAxisCount - 1) * 12) / crossAxisCount;
+    final double targetHeight = (itemWidth * 1.45).clamp(215.0, 250.0);
+    final double childAspectRatio = itemWidth / targetHeight;
+
     // Determine the distance string
     String distanceStr = '';
     // Priority 1: User's explicitly selected address
@@ -323,9 +329,9 @@ class _RestaurantMenuPageState extends ConsumerState<RestaurantMenuPage> {
                                   const EdgeInsets.symmetric(horizontal: 16),
                               sliver: SliverGrid(
                                 gridDelegate:
-                                    const SliverGridDelegateWithFixedCrossAxisCount(
-                                  crossAxisCount: 2,
-                                  childAspectRatio: 0.65,
+                                    SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: crossAxisCount,
+                                  childAspectRatio: childAspectRatio,
                                   crossAxisSpacing: 12,
                                   mainAxisSpacing: 12,
                                 ),
@@ -567,7 +573,7 @@ class _ProductCardState extends ConsumerState<_ProductCard> {
               ),
             ),
 
-            const SizedBox(height: 8),
+            const Spacer(),
 
             // ── Price + Add to Cart ──────────────────────────────────────
             Padding(

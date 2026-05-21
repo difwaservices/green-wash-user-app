@@ -62,11 +62,17 @@ class FavoritesPage extends ConsumerWidget {
 
   Widget _buildGrid(
       BuildContext context, WidgetRef ref, List<ShopProduct> products) {
+    final double screenWidth = MediaQuery.of(context).size.width;
+    final int crossAxisCount = screenWidth > 900 ? 4 : (screenWidth > 600 ? 3 : 2);
+    final double itemWidth = (screenWidth - 32 - (crossAxisCount - 1) * 14) / crossAxisCount;
+    final double targetHeight = (itemWidth * 1.5).clamp(230.0, 265.0);
+    final double childAspectRatio = itemWidth / targetHeight;
+
     return GridView.builder(
       padding: const EdgeInsets.fromLTRB(16, 20, 16, 100),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        childAspectRatio: 0.72,
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: crossAxisCount,
+        childAspectRatio: childAspectRatio,
         crossAxisSpacing: 14,
         mainAxisSpacing: 14,
       ),

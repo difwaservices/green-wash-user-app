@@ -8,6 +8,7 @@ import '../../../core/constants/app_images.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/state/auth_store.dart';
 import '../../../data/services/socket_service.dart';
+import '../../../data/services/db_service.dart';
 import 'track_order_page.dart';
 
 class ActiveOrdersPage extends ConsumerStatefulWidget {
@@ -209,12 +210,12 @@ class _ActiveOrdersPageState extends ConsumerState<ActiveOrdersPage> {
 
 // ── Order Card ─────────────────────────────────────────────────────────────────
 
-class _ActiveOrderCard extends StatelessWidget {
+class _ActiveOrderCard extends ConsumerWidget {
   final UserOrder order;
   const _ActiveOrderCard({required this.order});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final String rawId = order.id;
     final String orderId = rawId.length > 8
         ? rawId.substring(rawId.length - 8).toUpperCase()
@@ -256,6 +257,7 @@ class _ActiveOrderCard extends StatelessWidget {
                 orderId: order.id,
                 status: status,
                 deliveryAddress: order.deliveryAddressMap,
+                deliveryAddressStr: order.deliveryAddressStr,
               ),
             ),
           );
@@ -456,6 +458,7 @@ class _ActiveOrderCard extends StatelessWidget {
                   ),
                 ),
                 child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Icon(Icons.location_on_outlined,
                         color: Colors.grey, size: 24),
@@ -467,12 +470,275 @@ class _ActiveOrderCard extends StatelessWidget {
                           const Text('Delivery Address',
                               style:
                                   TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.w500)),
-                          const SizedBox(height: 4),
-                          Text(deliveryAddress,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                  fontWeight: FontWeight.w500, fontSize: 13, color: Colors.black87)),
+                          const SizedBox(height: 8),
+                          Builder(
+                            builder: (context) {
+                              final addr = order.deliveryAddressMap;
+                              final displayStr = order.deliveryAddressStr;
+                                                            if (addr == null) {
+                                 String street = displayStr ?? '';
+                                 String city = '';
+                                 String state = '';
+                                 String pincode = '';
+                                 String label = '';
+                                 String fullName = '';
+                                 String phone = '';
+
+                                 if (street.isNotEmpty) {
+                                   try {
+                                     final cartProvider = CartProviderScope.of(context);
+                                     final matched = cartProvider.addresses.firstWhere(
+                                       (a) => a.street.toLowerCase().trim() == street.toLowerCase().trim() ||
+                                              street.toLowerCase().contains(a.street.toLowerCase().trim()),
+                                       orElse: () => UserAddress(id: '', title: '', street: '', details: ''),
+                                     );
+                                     if (matched.id.isNotEmpty) {
+                                       street = matched.street;
+                                       label = matched.title;
+                                       fullName = matched.fullName;
+                                       final parts = matched.details.split(',');
+                                       if (parts.isNotEmpty) city = parts[0].trim();
+                                       if (parts.length > 1) {
+                                         final stateParts = parts[1].trim().split(' ');
+                                         if (stateParts.length > 1) {
+                                           pincode = stateParts.last;
+                                           state = stateParts.sublist(0, stateParts.length - 1).join(' ');
+                                         } else {
+                                           state = parts[1].trim();
+                                         }
+                                       }
+                                     }
+                                   } catch (_) {}
+                                 }
+
+                                 if (city.isNotEmpty || state.isNotEmpty || pincode.isNotEmpty) {
+                                   final user = ref.read(currentUserProvider);
+                                   if (fullName.isEmpty && user != null) {
+                                     fullName = user.fullName;
+                                   }
+                                   if (fullName.isEmpty) {
+                                     fullName = 'Unknown Recipient';
+                                   }
+                                   if (phone.isEmpty && user != null) {
+                                     phone = user.phoneNumber;
+                                   }
+
+                                   return Column(
+                                     crossAxisAlignment: CrossAxisAlignment.start,
+                                     children: [
+                                       if (label.isNotEmpty) ...[
+                                         Container(
+                                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                           decoration: BoxDecoration(
+                                             color: const Color(0xFFCFFAFE),
+                                             borderRadius: BorderRadius.circular(4),
+                                           ),
+                                           child: Text(
+                                             label.toUpperCase(),
+                                             style: const TextStyle(
+                                               color: Color(0xFF06B6D4),
+                                               fontSize: 9,
+                                               fontWeight: FontWeight.bold,
+                                             ),
+                                           ),
+                                         ),
+                                         const SizedBox(height: 4),
+                                       ],
+                                       if (fullName.isNotEmpty) ...[
+                                         Text(
+                                           fullName,
+                                           style: const TextStyle(
+                                             fontWeight: FontWeight.bold,
+                                             fontSize: 13,
+                                             color: Color(0xFF4B5563),
+                                           ),
+                                         ),
+                                         const SizedBox(height: 2),
+                                       ],
+                                       if (street.isNotEmpty) ...[
+                                         Text(
+                                           street,
+                                           style: const TextStyle(
+                                             color: Colors.grey,
+                                             fontSize: 12,
+                                             height: 1.3,
+                                           ),
+                                         ),
+                                       ],
+                                       if (city.isNotEmpty || state.isNotEmpty || pincode.isNotEmpty)
+                                         Text(
+                                           '$city${city.isNotEmpty ? ", " : ""}$state $pincode',
+                                           style: const TextStyle(
+                                             color: Color(0xFF9CA3AF),
+                                             fontSize: 11,
+                                             height: 1.2,
+                                           ),
+                                         ),
+                                       if (phone.isNotEmpty) ...[
+                                         const SizedBox(height: 4),
+                                         Text(
+                                           phone,
+                                           style: const TextStyle(
+                                             fontWeight: FontWeight.w600,
+                                             fontSize: 12,
+                                             color: Color(0xFF1A1A1A),
+                                           ),
+                                         ),
+                                       ],
+                                     ],
+                                   );
+                                 }
+
+                                 return Text(
+                                   displayStr ?? 'Your delivery address',
+                                   style: const TextStyle(
+                                       fontWeight: FontWeight.w500, fontSize: 13, color: Colors.black87),
+                                 );
+                               }
+
+                              final user = ref.read(currentUserProvider);
+                              String label = addr['label'] ?? addr['title'] ?? '';
+                              
+                              String fullName = addr['fullName'] ?? addr['name'] ?? '';
+                              if (fullName.toString().trim().isEmpty && user != null) {
+                                fullName = user.fullName;
+                              }
+                              if (fullName.isEmpty) {
+                                fullName = 'Unknown Recipient';
+                              }
+
+                              String street = addr['fullAddress'] ??
+                                  addr['address'] ??
+                                  addr['street'] ??
+                                  addr['flat'] ??
+                                  addr['houseNo'] ??
+                                  '';
+                              String city = addr['city'] ?? '';
+                              String state = addr['state'] ?? '';
+                              String pincode = addr['pincode'] ?? '';
+
+                              // Robust dynamic matcher to recover missing fields from user's saved addresses
+                              if (street.isEmpty || city.isEmpty || state.isEmpty || pincode.isEmpty || label.isEmpty) {
+                                try {
+                                  final cartProvider = CartProviderScope.of(context);
+                                  // 1. Try matching by exact street name
+                                  var matched = cartProvider.addresses.firstWhere(
+                                    (a) => street.isNotEmpty && a.street.toLowerCase().trim() == street.toLowerCase().trim(),
+                                    orElse: () => UserAddress(id: '', title: '', street: '', details: ''),
+                                  );
+                                  
+                                  // 2. Try matching by label
+                                  if (matched.id.isEmpty && label.isNotEmpty) {
+                                    matched = cartProvider.addresses.firstWhere(
+                                      (a) => a.title.toLowerCase().trim() == label.toLowerCase().trim(),
+                                      orElse: () => UserAddress(id: '', title: '', street: '', details: ''),
+                                    );
+                                  }
+                                  
+                                  // 3. Try matching by pincode/city
+                                  if (matched.id.isEmpty && pincode.isNotEmpty) {
+                                    matched = cartProvider.addresses.firstWhere(
+                                      (a) => a.details.toLowerCase().contains(pincode.toLowerCase().trim()),
+                                      orElse: () => UserAddress(id: '', title: '', street: '', details: ''),
+                                    );
+                                  }
+
+                                  // If matched address found, dynamically recover missing fields
+                                  if (matched.id.isNotEmpty) {
+                                    if (label.isEmpty) label = matched.title;
+                                    if (street.isEmpty) street = matched.street;
+                                    if (fullName.isEmpty || fullName == 'Unknown Recipient') {
+                                      fullName = matched.fullName.isNotEmpty ? matched.fullName : fullName;
+                                    }
+                                    
+                                    final parts = matched.details.split(',');
+                                    if (city.isEmpty && parts.isNotEmpty) city = parts[0].trim();
+                                    if (state.isEmpty || pincode.isEmpty) {
+                                      if (parts.length > 1) {
+                                        final stateParts = parts[1].trim().split(' ');
+                                        if (stateParts.length > 1) {
+                                          if (pincode.isEmpty) pincode = stateParts.last;
+                                          if (state.isEmpty) state = stateParts.sublist(0, stateParts.length - 1).join(' ');
+                                        } else {
+                                          if (state.isEmpty) state = parts[1].trim();
+                                        }
+                                      }
+                                    }
+                                  }
+                                } catch (_) {}
+                              }
+                              
+                              String phone = addr['phone'] ?? addr['phoneNumber'] ?? '';
+                              if (phone.toString().trim().isEmpty && user != null) {
+                                phone = user.phoneNumber;
+                              }
+
+                              return Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  if (label.toString().isNotEmpty) ...[
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFFCFFAFE),
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                      child: Text(
+                                        label.toString().toUpperCase(),
+                                        style: const TextStyle(
+                                          color: Color(0xFF06B6D4),
+                                          fontSize: 9,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                  ],
+                                  if (fullName.toString().isNotEmpty) ...[
+                                    Text(
+                                      fullName.toString(),
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 13,
+                                        color: Color(0xFF4B5563),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                  ],
+                                  if (street.toString().isNotEmpty) ...[
+                                    Text(
+                                      street.toString(),
+                                      style: const TextStyle(
+                                        color: Colors.grey,
+                                        fontSize: 12,
+                                        height: 1.3,
+                                      ),
+                                    ),
+                                  ],
+                                  if (city.toString().isNotEmpty || state.toString().isNotEmpty || pincode.toString().isNotEmpty)
+                                    Text(
+                                      '${city.toString()}${city.toString().isNotEmpty ? ", " : ""}${state.toString()} ${pincode.toString()}',
+                                      style: const TextStyle(
+                                        color: Color(0xFF9CA3AF),
+                                        fontSize: 11,
+                                        height: 1.2,
+                                      ),
+                                    ),
+                                  if (phone.toString().isNotEmpty) ...[
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      phone.toString(),
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 12,
+                                        color: Color(0xFF1A1A1A),
+                                      ),
+                                    ),
+                                  ],
+                                ],
+                              );
+                            },
+                          ),
                         ],
                       ),
                     ),

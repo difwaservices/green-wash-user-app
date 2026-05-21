@@ -615,7 +615,13 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                         setState(() => _isLoading = true);
                         final navigator = Navigator.of(context);
                         try {
-                          final String fullName = cartProvider.userProfile.name;
+                          String fullName = selectedAddr.fullName;
+                          if (fullName.trim().isEmpty) {
+                            fullName = cartProvider.userProfile.name;
+                          }
+                          if (fullName.isEmpty) {
+                            fullName = 'Unknown Recipient';
+                          }
                           final parts = selectedAddr.details.split(',');
                           final city = parts.isNotEmpty ? parts[0].trim() : '';
                           String state = '';
@@ -633,9 +639,14 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                           final deliveryAddressMap = {
                             'fullName': fullName,
                             'street': selectedAddr.street,
+                            'address': selectedAddr.street,
+                            'fullAddress': '${selectedAddr.street}, ${selectedAddr.details}',
                             'city': city,
                             'state': state,
                             'pincode': pincode,
+                            'phone': cartProvider.userProfile.phone,
+                            'phoneNumber': cartProvider.userProfile.phone,
+                            'label': selectedAddr.title,
                             'latitude': selectedAddr.latitude,
                             'longitude': selectedAddr.longitude,
                             // Priority fix: added lat/lng for backend compatibility

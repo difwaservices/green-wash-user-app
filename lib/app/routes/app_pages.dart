@@ -60,9 +60,11 @@ class AppPages {
         AppRoutes.trackOrder: (context) {
           final args = ModalRoute.of(context)?.settings.arguments
               as Map<String, dynamic>?;
+          final addr = args?['address'];
           return TrackOrderPage(
             orderId: args?['orderId'] ?? '',
-            deliveryAddress: args?['address'],
+            deliveryAddress: addr is Map<String, dynamic> ? addr : null,
+            deliveryAddressStr: addr is String ? addr : args?['deliveryAddressStr'],
             status: args?['status'],
           );
         },
