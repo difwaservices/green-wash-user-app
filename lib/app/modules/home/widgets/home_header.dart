@@ -253,14 +253,14 @@ class _AnimatedSearchHint extends StatefulWidget {
 class _AnimatedSearchHintState extends State<_AnimatedSearchHint>
     with SingleTickerProviderStateMixin {
   final List<String> _hints = [
-    'Search "Water Lily"',
-    'Search "Lotus"',
-    'Search "Hydrilla"',
-    'Search "Duckweed"',
-    'Search "Water Hyacinth"',
-    'Search "Vallisneria"',
-    'Search "Hornwort"',
-    'Search "Water Lettuce"',
+    'Search "Water Bottle 20L"',
+    'Search "Water Bottle 10L"',
+    'Search "Water Bottle 1L"',
+    'Search "Mineral Water Can"',
+    'Search "Drinking Water Jar"',
+    'Search "Camping Water Bottle"',
+    'Search "Plastic Water Container"',
+    'Search "Portable Water Bottle"',
   ];
 
   int _currentIndex = 0;

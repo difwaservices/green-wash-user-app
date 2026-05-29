@@ -15,6 +15,39 @@ class NotificationPage extends ConsumerStatefulWidget {
 
 class _NotificationPageState extends ConsumerState<NotificationPage> {
   final Set<String> _deletedIds = {};
+  bool _isSelectionMode = false;
+  final Set<String> _selectedIds = {};
+
+  void _toggleSelection(String id) {
+    setState(() {
+      if (_selectedIds.contains(id)) {
+        _selectedIds.remove(id);
+        if (_selectedIds.isEmpty) {
+          _isSelectionMode = false;
+        }
+      } else {
+        _selectedIds.add(id);
+      }
+    });
+  }
+
+  Future<void> _deleteSelected(List<String> ids) async {
+    setState(() {
+      _deletedIds.addAll(ids);
+      _isSelectionMode = false;
+      _selectedIds.clear();
+    });
+    
+    final client = ref.read(apiClientProvider);
+    for (final id in ids) {
+      try {
+        await client.delete('/app/notifications/$id', requiresAuth: true);
+      } catch (e) {
+        // Ignore individual errors during bulk delete to keep UI smooth
+      }
+    }
+    ref.invalidate(notificationsProvider);
+  }
 
   Future<void> _deleteNotification(String id) async {
     // Instantly mask it from the UI so Dismissible doesn't crash
@@ -51,22 +84,67 @@ class _NotificationPageState extends ConsumerState<NotificationPage> {
   @override
   Widget build(BuildContext context) {
     final notificationsAsync = ref.watch(notificationsProvider);
+    final allNotifications = notificationsAsync.maybeWhen(
+      data: (data) => data,
+      orElse: () => <NotificationModel>[],
+    );
+    final notifications = allNotifications.where((n) => !_deletedIds.contains(n.id)).toList();
+    final allSelected = notifications.isNotEmpty && _selectedIds.length == notifications.length;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
-      appBar: AppBar(
-        title: const Text('Notifications', style: TextStyle(fontWeight: FontWeight.bold)),
-        backgroundColor: Colors.white,
-        elevation: 0,
-        foregroundColor: Colors.black,
-      ),
+      appBar: _isSelectionMode
+          ? AppBar(
+              leading: IconButton(
+                icon: const Icon(Icons.close),
+                onPressed: () {
+                  setState(() {
+                    _isSelectionMode = false;
+                    _selectedIds.clear();
+                  });
+                },
+              ),
+              title: Text('${_selectedIds.length} Selected', style: const TextStyle(fontWeight: FontWeight.bold)),
+              backgroundColor: Colors.white,
+              elevation: 0,
+              foregroundColor: Colors.black,
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    setState(() {
+                      if (allSelected) {
+                        _selectedIds.clear();
+                        _isSelectionMode = false;
+                      } else {
+                        _selectedIds.addAll(notifications.map((n) => n.id));
+                      }
+                    });
+                  },
+                  child: Text(
+                    allSelected ? 'Deselect All' : 'Select All',
+                    style: const TextStyle(color: Color(0xFF06B6D4), fontWeight: FontWeight.bold),
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.delete_outline_rounded, color: Colors.red),
+                  onPressed: () {
+                    if (_selectedIds.isNotEmpty) {
+                      _deleteSelected(_selectedIds.toList());
+                    }
+                  },
+                ),
+              ],
+            )
+          : AppBar(
+              title: const Text('Notifications', style: TextStyle(fontWeight: FontWeight.bold)),
+              backgroundColor: Colors.white,
+              elevation: 0,
+              foregroundColor: Colors.black,
+            ),
       body: RefreshIndicator(
         onRefresh: () => ref.refresh(notificationsProvider.future),
         child: notificationsAsync.when(
-          data: (allNotifications) {
-            // Filter out items that are optimistically deleted locally
-            final notifications = allNotifications.where((n) => !_deletedIds.contains(n.id)).toList();
-            
+          data: (_) {
             if (notifications.isEmpty) {
               return _buildEmptyState();
             }
@@ -76,9 +154,11 @@ class _NotificationPageState extends ConsumerState<NotificationPage> {
               separatorBuilder: (context, index) => const SizedBox(height: 16),
               itemBuilder: (context, index) {
                 final notification = notifications[index];
+                final isSelected = _selectedIds.contains(notification.id);
+
                 return Dismissible(
                   key: Key(notification.id),
-                  direction: DismissDirection.endToStart,
+                  direction: _isSelectionMode ? DismissDirection.none : DismissDirection.endToStart,
                   background: Container(
                     padding: const EdgeInsets.only(right: 20),
                     alignment: Alignment.centerRight,
@@ -91,7 +171,23 @@ class _NotificationPageState extends ConsumerState<NotificationPage> {
                     message: notification.message,
                     date: _formatDate(notification.createdAt),
                     isRead: notification.isRead,
-                    onTap: () => _markAsRead(notification.id),
+                    isSelectionMode: _isSelectionMode,
+                    isSelected: isSelected,
+                    onTap: () {
+                      if (_isSelectionMode) {
+                        _toggleSelection(notification.id);
+                      } else {
+                        _markAsRead(notification.id);
+                      }
+                    },
+                    onLongPress: () {
+                      if (!_isSelectionMode) {
+                        setState(() {
+                          _isSelectionMode = true;
+                          _selectedIds.add(notification.id);
+                        });
+                      }
+                    },
                   ),
                 );
               },
@@ -146,6 +242,9 @@ class _NotificationItem extends StatelessWidget {
   final String date;
   final bool isRead;
   final VoidCallback onTap;
+  final VoidCallback? onLongPress;
+  final bool isSelectionMode;
+  final bool isSelected;
 
   const _NotificationItem({
     required this.title,
@@ -153,12 +252,16 @@ class _NotificationItem extends StatelessWidget {
     required this.date,
     required this.isRead,
     required this.onTap,
+    this.onLongPress,
+    this.isSelectionMode = false,
+    this.isSelected = false,
   });
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
+      onLongPress: onLongPress,
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
@@ -179,6 +282,15 @@ class _NotificationItem extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            if (isSelectionMode) ...[
+              Checkbox(
+                value: isSelected,
+                onChanged: (_) => onTap(),
+                activeColor: const Color(0xFF06B6D4),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+              ),
+              const SizedBox(width: 8),
+            ],
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(

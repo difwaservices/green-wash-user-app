@@ -20,7 +20,7 @@ class ActiveOrdersPage extends ConsumerStatefulWidget {
 
 class _ActiveOrdersPageState extends ConsumerState<ActiveOrdersPage> {
   late void Function(dynamic) _onOrderUpdate;
-  
+
   @override
   void initState() {
     super.initState();
@@ -83,8 +83,7 @@ class _ActiveOrdersPageState extends ConsumerState<ActiveOrdersPage> {
         child: activeOrdersAsync.when(
           data: (orders) {
             final pendingCancelledOrders = orders
-                .where((o) =>
-                    o.status.toLowerCase() != 'delivered')
+                .where((o) => o.status.toLowerCase() != 'delivered')
                 .toList();
 
             if (pendingCancelledOrders.isEmpty) {
@@ -160,7 +159,8 @@ class _ActiveOrdersPageState extends ConsumerState<ActiveOrdersPage> {
                 onPressed: () => Navigator.pop(context),
                 icon: const Icon(Icons.storefront_outlined),
                 label: const Text('Order Something',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                    style:
+                        TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF0891B2),
                   foregroundColor: Colors.white,
@@ -294,8 +294,7 @@ class _ActiveOrderCard extends ConsumerWidget {
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
                               color: order.isSubscription
-                                  ? AppColors.primaryDark
-                                      .withValues(alpha: 0.3)
+                                  ? AppColors.primaryDark.withValues(alpha: 0.3)
                                   : Colors.grey.shade300),
                         ),
                         child: Text(
@@ -345,8 +344,8 @@ class _ActiveOrderCard extends ConsumerWidget {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: ClipRRect(
-                       borderRadius: const BorderRadius.all(Radius.circular(12)),
-                       child: _buildItemImage(order),
+                      borderRadius: const BorderRadius.all(Radius.circular(12)),
+                      child: _buildItemImage(order),
                     ),
                   ),
                   const SizedBox(width: 16),
@@ -364,9 +363,11 @@ class _ActiveOrderCard extends ConsumerWidget {
                         const SizedBox(height: 4),
                         Text(
                           'Total Quantity: ${order.items.fold(0, (sum, i) => sum + i.quantity)}',
-                          style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
+                          style: TextStyle(
+                              color: Colors.grey.shade600, fontSize: 13),
                         ),
-                        if (order.deliverySlot != null && order.deliverySlot!.isNotEmpty)
+                        if (order.deliverySlot != null &&
+                            order.deliverySlot!.isNotEmpty)
                           Padding(
                             padding: const EdgeInsets.only(top: 4),
                             child: Text(
@@ -384,7 +385,7 @@ class _ActiveOrderCard extends ConsumerWidget {
               ),
 
               const SizedBox(height: 16),
-              
+
               Text(
                 'Placed: ${order.date.toLocal().toString().substring(0, 16).replaceAll('T', ', ')}',
                 style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
@@ -430,9 +431,11 @@ class _ActiveOrderCard extends ConsumerWidget {
                       ),
                       if (order.plantPhone.isNotEmpty)
                         IconButton(
-                          icon: const Icon(Icons.call, color: Color(0xFF16A34A)),
+                          icon:
+                              const Icon(Icons.call, color: Color(0xFF16A34A)),
                           onPressed: () async {
-                            final Uri uri = Uri.parse('tel:${order.plantPhone}');
+                            final Uri uri =
+                                Uri.parse('tel:${order.plantPhone}');
                             if (await canLaunchUrl(uri)) {
                               await launchUrl(uri);
                             }
@@ -468,139 +471,166 @@ class _ActiveOrderCard extends ConsumerWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const Text('Delivery Address',
-                              style:
-                                  TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.w500)),
+                              style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey,
+                                  fontWeight: FontWeight.w500)),
                           const SizedBox(height: 8),
                           Builder(
                             builder: (context) {
                               final addr = order.deliveryAddressMap;
                               final displayStr = order.deliveryAddressStr;
-                                                            if (addr == null) {
-                                 String street = displayStr ?? '';
-                                 String city = '';
-                                 String state = '';
-                                 String pincode = '';
-                                 String label = '';
-                                 String fullName = '';
-                                 String phone = '';
+                              if (addr == null) {
+                                String street = displayStr ?? '';
+                                String city = '';
+                                String state = '';
+                                String pincode = '';
+                                String label = '';
+                                String fullName = '';
+                                String phone = '';
 
-                                 if (street.isNotEmpty) {
-                                   try {
-                                     final cartProvider = CartProviderScope.of(context);
-                                     final matched = cartProvider.addresses.firstWhere(
-                                       (a) => a.street.toLowerCase().trim() == street.toLowerCase().trim() ||
-                                              street.toLowerCase().contains(a.street.toLowerCase().trim()),
-                                       orElse: () => UserAddress(id: '', title: '', street: '', details: ''),
-                                     );
-                                     if (matched.id.isNotEmpty) {
-                                       street = matched.street;
-                                       label = matched.title;
-                                       fullName = matched.fullName;
-                                       final parts = matched.details.split(',');
-                                       if (parts.isNotEmpty) city = parts[0].trim();
-                                       if (parts.length > 1) {
-                                         final stateParts = parts[1].trim().split(' ');
-                                         if (stateParts.length > 1) {
-                                           pincode = stateParts.last;
-                                           state = stateParts.sublist(0, stateParts.length - 1).join(' ');
-                                         } else {
-                                           state = parts[1].trim();
-                                         }
-                                       }
-                                     }
-                                   } catch (_) {}
-                                 }
+                                if (street.isNotEmpty) {
+                                  try {
+                                    final cartProvider =
+                                        CartProviderScope.of(context);
+                                    final matched =
+                                        cartProvider.addresses.firstWhere(
+                                      (a) =>
+                                          a.street.toLowerCase().trim() ==
+                                              street.toLowerCase().trim() ||
+                                          street.toLowerCase().contains(
+                                              a.street.toLowerCase().trim()),
+                                      orElse: () => UserAddress(
+                                          id: '',
+                                          title: '',
+                                          street: '',
+                                          details: ''),
+                                    );
+                                    if (matched.id.isNotEmpty) {
+                                      street = matched.street;
+                                      label = matched.title;
+                                      fullName = matched.fullName;
+                                      final parts = matched.details.split(',');
+                                      if (parts.isNotEmpty)
+                                        city = parts[0].trim();
+                                      if (parts.length > 1) {
+                                        final stateParts =
+                                            parts[1].trim().split(' ');
+                                        if (stateParts.length > 1) {
+                                          pincode = stateParts.last;
+                                          state = stateParts
+                                              .sublist(0, stateParts.length - 1)
+                                              .join(' ');
+                                        } else {
+                                          state = parts[1].trim();
+                                        }
+                                      }
+                                    }
+                                  } catch (_) {}
+                                }
 
-                                 if (city.isNotEmpty || state.isNotEmpty || pincode.isNotEmpty) {
-                                   final user = ref.read(currentUserProvider);
-                                   if (fullName.isEmpty && user != null) {
-                                     fullName = user.fullName;
-                                   }
-                                   if (fullName.isEmpty) {
-                                     fullName = 'Unknown Recipient';
-                                   }
-                                   if (phone.isEmpty && user != null) {
-                                     phone = user.phoneNumber;
-                                   }
+                                if (city.isNotEmpty ||
+                                    state.isNotEmpty ||
+                                    pincode.isNotEmpty) {
+                                  final user = ref.read(currentUserProvider);
+                                  if (fullName.isEmpty && user != null) {
+                                    fullName = user.fullName;
+                                  }
+                                  if (fullName.isEmpty) {
+                                    fullName = 'Unknown Recipient';
+                                  }
+                                  if (phone.isEmpty && user != null) {
+                                    phone = user.phoneNumber;
+                                  }
 
-                                   return Column(
-                                     crossAxisAlignment: CrossAxisAlignment.start,
-                                     children: [
-                                       if (label.isNotEmpty) ...[
-                                         Container(
-                                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                           decoration: BoxDecoration(
-                                             color: const Color(0xFFCFFAFE),
-                                             borderRadius: BorderRadius.circular(4),
-                                           ),
-                                           child: Text(
-                                             label.toUpperCase(),
-                                             style: const TextStyle(
-                                               color: Color(0xFF06B6D4),
-                                               fontSize: 9,
-                                               fontWeight: FontWeight.bold,
-                                             ),
-                                           ),
-                                         ),
-                                         const SizedBox(height: 4),
-                                       ],
-                                       if (fullName.isNotEmpty) ...[
-                                         Text(
-                                           fullName,
-                                           style: const TextStyle(
-                                             fontWeight: FontWeight.bold,
-                                             fontSize: 13,
-                                             color: Color(0xFF4B5563),
-                                           ),
-                                         ),
-                                         const SizedBox(height: 2),
-                                       ],
-                                       if (street.isNotEmpty) ...[
-                                         Text(
-                                           street,
-                                           style: const TextStyle(
-                                             color: Colors.grey,
-                                             fontSize: 12,
-                                             height: 1.3,
-                                           ),
-                                         ),
-                                       ],
-                                       if (city.isNotEmpty || state.isNotEmpty || pincode.isNotEmpty)
-                                         Text(
-                                           '$city${city.isNotEmpty ? ", " : ""}$state $pincode',
-                                           style: const TextStyle(
-                                             color: Color(0xFF9CA3AF),
-                                             fontSize: 11,
-                                             height: 1.2,
-                                           ),
-                                         ),
-                                       if (phone.isNotEmpty) ...[
-                                         const SizedBox(height: 4),
-                                         Text(
-                                           phone,
-                                           style: const TextStyle(
-                                             fontWeight: FontWeight.w600,
-                                             fontSize: 12,
-                                             color: Color(0xFF1A1A1A),
-                                           ),
-                                         ),
-                                       ],
-                                     ],
-                                   );
-                                 }
+                                  return Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      if (label.isNotEmpty) ...[
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 8, vertical: 2),
+                                          decoration: BoxDecoration(
+                                            color: const Color(0xFFCFFAFE),
+                                            borderRadius:
+                                                BorderRadius.circular(4),
+                                          ),
+                                          child: Text(
+                                            label.toUpperCase(),
+                                            style: const TextStyle(
+                                              color: Color(0xFF06B6D4),
+                                              fontSize: 9,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(height: 4),
+                                      ],
+                                      if (fullName.isNotEmpty) ...[
+                                        Text(
+                                          fullName,
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 13,
+                                            color: Color(0xFF4B5563),
+                                          ),
+                                        ),
+                                        const SizedBox(height: 2),
+                                      ],
+                                      if (street.isNotEmpty) ...[
+                                        Text(
+                                          street,
+                                          style: const TextStyle(
+                                            color: Colors.grey,
+                                            fontSize: 12,
+                                            height: 1.3,
+                                          ),
+                                        ),
+                                      ],
+                                      if (city.isNotEmpty ||
+                                          state.isNotEmpty ||
+                                          pincode.isNotEmpty)
+                                        Text(
+                                          '$city${city.isNotEmpty ? ", " : ""}$state $pincode',
+                                          style: const TextStyle(
+                                            color: Color(0xFF9CA3AF),
+                                            fontSize: 11,
+                                            height: 1.2,
+                                          ),
+                                        ),
+                                      if (phone.isNotEmpty) ...[
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          phone,
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.w600,
+                                            fontSize: 12,
+                                            color: Color(0xFF1A1A1A),
+                                          ),
+                                        ),
+                                      ],
+                                    ],
+                                  );
+                                }
 
-                                 return Text(
-                                   displayStr ?? 'Your delivery address',
-                                   style: const TextStyle(
-                                       fontWeight: FontWeight.w500, fontSize: 13, color: Colors.black87),
-                                 );
-                               }
+                                return Text(
+                                  displayStr ?? 'Your delivery address',
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.w500,
+                                      fontSize: 13,
+                                      color: Colors.black87),
+                                );
+                              }
 
                               final user = ref.read(currentUserProvider);
-                              String label = addr['label'] ?? addr['title'] ?? '';
-                              
-                              String fullName = addr['fullName'] ?? addr['name'] ?? '';
-                              if (fullName.toString().trim().isEmpty && user != null) {
+                              String label =
+                                  addr['label'] ?? addr['title'] ?? '';
+
+                              String fullName =
+                                  addr['fullName'] ?? addr['name'] ?? '';
+                              if (fullName.toString().trim().isEmpty &&
+                                  user != null) {
                                 fullName = user.fullName;
                               }
                               if (fullName.isEmpty) {
@@ -618,28 +648,53 @@ class _ActiveOrderCard extends ConsumerWidget {
                               String pincode = addr['pincode'] ?? '';
 
                               // Robust dynamic matcher to recover missing fields from user's saved addresses
-                              if (street.isEmpty || city.isEmpty || state.isEmpty || pincode.isEmpty || label.isEmpty) {
+                              if (street.isEmpty ||
+                                  city.isEmpty ||
+                                  state.isEmpty ||
+                                  pincode.isEmpty ||
+                                  label.isEmpty) {
                                 try {
-                                  final cartProvider = CartProviderScope.of(context);
+                                  final cartProvider =
+                                      CartProviderScope.of(context);
                                   // 1. Try matching by exact street name
-                                  var matched = cartProvider.addresses.firstWhere(
-                                    (a) => street.isNotEmpty && a.street.toLowerCase().trim() == street.toLowerCase().trim(),
-                                    orElse: () => UserAddress(id: '', title: '', street: '', details: ''),
+                                  var matched =
+                                      cartProvider.addresses.firstWhere(
+                                    (a) =>
+                                        street.isNotEmpty &&
+                                        a.street.toLowerCase().trim() ==
+                                            street.toLowerCase().trim(),
+                                    orElse: () => UserAddress(
+                                        id: '',
+                                        title: '',
+                                        street: '',
+                                        details: ''),
                                   );
-                                  
+
                                   // 2. Try matching by label
                                   if (matched.id.isEmpty && label.isNotEmpty) {
                                     matched = cartProvider.addresses.firstWhere(
-                                      (a) => a.title.toLowerCase().trim() == label.toLowerCase().trim(),
-                                      orElse: () => UserAddress(id: '', title: '', street: '', details: ''),
+                                      (a) =>
+                                          a.title.toLowerCase().trim() ==
+                                          label.toLowerCase().trim(),
+                                      orElse: () => UserAddress(
+                                          id: '',
+                                          title: '',
+                                          street: '',
+                                          details: ''),
                                     );
                                   }
-                                  
+
                                   // 3. Try matching by pincode/city
-                                  if (matched.id.isEmpty && pincode.isNotEmpty) {
+                                  if (matched.id.isEmpty &&
+                                      pincode.isNotEmpty) {
                                     matched = cartProvider.addresses.firstWhere(
-                                      (a) => a.details.toLowerCase().contains(pincode.toLowerCase().trim()),
-                                      orElse: () => UserAddress(id: '', title: '', street: '', details: ''),
+                                      (a) => a.details.toLowerCase().contains(
+                                          pincode.toLowerCase().trim()),
+                                      orElse: () => UserAddress(
+                                          id: '',
+                                          title: '',
+                                          street: '',
+                                          details: ''),
                                     );
                                   }
 
@@ -647,29 +702,42 @@ class _ActiveOrderCard extends ConsumerWidget {
                                   if (matched.id.isNotEmpty) {
                                     if (label.isEmpty) label = matched.title;
                                     if (street.isEmpty) street = matched.street;
-                                    if (fullName.isEmpty || fullName == 'Unknown Recipient') {
-                                      fullName = matched.fullName.isNotEmpty ? matched.fullName : fullName;
+                                    if (fullName.isEmpty ||
+                                        fullName == 'Unknown Recipient') {
+                                      fullName = matched.fullName.isNotEmpty
+                                          ? matched.fullName
+                                          : fullName;
                                     }
-                                    
+
                                     final parts = matched.details.split(',');
-                                    if (city.isEmpty && parts.isNotEmpty) city = parts[0].trim();
+                                    if (city.isEmpty && parts.isNotEmpty)
+                                      city = parts[0].trim();
                                     if (state.isEmpty || pincode.isEmpty) {
                                       if (parts.length > 1) {
-                                        final stateParts = parts[1].trim().split(' ');
+                                        final stateParts =
+                                            parts[1].trim().split(' ');
                                         if (stateParts.length > 1) {
-                                          if (pincode.isEmpty) pincode = stateParts.last;
-                                          if (state.isEmpty) state = stateParts.sublist(0, stateParts.length - 1).join(' ');
+                                          if (pincode.isEmpty)
+                                            pincode = stateParts.last;
+                                          if (state.isEmpty)
+                                            state = stateParts
+                                                .sublist(
+                                                    0, stateParts.length - 1)
+                                                .join(' ');
                                         } else {
-                                          if (state.isEmpty) state = parts[1].trim();
+                                          if (state.isEmpty)
+                                            state = parts[1].trim();
                                         }
                                       }
                                     }
                                   }
                                 } catch (_) {}
                               }
-                              
-                              String phone = addr['phone'] ?? addr['phoneNumber'] ?? '';
-                              if (phone.toString().trim().isEmpty && user != null) {
+
+                              String phone =
+                                  addr['phone'] ?? addr['phoneNumber'] ?? '';
+                              if (phone.toString().trim().isEmpty &&
+                                  user != null) {
                                 phone = user.phoneNumber;
                               }
 
@@ -678,7 +746,8 @@ class _ActiveOrderCard extends ConsumerWidget {
                                 children: [
                                   if (label.toString().isNotEmpty) ...[
                                     Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 8, vertical: 2),
                                       decoration: BoxDecoration(
                                         color: const Color(0xFFCFFAFE),
                                         borderRadius: BorderRadius.circular(4),
@@ -715,7 +784,9 @@ class _ActiveOrderCard extends ConsumerWidget {
                                       ),
                                     ),
                                   ],
-                                  if (city.toString().isNotEmpty || state.toString().isNotEmpty || pincode.toString().isNotEmpty)
+                                  if (city.toString().isNotEmpty ||
+                                      state.toString().isNotEmpty ||
+                                      pincode.toString().isNotEmpty)
                                     Text(
                                       '${city.toString()}${city.toString().isNotEmpty ? ", " : ""}${state.toString()} ${pincode.toString()}',
                                       style: const TextStyle(
@@ -864,4 +935,3 @@ class _ShimmerBoxState extends State<_ShimmerBox>
     );
   }
 }
-
