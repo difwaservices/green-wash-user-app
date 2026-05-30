@@ -69,11 +69,14 @@ class _HomeHeaderState extends ConsumerState<HomeHeader> {
                       Navigator.pushNamed(context, AppRoutes.login);
                       return;
                     }
+                    if (address == null) {
+                      _showAddAddressPopup();
+                      return;
+                    }
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) =>
-                            const ProfileDetailPage(title: 'My Address'),
+                        builder: (context) => const ProfileDetailPage(title: 'My Address'),
                       ),
                     );
                   },
@@ -240,6 +243,46 @@ class _HomeHeaderState extends ConsumerState<HomeHeader> {
         .animate()
         .fadeIn(duration: 400.ms)
         .slideY(begin: -0.1, duration: 400.ms, curve: Curves.easeOut);
+  }
+  /// Show a bottom‑sheet prompting the user to add a delivery address when none exists.
+  void _showAddAddressPopup() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      isScrollControlled: true,
+      builder: (context) => Padding(
+        padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'Add Delivery Address',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              'Please add a delivery address to continue.',
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const ProfileDetailPage(title: 'My Address'),
+                  ),
+                );
+              },
+              child: const Text('Add Address'),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 

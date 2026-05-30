@@ -26,7 +26,8 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
   /// Show a clean, user-friendly snackbar — no 'Exception:' prefix ever shown.
   void _showError(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
+    final messenger = ScaffoldMessenger.maybeOf(context);
+    messenger?.showSnackBar(
       SnackBar(
         content: Row(
           children: [
