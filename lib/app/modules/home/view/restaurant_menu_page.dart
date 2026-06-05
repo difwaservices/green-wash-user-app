@@ -116,11 +116,17 @@ class _RestaurantMenuPageState extends ConsumerState<RestaurantMenuPage> {
     final cart = CartProviderScope.of(context);
     final isShopActive = currentShop.isShopActive;
 
+    final double screenWidth = MediaQuery.of(context).size.width;
+    final int crossAxisCount = screenWidth > 900 ? 4 : (screenWidth > 600 ? 3 : 2);
+    final double itemWidth = (screenWidth - 32 - (crossAxisCount - 1) * 12) / crossAxisCount;
+    final double targetHeight = (itemWidth * 1.55).clamp(235.0, 270.0);
+    final double childAspectRatio = itemWidth / targetHeight;
+
     // Determine the distance string
     String distanceStr = '';
     // Priority 1: User's explicitly selected address
-    if (currentShop.lat != null && currentShop.lng != null && cart.addresses.isNotEmpty && cart.selectedAddressIndex != null && cart.selectedAddressIndex! < cart.addresses.length) {
-       final userAddress = cart.addresses[cart.selectedAddressIndex!];
+    if (currentShop.lat != null && currentShop.lng != null && cart.addresses.isNotEmpty && cart.selectedAddressIndex < cart.addresses.length) {
+       final userAddress = cart.addresses[cart.selectedAddressIndex];
        if (userAddress.latitude != null && userAddress.longitude != null) {
            final dist = Geolocator.distanceBetween(
              userAddress.latitude!,
@@ -246,12 +252,11 @@ class _RestaurantMenuPageState extends ConsumerState<RestaurantMenuPage> {
                                       iconColor: const Color(0xFF06B6D4),
                                     ),
                                     const SizedBox(width: 12),
-                                    if (currentShop.rating != null)
-                                      _MetaChip(
-                                        icon: Icons.star_rounded,
-                                        label: '${currentShop.rating}',
-                                        iconColor: Colors.amber,
-                                      ),
+                                    _MetaChip(
+                                      icon: Icons.star_rounded,
+                                      label: '${currentShop.rating}',
+                                      iconColor: Colors.amber,
+                                    ),
                                   ],
                                 ),
                                 if (!isShopActive) ...[
@@ -323,9 +328,9 @@ class _RestaurantMenuPageState extends ConsumerState<RestaurantMenuPage> {
                                   const EdgeInsets.symmetric(horizontal: 16),
                               sliver: SliverGrid(
                                 gridDelegate:
-                                    const SliverGridDelegateWithFixedCrossAxisCount(
-                                  crossAxisCount: 2,
-                                  childAspectRatio: 0.65,
+                                    SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: crossAxisCount,
+                                  childAspectRatio: childAspectRatio,
                                   crossAxisSpacing: 12,
                                   mainAxisSpacing: 12,
                                 ),
@@ -394,7 +399,7 @@ class _RestaurantMenuPageState extends ConsumerState<RestaurantMenuPage> {
   Widget _localHero() {
     return Image.asset(
       _heroImage,
-      fit: BoxFit.cover,
+      fit: BoxFit.contain,
       errorBuilder: (_, __, ___) => Container(
         color: Colors.grey.shade200,
         child: const Center(
@@ -473,7 +478,7 @@ class _ProductCardState extends ConsumerState<_ProductCard> {
                           p.primaryImage,
                           height: 110,
                           width: double.infinity,
-                          fit: BoxFit.cover,
+                          fit: BoxFit.contain,
                           errorBuilder: (_, __, ___) => _imagePlaceholder(),
                         )
                       : _imagePlaceholder(),
@@ -567,7 +572,7 @@ class _ProductCardState extends ConsumerState<_ProductCard> {
               ),
             ),
 
-            const SizedBox(height: 8),
+            const Spacer(),
 
             // ── Price + Add to Cart ──────────────────────────────────────
             Padding(
@@ -1021,12 +1026,12 @@ class _ProductsEmptyState extends StatelessWidget {
       child: Center(
         child: Column(
           children: [
-            const Icon(Icons.water_drop_outlined, size: 48, color: Colors.grey),
-            const SizedBox(height: 12),
-            const Text('No products available',
+            Icon(Icons.water_drop_outlined, size: 48, color: Colors.grey),
+            SizedBox(height: 12),
+            Text('No products available',
                 style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
-            const SizedBox(height: 6),
-            const Text('This source has no water products yet.',
+            SizedBox(height: 6),
+            Text('This source has no water products yet.',
                 style: TextStyle(color: Colors.grey, fontSize: 13)),
           ],
         ),

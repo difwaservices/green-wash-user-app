@@ -8,6 +8,7 @@ import '../../../data/services/wallet_service.dart';
 import 'order_success_page.dart';
 
 import '../../../data/services/shop_service.dart';
+import '../../../data/models/shop_product_model.dart';
 
 class PaymentMethodPage extends ConsumerStatefulWidget {
   const PaymentMethodPage({super.key});
@@ -22,11 +23,14 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
   String _frequency = 'Daily';
   List<String> _selectedDays = [];
   String? _selectedSlot;
+  List<DeliverySlotAvailability>? _slotsAvailability;
+  bool _isLoadingSlots = false;
 
   /// Show a clean, user-friendly snackbar — no 'Exception:' prefix ever shown.
   void _showError(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
+    final messenger = ScaffoldMessenger.maybeOf(context);
+    messenger?.showSnackBar(
       SnackBar(
         content: Row(
           children: [
@@ -93,8 +97,41 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
         final cart = CartProviderScope.of(context);
         cart.syncWallet();
         cart.updateDeliveryCharge();
+        _fetchSlotsAvailability();
       }
     });
+  }
+
+  Future<void> _fetchSlotsAvailability() async {
+    final cartProvider = CartProviderScope.of(context);
+    final shopId = cartProvider.cartShopId;
+    if (shopId == null || shopId.isEmpty) return;
+
+    if (mounted) setState(() => _isLoadingSlots = true);
+    try {
+      String? dateParam;
+      if (_orderType == 1) {
+        dateParam = "${_startDate.year}-${_startDate.month.toString().padLeft(2, '0')}-${_startDate.day.toString().padLeft(2, '0')}";
+      }
+      final slots = await ref.read(shopServiceProvider).getShopSlots(shopId, date: dateParam);
+      if (mounted) {
+        setState(() {
+          _slotsAvailability = slots;
+          
+          // Verify current slot is still valid and available
+          if (_selectedSlot != null) {
+            final slotExistsAndAvailable = slots.any((s) => s.slot == _selectedSlot && s.available);
+            if (!slotExistsAndAvailable) {
+              _selectedSlot = null; // Reset selection if no longer available
+            }
+          }
+        });
+      }
+    } catch (e) {
+      debugPrint('Error fetching slots availability: $e');
+    } finally {
+      if (mounted) setState(() => _isLoadingSlots = false);
+    }
   }
 
   @override
@@ -120,7 +157,10 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
         child: child!,
       ),
     );
-    if (picked != null) setState(() => _startDate = picked);
+    if (picked != null) {
+      setState(() => _startDate = picked);
+      _fetchSlotsAvailability();
+    }
   }
 
   @override
@@ -187,18 +227,19 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                     child: Container(
                       padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
-                        color: AppColors.primary.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(16),
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: const Color(0xFF00ACC1).withOpacity(0.2),
+                          width: 1.0,
+                        ),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
+                            color: Colors.black.withOpacity(0.05),
                             blurRadius: 10,
                             offset: const Offset(0, 4),
                           ),
                         ],
-                        border: Border.all(
-                            color:
-                                AppColors.primary.withValues(alpha: 0.3)),
                       ),
                       child: Row(
                         children: [
@@ -244,16 +285,18 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: const Color(0xFF00ACC1).withOpacity(0.2),
+                        width: 1.0,
+                      ),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
+                          color: Colors.black.withOpacity(0.05),
                           blurRadius: 10,
                           offset: const Offset(0, 4),
                         ),
                       ],
-                      border:
-                          Border.all(color: Colors.grey.withValues(alpha: 0.1)),
                     ),
                     child: Column(
                       children: [
@@ -324,14 +367,20 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                       _TypeButton(
                         label: 'One-time Order',
                         selected: _orderType == 0,
-                        onTap: () => setState(() => _orderType = 0),
+                        onTap: () {
+                          setState(() => _orderType = 0);
+                          _fetchSlotsAvailability();
+                        },
                         icon: Icons.shopping_bag_outlined,
                       ),
                       const SizedBox(width: 12),
                       _TypeButton(
                         label: 'Daily Deliveries',
                         selected: _orderType == 1,
-                        onTap: () => setState(() => _orderType = 1),
+                        onTap: () {
+                          setState(() => _orderType = 1);
+                          _fetchSlotsAvailability();
+                        },
                         icon: Icons.calendar_today_outlined,
                       ),
                     ],
@@ -345,22 +394,43 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                             color: Color(0xFF1F2937))),
                     const SizedBox(height: 12),
                     Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
+                      spacing: 10,
+                      runSpacing: 10,
                       children: _frequencies.map((f) {
                         bool isSel = _frequency == f;
-                        return ChoiceChip(
-                          label: Text(f),
-                          selected: isSel,
-                          onSelected: (_) => setState(() {
+                        return GestureDetector(
+                          onTap: () => setState(() {
                             _frequency = f;
                             if (f != 'Weekly') _selectedDays = [];
                           }),
-                          selectedColor: AppColors.primary,
-                          labelStyle: TextStyle(
-                              color: isSel ? Colors.white : Colors.black,
-                              fontWeight:
-                                  isSel ? FontWeight.bold : FontWeight.normal),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                            decoration: BoxDecoration(
+                              color: isSel ? AppColors.primary : Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: isSel
+                                    ? AppColors.primary
+                                    : const Color(0xFF00ACC1).withOpacity(0.2),
+                                width: 1.0,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.05),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: Text(
+                              f,
+                              style: TextStyle(
+                                color: isSel ? Colors.white : Colors.black,
+                                fontWeight: isSel ? FontWeight.bold : FontWeight.w500,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ),
                         );
                       }).toList(),
                     ),
@@ -393,12 +463,20 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                                 color: selected
                                     ? AppColors.primary
                                     : Colors.white,
-                                borderRadius: BorderRadius.circular(10),
+                                borderRadius: BorderRadius.circular(12),
                                 border: Border.all(
                                   color: selected
                                       ? AppColors.primary
-                                      : Colors.grey.shade300,
+                                      : const Color(0xFF00ACC1).withOpacity(0.2),
+                                  width: 1.0,
                                 ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.05),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
                               ),
                               alignment: Alignment.center,
                               child: Text(short,
@@ -435,8 +513,18 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                             horizontal: 16, vertical: 14),
                         decoration: BoxDecoration(
                           color: Colors.white,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: AppColors.primary),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: const Color(0xFF00ACC1).withOpacity(0.2),
+                            width: 1.0,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.05),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
                         ),
                         child: Row(
                           children: [
@@ -466,58 +554,122 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                           fontWeight: FontWeight.bold,
                           color: Color(0xFF1F2937))),
                   const SizedBox(height: 12),
-                  ref.watch(shopDetailsProvider(cartProvider.cartShopId ?? '')).when(
-                        data: (shop) {
-                          final slots = shop?.deliverySlots ?? [];
-                          if (slots.isEmpty) {
-                            return Text('No slots available',
-                                style: TextStyle(color: Colors.grey.shade500));
-                          }
-                          // Verify current slot is still valid
-                          if (_selectedSlot != null && !slots.contains(_selectedSlot)) {
-                            WidgetsBinding.instance.addPostFrameCallback((_) {
-                              setState(() => _selectedSlot = null);
-                            });
-                          }
-                          return SizedBox(
-                            height: 50,
-                            child: ListView.builder(
-                              scrollDirection: Axis.horizontal,
-                              itemCount: slots.length,
-                              itemBuilder: (context, index) {
-                                final slot = slots[index];
-                                final isSelected = _selectedSlot == slot;
-                                return Padding(
-                                  padding: const EdgeInsets.only(right: 8),
-                                  child: ChoiceChip(
-                                    label: Text(slot),
-                                    selected: isSelected,
-                                    onSelected: (val) =>
-                                        setState(() => _selectedSlot = slot),
-                                    selectedColor: AppColors.primary,
-                                    labelStyle: TextStyle(
-                                        color: isSelected
-                                            ? Colors.white
-                                            : Colors.black,
-                                        fontWeight: isSelected
-                                            ? FontWeight.bold
-                                            : FontWeight.normal),
-                                  ),
-                                );
-                              },
-                            ),
-                          );
-                        },
-                        loading: () => const Center(
-                            child: SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator())),
-                        error: (_, __) => Text(
-                          'Could not load delivery slots. Pull to refresh.',
-                          style: TextStyle(color: Colors.grey.shade500, fontSize: 13),
+                  if (_isLoadingSlots)
+                    const Center(
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(vertical: 12),
+                        child: SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
                         ),
                       ),
+                    )
+                  else
+                    ref.watch(shopDetailsProvider(cartProvider.cartShopId ?? '')).when(
+                          data: (shop) {
+                            final List<DeliverySlotAvailability> displaySlots;
+                            if (_slotsAvailability != null) {
+                              displaySlots = _slotsAvailability!;
+                            } else {
+                              displaySlots = (shop?.deliverySlots ?? [])
+                                  .map((s) => DeliverySlotAvailability(slot: s, available: true))
+                                  .toList();
+                            }
+
+                            if (displaySlots.isEmpty) {
+                              return Text('No slots available',
+                                  style: TextStyle(color: Colors.grey.shade500));
+                            }
+
+                            // Verify selected slot is still valid and available
+                            if (_selectedSlot != null) {
+                              final slotExistsAndAvailable = displaySlots.any((s) => s.slot == _selectedSlot && s.available);
+                              if (!slotExistsAndAvailable) {
+                                WidgetsBinding.instance.addPostFrameCallback((_) {
+                                  setState(() => _selectedSlot = null);
+                                });
+                              }
+                            }
+
+                            return SizedBox(
+                              height: 50,
+                              child: ListView.builder(
+                                scrollDirection: Axis.horizontal,
+                                itemCount: displaySlots.length,
+                                itemBuilder: (context, index) {
+                                  final slotData = displaySlots[index];
+                                  final slot = slotData.slot;
+                                  final isAvailable = slotData.available;
+                                  final isSelected = _selectedSlot == slot;
+                                  
+                                  return Padding(
+                                    padding: const EdgeInsets.only(right: 8, bottom: 8),
+                                    child: GestureDetector(
+                                      onTap: !isAvailable
+                                          ? null
+                                          : () => setState(() => _selectedSlot = slot),
+                                      child: Opacity(
+                                        opacity: isAvailable ? 1.0 : 0.45,
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                                          decoration: BoxDecoration(
+                                            color: isSelected 
+                                                ? AppColors.primary 
+                                                : isAvailable 
+                                                    ? Colors.white 
+                                                    : Colors.grey.shade200,
+                                            borderRadius: BorderRadius.circular(12),
+                                            border: Border.all(
+                                              color: isSelected
+                                                  ? AppColors.primary
+                                                  : isAvailable
+                                                      ? const Color(0xFF00ACC1).withOpacity(0.2)
+                                                      : Colors.grey.shade300,
+                                              width: 1.0,
+                                            ),
+                                            boxShadow: [
+                                              if (isAvailable)
+                                                BoxShadow(
+                                                  color: Colors.black.withOpacity(0.05),
+                                                  blurRadius: 10,
+                                                  offset: const Offset(0, 4),
+                                                ),
+                                            ],
+                                          ),
+                                          child: Center(
+                                            child: Text(
+                                              slot,
+                                              style: TextStyle(
+                                                color: isSelected 
+                                                    ? Colors.white 
+                                                    : isAvailable 
+                                                        ? Colors.black 
+                                                        : Colors.grey.shade500,
+                                                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                                                fontSize: 13,
+                                                decoration: isAvailable ? null : TextDecoration.lineThrough,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            );
+                          },
+                          loading: () => const Center(
+                              child: SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator())),
+                          error: (_, __) => Text(
+                            'Could not load delivery slots. Pull to refresh.',
+                            style: TextStyle(color: Colors.grey.shade500, fontSize: 13),
+                          ),
+                        ),
                   const SizedBox(height: 32),
                 ],
               ),
@@ -552,9 +704,24 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                         }
 
                         setState(() => _isLoading = true);
+
+                        // ── Fetch latest slots to check availability right before submit ──
+                        await _fetchSlotsAvailability();
+                        if (_selectedSlot == null) {
+                          _showError('The selected delivery slot is no longer available. Please select another slot.');
+                          setState(() => _isLoading = false);
+                          return;
+                        }
+
                         final navigator = Navigator.of(context);
                         try {
-                          final String fullName = cartProvider.userProfile.name;
+                          String fullName = selectedAddr.fullName;
+                          if (fullName.trim().isEmpty) {
+                            fullName = cartProvider.userProfile.name;
+                          }
+                          if (fullName.isEmpty) {
+                            fullName = 'Unknown Recipient';
+                          }
                           final parts = selectedAddr.details.split(',');
                           final city = parts.isNotEmpty ? parts[0].trim() : '';
                           String state = '';
@@ -572,9 +739,14 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                           final deliveryAddressMap = {
                             'fullName': fullName,
                             'street': selectedAddr.street,
+                            'address': selectedAddr.street,
+                            'fullAddress': '${selectedAddr.street}, ${selectedAddr.details}',
                             'city': city,
                             'state': state,
                             'pincode': pincode,
+                            'phone': cartProvider.userProfile.phone,
+                            'phoneNumber': cartProvider.userProfile.phone,
+                            'label': selectedAddr.title,
                             'latitude': selectedAddr.latitude,
                             'longitude': selectedAddr.longitude,
                             // Priority fix: added lat/lng for backend compatibility
@@ -604,7 +776,12 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                                 deliverySlot: _selectedSlot,
                               );
                               if (res['success'] != true) {
-                                _showError(res['message'] ?? 'Could not subscribe to ${item.title}. Please try again.');
+                                final String errMsg = res['message'] ?? '';
+                                if (errMsg.contains('slot') || errMsg.contains('Slot') || errMsg.contains('no longer available')) {
+                                  await _fetchSlotsAvailability();
+                                }
+                                final cleanMsg = errMsg.replaceAll(RegExp(r'^ApiException(\(\d+\))?:\s*'), '');
+                                _showError(cleanMsg.isNotEmpty ? cleanMsg : 'Could not subscribe to ${item.title}. Please try again.');
                                 return;
                               }
                             }
@@ -647,7 +824,12 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                                       builder: (_) => OrderSuccessPage(order: response['order'])),
                                   (route) => route.isFirst);
                             } else {
-                              _showError(response['message'] ?? 'Order could not be placed. Please try again.');
+                              final String errMsg = response['message'] ?? '';
+                              if (errMsg.contains('slot') || errMsg.contains('Slot') || errMsg.contains('no longer available')) {
+                                await _fetchSlotsAvailability();
+                              }
+                              final cleanMsg = errMsg.replaceAll(RegExp(r'^ApiException(\(\d+\))?:\s*'), '');
+                              _showError(cleanMsg.isNotEmpty ? cleanMsg : 'Order could not be placed. Please try again.');
                             }
                           }
                         } catch (_) {
@@ -702,11 +884,17 @@ class _TypeButton extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
           decoration: BoxDecoration(
-            color: selected ? AppColors.primary : Colors.grey.shade200,
-            borderRadius: BorderRadius.circular(12),
+            color: selected ? AppColors.primary : Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: selected
+                  ? AppColors.primary
+                  : const Color(0xFF00ACC1).withOpacity(0.2),
+              width: 1.0,
+            ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.1),
+                color: Colors.black.withOpacity(0.05),
                 blurRadius: 10,
                 offset: const Offset(0, 4),
               ),

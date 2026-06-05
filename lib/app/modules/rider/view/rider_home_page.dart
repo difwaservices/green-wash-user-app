@@ -556,12 +556,12 @@ class _RiderHomePageState extends ConsumerState<RiderHomePage> {
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                    color: const Color(0xFF00ACC1).withOpacity(0.1),
+                    color: const Color(0xFF00ACC1).withValues(alpha: 0.2),
                     width: 1.0,
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
+                      color: Colors.black.withValues(alpha: 0.05),
                       blurRadius: 10,
                       offset: const Offset(0, 4),
                     ),
@@ -804,13 +804,13 @@ class _RiderHomePageState extends ConsumerState<RiderHomePage> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
         ],
         border: Border.all(
-          color: const Color(0xFF00ACC1).withOpacity(0.1),
+          color: const Color(0xFF00ACC1).withValues(alpha: 0.2),
           width: 1.0,
         ),
       ),
@@ -879,13 +879,13 @@ class _RiderHomePageState extends ConsumerState<RiderHomePage> {
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: Colors.black.withValues(alpha: 0.05),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
           ],
           border: Border.all(
-            color: const Color(0xFF00ACC1).withOpacity(0.1),
+            color: const Color(0xFF00ACC1).withValues(alpha: 0.2),
             width: 1.0,
           ),
         ),

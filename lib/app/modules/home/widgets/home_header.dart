@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../data/providers/notification_provider.dart';
 import '../../../core/constants/app_colors.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import '../controller/main_controller.dart';
 import '../../../widgets/bounce_widget.dart';
 import '../../../routes/app_routes.dart';
 import '../../../data/services/db_service.dart';
@@ -30,7 +29,16 @@ class _HomeHeaderState extends ConsumerState<HomeHeader> {
         left: 16,
         right: 16,
       ),
-      decoration: const BoxDecoration(color: Color(0xFFF7F8FA)),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF7F8FA),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -60,11 +68,14 @@ class _HomeHeaderState extends ConsumerState<HomeHeader> {
                       Navigator.pushNamed(context, AppRoutes.login);
                       return;
                     }
+                    if (address == null) {
+                      _showAddAddressPopup();
+                      return;
+                    }
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) =>
-                            const ProfileDetailPage(title: 'My Address'),
+                        builder: (context) => const ProfileDetailPage(title: 'My Address'),
                       ),
                     );
                   },
@@ -118,22 +129,7 @@ class _HomeHeaderState extends ConsumerState<HomeHeader> {
                 ),
               ),
               const SizedBox(width: 12),
-              // Communication Hub Button
-              BounceWidget(
-                onTap: () => Navigator.pushNamed(context, AppRoutes.communicationHub),
-                child: Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.grey.shade200),
-                  ),
-                  child: const Icon(Icons.campaign_outlined,
-                      size: 20, color: AppColors.textPrimary),
-                ),
-              ),
-              const SizedBox(width: 8),
+
               // Notification Button
               Consumer(
                 builder: (context, ref, child) {
@@ -195,12 +191,12 @@ class _HomeHeaderState extends ConsumerState<HomeHeader> {
               color: Colors.white,
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: const Color(0xFF00ACC1).withValues(alpha: 0.2),
+                color: const Color(0xFF00ACC1).withOpacity(0.2),
                 width: 1.0,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.05),
+                  color: Colors.black.withOpacity(0.05),
                   blurRadius: 10,
                   offset: const Offset(0, 4),
                 ),
@@ -247,6 +243,46 @@ class _HomeHeaderState extends ConsumerState<HomeHeader> {
         .fadeIn(duration: 400.ms)
         .slideY(begin: -0.1, duration: 400.ms, curve: Curves.easeOut);
   }
+  /// Show a bottom‑sheet prompting the user to add a delivery address when none exists.
+  void _showAddAddressPopup() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      isScrollControlled: true,
+      builder: (context) => Padding(
+        padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'Add Delivery Address',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              'Please add a delivery address to continue.',
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const ProfileDetailPage(title: 'My Address'),
+                  ),
+                );
+              },
+              child: const Text('Add Address'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 class _AnimatedSearchHint extends StatefulWidget {
@@ -259,14 +295,14 @@ class _AnimatedSearchHint extends StatefulWidget {
 class _AnimatedSearchHintState extends State<_AnimatedSearchHint>
     with SingleTickerProviderStateMixin {
   final List<String> _hints = [
-    'Search "Water Lily"',
-    'Search "Lotus"',
-    'Search "Hydrilla"',
-    'Search "Duckweed"',
-    'Search "Water Hyacinth"',
-    'Search "Vallisneria"',
-    'Search "Hornwort"',
-    'Search "Water Lettuce"',
+    'Search "Water Bottle 20L"',
+    'Search "Water Bottle 10L"',
+    'Search "Water Bottle 1L"',
+    'Search "Mineral Water Can"',
+    'Search "Drinking Water Jar"',
+    'Search "Camping Water Bottle"',
+    'Search "Plastic Water Container"',
+    'Search "Portable Water Bottle"',
   ];
 
   int _currentIndex = 0;

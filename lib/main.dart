@@ -52,6 +52,7 @@ void main() async {
   }
   try {
     await dotenv.load(fileName: ".env");
+    debugPrint("Dotenv loaded. RAZORPAY_KEY_ID: ${dotenv.env['RAZORPAY_KEY_ID']}");
   } catch (e) {
     debugPrint("Warning: Could not load .env file: $e");
   }

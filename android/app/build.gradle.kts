@@ -40,7 +40,7 @@ android {
     }
 
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_17.toString()
+        jvmTarget = "17"
     }
 
     defaultConfig {
@@ -50,8 +50,8 @@ android {
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = 24
         targetSdk = 36
-        versionCode = 46
-        versionName = "1.0.45"
+        versionCode = 51
+        versionName = "1.0.50"
 
         // Inject Maps API key into AndroidManifest.xml as ${MAPS_API_KEY}
         manifestPlaceholders["MAPS_API_KEY"] = mapsApiKey
@@ -73,7 +73,6 @@ android {
 
     buildTypes {
         release {
-            // Updated to use production release keys instead of debug keys
             signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = true
             isShrinkResources = true

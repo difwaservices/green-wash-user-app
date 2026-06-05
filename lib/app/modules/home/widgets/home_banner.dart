@@ -78,32 +78,19 @@ class _HomeBannerState extends ConsumerState<HomeBanner> {
       data: (banners) {
         if (banners.isEmpty) return const SizedBox.shrink();
 
-        return Container(
-          color: const Color(0xFFF7F8FA),
-          padding: const EdgeInsets.only(top: 16, bottom: 20),
-          child: Column(
-            children: [
+        return Column(
+          children: [
               CarouselSlider(
                 items: banners.map((banner) {
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: BounceWidget(
+                  return BounceWidget(
                       onTap: () => _handleBannerAction(banner),
                       scaleFactor: 0.96,
                       child: Container(
-                        decoration: BoxDecoration(
+                        decoration: const BoxDecoration(
                           color: Colors.white,
-                          borderRadius: BorderRadius.circular(20),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.1),
-                              blurRadius: 10,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
                         ),
                         child: ClipRRect(
-                          borderRadius: BorderRadius.circular(20),
+                          borderRadius: BorderRadius.zero,
                           child: AspectRatio(
                             aspectRatio: 2 / 1,
                             child: CachedNetworkImage(
@@ -143,8 +130,7 @@ class _HomeBannerState extends ConsumerState<HomeBanner> {
                           ),
                         ),
                       ),
-                    ),
-                  );
+                    );
                 }).toList(),
                 carouselController: _controller,
                 options: CarouselOptions(
@@ -183,8 +169,7 @@ class _HomeBannerState extends ConsumerState<HomeBanner> {
                 ),
               ],
             ],
-          ).animate().fadeIn(duration: 500.ms, curve: Curves.easeIn),
-        );
+          ).animate().fadeIn(duration: 500.ms, curve: Curves.easeIn);
       },
       loading: () => const _BannerLoader(),
       error: (e, _) => const SizedBox.shrink(), // Or show fallback local banners if needed

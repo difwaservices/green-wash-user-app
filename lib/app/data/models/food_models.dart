@@ -60,6 +60,7 @@ class UserOrder {
   final List<UserOrderItem> items;
   final Map<String, dynamic>? rider;
   final Map<String, dynamic>? deliveryAddressMap;
+  final String? deliveryAddressStr;
   final bool isReviewed;
 
   const UserOrder({
@@ -72,11 +73,46 @@ class UserOrder {
     required this.items,
     this.rider,
     this.deliveryAddressMap,
+    this.deliveryAddressStr,
     this.deliverySlot,
     this.orderType,
     this.retailer,
     this.isReviewed = false,
   });
+
+  UserOrder copyWith({
+    String? id,
+    String? status,
+    double? total,
+    double? deliveryFee,
+    double? distance,
+    DateTime? date,
+    List<UserOrderItem>? items,
+    Map<String, dynamic>? rider,
+    Map<String, dynamic>? deliveryAddressMap,
+    String? deliveryAddressStr,
+    bool? isReviewed,
+    String? deliverySlot,
+    String? orderType,
+    Map<String, dynamic>? retailer,
+  }) {
+    return UserOrder(
+      id: id ?? this.id,
+      status: status ?? this.status,
+      total: total ?? this.total,
+      deliveryFee: deliveryFee ?? this.deliveryFee,
+      distance: distance ?? this.distance,
+      date: date ?? this.date,
+      items: items ?? this.items,
+      rider: rider ?? this.rider,
+      deliveryAddressMap: deliveryAddressMap ?? this.deliveryAddressMap,
+      deliveryAddressStr: deliveryAddressStr ?? this.deliveryAddressStr,
+      isReviewed: isReviewed ?? this.isReviewed,
+      deliverySlot: deliverySlot ?? this.deliverySlot,
+      orderType: orderType ?? this.orderType,
+      retailer: retailer ?? this.retailer,
+    );
+  }
 
   final String? deliverySlot;
   final String? orderType;
@@ -94,7 +130,9 @@ class UserOrder {
   bool get isSubscription => orderType?.toLowerCase() == 'subscription';
 
   String get deliveryAddress {
-    if (deliveryAddressMap == null) return 'Your delivery address';
+    if (deliveryAddressMap == null) {
+      return deliveryAddressStr ?? 'Your delivery address';
+    }
     final name = deliveryAddressMap!['fullName'] ?? deliveryAddressMap!['name'] ?? '';
     final street = deliveryAddressMap!['fullAddress'] ?? deliveryAddressMap!['address'] ?? deliveryAddressMap!['street'] ?? '';
     final city = deliveryAddressMap!['city'] ?? '';
@@ -108,7 +146,10 @@ class UserOrder {
     if (state.toString().isNotEmpty) parts.add(state.toString());
     if (pincode.toString().isNotEmpty) parts.add(pincode.toString());
 
-    String addrStr = parts.isNotEmpty ? parts.join(', ') : 'Your delivery address';
+    String addrStr = parts.isNotEmpty ? parts.join(', ') : '';
+    if (addrStr.isEmpty) {
+      return deliveryAddressStr ?? 'Your delivery address';
+    }
     
     String finalStr = '';
     if (label.toString().isNotEmpty) {
@@ -150,8 +191,12 @@ class UserOrder {
           DateTime.now(),
       items: items,
       rider: json['rider'] is Map ? json['rider'] : null,
-      deliveryAddressMap:
-          json['deliveryAddress'] is Map ? json['deliveryAddress'] : null,
+      deliveryAddressMap: json['deliveryAddress'] is Map
+          ? json['deliveryAddress']
+          : (json['address'] is Map ? json['address'] : null),
+      deliveryAddressStr: json['deliveryAddress'] is String
+          ? json['deliveryAddress'] as String
+          : (json['address'] is String ? json['address'] as String : null),
       deliverySlot: json['deliverySlot']?.toString(),
       orderType: json['orderType']?.toString() ?? 'One-time',
       retailer: json['retailer'] is Map 

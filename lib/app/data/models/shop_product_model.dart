@@ -139,6 +139,7 @@ class ShopModel {
   final bool isShopActive;
   final bool isFeatured;
   final List<String> deliverySlots;
+  final List<DeliverySlotAvailability> deliverySlotsAvailability;
   final double? lat;
   final double? lng;
 
@@ -153,6 +154,7 @@ class ShopModel {
     this.isShopActive = true,
     this.isFeatured = false,
     this.deliverySlots = const [],
+    this.deliverySlotsAvailability = const [],
     this.lat,
     this.lng,
   });
@@ -168,6 +170,7 @@ class ShopModel {
     bool? isShopActive,
     bool? isFeatured,
     List<String>? deliverySlots,
+    List<DeliverySlotAvailability>? deliverySlotsAvailability,
     double? lat,
     double? lng,
   }) {
@@ -182,6 +185,7 @@ class ShopModel {
       isShopActive: isShopActive ?? this.isShopActive,
       isFeatured: isFeatured ?? this.isFeatured,
       deliverySlots: deliverySlots ?? this.deliverySlots,
+      deliverySlotsAvailability: deliverySlotsAvailability ?? this.deliverySlotsAvailability,
       lat: lat ?? this.lat,
       lng: lng ?? this.lng,
     );
@@ -204,7 +208,7 @@ class ShopModel {
         parsedLocation = fullAddr;
       } else {
          if (parsedLocation.isEmpty) {
-           parsedLocation = (addressMap['city'] ?? '').toString();
+            parsedLocation = (addressMap['city'] ?? '').toString();
          }
       }
 
@@ -233,8 +237,26 @@ class ShopModel {
               ?.map((e) => e.toString())
               .toList() ??
           [],
+      deliverySlotsAvailability: (json['deliverySlotsAvailability'] as List?)
+              ?.map((e) => DeliverySlotAvailability.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          [],
       lat: parsedLat,
       lng: parsedLng,
+    );
+  }
+}
+
+class DeliverySlotAvailability {
+  final String slot;
+  final bool available;
+
+  const DeliverySlotAvailability({required this.slot, required this.available});
+
+  factory DeliverySlotAvailability.fromJson(Map<String, dynamic> json) {
+    return DeliverySlotAvailability(
+      slot: (json['slot'] ?? '').toString(),
+      available: json['available'] ?? false,
     );
   }
 }

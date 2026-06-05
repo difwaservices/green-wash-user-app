@@ -730,10 +730,12 @@ class CartProvider extends ChangeNotifier {
     String paymentMethod = 'Wallet',
     String? deliverySlot,
   }) async {
-    if (_orderService == null)
+    if (_orderService == null) {
       return {'success': false, 'message': 'Order service not available'};
-    if (selectedAddress == null)
+    }
+    if (selectedAddress == null) {
       return {'success': false, 'message': 'Please select a delivery address'};
+    }
 
     final addr = selectedAddress!;
     // Parse address details back to parts for the API
@@ -758,10 +760,16 @@ class CartProvider extends ChangeNotifier {
     }
 
     final deliveryAddress = {
+      'fullName': addr.fullName.isNotEmpty ? addr.fullName : _userProfile.name,
       'address': addr.street,
+      'fullAddress': addr.street,
+      'street': addr.street,
       'city': cityName,
       'state': stateName,
       'pincode': pincodeStr,
+      'phone': addr.email.isNotEmpty ? addr.email : _userProfile.phone, // fallback or direct if stored
+      'phoneNumber': _userProfile.phone,
+      'label': addr.title,
     };
 
     final itemsMap = _items

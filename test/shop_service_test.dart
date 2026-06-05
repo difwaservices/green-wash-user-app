@@ -1,8 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:difwawaterapp/app/data/services/shop_service.dart';
 import 'package:difwawaterapp/app/data/network/api_client.dart';
-import 'package:difwawaterapp/app/data/models/shop_product_model.dart';
-import 'package:difwawaterapp/app/data/models/food_models.dart';
 import 'package:dio/dio.dart';
 
 // A simple mock for ApiClient to avoid using mockito which might not be installed

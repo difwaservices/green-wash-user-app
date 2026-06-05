@@ -47,7 +47,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     final coreState = ref.watch(authStoreProvider);
     final user = coreState is AuthAuthenticated ? coreState.user : null;
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFF7F8FA),
       body: AnnotatedRegion<SystemUiOverlayStyle>(
         value: const SystemUiOverlayStyle(
           statusBarColor: Colors.transparent,
@@ -372,7 +372,7 @@ class _ActiveOrdersAndSubscriptions extends ConsumerWidget {
             child: Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: const Color(0xFFE0F7FA),
+                color: Colors.white,
                 border: Border.all(
                   color: const Color(0xFF00ACC1).withValues(alpha: 0.2),
                   width: 1.0,
@@ -380,7 +380,7 @@ class _ActiveOrdersAndSubscriptions extends ConsumerWidget {
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.03),
+                    color: Colors.black.withValues(alpha: 0.05),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
@@ -402,18 +402,17 @@ class _ActiveOrdersAndSubscriptions extends ConsumerWidget {
                   const Text(
                     'Active Orders',
                     style: TextStyle(
-                      color: Color(0xFF00838F),
+                      color: Color(0xFF1A1A1A),
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  Text(
-                    activeOrdersCount > 0
-                        ? '$activeOrdersCount Active Order${activeOrdersCount > 1 ? 's' : ''}'
-                        : 'No Active Orders',
-                    style: const TextStyle(
-                      color: Color(0xFF006064),
+                  const Text(
+                    'Track Live',
+                    style: TextStyle(
+                      color: Color(0xFF06B6D4),
                       fontSize: 12,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -421,12 +420,13 @@ class _ActiveOrdersAndSubscriptions extends ConsumerWidget {
                     padding:
                         const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: const Color(0xFF06B6D4).withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(20),
                     ),
-                    child: const Text('Track Live',
-                        style: TextStyle(
-                            color: Color(0xFF00ACC1),
+                    child: Text(
+                        activeOrdersCount > 0 ? '$activeOrdersCount Live' : 'Track',
+                        style: const TextStyle(
+                            color: Color(0xFF06B6D4),
                             fontSize: 10,
                             fontWeight: FontWeight.w600)),
                   ),
@@ -442,12 +442,15 @@ class _ActiveOrdersAndSubscriptions extends ConsumerWidget {
             child: Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: const Color(0xFF00ACC1),
-                border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+                color: Colors.white,
+                border: Border.all(
+                  color: const Color(0xFF00ACC1).withValues(alpha: 0.2),
+                  width: 1.0,
+                ),
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.03),
+                    color: Colors.black.withValues(alpha: 0.05),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
@@ -459,28 +462,27 @@ class _ActiveOrdersAndSubscriptions extends ConsumerWidget {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.2),
+                      color: const Color(0xFF06B6D4).withValues(alpha: 0.1),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(Icons.card_membership_outlined,
-                        color: Colors.white, size: 20),
+                        color: Color(0xFF06B6D4), size: 20),
                   ),
                   const SizedBox(height: 12),
                   const Text(
                     'Subscriptions',
                     style: TextStyle(
-                      color: Colors.white,
+                      color: Color(0xFF1A1A1A),
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  Text(
-                    activeSubsCount > 0
-                        ? '$activeSubsCount Active Plan${activeSubsCount > 1 ? 's' : ''}'
-                        : 'No Active Plans',
-                    style: const TextStyle(
-                      color: Colors.white70,
+                  const Text(
+                    'Active Plans',
+                    style: TextStyle(
+                      color: Color(0xFF06B6D4),
                       fontSize: 12,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -488,13 +490,13 @@ class _ActiveOrdersAndSubscriptions extends ConsumerWidget {
                     padding:
                         const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.2),
+                      color: const Color(0xFF06B6D4).withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
-                        activeSubsCount > 0 ? 'Managed Live' : 'View Plans',
+                        activeSubsCount > 0 ? '$activeSubsCount Managed' : 'View Plans',
                         style:
-                            const TextStyle(color: Colors.white, fontSize: 10)),
+                            const TextStyle(color: Color(0xFF06B6D4), fontSize: 10, fontWeight: FontWeight.w600)),
                   ),
                 ],
               ),
@@ -578,7 +580,7 @@ class _QuickActionBtn extends StatelessWidget {
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.03),
+              color: Colors.black.withValues(alpha: 0.05),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -739,7 +741,7 @@ class _ListTileItem extends StatelessWidget {
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.03),
+              color: Colors.black.withValues(alpha: 0.05),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),

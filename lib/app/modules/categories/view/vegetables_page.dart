@@ -99,13 +99,21 @@ class VegetablesPage extends StatelessWidget {
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: GridView.builder(
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            childAspectRatio: 0.72,
-            crossAxisSpacing: 16,
-            mainAxisSpacing: 16,
-          ),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final double screenWidth = constraints.maxWidth;
+            final int crossAxisCount = screenWidth > 900 ? 4 : (screenWidth > 600 ? 3 : 2);
+            final double itemWidth = (screenWidth - (crossAxisCount - 1) * 16) / crossAxisCount;
+            final double targetHeight = (itemWidth * 1.5).clamp(230.0, 265.0);
+            final double childAspectRatio = itemWidth / targetHeight;
+
+            return GridView.builder(
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: crossAxisCount,
+                childAspectRatio: childAspectRatio,
+                crossAxisSpacing: 16,
+                mainAxisSpacing: 16,
+              ),
           itemCount: products.length,
           itemBuilder: (context, index) {
             final product = products[index];
@@ -121,8 +129,10 @@ class VegetablesPage extends StatelessWidget {
               badgeTextColor: product['badgeTextColor'],
             );
           },
-        ),
-      ),
-    );
+        );
+      },
+    ),
+  ),
+);
   }
 }

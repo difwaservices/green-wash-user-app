@@ -169,77 +169,69 @@ class _MainPageState extends ConsumerState<MainPage> {
   Widget _buildCustomBottomBar(int currentIndex) {
     bool isCartSelected = currentIndex == 2;
     return Container(
-      color: Colors.white,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, -4),
+          ),
+        ],
+      ),
       child: SafeArea(
-        child: Container(
-          height: 80,
+        child: SizedBox(
+          height: 70,
           child: Stack(
-            alignment: Alignment.bottomCenter,
+            clipBehavior: Clip.none,
+            alignment: Alignment.topCenter,
             children: [
-              Container(
-                height: 70,
-                margin: const EdgeInsets.fromLTRB(16, 0, 16, 10),
-                decoration: BoxDecoration(
-                  color: AppColors.secondary,
-                  borderRadius: BorderRadius.circular(35),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                  border: Border.all(
-                      color: AppColors.primary.withValues(alpha: 0.1)),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    _buildNavItem(currentIndex, 0, Icons.home_filled, 'Home'),
-                    _buildNavItem(currentIndex, 1,
-                        Icons.local_shipping_outlined, 'Daily'),
-                    const SizedBox(width: 68),
-                    _buildNavItem(
-                        currentIndex, 3, Icons.wallet_rounded, 'Wallet'),
-                    _buildNavItem(
-                        currentIndex, 4, Icons.person_rounded, 'Profile'),
-                  ],
-                ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  Expanded(
+                    child: _buildNavItem(currentIndex, 0, Icons.home_filled, 'Home'),
+                  ),
+                  Expanded(
+                    child: _buildNavItem(currentIndex, 1, Icons.local_shipping_rounded, 'Daily'),
+                  ),
+                  const SizedBox(width: 80), // Space for the FAB
+                  Expanded(
+                    child: _buildNavItem(currentIndex, 3, Icons.wallet_rounded, 'Wallet'),
+                  ),
+                  Expanded(
+                    child: _buildNavItem(currentIndex, 4, Icons.person_rounded, 'Profile'),
+                  ),
+                ],
               ),
               Positioned(
-                top: 5,
+                top: -30,
                 child: GestureDetector(
                   onTap: () {
                     ref.read(mainIndexProvider.notifier).setIndex(2);
                   },
                   child: Container(
-                    width: 68,
-                    height: 68,
+                    width: 65,
+                    height: 65,
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: const Color(0xFF06B6D4),
                       shape: BoxShape.circle,
+                      border: Border.all(
+                        color: Colors.white,
+                        width: 4,
+                      ),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
+                          color: const Color(0xFF06B6D4).withOpacity(0.3),
+                          blurRadius: 12,
+                          offset: const Offset(0, 6),
                         ),
                       ],
-                      border: Border.all(
-                        color: isCartSelected
-                            ? AppColors.primary
-                            : AppColors.primary.withValues(alpha: 0.2),
-                        width: 2,
-                      ),
                     ),
-                    child: Center(
-                      child: Icon(
-                        Icons.shopping_cart_outlined,
-                        color: isCartSelected
-                            ? AppColors.primary
-                            : const Color.fromARGB(255, 69, 68, 66),
-                        size: 34,
-                      ),
+                    child: const Icon(
+                      Icons.shopping_cart_rounded,
+                      color: Colors.white,
+                      size: 28,
                     ),
                   ),
                 ),
@@ -254,32 +246,32 @@ class _MainPageState extends ConsumerState<MainPage> {
   Widget _buildNavItem(
       int currentIndex, int index, IconData icon, String label) {
     bool isSelected = currentIndex == index;
+    final Color color = isSelected ? const Color(0xFF06B6D4) : const Color(0xFF94A3B8);
+    
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: () {
         ref.read(mainIndexProvider.notifier).setIndex(index);
       },
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              icon,
-              color: isSelected ? AppColors.primary : const Color(0xFF4A4A4A),
-              size: 24,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            icon,
+            color: color,
+            size: 28,
+          ),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: TextStyle(
+              color: color,
+              fontSize: 12,
+              fontWeight: isSelected ? FontWeight.w900 : FontWeight.w500,
+              letterSpacing: -0.2,
             ),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: TextStyle(
-                color: isSelected ? AppColors.primary : const Color(0xFF4A4A4A),
-                fontSize: 10,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

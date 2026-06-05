@@ -1,22 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/state/auth_store.dart';
 import '../../../data/services/socket_service.dart';
 import '../../../data/services/order_service.dart';
+import '../../../data/services/db_service.dart';
+import '../../../data/models/food_models.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:intl/intl.dart';
+import 'order_chat_page.dart';
 
 /// Maps every backend status string → a 0-based step index (0 = just placed).
 int _statusToStep(String status) {
-  switch (status.toLowerCase()) {
+  switch (status.toLowerCase().replaceAll('_', ' ').replaceAll('-', ' ')) {
     case 'pending':
       return 0;
     case 'accepted':
+    case 'working':
+    case 'rider assigned':
+    case 'riderassigned':
       return 1;
     case 'pickedup':
-    case 'picked_up':
-    case 'out_for_delivery':
+    case 'picked up':
     case 'out for delivery':
+    case 'out_for_delivery':
     case 'ontheway':
+    case 'on the way':
       return 2;
     case 'delivered':
       return 3;
@@ -26,16 +35,20 @@ int _statusToStep(String status) {
 }
 
 String _stepLabel(String status) {
-  switch (status.toLowerCase()) {
+  switch (status.toLowerCase().replaceAll('_', ' ').replaceAll('-', ' ')) {
     case 'pending':
       return 'Order Placed';
     case 'accepted':
-      return 'Accepted by Rider';
+    case 'working':
+    case 'rider assigned':
+    case 'riderassigned':
+      return 'Rider Working';
     case 'pickedup':
-    case 'picked_up':
-    case 'out_for_delivery':
+    case 'picked up':
     case 'out for delivery':
+    case 'out_for_delivery':
     case 'ontheway':
+    case 'on the way':
       return 'Out for Delivery';
     case 'delivered':
       return 'Delivered!';
@@ -47,12 +60,14 @@ String _stepLabel(String status) {
 class TrackOrderPage extends ConsumerStatefulWidget {
   final String orderId;
   final Map<String, dynamic>? deliveryAddress;
+  final String? deliveryAddressStr;
   final String? status; // initial status passed from card
 
   const TrackOrderPage({
     super.key,
     required this.orderId,
     this.deliveryAddress,
+    this.deliveryAddressStr,
     this.status,
   });
 
@@ -69,6 +84,12 @@ class _TrackOrderPageState extends ConsumerState<TrackOrderPage>
   String _plantName = '';
   String _plantPhone = '';
   bool _isLoading = true;
+  String _lastRiderUpdate = '';
+  late void Function(dynamic) _onRiderLocation;
+
+  // Delivery Address State
+  Map<String, dynamic>? _deliveryAddressMap;
+  String? _deliveryAddressStr;
 
   // Socket callbacks
   late void Function(dynamic) _onOrderUpdate;
@@ -82,6 +103,8 @@ class _TrackOrderPageState extends ConsumerState<TrackOrderPage>
   void initState() {
     super.initState();
     _currentStatus = widget.status ?? 'Pending';
+    _deliveryAddressMap = widget.deliveryAddress;
+    _deliveryAddressStr = widget.deliveryAddressStr;
     _pulseCtrl = AnimationController(
         vsync: this, duration: const Duration(milliseconds: 900))
       ..repeat(reverse: true);
@@ -115,6 +138,14 @@ class _TrackOrderPageState extends ConsumerState<TrackOrderPage>
                          _plantName;
             _plantPhone = retailer['phoneNumber'] ?? retailer['phone'] ?? _plantPhone;
           }
+
+          final fetchedAddr = orderData['deliveryAddress'] ?? orderData['address'];
+          if (fetchedAddr is Map) {
+            _deliveryAddressMap = Map<String, dynamic>.from(fetchedAddr);
+          } else if (fetchedAddr is String) {
+            _deliveryAddressStr = fetchedAddr;
+          }
+
           _isLoading = false;
         });
       }
@@ -127,6 +158,11 @@ class _TrackOrderPageState extends ConsumerState<TrackOrderPage>
   void _connectSocket() {
     final socketService = ref.read(socketServiceProvider);
     socketService.joinOrderRoom(widget.orderId);
+
+    final user = ref.read(currentUserProvider);
+    if (user != null) {
+      socketService.joinUserRoom(user.id);
+    }
 
     _onOrderUpdate = (data) {
       if (!mounted) return;
@@ -161,6 +197,13 @@ class _TrackOrderPageState extends ConsumerState<TrackOrderPage>
                          _plantName;
             _plantPhone = retailer['phoneNumber'] ?? retailer['phone'] ?? _plantPhone;
           }
+
+          final fetchedAddr = payload['deliveryAddress'] ?? payload['address'];
+          if (fetchedAddr is Map) {
+            _deliveryAddressMap = Map<String, dynamic>.from(fetchedAddr);
+          } else if (fetchedAddr is String) {
+            _deliveryAddressStr = fetchedAddr;
+          }
         }
       });
 
@@ -171,18 +214,27 @@ class _TrackOrderPageState extends ConsumerState<TrackOrderPage>
 
     _onRiderAssigned = (data) {
       if (!mounted) return;
-      debugPrint('🛵 Rider assigned: ${data['riderName']}');
+      debugPrint('🛵 Rider assigned/working: ${data['riderName']}');
       setState(() {
         _riderName = data['riderName']?.toString() ?? _riderName;
         _riderPhone = data['riderPhone']?.toString() ?? _riderPhone;
         if (_currentStatus.toLowerCase() == 'pending') {
-          _currentStatus = 'Accepted';
+          _currentStatus = 'Working';
         }
+      });
+    };
+
+    _onRiderLocation = (data) {
+      if (!mounted) return;
+      debugPrint('📍 Rider location updated: $data');
+      setState(() {
+        _lastRiderUpdate = 'Last updated: ${DateFormat('hh:mm a').format(DateTime.now())}';
       });
     };
 
     socketService.onOrderUpdate(_onOrderUpdate);
     socketService.onRiderAssigned(_onRiderAssigned);
+    socketService.onRiderLocation(_onRiderLocation);
   }
 
   void _showDeliverySuccess() {
@@ -236,6 +288,7 @@ class _TrackOrderPageState extends ConsumerState<TrackOrderPage>
     socketService.leaveOrderRoom(widget.orderId);
     socketService.offOrderUpdate(_onOrderUpdate);
     socketService.offRiderAssigned(_onRiderAssigned);
+    socketService.offRiderLocation(_onRiderLocation);
     super.dispose();
   }
 
@@ -509,29 +562,287 @@ class _TrackOrderPageState extends ConsumerState<TrackOrderPage>
   }
 
   Widget _buildAddressCard() {
-    final addr = widget.deliveryAddress;
+    final addr = _deliveryAddressMap;
+    final displayStr = _deliveryAddressStr;
 
-    String displayAddr = 'Your delivery address';
-    String receiverName = '';
+    if (addr == null) {
+      String street = displayStr ?? '';
+      String city = '';
+      String state = '';
+      String pincode = '';
+      String label = '';
+      String fullName = '';
+      String phone = '';
 
-    if (addr != null) {
-      receiverName = (addr['fullName'] ?? addr['name'] ?? '').toString();
-
-      final street =
-          addr['fullAddress'] ?? addr['address'] ?? addr['street'] ?? '';
-      final city = addr['city'] ?? '';
-      final state = addr['state'] ?? '';
-      final pincode = addr['pincode'] ?? '';
-
-      List<String> parts = [];
-      if (street.toString().isNotEmpty) parts.add(street.toString());
-      if (city.toString().isNotEmpty) parts.add(city.toString());
-      if (state.toString().isNotEmpty) parts.add(state.toString());
-      if (pincode.toString().isNotEmpty) parts.add(pincode.toString());
-
-      if (parts.isNotEmpty) {
-        displayAddr = parts.join(', ');
+      if (street.isNotEmpty) {
+        try {
+          final cartProvider = CartProviderScope.of(context);
+          final matched = cartProvider.addresses.firstWhere(
+            (a) => a.street.toLowerCase().trim() == street.toLowerCase().trim() ||
+                   street.toLowerCase().contains(a.street.toLowerCase().trim()),
+            orElse: () => UserAddress(id: '', title: '', street: '', details: ''),
+          );
+          if (matched.id.isNotEmpty) {
+            street = matched.street;
+            label = matched.title;
+            fullName = matched.fullName;
+            final parts = matched.details.split(',');
+            if (parts.isNotEmpty) city = parts[0].trim();
+            if (parts.length > 1) {
+              final stateParts = parts[1].trim().split(' ');
+              if (stateParts.length > 1) {
+                pincode = stateParts.last;
+                state = stateParts.sublist(0, stateParts.length - 1).join(' ');
+              } else {
+                state = parts[1].trim();
+              }
+            }
+          }
+        } catch (_) {}
       }
+
+      if (city.isNotEmpty || state.isNotEmpty || pincode.isNotEmpty) {
+        final user = ref.read(currentUserProvider);
+        if (fullName.isEmpty && user != null) {
+          fullName = user.fullName;
+        }
+        if (fullName.isEmpty) {
+          fullName = 'Unknown Recipient';
+        }
+        if (phone.isEmpty && user != null) {
+          phone = user.phoneNumber;
+        }
+        
+        return Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: const Color(0xFF00ACC1).withValues(alpha: 0.2),
+              width: 1.0,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.03),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: const BoxDecoration(
+                  color: Color(0xFFCFFAFE),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.location_on,
+                    color: Color(0xFF0891B2), size: 18),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Delivery Address',
+                        style: TextStyle(fontSize: 11, color: Colors.grey)),
+                    const SizedBox(height: 8),
+                    if (label.isNotEmpty) ...[
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFCFFAFE),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          label.toUpperCase(),
+                          style: const TextStyle(
+                            color: Color(0xFF06B6D4),
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                    ],
+                    if (fullName.isNotEmpty) ...[
+                      Text(
+                        fullName,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                          color: Color(0xFF4B5563),
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                    ],
+                    if (street.isNotEmpty) ...[
+                      Text(
+                        street,
+                        style: const TextStyle(
+                          color: Colors.grey,
+                          fontSize: 13,
+                          height: 1.4,
+                        ),
+                      ),
+                    ],
+                    if (city.isNotEmpty || state.isNotEmpty || pincode.isNotEmpty)
+                      Text(
+                        '$city${city.isNotEmpty ? ", " : ""}$state $pincode',
+                        style: const TextStyle(
+                          color: Color(0xFF9CA3AF),
+                          fontSize: 12,
+                          height: 1.2,
+                        ),
+                      ),
+                    if (phone.isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      Text(
+                        phone,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 13,
+                          color: Color(0xFF1A1A1A),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      }
+
+      return Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: const Color(0xFF00ACC1).withValues(alpha: 0.2),
+            width: 1.0,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.03),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: const BoxDecoration(
+                color: Color(0xFFCFFAFE),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.location_on,
+                  color: Color(0xFF0891B2), size: 18),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('Delivery Address',
+                      style: TextStyle(fontSize: 11, color: Colors.grey)),
+                  const SizedBox(height: 4),
+                  Text(displayStr ?? 'Your delivery address',
+                      style: const TextStyle(
+                          fontWeight: FontWeight.w500, fontSize: 13, height: 1.4),
+                      maxLines: 4,
+                      overflow: TextOverflow.ellipsis),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final user = ref.read(currentUserProvider);
+    String label = addr['label'] ?? addr['title'] ?? '';
+    
+    String fullName = addr['fullName'] ?? addr['name'] ?? '';
+    if (fullName.toString().trim().isEmpty && user != null) {
+      fullName = user.fullName;
+    }
+    if (fullName.isEmpty) {
+      fullName = 'Unknown Recipient';
+    }
+
+    String street = addr['fullAddress'] ??
+        addr['address'] ??
+        addr['street'] ??
+        addr['flat'] ??
+        addr['houseNo'] ??
+        '';
+    String city = addr['city'] ?? '';
+    String state = addr['state'] ?? '';
+    String pincode = addr['pincode'] ?? '';
+    final landmark = addr['landmark'] ?? '';
+
+    // Robust dynamic matcher to recover missing fields from user's saved addresses
+    if (street.isEmpty || city.isEmpty || state.isEmpty || pincode.isEmpty || label.isEmpty) {
+      try {
+        final cartProvider = CartProviderScope.of(context);
+        // 1. Try matching by exact street name
+        var matched = cartProvider.addresses.firstWhere(
+          (a) => street.isNotEmpty && a.street.toLowerCase().trim() == street.toLowerCase().trim(),
+          orElse: () => UserAddress(id: '', title: '', street: '', details: ''),
+        );
+        
+        // 2. Try matching by label
+        if (matched.id.isEmpty && label.isNotEmpty) {
+          matched = cartProvider.addresses.firstWhere(
+            (a) => a.title.toLowerCase().trim() == label.toLowerCase().trim(),
+            orElse: () => UserAddress(id: '', title: '', street: '', details: ''),
+          );
+        }
+        
+        // 3. Try matching by pincode/city
+        if (matched.id.isEmpty && pincode.isNotEmpty) {
+          matched = cartProvider.addresses.firstWhere(
+            (a) => a.details.toLowerCase().contains(pincode.toLowerCase().trim()),
+            orElse: () => UserAddress(id: '', title: '', street: '', details: ''),
+          );
+        }
+
+        // If matched address found, dynamically recover missing fields
+        if (matched.id.isNotEmpty) {
+          if (label.isEmpty) label = matched.title;
+          if (street.isEmpty) street = matched.street;
+          if (fullName.isEmpty || fullName == 'Unknown Recipient') {
+            fullName = matched.fullName.isNotEmpty ? matched.fullName : fullName;
+          }
+          
+          final parts = matched.details.split(',');
+          if (city.isEmpty && parts.isNotEmpty) city = parts[0].trim();
+          if (state.isEmpty || pincode.isEmpty) {
+            if (parts.length > 1) {
+              final stateParts = parts[1].trim().split(' ');
+              if (stateParts.length > 1) {
+                if (pincode.isEmpty) pincode = stateParts.last;
+                if (state.isEmpty) state = stateParts.sublist(0, stateParts.length - 1).join(' ');
+              } else {
+                if (state.isEmpty) state = parts[1].trim();
+              }
+            }
+          }
+        }
+      } catch (_) {}
+    }
+    
+    String phone = addr['phone'] ?? addr['phoneNumber'] ?? '';
+    if (phone.toString().trim().isEmpty && user != null) {
+      phone = user.phoneNumber;
     }
 
     return Container(
@@ -570,21 +881,77 @@ class _TrackOrderPageState extends ConsumerState<TrackOrderPage>
               children: [
                 const Text('Delivery Address',
                     style: TextStyle(fontSize: 11, color: Colors.grey)),
-                const SizedBox(height: 4),
-                if (receiverName.isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 2),
-                    child: Text(receiverName,
-                        style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 13,
-                            color: Colors.black87)),
+                const SizedBox(height: 8),
+                if (label.toString().isNotEmpty) ...[
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFCFFAFE),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      label.toString().toUpperCase(),
+                      style: const TextStyle(
+                        color: Color(0xFF06B6D4),
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
-                Text(displayAddr,
+                  const SizedBox(height: 6),
+                ],
+                if (fullName.toString().isNotEmpty) ...[
+                  Text(
+                    fullName.toString(),
                     style: const TextStyle(
-                        fontWeight: FontWeight.w500, fontSize: 13, height: 1.4),
-                    maxLines: 4,
-                    overflow: TextOverflow.ellipsis),
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                      color: Color(0xFF4B5563),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                ],
+                if (street.toString().isNotEmpty) ...[
+                  Text(
+                    street.toString(),
+                    style: const TextStyle(
+                      color: Colors.grey,
+                      fontSize: 13,
+                      height: 1.4,
+                    ),
+                  ),
+                ],
+                if (city.toString().isNotEmpty || state.toString().isNotEmpty || pincode.toString().isNotEmpty)
+                  Text(
+                    '${city.toString()}${city.toString().isNotEmpty ? ", " : ""}${state.toString()} ${pincode.toString()}',
+                    style: const TextStyle(
+                      color: Color(0xFF9CA3AF),
+                      fontSize: 12,
+                      height: 1.2,
+                    ),
+                  ),
+                if (landmark.toString().isNotEmpty) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    'Landmark: ${landmark.toString()}',
+                    style: TextStyle(
+                      color: Colors.grey.shade400,
+                      fontSize: 12,
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                ],
+                if (phone.toString().isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    phone.toString(),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13,
+                      color: Color(0xFF1A1A1A),
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
@@ -719,6 +1086,20 @@ class _TrackOrderPageState extends ConsumerState<TrackOrderPage>
                     ),
                   ],
                 ),
+                if (_lastRiderUpdate.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.location_on, color: Colors.green, size: 12),
+                        const SizedBox(width: 4),
+                        Text(
+                          _lastRiderUpdate,
+                          style: const TextStyle(color: Colors.green, fontSize: 11, fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                  ),
               ],
             ),
           ),
@@ -737,7 +1118,18 @@ class _TrackOrderPageState extends ConsumerState<TrackOrderPage>
           _IconBtn(
             icon: Icons.chat_bubble_outline,
             isPrimary: false,
-            onPressed: () {},
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => OrderChatPage(
+                    riderName: _riderName.isNotEmpty ? _riderName : 'Delivery Partner',
+                    riderPhone: _riderPhone,
+                    orderId: widget.orderId,
+                  ),
+                ),
+              );
+            },
           ),
         ],
       ),
@@ -745,16 +1137,19 @@ class _TrackOrderPageState extends ConsumerState<TrackOrderPage>
   }
 
   String _getStatusSubtitle(String status) {
-    switch (status.toLowerCase()) {
+    switch (status.toLowerCase().replaceAll('_', ' ').replaceAll('-', ' ')) {
       case 'pending':
         return 'Your order has been received';
       case 'accepted':
+      case 'rider assigned':
+      case 'riderassigned':
         return 'Rider is heading to pick up your order';
       case 'pickedup':
-      case 'picked_up':
-      case 'out_for_delivery':
+      case 'picked up':
       case 'out for delivery':
+      case 'out_for_delivery':
       case 'ontheway':
+      case 'on the way':
         return 'Your order is on the way! 🛵';
       case 'delivered':
         return 'Enjoy your fresh water! 💧';

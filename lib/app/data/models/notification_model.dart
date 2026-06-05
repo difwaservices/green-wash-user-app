@@ -28,4 +28,25 @@ class NotificationModel {
       createdAt: DateTime.parse(json['createdAt']),
     );
   }
+
+  NotificationModel copyWith({
+    String? id,
+    String? title,
+    String? message,
+    String? type,
+    String? referenceId,
+    bool? isRead,
+    DateTime? createdAt,
+  }) {
+    return NotificationModel(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      message: message ?? this.message,
+      type: type ?? this.type,
+      referenceId: referenceId ?? this.referenceId,
+      isRead: isRead ?? this.isRead,
+      createdAt: createdAt ?? this.createdAt,
+    );
+  }
 }
+

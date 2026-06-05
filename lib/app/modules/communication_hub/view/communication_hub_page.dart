@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../data/providers/communication_provider.dart';
 import '../../../data/models/communication_model.dart';
-import '../../../core/constants/app_colors.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
 class CommunicationHubPage extends ConsumerWidget {

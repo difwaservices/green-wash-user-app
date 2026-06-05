@@ -111,6 +111,21 @@ class ShopService {
     }
   }
 
+  Future<List<DeliverySlotAvailability>> getShopSlots(String shopId, {String? date}) async {
+    try {
+      final json = await _client.get(
+        '${ApiClient.baseUrl}/shops/$shopId/slots',
+        queryParameters: date != null ? {'date': date} : null,
+        requiresAuth: false,
+      );
+      final raw = (json['data'] ?? json['deliverySlotsAvailability'] ?? json) as List<dynamic>? ?? [];
+      return raw.map((e) => DeliverySlotAvailability.fromJson(e as Map<String, dynamic>)).toList();
+    } catch (e) {
+      debugPrint('ShopService: Error fetching shop slots for $shopId: $e');
+      return [];
+    }
+  }
+
   Future<List<AppBanner>> getBanners() async {
     try {
       final json = await _client.get(

@@ -79,12 +79,12 @@ class ProductCard extends ConsumerWidget {
               color: Colors.white,
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: AppColors.primary.withValues(alpha: 0.2),
+                color: AppColors.primary.withOpacity(0.2),
                 width: 1.0,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
+                  color: Colors.black.withOpacity(0.05),
                   blurRadius: 10,
                   offset: const Offset(0, 4),
                 ),
@@ -102,21 +102,23 @@ class ProductCard extends ConsumerWidget {
                         borderRadius: const BorderRadius.vertical(
                           top: Radius.circular(16),
                         ),
-                        child: Image.network(
-                          product.image,
-                          height: 100,
+                        child: Container(
+                          height: 120, // Increased height slightly for better visibility
                           width: double.infinity,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Container(
-                              height: 100,
-                              color: Colors.grey.shade200,
-                              child: const Center(
-                                child: Icon(Icons.broken_image,
-                                    color: Colors.grey),
-                              ),
-                            );
-                          },
+                          color: const Color(0xFFF1F5F9), // Light grey background
+                          child: Image.network(
+                            product.image,
+                            fit: BoxFit.contain,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Container(
+                                color: Colors.grey.shade200,
+                                child: const Center(
+                                  child: Icon(Icons.broken_image,
+                                      color: Colors.grey),
+                                ),
+                              );
+                            },
+                          ),
                         ),
                       ),
                     ),
@@ -381,7 +383,7 @@ class _ProductHeartState extends ConsumerState<_ProductHeart>
         child: Container(
           padding: const EdgeInsets.all(6),
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.9),
+            color: Colors.white.withOpacity(0.9),
             shape: BoxShape.circle,
             boxShadow: [
               BoxShadow(

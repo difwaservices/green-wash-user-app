@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../data/models/food_models.dart';
 import '../../../data/services/order_service.dart';
-import '../../orders/view/order_tracking_page.dart';
 import '../../../data/models/product_model.dart';
 import '../../../data/services/db_service.dart';
 import 'package:intl/intl.dart';
@@ -228,12 +227,12 @@ class _OrderCard extends ConsumerWidget {
           color: Colors.white,
           borderRadius: BorderRadius.circular(24),
           border: Border.all(
-            color: const Color(0xFF00ACC1).withValues(alpha: 0.2),
+            color: const Color(0xFF00ACC1).withOpacity(0.2),
             width: 1.0,
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.03),
+              color: Colors.black.withOpacity(0.05),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),

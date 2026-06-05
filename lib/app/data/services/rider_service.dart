@@ -151,8 +151,9 @@ class RiderService {
       String endpoint = '/api/order/status-update'; // Generic fallback
       if (status == 'delivered') endpoint = '/api/order/delivered';
       if (status == 'accepted') endpoint = '/api/order/accepted';
-      if (status == 'out-for-delivery')
+      if (status == 'out-for-delivery') {
         endpoint = '/api/order/out-for-delivery';
+      }
 
       await dio.post(
         endpoint,

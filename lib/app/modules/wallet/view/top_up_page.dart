@@ -68,9 +68,13 @@ class _TopUpPageState extends ConsumerState<TopUpPage> {
         ref.invalidate(walletHistoryProvider);
         
         _messenger?.showSnackBar(
-          const SnackBar(
-              content: Text('Wallet topped up successfully!'),
-              backgroundColor: Color(0xFF06B6D4)),
+          SnackBar(
+            content: const Text('Wallet topped up successfully!'),
+            backgroundColor: const Color(0xFF06B6D4),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            margin: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+          ),
         );
         
         if (Navigator.canPop(context)) {
@@ -79,8 +83,12 @@ class _TopUpPageState extends ConsumerState<TopUpPage> {
       } else {
         _messenger?.showSnackBar(
           SnackBar(
-              content: Text(result['message'] ?? 'Verification failed'),
-              backgroundColor: AppColors.error),
+            content: Text(result['message'] ?? 'Verification failed'),
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            margin: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+          ),
         );
       }
     }
@@ -113,8 +121,12 @@ class _TopUpPageState extends ConsumerState<TopUpPage> {
     if (!mounted) return;
     _messenger?.showSnackBar(
       SnackBar(
-          content: Text('External Wallet: ${response.walletName}'),
-          backgroundColor: const Color(0xFF06B6D4)),
+        content: Text('External Wallet: ${response.walletName}'),
+        backgroundColor: const Color(0xFF06B6D4),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        margin: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+      ),
     );
   }
 
@@ -130,13 +142,28 @@ class _TopUpPageState extends ConsumerState<TopUpPage> {
     final profile = CartProviderScope.of(context).userProfile;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFF7F8FA),
       appBar: AppBar(
-        title: const Text('Top Up Wallet',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-        backgroundColor: AppColors.primaryDark,
+        title: const Text(
+          'Top Up Wallet',
+          style: TextStyle(
+            fontWeight: FontWeight.w900,
+            fontSize: 20,
+            color: Color(0xFF1E293B),
+            letterSpacing: -0.5,
+          ),
+        ),
+        backgroundColor: Colors.white,
         elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.white),
+        centerTitle: true,
+        iconTheme: const IconThemeData(color: Color(0xFF1E293B)),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1),
+          child: Container(
+            color: const Color(0xFF00ACC1).withOpacity(0.1),
+            height: 1,
+          ),
+        ),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
@@ -146,36 +173,99 @@ class _TopUpPageState extends ConsumerState<TopUpPage> {
             const Text('Enter Amount',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 16),
-            TextField(
-              controller: _amountController,
-              keyboardType: TextInputType.number,
-              style: const TextStyle(
-                  fontSize: 32,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.primaryDark),
-              decoration: InputDecoration(
-                prefixText: '₹ ',
-                prefixStyle: const TextStyle(
-                    fontSize: 32,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.primaryDark),
-                hintText: '0',
-                focusedBorder: UnderlineInputBorder(
-                    borderSide:
-                        BorderSide(color: AppColors.primaryDark, width: 2)),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: const Color(0xFF00ACC1).withOpacity(0.2),
+                  width: 1.0,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  const Text(
+                    '₹',
+                    style: TextStyle(
+                        fontSize: 32,
+                        fontWeight: FontWeight.w900,
+                        color: Color(0xFF1E293B)),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: TextField(
+                      controller: _amountController,
+                      keyboardType: TextInputType.number,
+                      style: const TextStyle(
+                          fontSize: 32,
+                          fontWeight: FontWeight.w900,
+                          color: Color(0xFF1E293B)),
+                      decoration: const InputDecoration(
+                        hintText: '0',
+                        hintStyle: TextStyle(color: Colors.grey),
+                        border: InputBorder.none,
+                        focusedBorder: InputBorder.none,
+                        enabledBorder: InputBorder.none,
+                        errorBorder: InputBorder.none,
+                        disabledBorder: InputBorder.none,
+                        isDense: true,
+                        contentPadding: EdgeInsets.zero,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
             const SizedBox(height: 24),
-            Wrap(
-              spacing: 12,
-              children: [500, 1000, 2000, 5000]
-                  .map((amt) => ActionChip(
-                        label: Text('₹$amt'),
-                        onPressed: () => setState(
-                            () => _amountController.text = amt.toString()),
-                        backgroundColor: AppColors.scaffoldBg,
-                      ))
-                  .toList(),
+            Row(
+              children: [500, 1000, 2000, 5000].map((amt) {
+                final isSelected = _amountController.text == amt.toString();
+                return Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    child: GestureDetector(
+                      onTap: () => setState(() => _amountController.text = amt.toString()),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: isSelected
+                                ? const Color(0xFF00ACC1)
+                                : const Color(0xFF00ACC1).withOpacity(0.1),
+                            width: isSelected ? 2.0 : 1.0,
+                          ),
+                          boxShadow: isSelected ? [
+                            BoxShadow(
+                              color: const Color(0xFF00ACC1).withOpacity(0.1),
+                              blurRadius: 8,
+                              offset: const Offset(0, 4),
+                            ),
+                          ] : [],
+                        ),
+                        child: Text(
+                          '₹$amt',
+                          style: TextStyle(
+                            color: isSelected ? const Color(0xFF00ACC1) : const Color(0xFF1E293B),
+                            fontWeight: isSelected ? FontWeight.w900 : FontWeight.bold,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              }).toList(),
             ),
             const SizedBox(height: 48),
             _isLoading

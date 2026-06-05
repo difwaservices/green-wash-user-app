@@ -143,8 +143,8 @@ class AuthService {
   // ── Update FCM Token ─────────────────────────────────────────────────────
   Future<AuthResponseModel> updateFcmToken({required String fcmToken}) async {
     try {
-      final json = await _client.put(
-        '${ApiClient.baseUrl}/profile',
+      final json = await _client.post(
+        '/api/notifications/register-token/app',
         data: {'fcmToken': fcmToken},
         requiresAuth: true,
       );

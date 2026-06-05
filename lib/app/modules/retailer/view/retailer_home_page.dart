@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../data/services/retailer_service.dart';
-import '../../../core/constants/app_colors.dart';
 import '../../auth/provider/auth_provider.dart';
 
 final retailerStatsProvider = FutureProvider<Map<String, dynamic>>((ref) async {

@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../data/models/food_models.dart';
 import '../../../data/services/order_service.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_images.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../../../core/state/auth_store.dart';
+import '../../../data/services/socket_service.dart';
+import '../../../data/services/db_service.dart';
 import 'track_order_page.dart';
 
 class ActiveOrdersPage extends ConsumerStatefulWidget {
@@ -16,9 +18,32 @@ class ActiveOrdersPage extends ConsumerStatefulWidget {
 }
 
 class _ActiveOrdersPageState extends ConsumerState<ActiveOrdersPage> {
+  late void Function(dynamic) _onOrderUpdate;
+
   @override
   void initState() {
     super.initState();
+    _onOrderUpdate = (data) {
+      if (!mounted) return;
+      debugPrint('📦 Order status updated via socket: $data');
+      ref.invalidate(activeOrdersProvider);
+    };
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final user = ref.read(currentUserProvider);
+      if (user != null) {
+        final socket = ref.read(socketServiceProvider);
+        socket.joinUserRoom(user.id);
+        socket.onOrderUpdate(_onOrderUpdate);
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    final socket = ref.read(socketServiceProvider);
+    socket.offOrderUpdate(_onOrderUpdate);
+    super.dispose();
   }
 
   @override
@@ -26,28 +51,38 @@ class _ActiveOrdersPageState extends ConsumerState<ActiveOrdersPage> {
     final activeOrdersAsync = ref.watch(activeOrdersProvider);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF1F5EF), // Very light greenish background from screenshot
+      backgroundColor: const Color(0xFFF7F8FA),
       appBar: AppBar(
-        title: const Text('Active Orders',
-            style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 18,
-                color: Colors.white)),
-        backgroundColor: AppColors.primaryDark,
+        title: const Text(
+          'Active Orders',
+          style: TextStyle(
+            fontWeight: FontWeight.w900,
+            fontSize: 20,
+            color: Color(0xFF1E293B),
+            letterSpacing: -0.5,
+          ),
+        ),
+        backgroundColor: Colors.white,
         elevation: 0,
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          icon: const Icon(Icons.arrow_back_ios_new,
+              size: 20, color: Color(0xFF1E293B)),
           onPressed: () => Navigator.pop(context),
         ),
-
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1),
+          child: Container(
+            color: const Color(0xFF00ACC1).withValues(alpha: 0.1),
+            height: 1,
+          ),
+        ),
       ),
       body: SafeArea(
         child: activeOrdersAsync.when(
           data: (orders) {
             final pendingCancelledOrders = orders
-                .where((o) =>
-                    o.status.toLowerCase() != 'delivered')
+                .where((o) => o.status.toLowerCase() != 'delivered')
                 .toList();
 
             if (pendingCancelledOrders.isEmpty) {
@@ -92,42 +127,51 @@ class _ActiveOrdersPageState extends ConsumerState<ActiveOrdersPage> {
 
   Widget _buildEmptyState(BuildContext context) {
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(28),
-            decoration: const BoxDecoration(
-              color: Color(0xFFCFFAFE),
-              shape: BoxShape.circle,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 40),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(28),
+              decoration: const BoxDecoration(
+                color: Color(0xFFCFFAFE),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.inventory_2_outlined,
+                  size: 56, color: Color(0xFF06B6D4)),
             ),
-            child: const Icon(Icons.inventory_2_outlined,
-                size: 56, color: Color(0xFF06B6D4)),
-          ),
-          const SizedBox(height: 24),
-          const Text('No Active Orders',
-              style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 20,
-                  color: Color(0xFF0891B2))),
-          const SizedBox(height: 8),
-          Text('Place an order and track it live here!',
-              style: TextStyle(color: Colors.grey.shade500, fontSize: 14)),
-          const SizedBox(height: 32),
-          ElevatedButton.icon(
-            onPressed: () => Navigator.pop(context),
-            icon: const Icon(Icons.storefront_outlined),
-            label: const Text('Order Something'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF0891B2),
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16)),
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-              elevation: 0,
+            const SizedBox(height: 24),
+            const Text('No Active Orders',
+                style: TextStyle(
+                    fontWeight: FontWeight.w900,
+                    fontSize: 22,
+                    color: Color(0xFF1E293B))),
+            const SizedBox(height: 8),
+            Text('Place an order and track it live here!',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.grey.shade500, fontSize: 14)),
+            const SizedBox(height: 40),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () => Navigator.pop(context),
+                icon: const Icon(Icons.storefront_outlined),
+                label: const Text('Order Something',
+                    style:
+                        TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF0891B2),
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20)),
+                  padding: const EdgeInsets.symmetric(vertical: 18),
+                  elevation: 0,
+                ),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -165,12 +209,12 @@ class _ActiveOrdersPageState extends ConsumerState<ActiveOrdersPage> {
 
 // ── Order Card ─────────────────────────────────────────────────────────────────
 
-class _ActiveOrderCard extends StatelessWidget {
+class _ActiveOrderCard extends ConsumerWidget {
   final UserOrder order;
   const _ActiveOrderCard({required this.order});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final String rawId = order.id;
     final String orderId = rawId.length > 8
         ? rawId.substring(rawId.length - 8).toUpperCase()
@@ -197,7 +241,7 @@ class _ActiveOrderCard extends StatelessWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -212,6 +256,7 @@ class _ActiveOrderCard extends StatelessWidget {
                 orderId: order.id,
                 status: status,
                 deliveryAddress: order.deliveryAddressMap,
+                deliveryAddressStr: order.deliveryAddressStr,
               ),
             ),
           );
@@ -248,8 +293,7 @@ class _ActiveOrderCard extends StatelessWidget {
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
                               color: order.isSubscription
-                                  ? AppColors.primaryDark
-                                      .withValues(alpha: 0.3)
+                                  ? AppColors.primaryDark.withValues(alpha: 0.3)
                                   : Colors.grey.shade300),
                         ),
                         child: Text(
@@ -299,8 +343,8 @@ class _ActiveOrderCard extends StatelessWidget {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: ClipRRect(
-                       borderRadius: const BorderRadius.all(Radius.circular(12)),
-                       child: _buildItemImage(order),
+                      borderRadius: const BorderRadius.all(Radius.circular(12)),
+                      child: _buildItemImage(order),
                     ),
                   ),
                   const SizedBox(width: 16),
@@ -318,9 +362,11 @@ class _ActiveOrderCard extends StatelessWidget {
                         const SizedBox(height: 4),
                         Text(
                           'Total Quantity: ${order.items.fold(0, (sum, i) => sum + i.quantity)}',
-                          style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
+                          style: TextStyle(
+                              color: Colors.grey.shade600, fontSize: 13),
                         ),
-                        if (order.deliverySlot != null && order.deliverySlot!.isNotEmpty)
+                        if (order.deliverySlot != null &&
+                            order.deliverySlot!.isNotEmpty)
                           Padding(
                             padding: const EdgeInsets.only(top: 4),
                             child: Text(
@@ -338,7 +384,7 @@ class _ActiveOrderCard extends StatelessWidget {
               ),
 
               const SizedBox(height: 16),
-              
+
               Text(
                 'Placed: ${order.date.toLocal().toString().substring(0, 16).replaceAll('T', ', ')}',
                 style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
@@ -384,9 +430,11 @@ class _ActiveOrderCard extends StatelessWidget {
                       ),
                       if (order.plantPhone.isNotEmpty)
                         IconButton(
-                          icon: const Icon(Icons.call, color: Color(0xFF16A34A)),
+                          icon:
+                              const Icon(Icons.call, color: Color(0xFF16A34A)),
                           onPressed: () async {
-                            final Uri uri = Uri.parse('tel:${order.plantPhone}');
+                            final Uri uri =
+                                Uri.parse('tel:${order.plantPhone}');
                             if (await canLaunchUrl(uri)) {
                               await launchUrl(uri);
                             }
@@ -412,6 +460,7 @@ class _ActiveOrderCard extends StatelessWidget {
                   ),
                 ),
                 child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Icon(Icons.location_on_outlined,
                         color: Colors.grey, size: 24),
@@ -421,14 +470,350 @@ class _ActiveOrderCard extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const Text('Delivery Address',
-                              style:
-                                  TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.w500)),
-                          const SizedBox(height: 4),
-                          Text(deliveryAddress,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                  fontWeight: FontWeight.w500, fontSize: 13, color: Colors.black87)),
+                              style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey,
+                                  fontWeight: FontWeight.w500)),
+                          const SizedBox(height: 8),
+                          Builder(
+                            builder: (context) {
+                              final addr = order.deliveryAddressMap;
+                              final displayStr = order.deliveryAddressStr;
+                              if (addr == null) {
+                                String street = displayStr ?? '';
+                                String city = '';
+                                String state = '';
+                                String pincode = '';
+                                String label = '';
+                                String fullName = '';
+                                String phone = '';
+
+                                if (street.isNotEmpty) {
+                                  try {
+                                    final cartProvider =
+                                        CartProviderScope.of(context);
+                                    final matched =
+                                        cartProvider.addresses.firstWhere(
+                                      (a) =>
+                                          a.street.toLowerCase().trim() ==
+                                              street.toLowerCase().trim() ||
+                                          street.toLowerCase().contains(
+                                              a.street.toLowerCase().trim()),
+                                      orElse: () => UserAddress(
+                                          id: '',
+                                          title: '',
+                                          street: '',
+                                          details: ''),
+                                    );
+                                    if (matched.id.isNotEmpty) {
+                                      street = matched.street;
+                                      label = matched.title;
+                                      fullName = matched.fullName;
+                                      final parts = matched.details.split(',');
+                                      if (parts.isNotEmpty) {
+                                        city = parts[0].trim();
+                                      }
+                                      if (parts.length > 1) {
+                                        final stateParts =
+                                            parts[1].trim().split(' ');
+                                        if (stateParts.length > 1) {
+                                          pincode = stateParts.last;
+                                          state = stateParts
+                                              .sublist(0, stateParts.length - 1)
+                                              .join(' ');
+                                        } else {
+                                          state = parts[1].trim();
+                                        }
+                                      }
+                                    }
+                                  } catch (_) {}
+                                }
+
+                                if (city.isNotEmpty ||
+                                    state.isNotEmpty ||
+                                    pincode.isNotEmpty) {
+                                  final user = ref.read(currentUserProvider);
+                                  if (fullName.isEmpty && user != null) {
+                                    fullName = user.fullName;
+                                  }
+                                  if (fullName.isEmpty) {
+                                    fullName = 'Unknown Recipient';
+                                  }
+                                  if (phone.isEmpty && user != null) {
+                                    phone = user.phoneNumber;
+                                  }
+
+                                  return Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      if (label.isNotEmpty) ...[
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 8, vertical: 2),
+                                          decoration: BoxDecoration(
+                                            color: const Color(0xFFCFFAFE),
+                                            borderRadius:
+                                                BorderRadius.circular(4),
+                                          ),
+                                          child: Text(
+                                            label.toUpperCase(),
+                                            style: const TextStyle(
+                                              color: Color(0xFF06B6D4),
+                                              fontSize: 9,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(height: 4),
+                                      ],
+                                      if (fullName.isNotEmpty) ...[
+                                        Text(
+                                          fullName,
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 13,
+                                            color: Color(0xFF4B5563),
+                                          ),
+                                        ),
+                                        const SizedBox(height: 2),
+                                      ],
+                                      if (street.isNotEmpty) ...[
+                                        Text(
+                                          street,
+                                          style: const TextStyle(
+                                            color: Colors.grey,
+                                            fontSize: 12,
+                                            height: 1.3,
+                                          ),
+                                        ),
+                                      ],
+                                      if (city.isNotEmpty ||
+                                          state.isNotEmpty ||
+                                          pincode.isNotEmpty)
+                                        Text(
+                                          '$city${city.isNotEmpty ? ", " : ""}$state $pincode',
+                                          style: const TextStyle(
+                                            color: Color(0xFF9CA3AF),
+                                            fontSize: 11,
+                                            height: 1.2,
+                                          ),
+                                        ),
+                                      if (phone.isNotEmpty) ...[
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          phone,
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.w600,
+                                            fontSize: 12,
+                                            color: Color(0xFF1A1A1A),
+                                          ),
+                                        ),
+                                      ],
+                                    ],
+                                  );
+                                }
+
+                                return Text(
+                                  displayStr ?? 'Your delivery address',
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.w500,
+                                      fontSize: 13,
+                                      color: Colors.black87),
+                                );
+                              }
+
+                              final user = ref.read(currentUserProvider);
+                              String label =
+                                  addr['label'] ?? addr['title'] ?? '';
+
+                              String fullName =
+                                  addr['fullName'] ?? addr['name'] ?? '';
+                              if (fullName.toString().trim().isEmpty &&
+                                  user != null) {
+                                fullName = user.fullName;
+                              }
+                              if (fullName.isEmpty) {
+                                fullName = 'Unknown Recipient';
+                              }
+
+                              String street = addr['fullAddress'] ??
+                                  addr['address'] ??
+                                  addr['street'] ??
+                                  addr['flat'] ??
+                                  addr['houseNo'] ??
+                                  '';
+                              String city = addr['city'] ?? '';
+                              String state = addr['state'] ?? '';
+                              String pincode = addr['pincode'] ?? '';
+
+                              // Robust dynamic matcher to recover missing fields from user's saved addresses
+                              if (street.isEmpty ||
+                                  city.isEmpty ||
+                                  state.isEmpty ||
+                                  pincode.isEmpty ||
+                                  label.isEmpty) {
+                                try {
+                                  final cartProvider =
+                                      CartProviderScope.of(context);
+                                  // 1. Try matching by exact street name
+                                  var matched =
+                                      cartProvider.addresses.firstWhere(
+                                    (a) =>
+                                        street.isNotEmpty &&
+                                        a.street.toLowerCase().trim() ==
+                                            street.toLowerCase().trim(),
+                                    orElse: () => UserAddress(
+                                        id: '',
+                                        title: '',
+                                        street: '',
+                                        details: ''),
+                                  );
+
+                                  // 2. Try matching by label
+                                  if (matched.id.isEmpty && label.isNotEmpty) {
+                                    matched = cartProvider.addresses.firstWhere(
+                                      (a) =>
+                                          a.title.toLowerCase().trim() ==
+                                          label.toLowerCase().trim(),
+                                      orElse: () => UserAddress(
+                                          id: '',
+                                          title: '',
+                                          street: '',
+                                          details: ''),
+                                    );
+                                  }
+
+                                  // 3. Try matching by pincode/city
+                                  if (matched.id.isEmpty &&
+                                      pincode.isNotEmpty) {
+                                    matched = cartProvider.addresses.firstWhere(
+                                      (a) => a.details.toLowerCase().contains(
+                                          pincode.toLowerCase().trim()),
+                                      orElse: () => UserAddress(
+                                          id: '',
+                                          title: '',
+                                          street: '',
+                                          details: ''),
+                                    );
+                                  }
+
+                                  // If matched address found, dynamically recover missing fields
+                                  if (matched.id.isNotEmpty) {
+                                    if (label.isEmpty) label = matched.title;
+                                    if (street.isEmpty) street = matched.street;
+                                    if (fullName.isEmpty ||
+                                        fullName == 'Unknown Recipient') {
+                                      fullName = matched.fullName.isNotEmpty
+                                          ? matched.fullName
+                                          : fullName;
+                                    }
+
+                                    final parts = matched.details.split(',');
+                                    if (city.isEmpty && parts.isNotEmpty) {
+                                      city = parts[0].trim();
+                                    }
+                                    if (state.isEmpty || pincode.isEmpty) {
+                                      if (parts.length > 1) {
+                                        final stateParts =
+                                            parts[1].trim().split(' ');
+                                        if (stateParts.length > 1) {
+                                          if (pincode.isEmpty) {
+                                            pincode = stateParts.last;
+                                          }
+                                          if (state.isEmpty) {
+                                            state = stateParts
+                                                .sublist(
+                                                    0, stateParts.length - 1)
+                                                .join(' ');
+                                          }
+                                        } else {
+                                          if (state.isEmpty) {
+                                            state = parts[1].trim();
+                                          }
+                                        }
+                                      }
+                                    }
+                                  }
+                                } catch (_) {}
+                              }
+
+                              String phone =
+                                  addr['phone'] ?? addr['phoneNumber'] ?? '';
+                              if (phone.toString().trim().isEmpty &&
+                                  user != null) {
+                                phone = user.phoneNumber;
+                              }
+
+                              return Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  if (label.toString().isNotEmpty) ...[
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 8, vertical: 2),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFFCFFAFE),
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                      child: Text(
+                                        label.toString().toUpperCase(),
+                                        style: const TextStyle(
+                                          color: Color(0xFF06B6D4),
+                                          fontSize: 9,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                  ],
+                                  if (fullName.toString().isNotEmpty) ...[
+                                    Text(
+                                      fullName.toString(),
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 13,
+                                        color: Color(0xFF4B5563),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                  ],
+                                  if (street.toString().isNotEmpty) ...[
+                                    Text(
+                                      street.toString(),
+                                      style: const TextStyle(
+                                        color: Colors.grey,
+                                        fontSize: 12,
+                                        height: 1.3,
+                                      ),
+                                    ),
+                                  ],
+                                  if (city.toString().isNotEmpty ||
+                                      state.toString().isNotEmpty ||
+                                      pincode.toString().isNotEmpty)
+                                    Text(
+                                      '${city.toString()}${city.toString().isNotEmpty ? ", " : ""}${state.toString()} ${pincode.toString()}',
+                                      style: const TextStyle(
+                                        color: Color(0xFF9CA3AF),
+                                        fontSize: 11,
+                                        height: 1.2,
+                                      ),
+                                    ),
+                                  if (phone.toString().isNotEmpty) ...[
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      phone.toString(),
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 12,
+                                        color: Color(0xFF1A1A1A),
+                                      ),
+                                    ),
+                                  ],
+                                ],
+                              );
+                            },
+                          ),
                         ],
                       ),
                     ),
@@ -470,8 +855,9 @@ class _ActiveOrderCard extends StatelessWidget {
       case 'pending':
         return 'PENDING';
       case 'accepted':
+      case 'working':
       case 'rider_assigned':
-        return 'RIDER ASSIGNED';
+        return 'WORKING';
       case 'pickedup':
       case 'picked_up':
         return 'PICKED UP';
@@ -493,7 +879,7 @@ class _ActiveOrderCard extends StatelessWidget {
     if (imageUrl.startsWith('http')) {
       return Image.network(
         imageUrl,
-        fit: BoxFit.cover,
+        fit: BoxFit.contain,
         errorBuilder: (_, __, ___) => _fallbackImage(),
       );
     }
@@ -553,4 +939,3 @@ class _ShimmerBoxState extends State<_ShimmerBox>
     );
   }
 }
-

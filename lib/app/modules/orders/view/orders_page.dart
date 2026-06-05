@@ -6,7 +6,6 @@ import '../../../data/models/food_models.dart';
 import '../../../data/services/order_service.dart';
 import '../../../data/services/socket_service.dart';
 import '../../auth/provider/auth_provider.dart';
-import '../../../core/constants/app_images.dart';
 import '../../../data/models/product_model.dart';
 import '../../../data/services/db_service.dart';
 import '../../../widgets/bounce_widget.dart';
@@ -202,7 +201,7 @@ class _LiveOrderCardState extends State<_LiveOrderCard> with SingleTickerProvide
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(width: 70, height: 70, decoration: BoxDecoration(color: const Color(0xFFF3F4F6), borderRadius: BorderRadius.circular(12)), child: ClipRRect(borderRadius: BorderRadius.circular(12), child: imageUrl.isNotEmpty ? Image.network(imageUrl, fit: BoxFit.cover, errorBuilder: (_, __, ___) => _placeholder()) : _placeholder())),
+                    Container(width: 70, height: 70, decoration: BoxDecoration(color: const Color(0xFFF3F4F6), borderRadius: BorderRadius.circular(12)), child: ClipRRect(borderRadius: BorderRadius.circular(12), child: imageUrl.isNotEmpty ? Image.network(imageUrl, fit: BoxFit.contain, errorBuilder: (_, __, ___) => _placeholder()) : _placeholder())),
                     const SizedBox(width: 16),
                     Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(widget.order.items.map((i) => '${i.quantity}x ${i.name}').join(', '), maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Color(0xFF1E293B))), const SizedBox(height: 4), _summaryText('Placed: ${dateFormat.format(widget.order.date)}'), if (isDelivered) _summaryText('Delivered: ${dateFormat.format(widget.order.date.add(const Duration(hours: 1)))}'), if (widget.order.riderName.isNotEmpty) _summaryText('Rider: ${widget.order.riderName}')])),
                   ],

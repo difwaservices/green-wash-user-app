@@ -177,7 +177,7 @@ class _CategoryImage extends StatelessWidget {
     if (_isNetwork) {
       return Image.network(
         imageUrl,
-        fit: BoxFit.cover,
+        fit: BoxFit.contain,
         errorBuilder: (_, __, ___) => const Icon(
           Icons.category_outlined,
           size: 30,
@@ -188,7 +188,7 @@ class _CategoryImage extends StatelessWidget {
     // local asset
     return Image.asset(
       imageUrl,
-      fit: BoxFit.cover,
+      fit: BoxFit.contain,
       errorBuilder: (_, __, ___) => const Icon(
         Icons.category_outlined,
         size: 30,

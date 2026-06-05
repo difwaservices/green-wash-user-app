@@ -5,8 +5,6 @@ import '../../core/constants/app_images.dart';
 import 'provider/auth_provider.dart';
 import '../../data/models/food_models.dart';
 import '../../data/services/db_service.dart';
-import '../../data/services/fcm_service.dart';
-import '../../data/services/socket_service.dart';
 import '../../routes/app_routes.dart';
 import 'package:pinput/pinput.dart';
 import 'package:flutter_animate/flutter_animate.dart';

@@ -1,4 +1,3 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/state/auth_store.dart' as core;
 
 // Re-export the new sealed state types so UI logic (is AuthAuthenticated, etc.) works.

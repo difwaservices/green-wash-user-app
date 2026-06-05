@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../data/services/review_service.dart';
 import '../../../data/services/order_service.dart';
-import '../../../core/constants/app_colors.dart';
 
 class ReviewDialog extends ConsumerStatefulWidget {
   final String orderId;
