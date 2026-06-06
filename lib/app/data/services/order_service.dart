@@ -36,9 +36,13 @@ class OrderService {
         'message': response['message'],
       };
     } catch (e) {
+      String msg = e.toString();
+      if (e is ApiException) {
+        msg = e.message;
+      }
       return {
         'success': false,
-        'message': e.toString(),
+        'message': msg,
       };
     }
   }
@@ -101,9 +105,13 @@ class OrderService {
         'message': response['message'],
       };
     } catch (e) {
+      String msg = e.toString();
+      if (e is ApiException) {
+        msg = e.message;
+      }
       return {
         'success': false,
-        'message': e.toString(),
+        'message': msg,
       };
     }
   }

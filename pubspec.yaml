@@ -102,20 +102,11 @@ flutter:
   assets:
     - .env
     - assets/
-    - assets/audio/
-    - assets/bgimage/
     - assets/bottal/
-    - assets/button/
-    - assets/elements/
     - assets/fonts/
-    - assets/frames/
-    - assets/icons/
     - assets/images/
     - assets/logos/
     - assets/lottie/
-    - assets/onboardingimg/
-    - assets/posters/
-    - assets/scollerimg/
     - assets/waterimage/
 
   # An image asset can refer to one or more resolution-specific "variants", see

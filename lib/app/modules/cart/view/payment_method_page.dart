@@ -8,6 +8,7 @@ import '../../../data/services/wallet_service.dart';
 import 'order_success_page.dart';
 
 import '../../../data/services/shop_service.dart';
+import '../../../../main.dart'; // To access rootScaffoldMessengerKey
 
 class PaymentMethodPage extends ConsumerStatefulWidget {
   const PaymentMethodPage({super.key});
@@ -26,7 +27,9 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
   /// Show a clean, user-friendly snackbar — no 'Exception:' prefix ever shown.
   void _showError(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
+    
+    // Use the global messenger key instead of context to avoid deactivated widget errors
+    rootScaffoldMessengerKey.currentState?.showSnackBar(
       SnackBar(
         content: Row(
           children: [
