@@ -1,11 +1,13 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/config/api_config.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 import '../../../core/api/auth_interceptor.dart';
 import '../../../core/api/api_provider.dart'; // Added for storageServiceProvider
 import '../../../core/storage/secure_storage_service.dart';
+import '../../../../main.dart'; // To access rootScaffoldMessengerKey
 
 /// Thrown when the server returns a non-2xx status or an error occurs.
 class ApiException implements Exception {
@@ -188,13 +190,24 @@ class ApiClient {
   }
 
   ApiException _handleError(DioException e) {
-    // 1. Handle Timeouts
+    // 1. Handle Timeouts and Connection Errors
     if (e.type == DioExceptionType.connectionTimeout ||
         e.type == DioExceptionType.receiveTimeout ||
-        e.type == DioExceptionType.sendTimeout) {
-      return const ApiException(
-          message:
-              'Connection timed out. Please check your internet connection.');
+        e.type == DioExceptionType.sendTimeout ||
+        e.type == DioExceptionType.connectionError) {
+      
+      final String errorMsg = e.type == DioExceptionType.connectionError 
+          ? 'Cannot connect to server. Please ensure the server is running.'
+          : 'Connection timed out. Please check your internet connection.';
+
+      rootScaffoldMessengerKey.currentState?.showSnackBar(
+        SnackBar(
+          content: Text(errorMsg),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return ApiException(message: errorMsg);
     }
 
     // 2. Handle Response Errors

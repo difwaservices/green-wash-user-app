@@ -17,6 +17,9 @@ import 'app/core/constants/app_images.dart';
 import 'app/modules/auth/provider/auth_provider.dart';
 import 'firebase_options.dart';
 
+final GlobalKey<ScaffoldMessengerState> rootScaffoldMessengerKey =
+    GlobalKey<ScaffoldMessengerState>();
+
 final cartProviderManager = Provider<CartProvider>((ref) {
   final user = ref.watch(currentUserProvider);
 
@@ -80,6 +83,7 @@ class DifwaWaterApp extends ConsumerWidget {
       child: MaterialApp(
         title: 'Difwa Water',
         navigatorKey: FCMService.navigatorKey,
+        scaffoldMessengerKey: rootScaffoldMessengerKey,
         debugShowCheckedModeBanner: false,
         theme: AppTheme.lightTheme,
         initialRoute: AppRoutes.splash,
