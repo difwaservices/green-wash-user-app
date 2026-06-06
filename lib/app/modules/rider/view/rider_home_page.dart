@@ -857,8 +857,9 @@ class _RiderHomePageState extends ConsumerState<RiderHomePage> {
                       orderStatus == 'rider assigned' || 
                       orderStatus == 'rider_assigned';
                       
-    final isAccepted = rawAssignmentStatus == 'accepted' || 
-                       orderStatus == 'accepted' ||
+    final isAccepted = rawAssignmentStatus == 'accepted' ||
+                       orderStatus == 'rider accepted' ||
+                       orderStatus == 'rider_accepted' ||
                        ['out for delivery', 'out_for_delivery', 'pickedup', 'picked_up', 'arrived'].contains(orderStatus);
 
     final isDelivered =

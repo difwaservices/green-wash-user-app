@@ -856,8 +856,13 @@ class _ActiveOrderCard extends ConsumerWidget {
         return 'PENDING';
       case 'accepted':
       case 'working':
+        return 'ACCEPTED';
+      case 'rider assigned':
       case 'rider_assigned':
-        return 'WORKING';
+        return 'RIDER ASSIGNED';
+      case 'rider accepted':
+      case 'rider_accepted':
+        return 'RIDER ACCEPTED';
       case 'pickedup':
       case 'picked_up':
         return 'PICKED UP';

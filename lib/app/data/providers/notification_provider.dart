@@ -2,7 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../network/api_client.dart';
 import '../models/notification_model.dart';
 
-class NotificationsNotifier extends AutoDisposeAsyncNotifier<List<NotificationModel>> {
+class NotificationsNotifier extends AsyncNotifier<List<NotificationModel>> {
   @override
   Future<List<NotificationModel>> build() async {
     final client = ref.read(apiClientProvider);
@@ -95,7 +95,7 @@ class NotificationsNotifier extends AutoDisposeAsyncNotifier<List<NotificationMo
 }
 
 final notificationsProvider =
-    AsyncNotifierProvider.autoDispose<NotificationsNotifier, List<NotificationModel>>(() {
+    AsyncNotifierProvider<NotificationsNotifier, List<NotificationModel>>(() {
   return NotificationsNotifier();
 });
 

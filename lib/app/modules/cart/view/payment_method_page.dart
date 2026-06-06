@@ -113,7 +113,15 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
       if (_orderType == 1) {
         dateParam = "${_startDate.year}-${_startDate.month.toString().padLeft(2, '0')}-${_startDate.day.toString().padLeft(2, '0')}";
       }
-      final slots = await ref.read(shopServiceProvider).getShopSlots(shopId, date: dateParam);
+      var slots = await ref.read(shopServiceProvider).getShopSlots(shopId, date: dateParam);
+      if (slots.isEmpty) {
+        final shopVal = ref.read(shopDetailsProvider(shopId)).value;
+        if (shopVal != null && shopVal.deliverySlots.isNotEmpty) {
+          slots = shopVal.deliverySlots
+              .map((s) => DeliverySlotAvailability(slot: s, available: true))
+              .toList();
+        }
+      }
       if (mounted) {
         setState(() {
           _slotsAvailability = slots;
@@ -569,7 +577,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                     ref.watch(shopDetailsProvider(cartProvider.cartShopId ?? '')).when(
                           data: (shop) {
                             final List<DeliverySlotAvailability> displaySlots;
-                            if (_slotsAvailability != null) {
+                            if (_slotsAvailability != null && _slotsAvailability!.isNotEmpty) {
                               displaySlots = _slotsAvailability!;
                             } else {
                               displaySlots = (shop?.deliverySlots ?? [])

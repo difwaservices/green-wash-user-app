@@ -32,6 +32,7 @@ class _RiderOrderDetailsPageState extends ConsumerState<RiderOrderDetailsPage> {
   /// Live-updated status from Socket.IO (falls back to the initial order status)
   late String _liveStatus;
   Map<String, dynamic>? _fetchedOrder;
+  SocketService? _socket;
 
   @override
   void initState() {
@@ -44,12 +45,13 @@ class _RiderOrderDetailsPageState extends ConsumerState<RiderOrderDetailsPage> {
     final orderId = widget.order['orderId']?.toString() ?? '';
     if (orderId.isEmpty) return;
 
-    final socket = ref.read(socketServiceProvider);
+    // Save reference so dispose() can use it without touching ref
+    _socket = ref.read(socketServiceProvider);
     // Join the order-specific room for real-time updates
-    socket.joinOrderRoom(orderId);
+    _socket!.joinOrderRoom(orderId);
 
     // Listen for status changes emitted by the server
-    socket.onOrderUpdate((data) {
+    _socket!.onOrderUpdate((data) {
       if (!mounted) return;
       final incomingId = data?['orderId']?.toString() ?? '';
       if (incomingId != orderId && incomingId.isNotEmpty) {
@@ -78,8 +80,8 @@ class _RiderOrderDetailsPageState extends ConsumerState<RiderOrderDetailsPage> {
   void dispose() {
     final orderId = widget.order['orderId']?.toString() ?? '';
     if (orderId.isNotEmpty) {
-      ref.read(socketServiceProvider).leaveOrderRoom(orderId);
-      ref.read(socketServiceProvider).offOrderUpdate();
+      _socket?.leaveOrderRoom(orderId);
+      _socket?.offOrderUpdate();
     }
     super.dispose();
   }

@@ -19,6 +19,7 @@ int _statusToStep(String status) {
     case 'working':
     case 'rider assigned':
     case 'riderassigned':
+    case 'rider accepted':
       return 1;
     case 'pickedup':
     case 'picked up':
@@ -40,9 +41,12 @@ String _stepLabel(String status) {
       return 'Order Placed';
     case 'accepted':
     case 'working':
+      return 'Order Accepted';
     case 'rider assigned':
     case 'riderassigned':
-      return 'Rider Working';
+      return 'Rider Assigned';
+    case 'rider accepted':
+      return 'Rider Accepted';
     case 'pickedup':
     case 'picked up':
     case 'out for delivery':
@@ -1141,8 +1145,11 @@ class _TrackOrderPageState extends ConsumerState<TrackOrderPage>
       case 'pending':
         return 'Your order has been received';
       case 'accepted':
+        return 'Your order has been accepted by the vendor';
       case 'rider assigned':
       case 'riderassigned':
+        return 'A rider has been assigned to your order';
+      case 'rider accepted':
         return 'Rider is heading to pick up your order';
       case 'pickedup':
       case 'picked up':

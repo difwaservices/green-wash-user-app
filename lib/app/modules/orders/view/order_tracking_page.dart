@@ -101,9 +101,8 @@ class _OrderTrackingPageState extends ConsumerState<OrderTrackingPage> {
   static const _allStatuses = [
     'Pending',
     'Accepted',
-    'Processing',
-    'Preparing',
-    'Shipped',
+    'Rider Assigned',
+    'Rider Accepted',
     'Out for Delivery',
     'Delivered',
   ];
@@ -1117,10 +1116,8 @@ class _OrderTrackingPageState extends ConsumerState<OrderTrackingPage> {
         final isLast = idx == currentIdx;
 
         String role = 'system';
-        if (s == 'Accepted' || s == 'Processing') role = 'retailer';
-        if (s == 'Out for Delivery' ||
-            s == 'Delivered' ||
-            s.contains('Rider Accepted')) {
+        if (s == 'Accepted' || s == 'Rider Assigned') role = 'retailer';
+        if (s == 'Rider Accepted' || s == 'Out for Delivery' || s == 'Delivered') {
           role = 'rider';
         }
 
