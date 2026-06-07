@@ -31,8 +31,8 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
   void _showError(String message) {
     if (!mounted) return;
 
-    // Use the global messenger key instead of context to avoid deactivated widget errors
-    rootScaffoldMessengerKey.currentState?.showSnackBar(
+    // Use context since we already checked mounted
+    ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
           children: [

@@ -29,7 +29,7 @@ class _LocationPickerPageState extends State<LocationPickerPage> {
   final TextEditingController _searchCtrl = TextEditingController();
   List<dynamic> _predictions = [];
   Timer? _debounce;
-  final String _apiKey = dotenv.get('GOOGLE_MAPS_API_KEY');
+  final String _apiKey = dotenv.env['GOOGLE_MAPS_API_KEY'] ?? '';
 
   @override
   void dispose() {

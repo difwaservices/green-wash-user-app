@@ -33,13 +33,7 @@ final dioProvider = Provider<Dio>((ref) {
               ? 'Cannot connect to server. Please ensure the server is running.'
               : 'Connection timed out. Please check your internet connection.';
 
-          rootScaffoldMessengerKey.currentState?.showSnackBar(
-            SnackBar(
-              content: Text(errorMsg),
-              backgroundColor: Colors.red,
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
+          debugPrint(errorMsg);
         }
         return handler.next(e);
       },
