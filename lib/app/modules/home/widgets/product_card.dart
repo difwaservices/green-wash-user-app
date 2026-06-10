@@ -12,12 +12,12 @@ import '../../../core/constants/app_colors.dart';
 
 class ProductCard extends ConsumerWidget {
   final Product product;
-  final VoidCallback onAdd;
+  final VoidCallback? onAdd;
 
   const ProductCard({
     super.key,
     required this.product,
-    required this.onAdd,
+    this.onAdd,
   });
 
   @override
@@ -25,7 +25,7 @@ class ProductCard extends ConsumerWidget {
     final cart = CartProviderScope.of(context);
 
     final cartItem = cart.items.firstWhere(
-      (item) => item.title == product.name,
+      (item) => item.id == product.id || item.title == product.name,
       orElse: () => CartItem(
         id: product.id,
         title: product.name,
@@ -106,18 +106,22 @@ class ProductCard extends ConsumerWidget {
                           height: 120, // Increased height slightly for better visibility
                           width: double.infinity,
                           color: const Color(0xFFF1F5F9), // Light grey background
-                          child: Image.network(
-                            product.image,
-                            fit: BoxFit.contain,
-                            errorBuilder: (context, error, stackTrace) {
-                              return Container(
-                                color: Colors.grey.shade200,
-                                child: const Center(
-                                  child: Icon(Icons.broken_image,
-                                      color: Colors.grey),
-                                ),
-                              );
-                            },
+                          padding: const EdgeInsets.all(8), // Keep image away from the borders
+                          child: Center(
+                            child: Image.network(
+                              product.image,
+                              fit: BoxFit.contain,
+                              alignment: Alignment.center,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Container(
+                                  color: Colors.grey.shade200,
+                                  child: const Center(
+                                    child: Icon(Icons.broken_image,
+                                        color: Colors.grey),
+                                  ),
+                                );
+                              },
+                            ),
                           ),
                         ),
                       ),
@@ -163,9 +167,7 @@ class ProductCard extends ConsumerWidget {
                               // Dynamic Cart Controls
                               if (!isInCart)
                                 BounceWidget(
-                                  onTap: (product.isShopActive && !isOutOfStock)
-                                      ? onAdd
-                                      : () {},
+                                  onTap: () => _handleAddToCart(context, cart),
                                   scaleFactor: 0.9,
                                   child: Container(
                                     padding: const EdgeInsets.all(6),
@@ -188,11 +190,11 @@ class ProductCard extends ConsumerWidget {
                                   quantity: cartItem.quantity,
                                   onIncrement:
                                       (product.isShopActive && !isOutOfStock)
-                                          ? () => cart.increment(product.name)
+                                          ? () => cart.increment(product.id)
                                           : () {},
                                   onDecrement:
                                       (product.isShopActive && !isOutOfStock)
-                                          ? () => cart.decrement(product.name)
+                                          ? () => cart.decrement(product.id)
                                           : () {},
                                   size: 32, // Compact size for grid card
                                 ),
@@ -308,6 +310,122 @@ class ProductCard extends ConsumerWidget {
       ),
     ).animate().fadeIn(duration: 400.ms).slideY(
         begin: 0.05, end: 0, duration: 400.ms, curve: Curves.easeOutQuad);
+  }
+
+  void _handleAddToCart(BuildContext context, CartProvider cart) {
+    if (onAdd != null) {
+      onAdd!();
+      return;
+    }
+
+    if (!product.isShopActive) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('This shop is currently closed.'),
+          backgroundColor: Colors.black87,
+        ),
+      );
+      return;
+    }
+
+    final isOutOfStock = product.stockStatus == 'Out of Stock' || product.stock <= 0;
+    if (isOutOfStock) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('This product is currently out of stock.'),
+          backgroundColor: Colors.black87,
+        ),
+      );
+      return;
+    }
+
+    if (cart.isSameShop(product.shopId)) {
+      cart.addToCart(CartItem.fromProduct(product));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('${product.name} added to cart!'),
+          duration: const Duration(seconds: 1),
+          backgroundColor: AppColors.primaryDark,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10)),
+        ),
+      );
+    } else {
+      _showReplaceCartDialog(context, cart);
+    }
+  }
+
+  void _showReplaceCartDialog(BuildContext context, CartProvider cart) {
+    final oldShopName = cart.cartShopName ?? 'another shop';
+    final newShopName = product.shopName.isNotEmpty ? product.shopName : 'this shop';
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text(
+          'Replace cart item?',
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+        ),
+        content: Text(
+          'Your cart contains products from $oldShopName. Do you want to discard the selection and add products from $newShopName?',
+          style: const TextStyle(color: Colors.black87, fontSize: 14, height: 1.5),
+        ),
+        actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+        actions: [
+          Row(
+            children: [
+              Expanded(
+                child: TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    backgroundColor: const Color(0xFFFFF1F0),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
+                  ),
+                  child: const Text(
+                    'No',
+                    style: TextStyle(
+                        color: Color(0xFFFC5A44), fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: () {
+                    cart.clearCart();
+                    cart.addToCart(CartItem.fromProduct(product));
+                    Navigator.pop(ctx);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Cart replaced with items from $newShopName'),
+                        backgroundColor: AppColors.primaryDark,
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    backgroundColor: const Color(0xFFFC5A44),
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
+                  ),
+                  child: const Text(
+                    'Replace',
+                    style: TextStyle(
+                        color: Colors.white, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
   }
 }
 

@@ -7,6 +7,7 @@ import '../../../core/constants/app_colors.dart';
 import '../provider/search_provider.dart';
 import 'restaurant_menu_page.dart';
 import '../widgets/filter_bottom_sheet.dart';
+import '../widgets/product_card.dart';
 
 class SearchPage extends ConsumerStatefulWidget {
   const SearchPage({super.key});
@@ -272,7 +273,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
           mainAxisSpacing: 16,
         ),
         itemCount: filteredProducts.length,
-        itemBuilder: (context, index) => _buildGridProductCard(filteredProducts[index]),
+        itemBuilder: (context, index) => ProductCard(product: filteredProducts[index].toProduct()),
       );
     }
 
@@ -404,203 +405,6 @@ class _SearchPageState extends ConsumerState<SearchPage> {
             const Icon(Icons.chevron_right, color: Colors.grey),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildGridProductCard(SearchProduct product) {
-     return GestureDetector(
-       onTap: () {
-          final shopModel = ShopModel(id: product.shopId, name: product.shopName);
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => RestaurantMenuPage(shop: shopModel),
-            ),
-          );
-       },
-       child: Container(
-         decoration: BoxDecoration(
-           color: Colors.white,
-           borderRadius: BorderRadius.circular(16),
-           boxShadow: [
-             BoxShadow(
-               color: Colors.black.withOpacity(0.1),
-               blurRadius: 10,
-               offset: const Offset(0, 4),
-             ),
-           ],
-         ),
-         child: Column(
-           crossAxisAlignment: CrossAxisAlignment.start,
-           children: [
-             Expanded(
-               child: ClipRRect(
-                 borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-                 child: Stack(
-                   children: [
-                     Image.network(
-                       product.displayImage,
-                       width: double.infinity,
-                       height: double.infinity,
-                       fit: BoxFit.cover,
-                       errorBuilder: (_, __, ___) => Container(
-                         color: Colors.grey.shade100,
-                         child: const Icon(Icons.water_drop_outlined, color: Colors.grey),
-                       ),
-                     ),
-                     if (!product.isShopActive)
-                        Container(
-                          color: Colors.black.withOpacity(0.3),
-                          child: const Center(
-                            child: Text('CLOSED', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 10)),
-                          ),
-                        ),
-                   ],
-                 ),
-               ),
-             ),
-             Padding(
-               padding: const EdgeInsets.all(12),
-               child: Column(
-                 crossAxisAlignment: CrossAxisAlignment.start,
-                 children: [
-                    Text(
-                      product.name,
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    Text(
-                      product.shopName,
-                      style: const TextStyle(color: Colors.grey, fontSize: 11),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '₹${product.price.toStringAsFixed(0)}',
-                      style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 15, color: Color(0xFF06B6D4)),
-                    ),
-                 ],
-               ),
-             ),
-           ],
-         ),
-       ).animate().fadeIn().scale(duration: 300.ms),
-     );
-  }
-
-  Widget _buildProductCard(SearchProduct product) {
-    return Opacity(
-      opacity: product.isShopActive ? 1.0 : 0.8,
-      child: ColorFiltered(
-        colorFilter: product.isShopActive
-            ? const ColorFilter.mode(Colors.transparent, BlendMode.multiply)
-            : const ColorFilter.mode(Colors.grey, BlendMode.saturation),
-        child: Container(
-          margin: const EdgeInsets.only(bottom: 12),
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Stack(
-            children: [
-              Row(
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: Image.network(
-                      product.displayImage,
-                      width: 80,
-                      height: 80,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => Container(
-                        width: 80,
-                        height: 80,
-                        color: Colors.grey.shade200,
-                        child: const Icon(Icons.water_drop_outlined, color: Colors.grey),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          product.name,
-                          style: const TextStyle(
-                              fontWeight: FontWeight.bold, fontSize: 15),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        Text(
-                          'from ${product.shopName}',
-                          style: const TextStyle(
-                              color: Color(0xFF06B6D4),
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          '₹${product.price.toStringAsFixed(0)}',
-                          style: const TextStyle(
-                              fontWeight: FontWeight.w900, fontSize: 16),
-                        ),
-                      ],
-                    ),
-                  ),
-                  ElevatedButton(
-                    onPressed: product.isShopActive
-                        ? () {
-                            // Navigation to Shop
-                            final shopModel = ShopModel(
-                                id: product.shopId, name: product.shopName);
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    RestaurantMenuPage(shop: shopModel),
-                              ),
-                            );
-                          }
-                        : null,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: product.isShopActive
-                          ? const Color(0xFF06B6D4)
-                          : Colors.grey,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8)),
-                      elevation: 0,
-                    ),
-                    child: Text(product.isShopActive ? 'View' : 'Closed',
-                        style: const TextStyle(
-                            fontSize: 12, fontWeight: FontWeight.bold)),
-                  ),
-                ],
-              ),
-              if (!product.isShopActive)
-                Positioned.fill(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.1),
-                    ),
-                  ),
-                ),
-            ],
-          ),
-        ).animate().fadeIn().slideX(begin: 0.05),
       ),
     );
   }

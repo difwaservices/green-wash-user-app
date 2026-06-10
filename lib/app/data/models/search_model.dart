@@ -1,3 +1,5 @@
+import 'food_models.dart';
+
 /// Model for a shop returned in global search results.
 class SearchShop {
   final String id;
@@ -67,6 +69,24 @@ class SearchProduct {
   String get displayImage {
     if (image.length > 5) return image;
     return '';
+  }
+
+  Product toProduct() {
+    return Product(
+      id: id,
+      name: name,
+      image: displayImage,
+      price: price,
+      weight: categoryName.isNotEmpty ? categoryName : 'Difwa VARIETY',
+      category: categoryName.isNotEmpty ? categoryName : 'Restaurant',
+      description: description,
+      isShopActive: isShopActive,
+      badgeText: stockStatus == 'Out of Stock' ? 'Out of Stock' : '',
+      shopId: shopId,
+      shopName: shopName,
+      stockStatus: stockStatus,
+      stock: stockStatus == 'In Stock' ? 99 : 0,
+    );
   }
 
   factory SearchProduct.fromJson(Map<String, dynamic> json) {

@@ -37,6 +37,34 @@ class CartItem {
   }
 
   double get totalPrice => unitPrice * quantity;
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'title': title,
+      'unitPrice': unitPrice,
+      'subtitle': subtitle,
+      'image': image,
+      'category': category,
+      'shopId': shopId,
+      'shopName': shopName,
+      'quantity': quantity,
+    };
+  }
+
+  factory CartItem.fromJson(Map<String, dynamic> json) {
+    return CartItem(
+      id: (json['id'] ?? '').toString(),
+      title: (json['title'] ?? '').toString(),
+      unitPrice: (json['unitPrice'] as num? ?? 0.0).toDouble(),
+      subtitle: (json['subtitle'] ?? '').toString(),
+      image: (json['image'] ?? '').toString(),
+      category: (json['category'] ?? '').toString(),
+      shopId: json['shopId']?.toString(),
+      shopName: json['shopName']?.toString(),
+      quantity: (json['quantity'] as num? ?? 1).toInt(),
+    );
+  }
 }
 
 /// Alias for future migration clarity.

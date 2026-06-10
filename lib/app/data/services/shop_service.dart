@@ -132,7 +132,15 @@ class ShopService {
         '/banners/app',
         requiresAuth: false,
       );
-      final raw = json['data'] as List<dynamic>? ?? [];
+      debugPrint('ShopService: Raw banners response: $json (Type: ${json.runtimeType})');
+      
+      List<dynamic> raw = [];
+      if (json is List) {
+        raw = json;
+      } else if (json is Map) {
+        raw = (json['data'] ?? json['banners'] ?? json['results'] ?? []) as List<dynamic>;
+      }
+      
       return raw.map((e) => AppBanner.fromJson(e as Map<String, dynamic>)).toList();
     } catch (e) {
       debugPrint('ShopService: Error fetching banners: $e');
@@ -151,6 +159,34 @@ class ShopService {
     } catch (e) {
       debugPrint('ShopService: Error fetching product details for $productId: $e');
       return null;
+    }
+  }
+
+  Future<AppBanner?> createBanner(Map<String, dynamic> payload) async {
+    try {
+      final json = await _client.post(
+        '/banners/app', // Note: Banners are app-wide, mapped under /banners/app
+        data: payload,
+        requiresAuth: true,
+      );
+      final data = json['data'] ?? json;
+      return AppBanner.fromJson(data as Map<String, dynamic>);
+    } catch (e) {
+      debugPrint('ShopService: Error creating banner: $e');
+      return null;
+    }
+  }
+
+  Future<bool> deleteBanner(String id) async {
+    try {
+      await _client.delete(
+        '/banners/$id',
+        requiresAuth: true,
+      );
+      return true;
+    } catch (e) {
+      debugPrint('ShopService: Error deleting banner: $e');
+      return false;
     }
   }
 }

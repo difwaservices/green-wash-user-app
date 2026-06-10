@@ -74,105 +74,130 @@ class _HomeBannerState extends ConsumerState<HomeBanner> {
   Widget build(BuildContext context) {
     final bannersAsync = ref.watch(bannersProvider);
 
+    // Debug logging
+    bannersAsync.when(
+      data: (list) => debugPrint('HomeBanner: Loaded ${list.length} banners'),
+      loading: () => debugPrint('HomeBanner: Loading banners...'),
+      error: (err, stack) => debugPrint('HomeBanner: Error loading banners: $err'),
+    );
+
     return bannersAsync.when(
       data: (banners) {
-        if (banners.isEmpty) return const SizedBox.shrink();
+        if (banners.isEmpty) {
+          debugPrint('HomeBanner: Banners list is empty');
+          return const SizedBox.shrink();
+        }
 
         return Column(
           children: [
-              CarouselSlider(
-                items: banners.map((banner) {
-                  return BounceWidget(
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.08),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: CarouselSlider(
+                  items: banners.map((banner) {
+                    return BounceWidget(
                       onTap: () => _handleBannerAction(banner),
                       scaleFactor: 0.96,
-                      child: Container(
-                        decoration: const BoxDecoration(
-                          color: Colors.white,
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.zero,
-                          child: AspectRatio(
-                            aspectRatio: 2 / 1,
-                            child: CachedNetworkImage(
-                              imageUrl: banner.imageUrl,
-                              width: double.infinity,
-                              fit: BoxFit.cover,
-                              placeholder: (context, url) => Container(
-                                color: Colors.grey.shade200,
-                                child: const Center(
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: AppColors.primary,
+                      child: AspectRatio(
+                        aspectRatio: 2.1 / 1,
+                        child: CachedNetworkImage(
+                          imageUrl: banner.imageUrl,
+                          width: double.infinity,
+                          fit: BoxFit.fill,
+                          placeholder: (context, url) => Container(
+                            color: Colors.grey.shade200,
+                            child: const Center(
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: AppColors.primary,
+                              ),
+                            ),
+                          ),
+                          errorWidget: (context, url, error) => Container(
+                            color: Colors.blue.shade50,
+                            padding: const EdgeInsets.all(20),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(Icons.water_drop, color: AppColors.primary, size: 40),
+                                const SizedBox(height: 8),
+                                Text(
+                                  banner.title,
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.primaryDark,
                                   ),
                                 ),
-                              ),
-                              errorWidget: (context, url, error) => Container(
-                                color: Colors.blue.shade50,
-                                padding: const EdgeInsets.all(20),
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    const Icon(Icons.water_drop, color: AppColors.primary, size: 40),
-                                    const SizedBox(height: 8),
-                                    Text(
-                                      banner.title,
-                                      textAlign: TextAlign.center,
-                                      style: const TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.bold,
-                                        color: AppColors.primaryDark,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
+                              ],
                             ),
                           ),
                         ),
                       ),
                     );
-                }).toList(),
-                carouselController: _controller,
-                options: CarouselOptions(
-                  aspectRatio: 2.0,
-                  viewportFraction: 1.0,
-                  autoPlay: banners.length > 1,
-                  autoPlayInterval: const Duration(seconds: 5),
-                  onPageChanged: (index, reason) {
-                    setState(() {
-                      _current = index;
-                    });
-                  },
+                  }).toList(),
+                  carouselController: _controller,
+                  options: CarouselOptions(
+                    aspectRatio: 2.1 / 1,
+                    viewportFraction: 1.0,
+                    autoPlay: banners.length > 1,
+                    autoPlayInterval: const Duration(seconds: 3), // Speed up transition to keep it sliding frequently
+                    autoPlayAnimationDuration: const Duration(milliseconds: 1000), // Longer, smoother sliding transition
+                    autoPlayCurve: Curves.fastOutSlowIn,
+                    onPageChanged: (index, reason) {
+                      setState(() {
+                        _current = index;
+                      });
+                    },
+                  ),
                 ),
               ),
-              if (banners.length > 1) ...[
-                const SizedBox(height: 12),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: banners.asMap().entries.map((entry) {
-                    return GestureDetector(
-                      onTap: () => _controller.animateToPage(entry.key),
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 300),
-                        margin: const EdgeInsets.symmetric(horizontal: 4),
-                        height: 6,
-                        width: _current == entry.key ? 20 : 6,
-                        decoration: BoxDecoration(
-                          color: _current == entry.key
-                              ? const Color(0xFF06B6D4)
-                              : const Color(0xFFE2E8F0),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
+            ),
+            if (banners.length > 1) ...[
+              const SizedBox(height: 12),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: banners.asMap().entries.map((entry) {
+                  return GestureDetector(
+                    onTap: () => _controller.animateToPage(entry.key),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 300),
+                      margin: const EdgeInsets.symmetric(horizontal: 4),
+                      height: 6,
+                      width: _current == entry.key ? 20 : 6,
+                      decoration: BoxDecoration(
+                        color: _current == entry.key
+                            ? const Color(0xFF06B6D4)
+                            : const Color(0xFFE2E8F0),
+                        borderRadius: BorderRadius.circular(4),
                       ),
-                    );
-                  }).toList(),
-                ),
-              ],
+                    ),
+                  );
+                }).toList(),
+              ),
             ],
-          ).animate().fadeIn(duration: 500.ms, curve: Curves.easeIn);
+          ],
+        ).animate().fadeIn(duration: 500.ms, curve: Curves.easeIn);
       },
       loading: () => const _BannerLoader(),
-      error: (e, _) => const SizedBox.shrink(), // Or show fallback local banners if needed
+      error: (e, stack) {
+        debugPrint('HomeBanner: Widget caught build error: $e');
+        debugPrint(stack.toString());
+        return const SizedBox.shrink();
+      },
     );
   }
 }

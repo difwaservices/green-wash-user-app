@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/product_model.dart';
 import '../models/food_models.dart';
 import 'cart_service.dart';
@@ -42,9 +44,11 @@ class CartProvider extends ChangeNotifier {
     loadAddresses();
     syncWallet();
     loadShops();
-    if (isLoggedIn) {
-      loadCartFromApi();
-    }
+    _loadCartFromPrefs().then((_) {
+      if (isLoggedIn) {
+        loadCartFromApi();
+      }
+    });
   }
 
   // ── Getters ───────────────────────────────────────────────────────────────
@@ -279,7 +283,34 @@ class CartProvider extends ChangeNotifier {
     _transactions.clear();
     _walletBalance = 0.0;
     _selectedAddressIndex = 0;
+    _saveCartToPrefs();
     notifyListeners();
+  }
+
+  Future<void> _loadCartFromPrefs() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final cartJsonStr = prefs.getString('cached_cart_items');
+      if (cartJsonStr != null && cartJsonStr.isNotEmpty) {
+        final List<dynamic> decoded = jsonDecode(cartJsonStr);
+        final cachedItems = decoded.map((e) => CartItem.fromJson(Map<String, dynamic>.from(e))).toList();
+        _items.clear();
+        _items.addAll(cachedItems);
+        notifyListeners();
+      }
+    } catch (e) {
+      debugPrint('CartProvider: Error loading cart from prefs: $e');
+    }
+  }
+
+  Future<void> _saveCartToPrefs() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final cartJsonStr = jsonEncode(_items.map((e) => e.toJson()).toList());
+      await prefs.setString('cached_cart_items', cartJsonStr);
+    } catch (e) {
+      debugPrint('CartProvider: Error saving cart to prefs: $e');
+    }
   }
 
   /// Syncs local guest cart items to the server after login.
@@ -338,6 +369,7 @@ class CartProvider extends ChangeNotifier {
       final remoteItems = await _service!.getCart();
       _items.clear();
       _items.addAll(remoteItems);
+      _saveCartToPrefs();
       notifyListeners();
     } catch (e) {
       debugPrint('Error loading cart from API: $e');
@@ -668,6 +700,7 @@ class CartProvider extends ChangeNotifier {
         _service!.addToCart(cartItem.id, cartItem.quantity);
       }
     }
+    _saveCartToPrefs();
     notifyListeners();
     updateDeliveryCharge();
   }
@@ -679,6 +712,7 @@ class CartProvider extends ChangeNotifier {
       if (isLoggedIn && _service != null) {
         _service!.updateQuantity(_items[idx].id, _items[idx].quantity);
       }
+      _saveCartToPrefs();
       notifyListeners();
       updateDeliveryCharge();
     }
@@ -699,6 +733,7 @@ class CartProvider extends ChangeNotifier {
           _service!.removeFromCart(itemId);
         }
       }
+      _saveCartToPrefs();
       notifyListeners();
       updateDeliveryCharge();
     }
@@ -712,6 +747,7 @@ class CartProvider extends ChangeNotifier {
       if (isLoggedIn && _service != null) {
         _service!.removeFromCart(itemId);
       }
+      _saveCartToPrefs();
       notifyListeners();
       updateDeliveryCharge();
     }
@@ -722,6 +758,7 @@ class CartProvider extends ChangeNotifier {
     if (_service != null) {
       _service!.clearCart();
     }
+    _saveCartToPrefs();
     notifyListeners();
     updateDeliveryCharge();
   }
@@ -791,6 +828,7 @@ class CartProvider extends ChangeNotifier {
 
     if (result['success']) {
       _items.clear();
+      _saveCartToPrefs();
       notifyListeners();
       // Update wallet balance after purchase
       syncWallet();

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/state/auth_store.dart';
 import '../../routes/app_routes.dart';
 import '../../core/constants/app_images.dart';
+import '../../core/localization/language_provider.dart';
 
 class SplashPage extends ConsumerStatefulWidget {
   const SplashPage({super.key});
@@ -42,12 +43,20 @@ class _SplashPageState extends ConsumerState<SplashPage>
     // 1. Give animations a moment to start
     await Future.delayed(const Duration(milliseconds: 1200));
 
-    // 2. Perform initialization check via AuthStore
+    // 2. First-time launch → show language picker before anything else
+    final isFirst = await LocaleNotifier.isFirstLaunch();
+    if (!mounted) return;
+    if (isFirst) {
+      Navigator.pushReplacementNamed(context, AppRoutes.firstTimeLanguage);
+      return;
+    }
+
+    // 3. Perform initialization check via AuthStore
     await ref.read(authStoreProvider.notifier).init();
 
     if (!mounted) return;
 
-    // 3. Decide navigation based on Auth status
+    // 4. Decide navigation based on Auth status
     final authState = ref.read(authStoreProvider);
 
     if (authState is AuthAuthenticated) {

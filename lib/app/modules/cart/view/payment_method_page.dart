@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:difwawaterapp/app/data/services/db_service.dart';
 import '../../../data/services/order_service.dart';
 import '../../../data/services/subscription_service.dart';
@@ -88,10 +89,9 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
   @override
   void initState() {
     super.initState();
-    // Default start date = tomorrow
     _startDate = DateTime.now().add(const Duration(days: 1));
+    _loadCheckoutDraft();
 
-    // Sync wallet balance when page is opened to reflect latest money
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         final cart = CartProviderScope.of(context);
@@ -131,6 +131,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
             final slotExistsAndAvailable = slots.any((s) => s.slot == _selectedSlot && s.available);
             if (!slotExistsAndAvailable) {
               _selectedSlot = null; // Reset selection if no longer available
+              _saveCheckoutDraft();
             }
           }
         });
@@ -145,6 +146,61 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
   @override
   void dispose() {
     super.dispose();
+  }
+
+  Future<void> _loadCheckoutDraft() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final orderType = prefs.getInt('checkout_draft_order_type');
+      final frequency = prefs.getString('checkout_draft_frequency');
+      final selectedDays = prefs.getStringList('checkout_draft_selected_days');
+      final startDateStr = prefs.getString('checkout_draft_start_date');
+      final selectedSlot = prefs.getString('checkout_draft_selected_slot');
+
+      if (mounted) {
+        setState(() {
+          if (orderType != null) _orderType = orderType;
+          if (frequency != null) _frequency = frequency;
+          if (selectedDays != null) _selectedDays = selectedDays;
+          if (startDateStr != null) {
+            _startDate = DateTime.tryParse(startDateStr) ?? DateTime.now().add(const Duration(days: 1));
+          }
+          if (selectedSlot != null) _selectedSlot = selectedSlot;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error loading checkout draft: $e');
+    }
+  }
+
+  Future<void> _saveCheckoutDraft() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setInt('checkout_draft_order_type', _orderType);
+      await prefs.setString('checkout_draft_frequency', _frequency);
+      await prefs.setStringList('checkout_draft_selected_days', _selectedDays);
+      await prefs.setString('checkout_draft_start_date', _startDate.toIso8601String());
+      if (_selectedSlot != null) {
+        await prefs.setString('checkout_draft_selected_slot', _selectedSlot!);
+      } else {
+        await prefs.remove('checkout_draft_selected_slot');
+      }
+    } catch (e) {
+      debugPrint('Error saving checkout draft: $e');
+    }
+  }
+
+  Future<void> _clearCheckoutDraft() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('checkout_draft_order_type');
+      await prefs.remove('checkout_draft_frequency');
+      await prefs.remove('checkout_draft_selected_days');
+      await prefs.remove('checkout_draft_start_date');
+      await prefs.remove('checkout_draft_selected_slot');
+    } catch (e) {
+      debugPrint('Error clearing checkout draft: $e');
+    }
   }
 
   Future<void> _pickDate() async {
@@ -166,7 +222,10 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
       ),
     );
     if (picked != null) {
-      setState(() => _startDate = picked);
+      setState(() {
+        _startDate = picked;
+        _saveCheckoutDraft();
+      });
       _fetchSlotsAvailability();
     }
   }
@@ -376,7 +435,10 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                         label: 'One-time Order',
                         selected: _orderType == 0,
                         onTap: () {
-                          setState(() => _orderType = 0);
+                          setState(() {
+                            _orderType = 0;
+                            _saveCheckoutDraft();
+                          });
                           _fetchSlotsAvailability();
                         },
                         icon: Icons.shopping_bag_outlined,
@@ -386,7 +448,10 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                         label: 'Daily Deliveries',
                         selected: _orderType == 1,
                         onTap: () {
-                          setState(() => _orderType = 1);
+                          setState(() {
+                            _orderType = 1;
+                            _saveCheckoutDraft();
+                          });
                           _fetchSlotsAvailability();
                         },
                         icon: Icons.calendar_today_outlined,
@@ -410,6 +475,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                           onTap: () => setState(() {
                             _frequency = f;
                             if (f != 'Weekly') _selectedDays = [];
+                            _saveCheckoutDraft();
                           }),
                           child: Container(
                             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
@@ -463,6 +529,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                               } else {
                                 _selectedDays.add(day);
                               }
+                              _saveCheckoutDraft();
                             }),
                             child: Container(
                               width: 44,
@@ -595,7 +662,10 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                               final slotExistsAndAvailable = displaySlots.any((s) => s.slot == _selectedSlot && s.available);
                               if (!slotExistsAndAvailable) {
                                 WidgetsBinding.instance.addPostFrameCallback((_) {
-                                  setState(() => _selectedSlot = null);
+                                  setState(() {
+                                    _selectedSlot = null;
+                                    _saveCheckoutDraft();
+                                  });
                                 });
                               }
                             }
@@ -616,7 +686,10 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                                     child: GestureDetector(
                                       onTap: !isAvailable
                                           ? null
-                                          : () => setState(() => _selectedSlot = slot),
+                                          : () => setState(() {
+                                                _selectedSlot = slot;
+                                                _saveCheckoutDraft();
+                                              }),
                                       child: Opacity(
                                         opacity: isAvailable ? 1.0 : 0.45,
                                         child: Container(
@@ -794,6 +867,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                               }
                             }
                             await _refreshAfterPurchase(ref, cartProvider);
+                            await _clearCheckoutDraft();
                             if (!mounted) return;
                             navigator.pushAndRemoveUntil(
                                 MaterialPageRoute(builder: (_) => const OrderSuccessPage()),
@@ -826,6 +900,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
 
                             if (response['success'] == true) {
                               await _refreshAfterPurchase(ref, cartProvider);
+                              await _clearCheckoutDraft();
                               if (!mounted) return;
                               navigator.pushAndRemoveUntil(
                                   MaterialPageRoute(

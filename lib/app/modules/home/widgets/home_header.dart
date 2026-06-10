@@ -25,19 +25,12 @@ class _HomeHeaderState extends ConsumerState<HomeHeader> {
     return Container(
       padding: EdgeInsets.only(
         top: MediaQuery.of(context).padding.top + 8,
-        bottom: 12,
+        bottom: 8,
         left: 16,
         right: 16,
       ),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF7F8FA),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
+      decoration: const BoxDecoration(
+        color: Color(0xFFF7F8FA),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -184,7 +177,7 @@ class _HomeHeaderState extends ConsumerState<HomeHeader> {
               ),
             ],
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 8),
           // Search Bar Row
           Container(
             decoration: BoxDecoration(
@@ -213,7 +206,7 @@ class _HomeHeaderState extends ConsumerState<HomeHeader> {
                 floatingLabelBehavior: FloatingLabelBehavior.never,
                 fillColor: Colors.white,
                 filled: true,
-                contentPadding: const EdgeInsets.symmetric(vertical: 15),
+                contentPadding: const EdgeInsets.symmetric(vertical: 10),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide.none,

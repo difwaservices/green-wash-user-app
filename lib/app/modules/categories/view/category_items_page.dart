@@ -102,15 +102,6 @@ class _ProductGrid extends StatelessWidget {
         final product = products[index];
         return ProductCard(
           product: product,
-          onAdd: () {
-            cart.addToCart(CartItem.fromProduct(product));
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('${product.name} added to cart!'),
-                duration: const Duration(seconds: 1),
-              ),
-            );
-          },
         )
             .animate(delay: (50 * index).ms)
             .fadeIn(duration: 300.ms)

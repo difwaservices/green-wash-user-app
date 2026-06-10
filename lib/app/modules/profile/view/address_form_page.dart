@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../data/models/food_models.dart';
 import '../../../data/services/db_service.dart';
 import '../../../core/constants/app_colors.dart';
@@ -68,16 +69,102 @@ class _AddressFormPageState extends State<AddressFormPage> {
     _stateCtrl = TextEditingController(text: state);
     _pincodeCtrl = TextEditingController(text: pincode);
     _isDefault = widget.address?.isDefault ?? false;
+
+    if (widget.address == null) {
+      _loadAddressDraft().then((_) {
+        _setupDraftListeners();
+      });
+    }
   }
 
   @override
   void dispose() {
+    if (widget.address == null) {
+      _titleCtrl.removeListener(_saveAddressDraft);
+      _streetCtrl.removeListener(_saveAddressDraft);
+      _cityCtrl.removeListener(_saveAddressDraft);
+      _stateCtrl.removeListener(_saveAddressDraft);
+      _pincodeCtrl.removeListener(_saveAddressDraft);
+    }
     _titleCtrl.dispose();
     _streetCtrl.dispose();
     _cityCtrl.dispose();
     _stateCtrl.dispose();
     _pincodeCtrl.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadAddressDraft() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final title = prefs.getString('address_draft_title');
+      final street = prefs.getString('address_draft_street');
+      final city = prefs.getString('address_draft_city');
+      final state = prefs.getString('address_draft_state');
+      final pincode = prefs.getString('address_draft_pincode');
+      final lat = prefs.getDouble('address_draft_lat');
+      final lng = prefs.getDouble('address_draft_lng');
+
+      if (mounted) {
+        setState(() {
+          if (title != null && title.isNotEmpty) _titleCtrl.text = title;
+          if (street != null && street.isNotEmpty) _streetCtrl.text = street;
+          if (city != null && city.isNotEmpty) _cityCtrl.text = city;
+          if (state != null && state.isNotEmpty) _stateCtrl.text = state;
+          if (pincode != null && pincode.isNotEmpty) _pincodeCtrl.text = pincode;
+          if (lat != null) _latitude = lat;
+          if (lng != null) _longitude = lng;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error loading address draft: $e');
+    }
+  }
+
+  void _setupDraftListeners() {
+    _titleCtrl.addListener(_saveAddressDraft);
+    _streetCtrl.addListener(_saveAddressDraft);
+    _cityCtrl.addListener(_saveAddressDraft);
+    _stateCtrl.addListener(_saveAddressDraft);
+    _pincodeCtrl.addListener(_saveAddressDraft);
+  }
+
+  Future<void> _saveAddressDraft() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('address_draft_title', _titleCtrl.text);
+      await prefs.setString('address_draft_street', _streetCtrl.text);
+      await prefs.setString('address_draft_city', _cityCtrl.text);
+      await prefs.setString('address_draft_state', _stateCtrl.text);
+      await prefs.setString('address_draft_pincode', _pincodeCtrl.text);
+      if (_latitude != null) {
+        await prefs.setDouble('address_draft_lat', _latitude!);
+      } else {
+        await prefs.remove('address_draft_lat');
+      }
+      if (_longitude != null) {
+        await prefs.setDouble('address_draft_lng', _longitude!);
+      } else {
+        await prefs.remove('address_draft_lng');
+      }
+    } catch (e) {
+      debugPrint('Error saving address draft: $e');
+    }
+  }
+
+  Future<void> _clearAddressDraft() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('address_draft_title');
+      await prefs.remove('address_draft_street');
+      await prefs.remove('address_draft_city');
+      await prefs.remove('address_draft_state');
+      await prefs.remove('address_draft_pincode');
+      await prefs.remove('address_draft_lat');
+      await prefs.remove('address_draft_lng');
+    } catch (e) {
+      debugPrint('Error clearing address draft: $e');
+    }
   }
 
   bool _isSaving = false;
@@ -117,6 +204,7 @@ class _AddressFormPageState extends State<AddressFormPage> {
         final bool isSuccess = result['success'] == true || result['data'] != null || result['_id'] != null;
         if (mounted) {
           if (isSuccess) {
+            await _clearAddressDraft();
             Navigator.pop(context);
           } else {
             ScaffoldMessenger.of(context).showSnackBar(

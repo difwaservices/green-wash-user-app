@@ -23,52 +23,46 @@ class HomePage extends ConsumerWidget {
         statusBarBrightness: Brightness.light,
       ),
       child: Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: const Color(0xFFF7F8FA),
         body: Container(
-          color: const Color.fromARGB(255, 255, 255, 255),
-          child: RefreshIndicator(
-            onRefresh: () async {
-              await ref.read(shopsListProvider.notifier).refresh();
-              if (context.mounted) {
-                CartProviderScope.of(context).loadAddresses();
-                CartProviderScope.of(context).syncWallet();
-              }
-              ref.invalidate(walletBalanceProvider);
-              ref.invalidate(walletHistoryProvider);
-            },
-            color: AppColors.primary,
-            child: CustomScrollView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              slivers: [
-                // Sticky Header: Location & Search
-                SliverAppBar(
-                  pinned: true,
-                  floating: false,
-                  backgroundColor: const Color(0xFFF7F8FA),
-                  elevation: 0,
-                  automaticallyImplyLeading: false,
-                  toolbarHeight: 110 + MediaQuery.of(context).padding.top,
-                  flexibleSpace: const FlexibleSpaceBar(
-                    background: HomeHeader(),
+          color: const Color(0xFFF7F8FA),
+          child: Column(
+            children: [
+              const HomeHeader(),
+              Expanded(
+                child: RefreshIndicator(
+                  onRefresh: () async {
+                    await ref.read(shopsListProvider.notifier).refresh();
+                    if (context.mounted) {
+                      CartProviderScope.of(context).loadAddresses();
+                      CartProviderScope.of(context).syncWallet();
+                    }
+                    ref.invalidate(walletBalanceProvider);
+                    ref.invalidate(walletHistoryProvider);
+                  },
+                  color: AppColors.primary,
+                  displacement: 40,
+                  child: CustomScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    slivers: [
+                      // Banner (Horizontal Scrolling Carousel)
+                      const SliverToBoxAdapter(child: HomeBanner()),
+
+                      const SliverToBoxAdapter(child: SizedBox(height: 8)),
+
+                      // Restaurants Section
+                      const SliverToBoxAdapter(child: RestaurantListSection()),
+
+                      // Footer
+                      const SliverToBoxAdapter(child: AnimatedFooterText()),
+
+                      // Bottom Spacing for Navigation Bar
+                      const SliverPadding(padding: EdgeInsets.only(bottom: 140)),
+                    ],
                   ),
                 ),
-
-                // Banner (Horizontal Scrolling Carousel)
-                const SliverToBoxAdapter(child: HomeBanner()),
-
-
-                const SliverToBoxAdapter(child: SizedBox(height: 8)),
-
-                // Restaurants Section
-                const SliverToBoxAdapter(child: RestaurantListSection()),
-
-                // Footer
-                const SliverToBoxAdapter(child: AnimatedFooterText()),
-
-                // Bottom Spacing for Navigation Bar
-                const SliverPadding(padding: EdgeInsets.only(bottom: 140)),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
