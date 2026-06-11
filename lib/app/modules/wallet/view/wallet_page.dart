@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../routes/app_routes.dart';
 import '../../../data/services/wallet_service.dart';
-import '../../home/controller/main_controller.dart';
 
 import 'package:difwawaterapp/app/core/utils/auth_helper.dart';
 import 'package:difwawaterapp/core/state/auth_store.dart';
@@ -70,7 +69,12 @@ class WalletPage extends ConsumerWidget {
                 loading: () => _buildBalanceCard(null),
                 error: (_, __) => _buildBalanceCard(0.0),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 20),
+
+              // Quick top-up chips
+              _buildTopUpChips(context),
+
+              const SizedBox(height: 20),
 
               // Quick Actions
               _buildQuickActions(context),
@@ -136,7 +140,7 @@ class WalletPage extends ConsumerWidget {
         borderRadius: BorderRadius.circular(32),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -246,6 +250,73 @@ class WalletPage extends ConsumerWidget {
     );
   }
 
+  Widget _buildTopUpChips(BuildContext context) {
+    const amounts = [50, 100, 200, 500];
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Padding(
+          padding: EdgeInsets.only(left: 4, bottom: 12),
+          child: Text(
+            'Quick Top-Up',
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF1E293B),
+            ),
+          ),
+        ),
+        Row(
+          children: amounts.map((amt) {
+            return Expanded(
+              child: Padding(
+                padding: EdgeInsets.only(
+                  right: amt != amounts.last ? 10 : 0,
+                ),
+                child: GestureDetector(
+                  onTap: () {
+                    Navigator.pushNamed(
+                      context,
+                      AppRoutes.topUp,
+                      arguments: {'amount': amt},
+                    );
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: const Color(0xFF0891B2).withValues(alpha: 0.25),
+                        width: 1.0,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.04),
+                          blurRadius: 8,
+                          offset: const Offset(0, 3),
+                        ),
+                      ],
+                    ),
+                    child: Text(
+                      '₹$amt',
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w800,
+                        color: Color(0xFF0891B2),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+      ],
+    );
+  }
+
   Widget _buildQuickActions(BuildContext context) {
     return Row(
       children: [
@@ -299,7 +370,7 @@ class WalletPage extends ConsumerWidget {
             const Text(
               'No transactions yet',
               style: TextStyle(
-                  color: Color(0xff47000000),
+                  color: Color(0xFF475569),
                   fontWeight: FontWeight.w600,
                   fontSize: 15),
             ),

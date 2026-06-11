@@ -288,15 +288,28 @@ class CartProvider extends ChangeNotifier {
   }
 
   Future<void> _loadCartFromPrefs() async {
+    debugPrint("CartProvider: _loadCartFromPrefs called");
     try {
       final prefs = await SharedPreferences.getInstance();
       final cartJsonStr = prefs.getString('cached_cart_items');
+      debugPrint("  - Loaded cached_cart_items string: $cartJsonStr");
       if (cartJsonStr != null && cartJsonStr.isNotEmpty) {
         final List<dynamic> decoded = jsonDecode(cartJsonStr);
-        final cachedItems = decoded.map((e) => CartItem.fromJson(Map<String, dynamic>.from(e))).toList();
+        final List<CartItem> cachedItems = decoded
+            .map((e) => CartItem.fromJson(Map<String, dynamic>.from(e)))
+            .where((item) => item.id.isNotEmpty && item.quantity > 0)
+            .toList();
+        
+        debugPrint("  - Decoded ${cachedItems.length} valid cached items from preferences:");
+        for (final item in cachedItems) {
+          debugPrint("    * id=${item.id}, title=${item.title}, qty=${item.quantity}");
+        }
+
         _items.clear();
         _items.addAll(cachedItems);
         notifyListeners();
+      } else {
+        debugPrint("  - No cached cart items found in preferences");
       }
     } catch (e) {
       debugPrint('CartProvider: Error loading cart from prefs: $e');
@@ -304,10 +317,20 @@ class CartProvider extends ChangeNotifier {
   }
 
   Future<void> _saveCartToPrefs() async {
+    debugPrint("CartProvider: _saveCartToPrefs called. Total items in memory list: ${_items.length}");
     try {
+      // Clean up invalid/empty/zero-qty items before saving
+      _items.removeWhere((item) => item.quantity <= 0 || item.id.isEmpty);
+      
+      debugPrint("  - Saving ${_items.length} cleaned items to preferences:");
+      for (final item in _items) {
+        debugPrint("    * id=${item.id}, title=${item.title}, qty=${item.quantity}");
+      }
+
       final prefs = await SharedPreferences.getInstance();
       final cartJsonStr = jsonEncode(_items.map((e) => e.toJson()).toList());
       await prefs.setString('cached_cart_items', cartJsonStr);
+      debugPrint("  - Successfully saved to cached_cart_items");
     } catch (e) {
       debugPrint('CartProvider: Error saving cart to prefs: $e');
     }
@@ -364,11 +387,23 @@ class CartProvider extends ChangeNotifier {
   }
 
   Future<void> loadCartFromApi() async {
-    if (_service == null) return;
+    debugPrint("CartProvider: loadCartFromApi called");
+    if (_service == null) {
+      debugPrint("  - CartService is null. Skipping API load.");
+      return;
+    }
     try {
       final remoteItems = await _service!.getCart();
+      debugPrint("  - Remote API returned ${remoteItems.length} total items");
+      final validItems = remoteItems
+          .where((item) => item.id.isNotEmpty && item.quantity > 0)
+          .toList();
+      debugPrint("  - Filtered to ${validItems.length} valid remote items:");
+      for (final item in validItems) {
+        debugPrint("    * id=${item.id}, title=${item.title}, qty=${item.quantity}");
+      }
       _items.clear();
-      _items.addAll(remoteItems);
+      _items.addAll(validItems);
       _saveCartToPrefs();
       notifyListeners();
     } catch (e) {
@@ -668,13 +703,33 @@ class CartProvider extends ChangeNotifier {
     }
   }
 
-  int get itemCount => _items.fold(0, (sum, item) => sum + item.quantity);
-  double get subtotal => _items.fold(0.0, (sum, item) => sum + item.totalPrice);
+  int get itemCount {
+    debugPrint("CartProvider: itemCount getter. Total items list size: ${_items.length}");
+    for (final item in _items) {
+      debugPrint("  - Item in _items list: id=${item.id}, title=${item.title}, qty=${item.quantity}");
+    }
+    final count = _items
+        .where((item) => item.id.isNotEmpty && item.quantity > 0)
+        .fold(0, (sum, item) => sum + item.quantity);
+    debugPrint("  - Calculated itemCount: $count");
+    return count;
+  }
+
+  double get subtotal {
+    final val = _items
+        .where((item) => item.id.isNotEmpty && item.quantity > 0)
+        .fold(0.0, (sum, item) => sum + item.totalPrice);
+    debugPrint("CartProvider: subtotal = $val");
+    return val;
+  }
+
   double get shippingCharges => _deliveryFee;
   double get total => subtotal + shippingCharges;
 
   bool isInCart(String title) {
-    return _items.any((item) => item.title == title);
+    final inCart = _items.any((item) => item.title == title && item.quantity > 0);
+    debugPrint("CartProvider: isInCart('$title') => $inCart");
+    return inCart;
   }
 
   String? get cartShopId => _items.isEmpty ? null : _items.first.shopId;
@@ -688,14 +743,23 @@ class CartProvider extends ChangeNotifier {
   }
 
   void addToCart(CartItem cartItem) {
-    final idx = _items.indexWhere((item) => item.id == cartItem.id);
+    debugPrint("CartProvider: addToCart: id=${cartItem.id}, title=${cartItem.title}, qty=${cartItem.quantity}");
+    if (cartItem.id.isEmpty || cartItem.quantity <= 0) {
+      debugPrint("  - Aborted addToCart: empty ID or invalid quantity");
+      return;
+    }
+    final idx = _items.indexWhere((item) =>
+        (item.id.isNotEmpty && cartItem.id.isNotEmpty && item.id == cartItem.id) ||
+        (item.id.isEmpty && item.title == cartItem.title && item.shopId == cartItem.shopId));
     if (idx >= 0) {
       _items[idx].quantity += cartItem.quantity;
+      debugPrint("  - Updated existing item quantity to ${_items[idx].quantity}");
       if (isLoggedIn && _service != null) {
         _service!.updateQuantity(_items[idx].id, _items[idx].quantity);
       }
     } else {
       _items.add(cartItem);
+      debugPrint("  - Added new item to cart list. Total items: ${_items.length}");
       if (isLoggedIn && _service != null) {
         _service!.addToCart(cartItem.id, cartItem.quantity);
       }
@@ -706,28 +770,37 @@ class CartProvider extends ChangeNotifier {
   }
 
   void increment(String id) {
+    debugPrint("CartProvider: increment: id=$id");
+    if (id.isEmpty) return;
     final idx = _items.indexWhere((item) => item.id == id);
     if (idx >= 0) {
       _items[idx].quantity++;
+      debugPrint("  - Incremented item quantity to ${_items[idx].quantity}");
       if (isLoggedIn && _service != null) {
         _service!.updateQuantity(_items[idx].id, _items[idx].quantity);
       }
       _saveCartToPrefs();
       notifyListeners();
       updateDeliveryCharge();
+    } else {
+      debugPrint("  - Item not found in cart list");
     }
   }
 
   void decrement(String id) {
+    debugPrint("CartProvider: decrement: id=$id");
+    if (id.isEmpty) return;
     final idx = _items.indexWhere((item) => item.id == id);
     if (idx >= 0) {
       final itemId = _items[idx].id;
       if (_items[idx].quantity > 1) {
         _items[idx].quantity--;
+        debugPrint("  - Decremented item quantity to ${_items[idx].quantity}");
         if (isLoggedIn && _service != null) {
           _service!.updateQuantity(itemId, _items[idx].quantity);
         }
       } else {
+        debugPrint("  - Quantity became 0, removing item from cart list");
         _items.removeAt(idx);
         if (isLoggedIn && _service != null) {
           _service!.removeFromCart(itemId);
@@ -736,10 +809,14 @@ class CartProvider extends ChangeNotifier {
       _saveCartToPrefs();
       notifyListeners();
       updateDeliveryCharge();
+    } else {
+      debugPrint("  - Item not found in cart list");
     }
   }
 
   void removeItem(String id) {
+    debugPrint("CartProvider: removeItem: id=$id");
+    if (id.isEmpty) return;
     final idx = _items.indexWhere((item) => item.id == id);
     if (idx >= 0) {
       final itemId = _items[idx].id;
@@ -750,10 +827,13 @@ class CartProvider extends ChangeNotifier {
       _saveCartToPrefs();
       notifyListeners();
       updateDeliveryCharge();
+    } else {
+      debugPrint("  - Item not found in cart list for removeItem");
     }
   }
 
   void clearCart() {
+    debugPrint("CartProvider: clearCart called");
     _items.clear();
     if (_service != null) {
       _service!.clearCart();

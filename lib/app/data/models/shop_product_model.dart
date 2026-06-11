@@ -118,7 +118,12 @@ class ShopProduct {
       images: images,
       stock: (json['stock'] as num?)?.toInt() ?? 0,
       stockStatus: (json['stockStatus'] ?? 'Out of Stock').toString(),
-      retailerId: (json['retailer'] ?? '').toString(),
+      retailerId: json['retailer'] is Map
+          ? ((json['retailer'] as Map)['_id'] ??
+                  (json['retailer'] as Map)['id'] ??
+                  '')
+              .toString()
+          : (json['retailer'] ?? json['retailerId'] ?? '').toString(),
       status: (json['status'] ?? 'Draft').toString(),
       createdAt: json['createdAt'] != null
           ? DateTime.tryParse(json['createdAt'].toString()) ?? DateTime.now()

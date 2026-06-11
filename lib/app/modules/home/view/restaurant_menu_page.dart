@@ -1,17 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 import '../../../data/models/shop_product_model.dart';
-import '../../../data/models/product_model.dart';
 import '../../../data/services/db_service.dart';
-import '../../../data/services/favorites_service.dart';
 import '../provider/shop_provider.dart';
 import '../widgets/cart_summary_bar.dart';
-import '../widgets/quantity_selector.dart';
 import 'package:difwawaterapp/app/routes/app_routes.dart';
 import '../../../core/constants/app_colors.dart';
-import 'product_details_page.dart';
 import '../../../data/services/shop_service.dart';
 import '../widgets/product_card.dart';
 
@@ -258,6 +253,12 @@ class _RestaurantMenuPageState extends ConsumerState<RestaurantMenuPage> {
                                       label: '${currentShop.rating}',
                                       iconColor: Colors.amber,
                                     ),
+                                    const SizedBox(width: 12),
+                                    _MetaChip(
+                                      icon: Icons.access_time_rounded,
+                                      label: currentShop.deliveryTime,
+                                      iconColor: const Color(0xFF0EA5E9),
+                                    ),
                                   ],
                                 ),
                                 if (!isShopActive) ...[
@@ -315,8 +316,6 @@ class _RestaurantMenuPageState extends ConsumerState<RestaurantMenuPage> {
                           error: (err, _) => SliverToBoxAdapter(
                             child: _ProductsErrorState(
                               message: err.toString(),
-                              onRetry: () => ref.invalidate(
-                                  shopProductsProvider(widget.shop.id)),
                             ),
                           ),
                           data: (products) {
@@ -508,9 +507,8 @@ class _ProductShimmerCardState extends State<_ProductShimmerCard>
 
 class _ProductsErrorState extends StatelessWidget {
   final String message;
-  final VoidCallback onRetry;
 
-  const _ProductsErrorState({required this.message, required this.onRetry});
+  const _ProductsErrorState({required this.message});
 
   @override
   Widget build(BuildContext context) {
@@ -524,19 +522,21 @@ class _ProductsErrorState extends StatelessWidget {
             const Text('Failed to load products',
                 style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
             const SizedBox(height: 6),
-            Text('Login required to view the catalogue.',
+            Text('Please log in to view and order water varieties.',
                 style: TextStyle(color: Colors.grey.shade600, fontSize: 13)),
             const SizedBox(height: 16),
             ElevatedButton.icon(
-              onPressed: onRetry,
+              onPressed: () {
+                Navigator.pushNamed(context, AppRoutes.login);
+              },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF06B6D4),
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12)),
               ),
-              icon: const Icon(Icons.refresh, size: 18),
-              label: const Text('Retry'),
+              icon: const Icon(Icons.login, size: 18),
+              label: const Text('Log In'),
             ),
           ],
         ),
@@ -557,11 +557,14 @@ class _ProductsEmptyState extends StatelessWidget {
           children: [
             Icon(Icons.water_drop_outlined, size: 48, color: Colors.grey),
             SizedBox(height: 12),
-            Text('No products available',
+            Text('Out of Stock',
                 style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
             SizedBox(height: 6),
-            Text('This source has no water products yet.',
-                style: TextStyle(color: Colors.grey, fontSize: 13)),
+            Text(
+              'This supplier has no active water products. Please check back later or try another plant.',
+              style: TextStyle(color: Colors.grey, fontSize: 13),
+              textAlign: TextAlign.center,
+            ),
           ],
         ),
       ),

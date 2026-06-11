@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:confetti/confetti.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'dart:math';
@@ -14,16 +15,26 @@ class OrderSuccessPage extends StatefulWidget {
 
 class _OrderSuccessPageState extends State<OrderSuccessPage> {
   late ConfettiController _confettiController;
+  Map<String, dynamic>? _order;
 
   @override
   void initState() {
     super.initState();
     _confettiController =
         ConfettiController(duration: const Duration(seconds: 3));
-    // Start confetti burst after a short delay
     Future.delayed(const Duration(milliseconds: 500), () {
-      if (mounted) _confettiController.play();
+      if (mounted) {
+        _confettiController.play();
+        HapticFeedback.heavyImpact();
+      }
     });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _order = widget.order ??
+        (ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?);
   }
 
   @override
@@ -32,8 +43,17 @@ class _OrderSuccessPageState extends State<OrderSuccessPage> {
     super.dispose();
   }
 
+  String? get _orderId {
+    final id = _order?['_id'] ?? _order?['id'] ?? _order?['orderId'];
+    if (id == null) return null;
+    final s = id.toString();
+    return s.length > 8 ? '#${s.substring(s.length - 8).toUpperCase()}' : '#$s';
+  }
+
   @override
   Widget build(BuildContext context) {
+    final orderId = _orderId;
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -48,7 +68,7 @@ class _OrderSuccessPageState extends State<OrderSuccessPage> {
           },
         ),
         title: const Text(
-          'Order Success',
+          'Order Placed',
           style: TextStyle(
             color: Color(0xFF1A1A1A),
             fontWeight: FontWeight.bold,
@@ -85,9 +105,9 @@ class _OrderSuccessPageState extends State<OrderSuccessPage> {
                         begin: const Offset(0.3, 0.3))
                     .fadeIn(duration: 400.ms)
                     .shake(delay: 600.ms, duration: 400.ms),
-                const SizedBox(height: 48),
+                const SizedBox(height: 32),
                 const Text(
-                  'Your order was\nsuccesful !',
+                  'Your order was\nplaced successfully!',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 24,
@@ -99,7 +119,29 @@ class _OrderSuccessPageState extends State<OrderSuccessPage> {
                     .animate(delay: 400.ms)
                     .fadeIn(duration: 600.ms)
                     .slideY(begin: 0.2, end: 0),
-                const SizedBox(height: 16),
+                const SizedBox(height: 12),
+                if (orderId != null)
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 20, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE0F7FA),
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                    child: Text(
+                      'Order $orderId',
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF0E7490),
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  )
+                      .animate(delay: 600.ms)
+                      .fadeIn(duration: 400.ms)
+                      .slideY(begin: 0.1, end: 0),
+                const SizedBox(height: 12),
                 const Text(
                   'You will get a response within\na few minutes.',
                   textAlign: TextAlign.center,
@@ -110,12 +152,53 @@ class _OrderSuccessPageState extends State<OrderSuccessPage> {
                   ),
                 ),
                 const Spacer(flex: 3),
+                // Track Order Button (only when we have order ID)
+                if (_order != null) ...[
+                  SizedBox(
+                    width: double.infinity,
+                    height: 52,
+                    child: OutlinedButton.icon(
+                      onPressed: () {
+                        HapticFeedback.lightImpact();
+                        Navigator.pushNamed(
+                          context,
+                          AppRoutes.trackOrder,
+                          arguments: {
+                            'orderId': _order!['_id'] ?? _order!['id'] ?? '',
+                            'status': _order!['status'],
+                            'deliveryAddressStr':
+                                _order!['deliveryAddress']?.toString(),
+                          },
+                        );
+                      },
+                      icon: const Icon(Icons.local_shipping_outlined,
+                          color: Color(0xFF06B6D4)),
+                      label: const Text(
+                        'Track Order',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF06B6D4),
+                        ),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(
+                            color: Color(0xFF06B6D4), width: 1.5),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                ],
                 // Go to Home Page Button
                 SizedBox(
                   width: double.infinity,
                   height: 52,
                   child: ElevatedButton(
                     onPressed: () {
+                      HapticFeedback.lightImpact();
                       Navigator.pushNamedAndRemoveUntil(
                           context, AppRoutes.home, (route) => false);
                     },
@@ -139,22 +222,22 @@ class _OrderSuccessPageState extends State<OrderSuccessPage> {
               ],
             ),
           ),
-          
+
           // Confetti Overlay
           Align(
             alignment: Alignment.topCenter,
             child: ConfettiWidget(
               confettiController: _confettiController,
-              blastDirection: pi / 2, // down
+              blastDirection: pi / 2,
               maxBlastForce: 5,
               minBlastForce: 2,
               emissionFrequency: 0.05,
               numberOfParticles: 20,
               gravity: 0.1,
               colors: const [
-                Color(0xFF06B6D4), // Primary green
-                Color(0xFF06B6D4), // Darker green
-                Color(0xFFFFD700), // Gold
+                Color(0xFF06B6D4),
+                Color(0xFF0E7490),
+                Color(0xFFFFD700),
                 Colors.white,
               ],
             ),

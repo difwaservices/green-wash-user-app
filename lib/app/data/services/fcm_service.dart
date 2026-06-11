@@ -204,7 +204,7 @@ class FCMService {
       if (_container != null) {
         final client = _container!.read(apiClientProvider);
         await client.post(
-          '/api/notifications/register-token/app',
+          '/notifications/register-token/app',
           data: {'fcmToken': token},
           requiresAuth: true,
         );
@@ -212,7 +212,7 @@ class FCMService {
         // Fallback for cases where container is not yet available
         final client = ApiClient.createDefault();
         await client.post(
-          '/api/notifications/register-token/app',
+          '/notifications/register-token/app',
           data: {'fcmToken': token},
           requiresAuth: true,
         );

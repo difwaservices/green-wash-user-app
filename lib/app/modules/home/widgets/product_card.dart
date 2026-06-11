@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../data/models/food_models.dart';
@@ -9,6 +10,7 @@ import '../view/product_details_page.dart';
 import '../widgets/quantity_selector.dart';
 import '../../../widgets/bounce_widget.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../cart/view/cart_page.dart';
 
 class ProductCard extends ConsumerWidget {
   final Product product;
@@ -24,8 +26,21 @@ class ProductCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final cart = CartProviderScope.of(context);
 
+    // Debug logs to track item match state
+    debugPrint("ProductCard: Current Product ID: ${product.id}, Name: ${product.name}");
+    for (final item in cart.items) {
+      debugPrint("ProductCard: Cart Item => id=${item.id}, qty=${item.quantity}, title=${item.title}");
+    }
+
     final cartItem = cart.items.firstWhere(
-      (item) => item.id == product.id || item.title == product.name,
+      (item) =>
+          (item.id.isNotEmpty && product.id.isNotEmpty && item.id == product.id) ||
+          ((item.id.isEmpty || product.id.isEmpty) &&
+              item.title.isNotEmpty &&
+              item.title == product.name &&
+              item.shopId != null &&
+              item.shopId!.isNotEmpty &&
+              item.shopId == product.shopId),
       orElse: () => CartItem(
         id: product.id,
         title: product.name,
@@ -37,6 +52,16 @@ class ProductCard extends ConsumerWidget {
       ),
     );
     final isInCart = cartItem.quantity > 0;
+
+    assert(() {
+      debugPrint(
+        '[CartCheck] id=${product.id} name="${product.name}" '
+        'shopId=${product.shopId} isInCart=$isInCart '
+        'cartQty=${cartItem.quantity} '
+        'cartItems=[${cart.items.map((i) => '{id:${i.id},shopId:${i.shopId},qty:${i.quantity}}').join(', ')}]',
+      );
+      return true;
+    }());
 
     final isOutOfStock = product.stockStatus == 'Out of Stock';
     final isLowStock = product.stockStatus == 'Low Stock';
@@ -98,29 +123,30 @@ class ProductCard extends ConsumerWidget {
                     // Product Image
                     Hero(
                       tag: 'product_${product.id}',
-                      child: ClipRRect(
-                        borderRadius: const BorderRadius.vertical(
-                          top: Radius.circular(16),
-                        ),
-                        child: Container(
-                          height: 120, // Increased height slightly for better visibility
-                          width: double.infinity,
-                          color: const Color(0xFFF1F5F9), // Light grey background
-                          padding: const EdgeInsets.all(8), // Keep image away from the borders
-                          child: Center(
-                            child: Image.network(
-                              product.image,
-                              fit: BoxFit.contain,
-                              alignment: Alignment.center,
-                              errorBuilder: (context, error, stackTrace) {
-                                return Container(
-                                  color: Colors.grey.shade200,
-                                  child: const Center(
-                                    child: Icon(Icons.broken_image,
-                                        color: Colors.grey),
-                                  ),
-                                );
-                              },
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 8, left: 8, right: 8),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: Container(
+                            height: 120, // Increased height slightly for better visibility
+                            width: double.infinity,
+                            color: const Color(0xFFF1F5F9), // Light grey background
+                            padding: const EdgeInsets.all(8), // Keep image away from the borders
+                            child: Center(
+                              child: Image.network(
+                                product.image,
+                                fit: BoxFit.contain,
+                                alignment: Alignment.center,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return Container(
+                                    color: Colors.grey.shade200,
+                                    child: const Center(
+                                      child: Icon(Icons.broken_image,
+                                          color: Colors.grey),
+                                    ),
+                                  );
+                                },
+                              ),
                             ),
                           ),
                         ),
@@ -340,15 +366,26 @@ class ProductCard extends ConsumerWidget {
     }
 
     if (cart.isSameShop(product.shopId)) {
+      HapticFeedback.lightImpact();
       cart.addToCart(CartItem.fromProduct(product));
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('${product.name} added to cart!'),
-          duration: const Duration(seconds: 1),
+          duration: const Duration(seconds: 2),
           backgroundColor: AppColors.primaryDark,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(10)),
+          action: SnackBarAction(
+            label: 'View Cart',
+            textColor: Colors.white,
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const CartPage()),
+              );
+            },
+          ),
         ),
       );
     } else {
@@ -365,11 +402,11 @@ class ProductCard extends ConsumerWidget {
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: const Text(
-          'Replace cart item?',
+          'Start a new cart?',
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
         ),
         content: Text(
-          'Your cart contains products from $oldShopName. Do you want to discard the selection and add products from $newShopName?',
+          'Your cart has items from $oldShopName. Adding items from $newShopName will replace your current selection. Would you like to proceed?',
           style: const TextStyle(color: Colors.black87, fontSize: 14, height: 1.5),
         ),
         actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),

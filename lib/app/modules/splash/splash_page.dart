@@ -12,38 +12,15 @@ class SplashPage extends ConsumerStatefulWidget {
   ConsumerState<SplashPage> createState() => _SplashPageState();
 }
 
-class _SplashPageState extends ConsumerState<SplashPage>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _fadeAnim;
-  late Animation<double> _scaleAnim;
-
+class _SplashPageState extends ConsumerState<SplashPage> {
   @override
   void initState() {
     super.initState();
-
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1200),
-    );
-
-    _fadeAnim = CurvedAnimation(parent: _controller, curve: Curves.easeIn);
-    _scaleAnim = Tween<double>(
-      begin: 0.8,
-      end: 1.0,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutBack));
-
-    _controller.forward();
-
-    // ── INITIAL AUTH CHECK ──
     _initializeApp();
   }
 
   Future<void> _initializeApp() async {
-    // 1. Give animations a moment to start
-    await Future.delayed(const Duration(milliseconds: 1200));
-
-    // 2. First-time launch → show language picker before anything else
+    // 1. First-time launch → show language picker before anything else
     final isFirst = await LocaleNotifier.isFirstLaunch();
     if (!mounted) return;
     if (isFirst) {
@@ -51,12 +28,12 @@ class _SplashPageState extends ConsumerState<SplashPage>
       return;
     }
 
-    // 3. Perform initialization check via AuthStore
+    // 2. Perform initialization check via AuthStore
     await ref.read(authStoreProvider.notifier).init();
 
     if (!mounted) return;
 
-    // 4. Decide navigation based on Auth status
+    // 3. Decide navigation based on Auth status
     final authState = ref.read(authStoreProvider);
 
     if (authState is AuthAuthenticated) {
@@ -78,40 +55,10 @@ class _SplashPageState extends ConsumerState<SplashPage>
   }
 
   @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return const Scaffold(
       backgroundColor: Colors.white,
-      body: Center(
-        child: FadeTransition(
-          opacity: _fadeAnim,
-          child: ScaleTransition(
-            scale: _scaleAnim,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Image.asset(
-                  AppImages.difwaLogoPng,
-                  width: 300,
-                  height: 300,
-                  fit: BoxFit.contain,
-                ),
-                const SizedBox(height: 40),
-                // ── SUBTLE PROGRESS ──
-                const CircularProgressIndicator(
-                  strokeWidth: 3,
-                  valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF06B6D4)),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
+      body: SizedBox.shrink(),
     );
   }
 }

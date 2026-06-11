@@ -1,7 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:geolocator/geolocator.dart';
 import '../../../data/models/shop_product_model.dart';
 import '../../../data/services/shop_service.dart';
 import '../../../data/services/socket_service.dart';
+import '../../../data/services/location_service.dart';
 import '../../../core/utils/loader_utils.dart';
 
 final shopsListProvider =
@@ -57,3 +59,34 @@ final shopProductsProvider =
   final service = ref.watch(shopServiceProvider);
   return LoaderUtils.wrapWithSkeleton(() => service.getShopProducts(shopId));
 });
+
+/// Resolves the user's current GPS position once per session.
+/// Returns null silently if permission is denied or GPS is off.
+final userLocationProvider = FutureProvider<Position?>(
+  (ref) async {
+    try {
+      return await ref.read(locationServiceProvider).getCurrentLocation();
+    } catch (_) {
+      return null;
+    }
+  },
+);
+
+/// Calculates the straight-line distance between the user and a shop.
+/// Returns a human-readable label like "1.2 km" or "800 m", or null if
+/// either coordinate is missing.
+String? shopDistanceLabel({
+  required Position? userPos,
+  required double? shopLat,
+  required double? shopLng,
+}) {
+  if (userPos == null || shopLat == null || shopLng == null) return null;
+  final meters = Geolocator.distanceBetween(
+    userPos.latitude,
+    userPos.longitude,
+    shopLat,
+    shopLng,
+  );
+  if (meters < 1000) return '${meters.round()} m';
+  return '${(meters / 1000).toStringAsFixed(1)} km';
+}

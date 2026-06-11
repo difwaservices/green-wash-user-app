@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:difwawaterapp/app/data/services/db_service.dart';
@@ -765,6 +766,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                 onPressed: (_isLoading || !cartProvider.isDeliverable || cartProvider.isCalculatingDelivery)
                     ? null
                     : () async {
+                        HapticFeedback.mediumImpact();
                         // ── Validate user inputs BEFORE setting loading ────────
                         final selectedAddr = cartProvider.selectedAddress;
                         if (selectedAddr == null) {

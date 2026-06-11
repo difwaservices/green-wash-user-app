@@ -85,5 +85,9 @@
 			<key>NSAllowsArbitraryLoads</key>
 			<true/>
 		</dict>
+		<key>NSLocationWhenInUseUsageDescription</key>
+		<string>Difwa uses your location to show water plants near you and calculate distances.</string>
+		<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+		<string>Difwa uses your location to show water plants near you and calculate distances.</string>
 	</dict>
 </plist>

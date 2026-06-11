@@ -33,9 +33,13 @@ class CartService {
         if (items is List) data = items;
       }
 
-      return data
+      final mapped = data
           .map((e) => _mapToCartItem(Map<String, dynamic>.from(e)))
+          .where((item) => item.id.isNotEmpty && item.quantity > 0)
           .toList();
+      
+      debugPrint('CartService: Fetched ${mapped.length} valid items from API cart');
+      return mapped;
     } catch (e) {
       print('CartService: Error fetching cart: $e');
       return [];
@@ -110,14 +114,29 @@ class CartService {
     final Map<String, dynamic> p =
         json['product'] is Map ? json['product'] : json;
 
+    final mappedId =
+        (p['_id'] ?? p['id'] ?? json['productId'] ?? '').toString();
+    final mappedShopId = _extractId(
+      json['retailerId'] ??
+          json['shopId'] ??
+          p['retailerId'] ??
+          p['retailer'],
+    );
+
+    debugPrint(
+      '[CartAPI] productId=$mappedId shopId=$mappedShopId '
+      'productField=${json['product'].runtimeType} '
+      'rawRetailer=${p['retailer']} rawRetailerId=${json['retailerId']}',
+    );
+
     return CartItem(
-      id: (p['_id'] ?? p['id'] ?? json['productId'] ?? '').toString(),
+      id: mappedId,
       title: (p['name'] ?? p['productName'] ?? json['productName'] ?? '')
           .toString(),
       unitPrice: (json['price'] as num?)?.toDouble() ??
           (p['price'] as num?)?.toDouble() ??
           0.0,
-      quantity: (json['quantity'] as num?)?.toInt() ?? 1,
+      quantity: (json['quantity'] as num?)?.toInt() ?? 0,
       subtitle:
           (p['category'] is Map ? p['category']['name'] : (p['category'] ?? ''))
               .toString(),
@@ -128,13 +147,17 @@ class CartService {
                   : ''))
           .toString(),
       category: (p['type'] ?? json['type'] ?? 'standard').toString(),
-      shopId: (json['retailerId'] ??
-              json['shopId'] ??
-              p['retailerId'] ??
-              p['retailer'] ??
-              '')
-          .toString(),
+      shopId: mappedShopId,
       shopName: (json['retailerName'] ?? json['shopName'] ?? '').toString(),
     );
+  }
+
+  /// Extracts a string ID from a value that may be a String or a populated Map.
+  static String _extractId(dynamic value) {
+    if (value == null) return '';
+    if (value is Map) {
+      return (value['_id'] ?? value['id'] ?? '').toString();
+    }
+    return value.toString();
   }
 }

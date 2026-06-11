@@ -3,6 +3,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_images.dart';
 import '../../routes/app_routes.dart';
+import '../../../../l10n/generated/app_localizations.dart';
 
 class OnboardingPage extends StatefulWidget {
   const OnboardingPage({super.key});
@@ -15,39 +16,38 @@ class _OnboardingPageState extends State<OnboardingPage> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
 
-  final List<Map<String, dynamic>> _pages = [
-    {
-      'title': 'Pure Drinking Water\nAt Your Doorstep',
-      'subtitle':
-          'Fresh and filtered water delivered right to\nyour home or office.',
-      'image': AppImages.difwaLogoPng,
-      'layout': 'standard', // title top, image center
-      'isSvg': false,
-    },
-    {
-      'title': 'Safe and Hygienic\nPremium Quality',
-      'subtitle':
-          'Our water undergoes strict filtration processes\nto ensure your health and safety.',
-      'image': AppImages.waterHero,
-      'layout': 'card', // title top, image in rounded card
-      'isSvg': false,
-    },
-    {
-      'title': 'Effortless Ordering\nIn Just a Tap',
-      'subtitle': 'Quick and easy booking through the\nDifwa Water App.',
-      'image': AppImages.bottleIcon,
-      'layout': 'fullimage', // image fills top, curved white bottom
-      'isSvg': true,
-    },
-    {
-      'title': 'Fast Delivery\nStay Hydrated',
-      'subtitle':
-          'On-time delivery across the city\nto keep you and your family healthy.',
-      'image': AppImages.waterBottle,
-      'layout': 'bottom', // image top half, title+subtitle bottom, skip/next
-      'isSvg': false,
-    },
-  ];
+  List<Map<String, dynamic>> _getPages(AppLocalizations l10n) {
+    return [
+      {
+        'title': l10n.onboarding1Title,
+        'subtitle': l10n.onboarding1Subtitle,
+        'image': AppImages.difwaLogoPng,
+        'layout': 'standard', // title top, image center
+        'isSvg': false,
+      },
+      {
+        'title': l10n.onboarding2Title,
+        'subtitle': l10n.onboarding2Subtitle,
+        'image': AppImages.waterHero,
+        'layout': 'card', // title top, image in rounded card
+        'isSvg': false,
+      },
+      {
+        'title': l10n.onboarding3Title,
+        'subtitle': l10n.onboarding3Subtitle,
+        'image': AppImages.bottleIcon,
+        'layout': 'fullimage', // image fills top, curved white bottom
+        'isSvg': true,
+      },
+      {
+        'title': l10n.onboarding4Title,
+        'subtitle': l10n.onboarding4Subtitle,
+        'image': AppImages.waterBottle,
+        'layout': 'bottom', // image top half, title+subtitle bottom, skip/next
+        'isSvg': false,
+      },
+    ];
+  }
 
   @override
   void dispose() {
@@ -57,8 +57,8 @@ class _OnboardingPageState extends State<OnboardingPage> {
 
   void _onPageChanged(int index) => setState(() => _currentPage = index);
 
-  void _next() {
-    if (_currentPage < _pages.length - 1) {
+  void _next(int pageCount) {
+    if (_currentPage < pageCount - 1) {
       _pageController.nextPage(
         duration: const Duration(milliseconds: 350),
         curve: Curves.easeInOut,
@@ -73,7 +73,9 @@ class _OnboardingPageState extends State<OnboardingPage> {
   // ---------- build ----------
   @override
   Widget build(BuildContext context) {
-    final page = _pages[_currentPage];
+    final l10n = AppLocalizations.of(context);
+    final pages = _getPages(l10n);
+    final page = pages[_currentPage];
     final layout = page['layout'] as String;
 
     return Scaffold(
@@ -83,9 +85,9 @@ class _OnboardingPageState extends State<OnboardingPage> {
           PageView.builder(
             controller: _pageController,
             onPageChanged: _onPageChanged,
-            itemCount: _pages.length,
+            itemCount: pages.length,
             itemBuilder: (ctx, i) {
-              final p = _pages[i];
+              final p = pages[i];
               switch (p['layout']) {
                 case 'card':
                   return _buildCardLayout(p);
@@ -104,8 +106,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
             bottom: 0,
             left: 0,
             right: 0,
-            child:
-                layout == 'bottom' ? _buildSkipNextNav() : _buildSkipNextNav(),
+            child: _buildSkipNextNav(l10n, pages.length),
           ),
         ],
       ),
@@ -334,7 +335,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
   }
 
   // ─── Nav: Skip · dots · Next ──────────────────────────────────────────────
-  Widget _buildSkipNextNav() {
+  Widget _buildSkipNextNav(AppLocalizations l10n, int pageCount) {
     return Container(
       color: Colors.white,
       padding: const EdgeInsets.fromLTRB(24, 8, 24, 36),
@@ -343,21 +344,21 @@ class _OnboardingPageState extends State<OnboardingPage> {
         children: [
           GestureDetector(
             onTap: _skip,
-            child: const Text(
-              'Skip',
-              style: TextStyle(
+            child: Text(
+              l10n.skip,
+              style: const TextStyle(
                 fontSize: 15,
                 color: AppColors.primary,
                 fontWeight: FontWeight.w600,
               ),
             ),
           ),
-          _buildDots(),
+          _buildDots(pageCount),
           GestureDetector(
-            onTap: _next,
-            child: const Text(
-              'Next',
-              style: TextStyle(
+            onTap: () => _next(pageCount),
+            child: Text(
+              _currentPage < pageCount - 1 ? l10n.next : l10n.getStarted,
+              style: const TextStyle(
                 fontSize: 15,
                 color: AppColors.primary,
                 fontWeight: FontWeight.w600,
@@ -370,11 +371,11 @@ class _OnboardingPageState extends State<OnboardingPage> {
   }
 
   // ─── Dots ─────────────────────────────────────────────────────────────────
-  Widget _buildDots() {
+  Widget _buildDots(int pageCount) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: List.generate(
-        _pages.length,
+        pageCount,
         (i) => AnimatedContainer(
           duration: const Duration(milliseconds: 220),
           margin: const EdgeInsets.symmetric(horizontal: 4),

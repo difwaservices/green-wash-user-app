@@ -20,10 +20,10 @@ class CartItem {
     required this.category,
     this.shopId,
     this.shopName,
-    this.quantity = 1,
+    this.quantity = 0,
   });
 
-  factory CartItem.fromProduct(Product product) {
+  factory CartItem.fromProduct(Product product, {int quantity = 1}) {
     return CartItem(
       id: product.id,
       title: product.name,
@@ -33,6 +33,7 @@ class CartItem {
       category: product.category,
       shopId: product.shopId,
       shopName: product.shopName,
+      quantity: quantity,
     );
   }
 
@@ -54,7 +55,7 @@ class CartItem {
 
   factory CartItem.fromJson(Map<String, dynamic> json) {
     return CartItem(
-      id: (json['id'] ?? '').toString(),
+      id: (json['_id'] ?? json['id'] ?? '').toString(),
       title: (json['title'] ?? '').toString(),
       unitPrice: (json['unitPrice'] as num? ?? 0.0).toDouble(),
       subtitle: (json['subtitle'] ?? '').toString(),
@@ -62,7 +63,7 @@ class CartItem {
       category: (json['category'] ?? '').toString(),
       shopId: json['shopId']?.toString(),
       shopName: json['shopName']?.toString(),
-      quantity: (json['quantity'] as num? ?? 1).toInt(),
+      quantity: (json['quantity'] as num? ?? 0).toInt(),
     );
   }
 }

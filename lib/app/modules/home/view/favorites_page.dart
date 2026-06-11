@@ -2,10 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../data/models/shop_product_model.dart';
 import '../../../data/services/favorites_service.dart';
-import '../../../data/services/db_service.dart';
-import '../../../data/models/product_model.dart';
 import '../controller/main_controller.dart';
-import '../widgets/quantity_selector.dart';
 import '../../../core/constants/app_colors.dart';
 import '../widgets/product_card.dart';
 

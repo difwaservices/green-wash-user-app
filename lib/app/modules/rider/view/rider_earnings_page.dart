@@ -50,10 +50,14 @@ final riderEarningsProvider = FutureProvider<Map<String, dynamic>>((ref) async {
       (data['deliveries'] == 0 && data['weekly'] == 0)) {
     try {
       final history = await riderService.getDeliveryHistory();
-      if (history.isNotEmpty) {
-        data['deliveries'] = history.length;
+      final deliveredHistory = history.where((o) {
+        final s = (o['status']?.toString() ?? '').toLowerCase();
+        return s == 'delivered' || s == 'completed';
+      }).toList();
+      if (deliveredHistory.isNotEmpty) {
+        data['deliveries'] = deliveredHistory.length;
         double total = 0;
-        for (final item in history) {
+        for (final item in deliveredHistory) {
           total += (item['commission'] ?? item['earnings'] ?? 30.0);
         }
         data['weekly'] = total;

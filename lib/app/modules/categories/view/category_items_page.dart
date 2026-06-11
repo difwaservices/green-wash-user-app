@@ -4,7 +4,6 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../controller/categories_controller.dart';
 import '../../../data/models/food_models.dart';
 import '../../../data/services/db_service.dart';
-import '../../../data/models/product_model.dart';
 import '../../home/widgets/product_card.dart';
 
 class CategoryItemsPage extends ConsumerWidget {

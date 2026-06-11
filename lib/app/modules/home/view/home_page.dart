@@ -5,6 +5,7 @@ import '../../../data/services/db_service.dart';
 import '../widgets/home_header.dart';
 import '../../../data/services/wallet_service.dart';
 import '../widgets/home_banner.dart';
+import '../widgets/quick_category_strip.dart';
 import '../widgets/restaurant_list_section.dart';
 
 
@@ -48,7 +49,10 @@ class HomePage extends ConsumerWidget {
                       // Banner (Horizontal Scrolling Carousel)
                       const SliverToBoxAdapter(child: HomeBanner()),
 
-                      const SliverToBoxAdapter(child: SizedBox(height: 8)),
+                      // Popular Categories strip
+                      const SliverToBoxAdapter(child: QuickCategoryStrip()),
+
+                      const SliverToBoxAdapter(child: SizedBox(height: 4)),
 
                       // Restaurants Section
                       const SliverToBoxAdapter(child: RestaurantListSection()),

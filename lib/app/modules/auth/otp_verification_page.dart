@@ -8,6 +8,7 @@ import '../../data/services/db_service.dart';
 import '../../routes/app_routes.dart';
 import 'package:pinput/pinput.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import '../../../../l10n/generated/app_localizations.dart';
 
 class OtpVerificationPage extends ConsumerStatefulWidget {
   final String phoneNumber;
@@ -171,7 +172,14 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage>
           );
     } catch (e) {
       if (mounted) {
-        _showSnackBar(e.toString(), backgroundColor: Colors.red);
+        final l10n = AppLocalizations.of(context);
+        String errMsg = e.toString();
+        if (errMsg.toLowerCase().contains('invalid') || errMsg.toLowerCase().contains('wrong')) {
+          errMsg = l10n.invalidOtp;
+        } else if (errMsg.toLowerCase().contains('expired')) {
+          errMsg = l10n.otpExpired;
+        }
+        _showSnackBar(errMsg, backgroundColor: Colors.red);
       }
     } finally {
       if (mounted) {
@@ -210,6 +218,7 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage>
   // ── Build ─────────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final screenSize = MediaQuery.of(context).size;
     final bool isSmallScreen = screenSize.height < 600;
 
@@ -328,7 +337,7 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage>
                         const SizedBox(height: 32),
 
                         Text(
-                          'Enter 6-Digit Code',
+                          l10n.otpVerification,
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: isSmallScreen ? 22 : 28,
@@ -340,7 +349,7 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage>
                         RichText(
                           textAlign: TextAlign.center,
                           text: TextSpan(
-                            text: 'Code has been sent to \n',
+                            text: '${l10n.enterOtpSentTo}\n',
                             style: const TextStyle(
                                 fontSize: 14,
                                 color: Color(0xFF64748B),
@@ -457,34 +466,30 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage>
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Text(
-                              _resendTimer > 0
-                                  ? 'Resend code in '
-                                  : "Didn't receive the code? ",
-                              style: const TextStyle(
-                                  color: Color(0xFF64748B), fontSize: 13),
-                            ),
-                            AnimatedSwitcher(
-                              duration: const Duration(milliseconds: 300),
-                              child: GestureDetector(
-                                key: ValueKey(_resendTimer),
-                                onTap: (_isSendingOtp || _resendTimer > 0)
-                                    ? null
-                                    : _sendOtp,
+                            if (_resendTimer > 0)
+                              Text(
+                                l10n.resendIn(_resendTimer),
+                                style: const TextStyle(
+                                    color: Color(0xFF64748B), fontSize: 13),
+                              )
+                            else ...[
+                              const Text(
+                                "Didn't receive the code? ",
+                                style: TextStyle(
+                                    color: Color(0xFF64748B), fontSize: 13),
+                              ),
+                              GestureDetector(
+                                onTap: _isSendingOtp ? null : _sendOtp,
                                 child: Text(
-                                  _resendTimer > 0
-                                      ? '00:${_resendTimer.toString().padLeft(2, '0')}'
-                                      : 'Resend Now',
-                                  style: TextStyle(
-                                    color: (_isSendingOtp || _resendTimer > 0)
-                                        ? const Color(0xFF94A3B8)
-                                        : const Color(0xFF06B6D4),
+                                  l10n.resendOtp,
+                                  style: const TextStyle(
+                                    color: Color(0xFF06B6D4),
                                     fontWeight: FontWeight.w700,
                                     fontSize: 13,
                                   ),
                                 ),
                               ),
-                            ),
+                            ],
                           ],
                         ),
 
@@ -495,7 +500,7 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage>
                           scale: _isVerifying ? 0.97 : 1.0,
                           duration: const Duration(milliseconds: 150),
                           child: GestureDetector(
-                            onTap: _isVerifying ? null : _verifyOtp,
+                            onTap: _isVerifying ? null : () => _verifyOtp(),
                             child: AnimatedContainer(
                               duration: const Duration(milliseconds: 200),
                               width: double.infinity,
@@ -536,9 +541,9 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage>
                                             color: Colors.white,
                                             strokeWidth: 2.5),
                                       )
-                                    : const Text(
-                                        'Verify & Proceed',
-                                        style: TextStyle(
+                                    : Text(
+                                        l10n.verify,
+                                        style: const TextStyle(
                                           color: Colors.white,
                                           fontSize: 16,
                                           fontWeight: FontWeight.bold,

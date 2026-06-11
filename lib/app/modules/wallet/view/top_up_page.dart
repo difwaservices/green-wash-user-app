@@ -22,11 +22,21 @@ class _TopUpPageState extends ConsumerState<TopUpPage> {
   // may have unmounted. Never call ScaffoldMessenger.of(context) inside them.
   ScaffoldMessengerState? _messenger;
 
+  bool _amountInitialized = false;
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Safe to cache here — called every time dependencies change
     _messenger = ScaffoldMessenger.of(context);
+    if (!_amountInitialized) {
+      _amountInitialized = true;
+      final args = ModalRoute.of(context)?.settings.arguments
+          as Map<String, dynamic>?;
+      final amount = args?['amount'];
+      if (amount != null) {
+        _amountController.text = amount.toString();
+      }
+    }
   }
 
   @override

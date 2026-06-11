@@ -122,7 +122,7 @@ class _AdminBannersPageState extends ConsumerState<AdminBannersPage> {
                           Text('Action Redirect Type', style: DsTypography.captionBold),
                           DsSpacing.gapV8,
                           DropdownButtonFormField<String>(
-                            value: actionType,
+                            initialValue: actionType,
                             decoration: InputDecoration(
                               contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                               border: OutlineInputBorder(

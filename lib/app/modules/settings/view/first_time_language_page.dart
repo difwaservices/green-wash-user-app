@@ -5,6 +5,7 @@ import '../../../core/constants/app_images.dart';
 import '../../../core/localization/language_provider.dart';
 import '../../../core/localization/supported_languages.dart';
 import '../../../routes/app_routes.dart';
+import '../../../../l10n/generated/app_localizations.dart';
 
 /// Shown once on first launch so the user can pick their preferred language
 /// before seeing the onboarding / home screen.
@@ -16,7 +17,8 @@ class FirstTimeLanguagePage extends ConsumerStatefulWidget {
       _FirstTimeLanguagePageState();
 }
 
-class _FirstTimeLanguagePageState extends ConsumerState<FirstTimeLanguagePage> {
+class _FirstTimeLanguagePageState
+    extends ConsumerState<FirstTimeLanguagePage> {
   String _selectedCode = 'en';
 
   @override
@@ -34,12 +36,14 @@ class _FirstTimeLanguagePageState extends ConsumerState<FirstTimeLanguagePage> {
     await LocaleNotifier.markOnboardingDone();
 
     if (!mounted) return;
-    // Replace this screen with login so back-press never returns here
-    Navigator.pushReplacementNamed(context, AppRoutes.login);
+    // Replace this screen with onboarding so back-press never returns here
+    Navigator.pushReplacementNamed(context, AppRoutes.onboarding);
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -56,9 +60,9 @@ class _FirstTimeLanguagePageState extends ConsumerState<FirstTimeLanguagePage> {
                     fit: BoxFit.contain,
                   ),
                   const SizedBox(height: 24),
-                  const Text(
-                    'Choose Your Language',
-                    style: TextStyle(
+                  Text(
+                    l10n.selectLanguage,
+                    style: const TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.w900,
                       color: Color(0xFF1E293B),
@@ -67,7 +71,7 @@ class _FirstTimeLanguagePageState extends ConsumerState<FirstTimeLanguagePage> {
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    'Select the language you are most comfortable with',
+                    l10n.chooseLanguage,
                     style: TextStyle(
                       fontSize: 14,
                       color: Colors.grey.shade500,
@@ -85,10 +89,8 @@ class _FirstTimeLanguagePageState extends ConsumerState<FirstTimeLanguagePage> {
             // ── Language list ────────────────────────────────────────────
             Expanded(
               child: ListView.separated(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
-                ),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 itemCount: kSupportedLanguages.length,
                 separatorBuilder: (_, __) =>
                     const Divider(height: 1, indent: 56),
@@ -98,7 +100,10 @@ class _FirstTimeLanguagePageState extends ConsumerState<FirstTimeLanguagePage> {
                   return _LangTile(
                     language: lang,
                     isSelected: isSelected,
-                    onTap: () => setState(() => _selectedCode = lang.code),
+                    onTap: () async {
+                      setState(() => _selectedCode = lang.code);
+                      await ref.read(localeProvider.notifier).setLocale(lang.locale);
+                    },
                   );
                 },
               ),
@@ -128,9 +133,9 @@ class _FirstTimeLanguagePageState extends ConsumerState<FirstTimeLanguagePage> {
                     ],
                   ),
                   alignment: Alignment.center,
-                  child: const Text(
-                    'Continue',
-                    style: TextStyle(
+                  child: Text(
+                    l10n.confirm,
+                    style: const TextStyle(
                       color: Colors.white,
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -198,10 +203,10 @@ class _LangTile extends StatelessWidget {
                     language.nativeName,
                     style: TextStyle(
                       fontSize: 16,
-                      fontWeight: isSelected
-                          ? FontWeight.w700
-                          : FontWeight.w500,
-                      color: isSelected ? AppColors.primary : Colors.black87,
+                      fontWeight:
+                          isSelected ? FontWeight.w700 : FontWeight.w500,
+                      color:
+                          isSelected ? AppColors.primary : Colors.black87,
                     ),
                   ),
                   Text(
@@ -219,7 +224,8 @@ class _LangTile extends StatelessWidget {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: isSelected ? AppColors.primary : Colors.grey.shade300,
+                  color:
+                      isSelected ? AppColors.primary : Colors.grey.shade300,
                   width: isSelected ? 6 : 2,
                 ),
               ),

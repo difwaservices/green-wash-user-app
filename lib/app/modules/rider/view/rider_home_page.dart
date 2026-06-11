@@ -39,10 +39,12 @@ final riderStatsProvider = FutureProvider<_RiderStats>((ref) async {
   double rating = 0.0;
 
   try {
-    // The /rider/history endpoint already returns ONLY delivered/completed orders
-    // so we just count whatever it returns — no status filter needed
     final history = await riderService.getDeliveryHistory();
-    orders = history.length;
+    // Ensure only delivered/completed orders are counted
+    orders = history.where((o) {
+      final s = (o['status']?.toString() ?? '').toLowerCase();
+      return s == 'delivered' || s == 'completed';
+    }).length;
   } catch (e) {
     debugPrint('Error calculating orders from history: $e');
   }

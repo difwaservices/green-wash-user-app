@@ -103,6 +103,8 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                   const _ListTilesSection(),
                   const SizedBox(height: 32),
                   const _SignOutButton(),
+                  const SizedBox(height: 24),
+                  const _AppVersionFooter(),
                   const SizedBox(height: 140),
                 ],
               ),
@@ -666,7 +668,11 @@ class _ListTilesSection extends ConsumerWidget {
         : 'English';
 
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // ── Account section ──────────────────────────────────────────────
+        const _SectionHeader(title: 'Account'),
+        const SizedBox(height: 10),
         if (isAdmin) ...[
           const _ListTileItem(
             icon: Icons.campaign_rounded,
@@ -688,7 +694,11 @@ class _ListTilesSection extends ConsumerWidget {
           subtitle: langSubtitle,
           color: const Color(0xFF6366F1),
         ),
-        const SizedBox(height: 12),
+
+        // ── Support section ──────────────────────────────────────────────
+        const SizedBox(height: 24),
+        const _SectionHeader(title: 'Support'),
+        const SizedBox(height: 10),
         const _ListTileItem(
           icon: Icons.help_outline_rounded,
           title: 'Help & Support',
@@ -713,6 +723,24 @@ class _ListTilesSection extends ConsumerWidget {
           color: Color(0xFFEF4444),
         ),
       ],
+    );
+  }
+}
+
+class _SectionHeader extends StatelessWidget {
+  final String title;
+  const _SectionHeader({required this.title});
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      title,
+      style: const TextStyle(
+        fontSize: 13,
+        fontWeight: FontWeight.w700,
+        color: Color(0xFF94A3B8),
+        letterSpacing: 0.8,
+      ),
     );
   }
 }
@@ -850,6 +878,24 @@ class _ListTileItem extends StatelessWidget {
               size: 14,
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _AppVersionFooter extends StatelessWidget {
+  const _AppVersionFooter();
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Text(
+        'Difwa v1.0.53',
+        style: TextStyle(
+          fontSize: 12,
+          color: Colors.grey.shade400,
+          fontWeight: FontWeight.w500,
         ),
       ),
     );
