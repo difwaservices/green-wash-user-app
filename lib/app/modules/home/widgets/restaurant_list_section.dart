@@ -1,28 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../data/models/shop_product_model.dart';
 import '../provider/shop_provider.dart';
 import '../view/restaurant_menu_page.dart';
+import '../view/product_details_page.dart';
 import 'filter_bottom_sheet.dart';
 import '../../../core/constants/app_images.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../provider/search_provider.dart';
 import '../../../routes/app_routes.dart';
 
-// ── Cuisine types to cycle through for display ───────────────────────────────
-const List<String> _cuisineTypes = [
-  'Purified · Mineral',
-  'Alkaline · RO+UV',
-  'Natural · Spring',
-  'Distilled · Clean',
-  'Ionized · Balanced',
-  'Bottled · Bulk',
-  'Sparkling · Fresh',
-  'Filtered · Pure',
-  'Eco-Friendly · Safe',
-  'Premium · Health',
-  'Domestic · Supply',
-];
 
 class RestaurantListSection extends ConsumerWidget {
   const RestaurantListSection({super.key});
@@ -147,10 +135,7 @@ class _ShopsList extends ConsumerWidget {
           shrinkWrap: true,
           itemCount: shops.length,
           itemBuilder: (context, index) {
-            return _ShopCard(
-              shop: shops[index],
-              index: index,
-            );
+            return _ShopCard(shop: shops[index]);
           },
         ),
       ],
@@ -162,11 +147,8 @@ class _ShopsList extends ConsumerWidget {
 
 class _ShopCard extends ConsumerWidget {
   final ShopModel shop;
-  final int index;
 
-  const _ShopCard({required this.shop, required this.index});
-
-  String get _cuisine => _cuisineTypes[index % _cuisineTypes.length];
+  const _ShopCard({required this.shop});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -292,12 +274,16 @@ class _ShopCard extends ConsumerWidget {
                             ),
                             const SizedBox(height: 3),
                             Text(
-                              _cuisine,
+                              shop.location.isNotEmpty
+                                  ? shop.location
+                                  : 'Water Supplier',
                               style: const TextStyle(
                                 fontSize: 12,
                                 color: Color(0xFF94A3B8),
                                 fontWeight: FontWeight.w500,
                               ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
                             // Rating row (shown when available)
                             if (shop.rating > 0) ...[
@@ -326,7 +312,7 @@ class _ShopCard extends ConsumerWidget {
                               color:
                                   const Color(0xFF00ACC1).withValues(alpha: 0.1),
                             ),
-                            // Info chips: distance · open/closed
+                            // Info chips: distance · open/closed · contact
                             Wrap(
                               spacing: 5,
                               runSpacing: 4,
@@ -339,12 +325,6 @@ class _ShopCard extends ConsumerWidget {
                                     bg: const Color(0xFFE0F7FA),
                                   ),
                                 _InfoChip(
-                                  icon: Icons.access_time_rounded,
-                                  label: shop.deliveryTime,
-                                  color: const Color(0xFF0EA5E9),
-                                  bg: const Color(0xFFF0F9FF),
-                                ),
-                                _InfoChip(
                                   icon: shop.isShopActive
                                       ? Icons.check_circle_outline_rounded
                                       : Icons.cancel_outlined,
@@ -356,6 +336,8 @@ class _ShopCard extends ConsumerWidget {
                                       ? const Color(0xFFD1FAE5)
                                       : const Color(0xFFFFE4E6),
                                 ),
+                                if (shop.contact.isNotEmpty)
+                                  _ContactChip(contact: shop.contact),
                               ],
                             ),
                           ],
@@ -410,7 +392,11 @@ class _ShopCard extends ConsumerWidget {
                           ],
                         ),
                       ),
-                      _ProductCarouselStrip(products: items),
+                      _ProductCarouselStrip(
+                        products: items,
+                        shopActive: shop.isShopActive,
+                        shopName: shop.name,
+                      ),
                     ],
                   );
                 },
@@ -502,6 +488,52 @@ class _InfoChip extends StatelessWidget {
   }
 }
 
+// ── Contact Chip (tappable) ───────────────────────────────────────────────────
+
+class _ContactChip extends StatelessWidget {
+  final String contact;
+  const _ContactChip({required this.contact});
+
+  @override
+  Widget build(BuildContext context) {
+    final isEmail = contact.contains('@');
+    final displayLabel = isEmail ? contact.split('@').first : contact;
+    return GestureDetector(
+      onTap: () {
+        final uri = isEmail
+            ? Uri(scheme: 'mailto', path: contact)
+            : Uri(scheme: 'tel', path: contact);
+        launchUrl(uri);
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+        decoration: BoxDecoration(
+          color: const Color(0xFFE0F7FA),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              isEmail ? Icons.alternate_email_rounded : Icons.phone_rounded,
+              size: 11,
+              color: const Color(0xFF0891B2),
+            ),
+            const SizedBox(width: 3),
+            Text(
+              displayLabel,
+              style: const TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF0891B2)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 // ── Carousel Shimmer ──────────────────────────────────────────────────────────
 
 class _CarouselShimmer extends StatelessWidget {
@@ -531,7 +563,13 @@ class _CarouselShimmer extends StatelessWidget {
 
 class _ProductCarouselStrip extends StatelessWidget {
   final List<ShopProduct> products;
-  const _ProductCarouselStrip({required this.products});
+  final bool shopActive;
+  final String shopName;
+  const _ProductCarouselStrip({
+    required this.products,
+    required this.shopActive,
+    required this.shopName,
+  });
 
   static const double _itemW = 84.0;
   static const double _gap = 10.0;
@@ -545,7 +583,11 @@ class _ProductCarouselStrip extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
         physics: const BouncingScrollPhysics(),
         itemCount: products.length,
-        itemBuilder: (_, i) => _ProductChip(product: products[i]),
+        itemBuilder: (_, i) => _ProductChip(
+          product: products[i],
+          shopActive: shopActive,
+          shopName: shopName,
+        ),
       ),
     );
   }
@@ -702,61 +744,58 @@ class _ShopShimmerCardState extends State<_ShopShimmerCard>
   Widget build(BuildContext context) {
     return AnimatedBuilder(
       animation: _anim,
-      builder: (_, __) => Container(
-        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Image placeholder
-            Container(
-              height: 180,
-              decoration: BoxDecoration(
-                color: Colors.grey.withValues(alpha: _anim.value),
-                borderRadius:
-                    const BorderRadius.vertical(top: Radius.circular(16)),
+      builder: (_, __) {
+        final c1 = Colors.grey.withValues(alpha: _anim.value);
+        final c2 = Colors.grey.withValues(alpha: _anim.value * 0.7);
+        final c3 = Colors.grey.withValues(alpha: _anim.value * 0.5);
+        return Container(
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Thumb placeholder
+              Container(
+                width: 96,
+                height: 96,
+                decoration: BoxDecoration(
+                  color: c1,
+                  borderRadius: BorderRadius.circular(14),
+                ),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(14),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    height: 16,
-                    width: 160,
-                    decoration: BoxDecoration(
-                      color: Colors.grey.withValues(alpha: _anim.value),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Container(
-                    height: 12,
-                    width: 100,
-                    decoration: BoxDecoration(
-                      color: Colors.grey.withValues(alpha: _anim.value * 0.7),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Container(
-                    height: 12,
-                    width: 200,
-                    decoration: BoxDecoration(
-                      color: Colors.grey.withValues(alpha: _anim.value * 0.5),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                  ),
-                ],
+              const SizedBox(width: 13),
+              // Text lines placeholder
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(height: 14, width: 130,
+                        decoration: BoxDecoration(color: c1, borderRadius: BorderRadius.circular(4))),
+                    const SizedBox(height: 8),
+                    Container(height: 10, width: 90,
+                        decoration: BoxDecoration(color: c2, borderRadius: BorderRadius.circular(4))),
+                    const SizedBox(height: 12),
+                    Container(height: 10, width: 60,
+                        decoration: BoxDecoration(color: c2, borderRadius: BorderRadius.circular(4))),
+                    const SizedBox(height: 12),
+                    Row(children: [
+                      Container(height: 20, width: 52,
+                          decoration: BoxDecoration(color: c3, borderRadius: BorderRadius.circular(20))),
+                      const SizedBox(width: 6),
+                      Container(height: 20, width: 44,
+                          decoration: BoxDecoration(color: c3, borderRadius: BorderRadius.circular(20))),
+                    ]),
+                  ],
+                ),
               ),
-            ),
-          ],
-        ),
-      ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

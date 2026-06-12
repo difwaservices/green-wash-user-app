@@ -74,19 +74,9 @@ class _HomeBannerState extends ConsumerState<HomeBanner> {
   Widget build(BuildContext context) {
     final bannersAsync = ref.watch(bannersProvider);
 
-    // Debug logging
-    bannersAsync.when(
-      data: (list) => debugPrint('HomeBanner: Loaded ${list.length} banners'),
-      loading: () => debugPrint('HomeBanner: Loading banners...'),
-      error: (err, stack) => debugPrint('HomeBanner: Error loading banners: $err'),
-    );
-
     return bannersAsync.when(
       data: (banners) {
-        if (banners.isEmpty) {
-          debugPrint('HomeBanner: Banners list is empty');
-          return const SizedBox.shrink();
-        }
+        if (banners.isEmpty) return const SizedBox.shrink();
 
         return Column(
           children: [
@@ -97,7 +87,7 @@ class _HomeBannerState extends ConsumerState<HomeBanner> {
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.08),
+                    color: Colors.black.withValues(alpha: 0.08),
                     blurRadius: 8,
                     offset: const Offset(0, 4),
                   ),

@@ -147,6 +147,7 @@ class ShopModel {
   final List<DeliverySlotAvailability> deliverySlotsAvailability;
   final double? lat;
   final double? lng;
+  final String contact;
 
   const ShopModel({
     required this.id,
@@ -162,6 +163,7 @@ class ShopModel {
     this.deliverySlotsAvailability = const [],
     this.lat,
     this.lng,
+    this.contact = '',
   });
 
   ShopModel copyWith({
@@ -178,6 +180,7 @@ class ShopModel {
     List<DeliverySlotAvailability>? deliverySlotsAvailability,
     double? lat,
     double? lng,
+    String? contact,
   }) {
     return ShopModel(
       id: id ?? this.id,
@@ -193,6 +196,7 @@ class ShopModel {
       deliverySlotsAvailability: deliverySlotsAvailability ?? this.deliverySlotsAvailability,
       lat: lat ?? this.lat,
       lng: lng ?? this.lng,
+      contact: contact ?? this.contact,
     );
   }
 
@@ -248,6 +252,7 @@ class ShopModel {
           [],
       lat: parsedLat,
       lng: parsedLng,
+      contact: (json['contact'] ?? json['email'] ?? json['phoneNumber'] ?? '').toString(),
     );
   }
 }
