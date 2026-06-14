@@ -10,7 +10,6 @@ import '../view/product_details_page.dart';
 import '../widgets/quantity_selector.dart';
 import '../../../widgets/bounce_widget.dart';
 import '../../../core/constants/app_colors.dart';
-import '../../cart/view/cart_page.dart';
 
 class ProductCard extends ConsumerWidget {
   final Product product;
@@ -26,15 +25,11 @@ class ProductCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final cart = CartProviderScope.of(context);
 
-    // Debug logs to track item match state
-    debugPrint("ProductCard: Current Product ID: ${product.id}, Name: ${product.name}");
-    for (final item in cart.items) {
-      debugPrint("ProductCard: Cart Item => id=${item.id}, qty=${item.quantity}, title=${item.title}");
-    }
-
     final cartItem = cart.items.firstWhere(
       (item) =>
-          (item.id.isNotEmpty && product.id.isNotEmpty && item.id == product.id) ||
+          (item.id.isNotEmpty &&
+              product.id.isNotEmpty &&
+              item.id == product.id) ||
           ((item.id.isEmpty || product.id.isEmpty) &&
               item.title.isNotEmpty &&
               item.title == product.name &&
@@ -52,16 +47,6 @@ class ProductCard extends ConsumerWidget {
       ),
     );
     final isInCart = cartItem.quantity > 0;
-
-    assert(() {
-      debugPrint(
-        '[CartCheck] id=${product.id} name="${product.name}" '
-        'shopId=${product.shopId} isInCart=$isInCart '
-        'cartQty=${cartItem.quantity} '
-        'cartItems=[${cart.items.map((i) => '{id:${i.id},shopId:${i.shopId},qty:${i.quantity}}').join(', ')}]',
-      );
-      return true;
-    }());
 
     final isOutOfStock = product.stockStatus == 'Out of Stock';
     final isLowStock = product.stockStatus == 'Low Stock';
@@ -124,14 +109,18 @@ class ProductCard extends ConsumerWidget {
                     Hero(
                       tag: 'product_${product.id}',
                       child: Padding(
-                        padding: const EdgeInsets.only(top: 8, left: 8, right: 8),
+                        padding:
+                            const EdgeInsets.only(top: 8, left: 8, right: 8),
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(12),
                           child: Container(
-                            height: 120, // Increased height slightly for better visibility
+                            height:
+                                120, // Increased height slightly for better visibility
                             width: double.infinity,
-                            color: const Color(0xFFF1F5F9), // Light grey background
-                            padding: const EdgeInsets.all(8), // Keep image away from the borders
+                            color: const Color(
+                                0xFFF1F5F9), // Light grey background
+                            padding: const EdgeInsets.all(
+                                8), // Keep image away from the borders
                             child: Center(
                               child: Image.network(
                                 product.image,
@@ -354,7 +343,8 @@ class ProductCard extends ConsumerWidget {
       return;
     }
 
-    final isOutOfStock = product.stockStatus == 'Out of Stock' || product.stock <= 0;
+    final isOutOfStock =
+        product.stockStatus == 'Out of Stock' || product.stock <= 0;
     if (isOutOfStock) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -368,26 +358,6 @@ class ProductCard extends ConsumerWidget {
     if (cart.isSameShop(product.shopId)) {
       HapticFeedback.lightImpact();
       cart.addToCart(CartItem.fromProduct(product));
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('${product.name} added to cart!'),
-          duration: const Duration(seconds: 2),
-          backgroundColor: AppColors.primaryDark,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10)),
-          action: SnackBarAction(
-            label: 'View Cart',
-            textColor: Colors.white,
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const CartPage()),
-              );
-            },
-          ),
-        ),
-      );
     } else {
       _showReplaceCartDialog(context, cart);
     }
@@ -395,7 +365,8 @@ class ProductCard extends ConsumerWidget {
 
   void _showReplaceCartDialog(BuildContext context, CartProvider cart) {
     final oldShopName = cart.cartShopName ?? 'another shop';
-    final newShopName = product.shopName.isNotEmpty ? product.shopName : 'this shop';
+    final newShopName =
+        product.shopName.isNotEmpty ? product.shopName : 'this shop';
 
     showDialog(
       context: context,
@@ -407,7 +378,8 @@ class ProductCard extends ConsumerWidget {
         ),
         content: Text(
           'Your cart has items from $oldShopName. Adding items from $newShopName will replace your current selection. Would you like to proceed?',
-          style: const TextStyle(color: Colors.black87, fontSize: 14, height: 1.5),
+          style:
+              const TextStyle(color: Colors.black87, fontSize: 14, height: 1.5),
         ),
         actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
         actions: [
@@ -438,7 +410,8 @@ class ProductCard extends ConsumerWidget {
                     Navigator.pop(ctx);
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text('Cart replaced with items from $newShopName'),
+                        content:
+                            Text('Cart replaced with items from $newShopName'),
                         backgroundColor: AppColors.primaryDark,
                         behavior: SnackBarBehavior.floating,
                       ),

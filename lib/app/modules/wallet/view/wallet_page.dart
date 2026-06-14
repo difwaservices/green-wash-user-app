@@ -251,7 +251,7 @@ class WalletPage extends ConsumerWidget {
   }
 
   Widget _buildTopUpChips(BuildContext context) {
-    const amounts = [50, 100, 200, 500];
+    const amounts = [100, 200, 500, 1000];
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

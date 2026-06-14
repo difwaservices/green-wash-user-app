@@ -78,6 +78,8 @@ class UserOrder {
     this.orderType,
     this.retailer,
     this.isReviewed = false,
+    this.deliveryOtp,
+    this.deliveryOtpExpiresAt,
   });
 
   UserOrder copyWith({
@@ -95,6 +97,8 @@ class UserOrder {
     String? deliverySlot,
     String? orderType,
     Map<String, dynamic>? retailer,
+    String? deliveryOtp,
+    DateTime? deliveryOtpExpiresAt,
   }) {
     return UserOrder(
       id: id ?? this.id,
@@ -111,12 +115,16 @@ class UserOrder {
       deliverySlot: deliverySlot ?? this.deliverySlot,
       orderType: orderType ?? this.orderType,
       retailer: retailer ?? this.retailer,
+      deliveryOtp: deliveryOtp ?? this.deliveryOtp,
+      deliveryOtpExpiresAt: deliveryOtpExpiresAt ?? this.deliveryOtpExpiresAt,
     );
   }
 
   final String? deliverySlot;
   final String? orderType;
   final Map<String, dynamic>? retailer;
+  final String? deliveryOtp;
+  final DateTime? deliveryOtpExpiresAt;
 
   String get riderName => rider?['fullName'] ?? rider?['name'] ?? '';
   String get riderPhone => rider?['phoneNumber'] ?? rider?['phone'] ?? '';
@@ -199,9 +207,13 @@ class UserOrder {
           : (json['address'] is String ? json['address'] as String : null),
       deliverySlot: json['deliverySlot']?.toString(),
       orderType: json['orderType']?.toString() ?? 'One-time',
-      retailer: json['retailer'] is Map 
+      retailer: json['retailer'] is Map
           ? json['retailer'] as Map<String, dynamic>
           : (items.isNotEmpty ? items.first.retailer : null),
+      deliveryOtp: json['deliveryOtp']?.toString(),
+      deliveryOtpExpiresAt: json['deliveryOtpExpiresAt'] != null
+          ? DateTime.tryParse(json['deliveryOtpExpiresAt'].toString())?.toLocal()
+          : null,
       isReviewed: json['isReviewed'] == true ||
           json['reviewed'] == true ||
           json['isReviewed'] == 1 ||

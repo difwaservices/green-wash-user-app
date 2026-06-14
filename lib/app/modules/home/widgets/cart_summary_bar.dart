@@ -28,11 +28,11 @@ class CartSummaryBar extends StatelessWidget {
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
-          color: const Color(0xFF1A1A1A), // Dark premium bar
+          color: AppColors.primary, // Using primary blue
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: AppColors.primary.withOpacity(0.3),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -43,12 +43,12 @@ class CartSummaryBar extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.1),
+                color: Colors.white.withOpacity(0.2),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
                 Icons.shopping_basket_rounded,
-                color: AppColors.primary,
+                color: Colors.white,
                 size: 20,
               ),
             ),
@@ -80,7 +80,7 @@ class CartSummaryBar extends StatelessWidget {
             const Text(
               'VIEW CART',
               style: TextStyle(
-                color: AppColors.primary,
+                color: Colors.white,
                 fontSize: 13,
                 fontWeight: FontWeight.w900,
                 letterSpacing: 1,
@@ -89,7 +89,7 @@ class CartSummaryBar extends StatelessWidget {
             const SizedBox(width: 6),
             const Icon(
               Icons.arrow_forward_ios_rounded,
-              color: AppColors.primary,
+              color: Colors.white,
               size: 14,
             ),
           ],

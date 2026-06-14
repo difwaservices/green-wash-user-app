@@ -22,6 +22,7 @@ class PaymentMethodPage extends ConsumerStatefulWidget {
 class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
   bool _isLoading = false;
   int _orderType = 0; // 0: One-time, 1: Scheduled
+  String _paymentMethod = 'Wallet'; // 'Wallet' or 'Cash'
   String _frequency = 'Daily';
   List<String> _selectedDays = [];
   String? _selectedSlot;
@@ -424,6 +425,124 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                     ),
                   ),
                   const SizedBox(height: 24),
+                  const Text('Payment Method',
+                      style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF1F2937))),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () => setState(() => _paymentMethod = 'Wallet'),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 16, horizontal: 12),
+                            decoration: BoxDecoration(
+                              color: _paymentMethod == 'Wallet'
+                                  ? AppColors.primary
+                                  : Colors.white,
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: _paymentMethod == 'Wallet'
+                                    ? AppColors.primary
+                                    : const Color(0xFF00ACC1).withOpacity(0.2),
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.05),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: Column(
+                              children: [
+                                Icon(
+                                  Icons.account_balance_wallet_rounded,
+                                  color: _paymentMethod == 'Wallet'
+                                      ? Colors.white
+                                      : AppColors.primary,
+                                  size: 26,
+                                ),
+                                const SizedBox(height: 8),
+                                Text('Wallet',
+                                    style: TextStyle(
+                                        color: _paymentMethod == 'Wallet'
+                                            ? Colors.white
+                                            : Colors.black87,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 13)),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: _orderType == 1
+                              ? null
+                              : () => setState(() => _paymentMethod = 'Cash'),
+                          child: Opacity(
+                            opacity: _orderType == 1 ? 0.45 : 1.0,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: 16, horizontal: 12),
+                              decoration: BoxDecoration(
+                                color: _paymentMethod == 'Cash'
+                                    ? AppColors.primary
+                                    : Colors.white,
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(
+                                  color: _paymentMethod == 'Cash'
+                                      ? AppColors.primary
+                                      : const Color(0xFF00ACC1).withOpacity(0.2),
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.05),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: Column(
+                                children: [
+                                  Icon(
+                                    Icons.payments_rounded,
+                                    color: _paymentMethod == 'Cash'
+                                        ? Colors.white
+                                        : Colors.green.shade700,
+                                    size: 26,
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text('Cash on Delivery',
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                          color: _paymentMethod == 'Cash'
+                                              ? Colors.white
+                                              : Colors.black87,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 13)),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (_orderType == 1 && _paymentMethod == 'Cash')
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: Text(
+                        'Cash on Delivery is not available for scheduled orders.',
+                        style: TextStyle(color: Colors.orange.shade700, fontSize: 12),
+                      ),
+                    ),
+                  const SizedBox(height: 24),
                   const Text('Order Type',
                       style: TextStyle(
                           fontSize: 16,
@@ -451,6 +570,8 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                         onTap: () {
                           setState(() {
                             _orderType = 1;
+                            // COD not supported for scheduled orders
+                            if (_paymentMethod == 'Cash') _paymentMethod = 'Wallet';
                             _saveCheckoutDraft();
                           });
                           _fetchSlotsAvailability();
@@ -686,7 +807,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                                     padding: const EdgeInsets.only(right: 8, bottom: 8),
                                     child: GestureDetector(
                                       onTap: !isAvailable
-                                          ? null
+                                          ? () => _showError('This slot is currently full/unavailable.')
                                           : () => setState(() {
                                                 _selectedSlot = slot;
                                                 _saveCheckoutDraft();
@@ -773,7 +894,8 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                           _showError('Please select a delivery address to continue.');
                           return;
                         }
-                        if (cartProvider.walletBalance < cartProvider.total) {
+                        if (_paymentMethod == 'Wallet' &&
+                            cartProvider.walletBalance < cartProvider.total) {
                           _showError('Your wallet balance is low. Please top up to proceed.');
                           return;
                         }
@@ -888,7 +1010,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                                 items: itemsMap,
                                 totalAmount: cartProvider.total,
                                 deliveryAddress: deliveryAddressMap,
-                                paymentMethod: 'Wallet',
+                                paymentMethod: _paymentMethod,
                                 deliverySlot: _selectedSlot,
                                 coordinates: (selectedAddr.latitude != null &&
                                         selectedAddr.longitude != null)
@@ -937,8 +1059,11 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                         width: 20,
                         child: CircularProgressIndicator(
                             color: Colors.white, strokeWidth: 2))
-                    : const Text('Make a payment',
-                        style: TextStyle(
+                    : Text(
+                        _paymentMethod == 'Cash'
+                            ? 'Place Order (Pay on Delivery)'
+                            : 'Make a payment',
+                        style: const TextStyle(
                             fontSize: 17, fontWeight: FontWeight.bold)),
               ),
             ),

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/state/auth_store.dart';
 import '../../routes/app_routes.dart';
-import '../../core/constants/app_images.dart';
 import '../../core/localization/language_provider.dart';
 
 class SplashPage extends ConsumerStatefulWidget {
@@ -21,12 +20,13 @@ class _SplashPageState extends ConsumerState<SplashPage> {
 
   Future<void> _initializeApp() async {
     // 1. First-time launch → show language picker before anything else
-    final isFirst = await LocaleNotifier.isFirstLaunch();
-    if (!mounted) return;
-    if (isFirst) {
-      Navigator.pushReplacementNamed(context, AppRoutes.firstTimeLanguage);
-      return;
-    }
+    // Disabled for now: 
+    // final isFirst = await LocaleNotifier.isFirstLaunch();
+    // if (!mounted) return;
+    // if (isFirst) {
+    //   Navigator.pushReplacementNamed(context, AppRoutes.firstTimeLanguage);
+    //   return;
+    // }
 
     // 2. Perform initialization check via AuthStore
     await ref.read(authStoreProvider.notifier).init();

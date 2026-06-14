@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../core/constants/app_colors.dart';
 import '../../../core/design_system/design_system.dart';
 import '../../../data/services/shop_service.dart';
 import '../../../data/models/banner_model.dart';
-import '../../../widgets/bounce_widget.dart';
 
 class AdminBannersPage extends ConsumerStatefulWidget {
   const AdminBannersPage({super.key});

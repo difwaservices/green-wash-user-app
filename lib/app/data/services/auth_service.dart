@@ -3,12 +3,14 @@ import '../models/auth_models.dart';
 import '../network/api_client.dart';
 import 'package:logger/logger.dart';
 import 'fcm_service.dart';
+import '../../../core/state/auth_store.dart';
 
 final authServiceProvider = Provider<AuthService>((ref) {
   return AuthService(client: ref.watch(apiClientProvider));
 });
 
 final userProfileProvider = FutureProvider.autoDispose<UserModel>((ref) async {
+  ref.watch(authStoreProvider); // Invalidate on auth changes
   // keepAlive: Profile page prefers authStoreProvider (no network call).
   // This provider is only a fallback — cache it for the session to avoid
   // re-fetching every time the user navigates away from Profile and returns.

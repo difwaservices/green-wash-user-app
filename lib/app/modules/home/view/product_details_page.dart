@@ -19,7 +19,6 @@ class ProductDetailsPage extends ConsumerStatefulWidget {
 }
 
 class _ProductDetailsPageState extends ConsumerState<ProductDetailsPage> {
-  int _localQuantity = 1;
 
   void _addToCart(BuildContext context, CartProvider cart, CartItem newItem) {
     if (!cart.isSameShop(newItem.shopId)) {
@@ -63,11 +62,6 @@ class _ProductDetailsPageState extends ConsumerState<ProductDetailsPage> {
   Widget build(BuildContext context) {
     final product = widget.product;
     final cart = CartProviderScope.of(context);
-    // Debug logs to identify wrong cart state
-    debugPrint("ProductDetailsPage: Current Product ID: ${product.id}, Name: ${product.name}");
-    for (final item in cart.items) {
-      debugPrint("ProductDetailsPage: Cart Item => id=${item.id}, qty=${item.quantity}, title=${item.title}");
-    }
 
     final cartItem = cart.items.firstWhere(
       (item) =>
@@ -440,39 +434,14 @@ class _ProductDetailsPageState extends ConsumerState<ProductDetailsPage> {
                           ),
                         ),
                       ] else ...[
-                        // Item is NOT in cart — quantity row + Add to Cart
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text(
-                              'Select Quantity',
-                              style: TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF1E293B),
-                              ),
-                            ),
-                            QuantitySelector(
-                              quantity: _localQuantity,
-                              onIncrement: () => setState(() => _localQuantity++),
-                              onDecrement: () {
-                                if (_localQuantity > 1) {
-                                  setState(() => _localQuantity--);
-                                }
-                              },
-                              size: 36,
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
+                        // Item is NOT in cart — show simple Add to Cart button
                         ElevatedButton(
                           onPressed: isAvailable
                               ? () {
                                   _addToCart(
                                     context,
                                     cart,
-                                    CartItem.fromProduct(product,
-                                        quantity: _localQuantity),
+                                    CartItem.fromProduct(product, quantity: 1),
                                   );
                                 }
                               : null,

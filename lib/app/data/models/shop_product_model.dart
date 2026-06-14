@@ -264,9 +264,14 @@ class DeliverySlotAvailability {
   const DeliverySlotAvailability({required this.slot, required this.available});
 
   factory DeliverySlotAvailability.fromJson(Map<String, dynamic> json) {
+    bool isAvail = false;
+    final val = json['available'] ?? json['isAvailable'];
+    if (val == true || val == 'true') {
+      isAvail = true;
+    }
     return DeliverySlotAvailability(
       slot: (json['slot'] ?? '').toString(),
-      available: json['available'] ?? false,
+      available: isAvail,
     );
   }
 }

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/food_models.dart';
 import '../network/api_client.dart';
 import 'socket_service.dart';
+import '../../../core/state/auth_store.dart';
 
 class OrderService {
   final ApiClient _apiClient;
@@ -257,6 +258,7 @@ final orderServiceProvider = Provider<OrderService>((ref) {
 });
 
 final myOrdersProvider = FutureProvider.autoDispose<List<UserOrder>>((ref) async {
+  ref.watch(authStoreProvider); // Invalidate when auth changes
   // keepAlive: order history can be large; cache it for the session so
   // navigating to/from My Orders page doesn't trigger a full re-fetch.
   ref.keepAlive();
@@ -270,6 +272,8 @@ final activeOrdersProvider =
 class ActiveOrdersNotifier extends AsyncNotifier<List<UserOrder>> {
   @override
   Future<List<UserOrder>> build() async {
+    ref.watch(authStoreProvider); // Invalidate when auth changes
+
     // Listen for real-time order status updates from socket
     final socket = ref.watch(socketServiceProvider);
     socket.onOrderUpdate((data) {

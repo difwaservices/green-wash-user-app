@@ -17,6 +17,7 @@ class SocketService {
   static const String _orderDeliveredEvent = 'orderDelivered';
   static const String _newOrderEvent =
       'newOrderAssigned'; // rider receives new order
+  static const String _deliveryOtpEvent = 'DELIVERY_OTP';
 
   io.Socket? _socket;
   bool _initialized = false;
@@ -324,6 +325,20 @@ class SocketService {
       _socket?.off('notification', callback);
     } else {
       _socket?.off('notification');
+    }
+  }
+
+  /// `DELIVERY_OTP` — fires on the customer side when a rider requests OTP.
+  /// Payload: `{ orderId: "#ABC12345", otp: "4821", expiresAt: "ISO-string" }`
+  void onDeliveryOtp(void Function(dynamic) callback) {
+    _socket?.on(_deliveryOtpEvent, callback);
+  }
+
+  void offDeliveryOtp([void Function(dynamic)? callback]) {
+    if (callback != null) {
+      _socket?.off(_deliveryOtpEvent, callback);
+    } else {
+      _socket?.off(_deliveryOtpEvent);
     }
   }
 

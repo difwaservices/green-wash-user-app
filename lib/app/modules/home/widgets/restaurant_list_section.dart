@@ -4,13 +4,11 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../data/models/shop_product_model.dart';
 import '../provider/shop_provider.dart';
 import '../view/restaurant_menu_page.dart';
-import '../view/product_details_page.dart';
 import 'filter_bottom_sheet.dart';
 import '../../../core/constants/app_images.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../provider/search_provider.dart';
 import '../../../routes/app_routes.dart';
-
 
 class RestaurantListSection extends ConsumerWidget {
   const RestaurantListSection({super.key});
@@ -309,8 +307,8 @@ class _ShopCard extends ConsumerWidget {
                             Container(
                               height: 1,
                               margin: const EdgeInsets.only(bottom: 7),
-                              color:
-                                  const Color(0xFF00ACC1).withValues(alpha: 0.1),
+                              color: const Color(0xFF00ACC1)
+                                  .withValues(alpha: 0.1),
                             ),
                             // Info chips: distance · open/closed · contact
                             Wrap(
@@ -361,12 +359,10 @@ class _ShopCard extends ConsumerWidget {
                     children: [
                       Container(
                         height: 1,
-                        color:
-                            const Color(0xFF00ACC1).withValues(alpha: 0.1),
+                        color: const Color(0xFF00ACC1).withValues(alpha: 0.1),
                       ),
                       Padding(
-                        padding:
-                            const EdgeInsets.fromLTRB(12, 7, 12, 4),
+                        padding: const EdgeInsets.fromLTRB(12, 7, 12, 4),
                         child: Row(
                           children: [
                             const Text(
@@ -585,8 +581,6 @@ class _ProductCarouselStrip extends StatelessWidget {
         itemCount: products.length,
         itemBuilder: (_, i) => _ProductChip(
           product: products[i],
-          shopActive: shopActive,
-          shopName: shopName,
         ),
       ),
     );
@@ -617,8 +611,7 @@ class _ProductChip extends StatelessWidget {
         children: [
           // Product image
           ClipRRect(
-            borderRadius:
-                const BorderRadius.vertical(top: Radius.circular(11)),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(11)),
             child: SizedBox(
               height: 56,
               width: double.infinity,
@@ -672,8 +665,8 @@ class _ProductChip extends StatelessWidget {
     return Container(
       color: const Color(0xFFE0F7FA),
       child: const Center(
-        child: Icon(Icons.water_drop_outlined,
-            color: Color(0xFF06B6D4), size: 22),
+        child:
+            Icon(Icons.water_drop_outlined, color: Color(0xFF06B6D4), size: 22),
       ),
     );
   }
@@ -773,21 +766,38 @@ class _ShopShimmerCardState extends State<_ShopShimmerCard>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(height: 14, width: 130,
-                        decoration: BoxDecoration(color: c1, borderRadius: BorderRadius.circular(4))),
+                    Container(
+                        height: 14,
+                        width: 130,
+                        decoration: BoxDecoration(
+                            color: c1, borderRadius: BorderRadius.circular(4))),
                     const SizedBox(height: 8),
-                    Container(height: 10, width: 90,
-                        decoration: BoxDecoration(color: c2, borderRadius: BorderRadius.circular(4))),
+                    Container(
+                        height: 10,
+                        width: 90,
+                        decoration: BoxDecoration(
+                            color: c2, borderRadius: BorderRadius.circular(4))),
                     const SizedBox(height: 12),
-                    Container(height: 10, width: 60,
-                        decoration: BoxDecoration(color: c2, borderRadius: BorderRadius.circular(4))),
+                    Container(
+                        height: 10,
+                        width: 60,
+                        decoration: BoxDecoration(
+                            color: c2, borderRadius: BorderRadius.circular(4))),
                     const SizedBox(height: 12),
                     Row(children: [
-                      Container(height: 20, width: 52,
-                          decoration: BoxDecoration(color: c3, borderRadius: BorderRadius.circular(20))),
+                      Container(
+                          height: 20,
+                          width: 52,
+                          decoration: BoxDecoration(
+                              color: c3,
+                              borderRadius: BorderRadius.circular(20))),
                       const SizedBox(width: 6),
-                      Container(height: 20, width: 44,
-                          decoration: BoxDecoration(color: c3, borderRadius: BorderRadius.circular(20))),
+                      Container(
+                          height: 20,
+                          width: 44,
+                          decoration: BoxDecoration(
+                              color: c3,
+                              borderRadius: BorderRadius.circular(20))),
                     ]),
                   ],
                 ),

@@ -661,11 +661,11 @@ class _ListTilesSection extends ConsumerWidget {
     final user = coreState is AuthAuthenticated ? coreState.user : null;
     final isAdmin = user?.role == 'admin';
 
-    final currentLocale = ref.watch(localeProvider);
-    final currentLang = languageByCode(currentLocale.languageCode);
-    final langSubtitle = currentLang != null
-        ? '${currentLang.nativeName} (${currentLang.name})'
-        : 'English';
+    // final currentLocale = ref.watch(localeProvider);
+    // final currentLang = languageByCode(currentLocale.languageCode);
+    // final langSubtitle = currentLang != null
+    //     ? '${currentLang.nativeName} (${currentLang.name})'
+    //     : 'English';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -687,13 +687,13 @@ class _ListTilesSection extends ConsumerWidget {
           color: const Color(0xFF0EA5E9),
           badgeCount: unreadCount,
         ),
-        const SizedBox(height: 12),
-        _ListTileItem(
-          icon: Icons.language_rounded,
-          title: 'Language',
-          subtitle: langSubtitle,
-          color: const Color(0xFF6366F1),
-        ),
+        // const SizedBox(height: 12),
+        // _ListTileItem(
+        //   icon: Icons.language_rounded,
+        //   title: 'Language',
+        //   subtitle: langSubtitle,
+        //   color: const Color(0xFF6366F1),
+        // ),
 
         // ── Support section ──────────────────────────────────────────────
         const SizedBox(height: 24),

@@ -93,7 +93,7 @@ class _AnimatedFooterTextState extends State<AnimatedFooterText>
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 4),
-    )..repeat();
+    )..forward();
 
     _characterCount = IntTween(begin: 0, end: _text.length).animate(
       CurvedAnimation(
