@@ -13,7 +13,7 @@ class ApiConfig {
           : 'http://127.0.0.1:5001/api';
     }
     return dotenv.env['API_BASE_URL'] ??
-        'https://difwa-backend.up.railway.app/api';
+        'https://difwa-backend.up.railway.app/api'; // Do not change this
   }
 
   static String get socketUrl {
@@ -23,6 +23,7 @@ class ApiConfig {
           ? 'http://192.168.1.10:5001'
           : 'http://127.0.0.1:5001';
     }
-    return dotenv.env['SOCKET_URL'] ?? 'https://difwa-backend.up.railway.app';
+    return dotenv.env['SOCKET_URL'] ??
+        'https://difwa-backend.up.railway.app'; // Do not change this
   }
 }
