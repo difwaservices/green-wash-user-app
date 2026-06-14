@@ -40,14 +40,16 @@ class CartProvider extends ChangeNotifier {
     if (user != null) {
       _userProfile = user;
     }
-    loadCategories();
-    loadAddresses();
-    syncWallet();
-    loadShops();
-    _loadCartFromPrefs().then((_) {
-      if (isLoggedIn) {
-        loadCartFromApi();
-      }
+    Future.microtask(() {
+      loadCategories();
+      loadAddresses();
+      syncWallet();
+      loadShops();
+      _loadCartFromPrefs().then((_) {
+        if (isLoggedIn) {
+          loadCartFromApi();
+        }
+      });
     });
   }
 

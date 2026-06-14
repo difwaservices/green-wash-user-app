@@ -15,7 +15,11 @@ class _SplashPageState extends ConsumerState<SplashPage> {
   @override
   void initState() {
     super.initState();
-    _initializeApp();
+    Future.microtask(() {
+      if (mounted) {
+        _initializeApp();
+      }
+    });
   }
 
   Future<void> _initializeApp() async {
@@ -29,7 +33,16 @@ class _SplashPageState extends ConsumerState<SplashPage> {
     // }
 
     // 2. Perform initialization check via AuthStore
-    await ref.read(authStoreProvider.notifier).init();
+    try {
+      await ref.read(authStoreProvider.notifier).init().timeout(
+        const Duration(seconds: 2),
+        onTimeout: () {
+          debugPrint("⏳ SplashPage: init timed out! Navigating to fallback.");
+        },
+      );
+    } catch (e) {
+      debugPrint("❌ SplashPage: init error: $e");
+    }
 
     if (!mounted) return;
 

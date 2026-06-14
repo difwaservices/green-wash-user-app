@@ -64,9 +64,17 @@ void main() async {
   final container = ProviderContainer();
 
   // Restore saved language before first frame
-  await container.read(localeProvider.notifier).loadSavedLocale();
+  try {
+    await container.read(localeProvider.notifier).loadSavedLocale();
+  } catch (e) {
+    debugPrint("Warning: Could not load saved locale: $e");
+  }
 
-  await FCMService.init(container);
+  try {
+    await FCMService.init(container);
+  } catch (e) {
+    debugPrint("Warning: Could not initialize FCMService: $e");
+  }
 
   runApp(
     UncontrolledProviderScope(
