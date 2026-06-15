@@ -1,5 +1,8 @@
 import 'dart:async';
+import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../app/data/models/auth_models.dart';
 import '../../app/data/services/auth_service.dart';
@@ -91,23 +94,56 @@ class AuthStore extends Notifier<AuthState> {
     state = const AuthLoading();
     try {
       final String? token = await _storage.getAccessToken();
-      if (token != null && token.isNotEmpty) {
-        final response = await ref.read(authServiceProvider).getProfile();
-        if (response.success && response.data != null) {
-          state = AuthAuthenticated(response.data!);
-          unawaited(syncFcmToken());
-        } else {
-          if (response.message.contains('401') || response.message.contains('Unauthorized')) {
-            await logout();
-          } else {
-            state = AuthUnauthenticated(error: response.message);
-          }
-        }
-      } else {
+      if (token == null || token.isEmpty) {
         state = const AuthUnauthenticated();
+        return;
+      }
+
+      // Use cached profile immediately so navigation doesn't wait for network.
+      final cached = await _getCachedUserProfile();
+      if (cached != null) {
+        state = AuthAuthenticated(cached);
+        // Silently verify + refresh in background — won't block splash navigation.
+        unawaited(_refreshProfileInBackground());
+        return;
+      }
+
+      // No cache (first launch after login) — must wait for network once.
+      final response = await ref.read(authServiceProvider).getProfile();
+      if (response.success && response.data != null) {
+        state = AuthAuthenticated(response.data!);
+        _cacheUserProfile(response.data!);
+        unawaited(syncFcmToken());
+      } else if (response.message.contains('401') ||
+          response.message.contains('Unauthorized')) {
+        await logout();
+      } else {
+        state = AuthUnauthenticated(error: response.message);
       }
     } catch (e) {
-      state = AuthUnauthenticated(error: e.toString());
+      final cached = await _getCachedUserProfile();
+      if (cached != null) {
+        state = AuthAuthenticated(cached);
+      } else {
+        state = AuthUnauthenticated(error: e.toString());
+      }
+    }
+  }
+
+  Future<void> _refreshProfileInBackground() async {
+    try {
+      final response = await ref.read(authServiceProvider).getProfile();
+      if (response.success && response.data != null) {
+        state = AuthAuthenticated(response.data!);
+        _cacheUserProfile(response.data!);
+        unawaited(syncFcmToken());
+      } else if (response.message.contains('401') ||
+          response.message.contains('Unauthorized')) {
+        await logout();
+      }
+      // Any other error: keep cached state, don't disrupt the user.
+    } catch (_) {
+      // Network unavailable — user stays on cached profile, no disruption.
     }
   }
 
@@ -147,6 +183,7 @@ class AuthStore extends Notifier<AuthState> {
           refresh: response.refreshToken ?? '',
         );
         state = AuthAuthenticated(response.data!);
+        _cacheUserProfile(response.data!);
         unawaited(syncFcmToken());
       } else {
         state = AuthError(response.message);
@@ -166,11 +203,13 @@ class AuthStore extends Notifier<AuthState> {
       }
     } catch (_) {}
     await _storage.clearAll();
+    await _clearSessionCache();
     state = const AuthUnauthenticated();
   }
 
   void setUnauthenticated({String? error}) {
     _storage.clearAll();
+    _clearSessionCache();
     state = AuthUnauthenticated(error: error);
   }
 
@@ -178,7 +217,40 @@ class AuthStore extends Notifier<AuthState> {
     state = const AuthInitial();
   }
 
+  Future<void> _cacheUserProfile(UserModel user) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('cached_user_profile', jsonEncode(user.toJson()));
+    } catch (e) {
+      debugPrint('AuthStore: Error caching user profile: $e');
+    }
+  }
 
+  Future<UserModel?> _getCachedUserProfile() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final cachedJson = prefs.getString('cached_user_profile');
+      if (cachedJson != null && cachedJson.isNotEmpty) {
+        return UserModel.fromJson(jsonDecode(cachedJson));
+      }
+    } catch (e) {
+      debugPrint('AuthStore: Error getting cached user profile: $e');
+    }
+    return null;
+  }
+
+  Future<void> _clearSessionCache() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final lang = prefs.getString('selected_language_code');
+      await prefs.clear();
+      if (lang != null) {
+        await prefs.setString('selected_language_code', lang);
+      }
+    } catch (e) {
+      debugPrint('AuthStore: Error clearing session cache: $e');
+    }
+  }
 
   Future<void> syncFcmToken() async {
     final fcmToken = await FCMService().getToken();
@@ -197,6 +269,7 @@ class AuthStore extends Notifier<AuthState> {
           );
       if (response.success && response.data != null) {
         state = AuthAuthenticated(response.data!, isMock: current.isMock);
+        _cacheUserProfile(response.data!);
       }
     } catch (_) {}
   }
@@ -210,6 +283,7 @@ class AuthStore extends Notifier<AuthState> {
           );
       if (response.success && response.data != null) {
         state = AuthAuthenticated(response.data!, isMock: current.isMock);
+        _cacheUserProfile(response.data!);
       }
     } catch (_) {}
   }
@@ -218,6 +292,7 @@ class AuthStore extends Notifier<AuthState> {
     if (state is AuthAuthenticated) {
       final current = state as AuthAuthenticated;
       state = AuthAuthenticated(user, isMock: current.isMock);
+      _cacheUserProfile(user);
     }
   }
 }

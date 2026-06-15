@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../../core/localization/language_provider.dart';
+import '../../../core/localization/supported_languages.dart';
 import './profile_detail_page.dart';
 import './edit_profile_page.dart';
 import 'package:difwawaterapp/app/core/utils/auth_helper.dart';
@@ -19,6 +21,7 @@ import '../../home/view/favorites_page.dart';
 import '../../../routes/app_routes.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../data/providers/notification_provider.dart';
+import './admin_banners_page.dart';
 
 class ProfilePage extends ConsumerStatefulWidget {
   const ProfilePage({super.key});
@@ -100,6 +103,8 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                   const _ListTilesSection(),
                   const SizedBox(height: 32),
                   const _SignOutButton(),
+                  const SizedBox(height: 24),
+                  const _AppVersionFooter(),
                   const SizedBox(height: 140),
                 ],
               ),
@@ -424,7 +429,9 @@ class _ActiveOrdersAndSubscriptions extends ConsumerWidget {
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
-                        activeOrdersCount > 0 ? '$activeOrdersCount Live' : 'Track',
+                        activeOrdersCount > 0
+                            ? '$activeOrdersCount Live'
+                            : 'Track',
                         style: const TextStyle(
                             color: Color(0xFF06B6D4),
                             fontSize: 10,
@@ -494,9 +501,13 @@ class _ActiveOrdersAndSubscriptions extends ConsumerWidget {
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
-                        activeSubsCount > 0 ? '$activeSubsCount Managed' : 'View Plans',
-                        style:
-                            const TextStyle(color: Color(0xFF06B6D4), fontSize: 10, fontWeight: FontWeight.w600)),
+                        activeSubsCount > 0
+                            ? '$activeSubsCount Managed'
+                            : 'View Plans',
+                        style: const TextStyle(
+                            color: Color(0xFF06B6D4),
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600)),
                   ),
                 ],
               ),
@@ -652,15 +663,48 @@ class _ListTilesSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final unreadCount = ref.watch(unreadNotificationsCountProvider);
+    final coreState = ref.watch(authStoreProvider);
+    final user = coreState is AuthAuthenticated ? coreState.user : null;
+    final isAdmin = user?.role == 'admin';
+
+    // final currentLocale = ref.watch(localeProvider);
+    // final currentLang = languageByCode(currentLocale.languageCode);
+    // final langSubtitle = currentLang != null
+    //     ? '${currentLang.nativeName} (${currentLang.name})'
+    //     : 'English';
+
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // ── Account section ──────────────────────────────────────────────
+        const _SectionHeader(title: 'Account'),
+        const SizedBox(height: 10),
+        if (isAdmin) ...[
+          const _ListTileItem(
+            icon: Icons.campaign_rounded,
+            title: 'Manage Banners',
+            color: Color(0xFF0EA5E9),
+          ),
+          const SizedBox(height: 12),
+        ],
         _ListTileItem(
           icon: Icons.notifications_none_rounded,
           title: 'Notifications',
           color: const Color(0xFF0EA5E9),
           badgeCount: unreadCount,
         ),
-        const SizedBox(height: 12),
+        // const SizedBox(height: 12),
+        // _ListTileItem(
+        //   icon: Icons.language_rounded,
+        //   title: 'Language',
+        //   subtitle: langSubtitle,
+        //   color: const Color(0xFF6366F1),
+        // ),
+
+        // ── Support section ──────────────────────────────────────────────
+        const SizedBox(height: 24),
+        const _SectionHeader(title: 'Support'),
+        const SizedBox(height: 10),
         const _ListTileItem(
           icon: Icons.help_outline_rounded,
           title: 'Help & Support',
@@ -689,9 +733,28 @@ class _ListTilesSection extends ConsumerWidget {
   }
 }
 
+class _SectionHeader extends StatelessWidget {
+  final String title;
+  const _SectionHeader({required this.title});
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      title,
+      style: const TextStyle(
+        fontSize: 13,
+        fontWeight: FontWeight.w700,
+        color: Color(0xFF94A3B8),
+        letterSpacing: 0.8,
+      ),
+    );
+  }
+}
+
 class _ListTileItem extends StatelessWidget {
   final IconData icon;
   final String title;
+  final String? subtitle;
   final Color color;
   final int badgeCount;
 
@@ -699,12 +762,20 @@ class _ListTileItem extends StatelessWidget {
     required this.icon,
     required this.title,
     required this.color,
+    this.subtitle,
     this.badgeCount = 0,
   });
 
   void _handleTap(BuildContext context) async {
     if (title == 'Notifications') {
       Navigator.pushNamed(context, AppRoutes.notifications);
+    } else if (title == 'Manage Banners') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const AdminBannersPage()),
+      );
+    } else if (title == 'Language') {
+      Navigator.pushNamed(context, AppRoutes.languageSelection);
     } else if (title == 'About Difwa') {
       Navigator.pushNamed(context, AppRoutes.about);
     } else if (title == 'Contact Us') {
@@ -759,32 +830,48 @@ class _ListTileItem extends StatelessWidget {
             ),
             const SizedBox(width: 16),
             Expanded(
-              child: Row(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      color: Color(0xFF1E293B),
-                      fontSize: 15,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  if (badgeCount > 0) ...[
-                    const SizedBox(width: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: Colors.red,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Text(
-                        '$badgeCount',
+                  Row(
+                    children: [
+                      Text(
+                        title,
                         style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF1E293B),
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
                         ),
+                      ),
+                      if (badgeCount > 0) ...[
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: Colors.red,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Text(
+                            '$badgeCount',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                  if (subtitle != null) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle!,
+                      style: const TextStyle(
+                        color: Colors.grey,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w400,
                       ),
                     ),
                   ],
@@ -797,6 +884,24 @@ class _ListTileItem extends StatelessWidget {
               size: 14,
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _AppVersionFooter extends StatelessWidget {
+  const _AppVersionFooter();
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Text(
+        'Difwa v1.0.53',
+        style: TextStyle(
+          fontSize: 12,
+          color: Colors.grey.shade400,
+          fontWeight: FontWeight.w500,
         ),
       ),
     );

@@ -6,6 +6,7 @@ import 'widgets/input_field.dart';
 import '../../routes/app_routes.dart';
 import '../../../../core/state/auth_store.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import '../../../../l10n/generated/app_localizations.dart';
 
 class MobileLoginPage extends ConsumerStatefulWidget {
   const MobileLoginPage({super.key});
@@ -37,18 +38,18 @@ class _MobileLoginPageState extends ConsumerState<MobileLoginPage> {
     );
   }
 
-  Future<void> _handleContinue() async {
+  Future<void> _handleContinue(AppLocalizations l10n) async {
     final phone = _phoneController.text.trim();
 
     if (phone.isEmpty) {
-      _showSnackBar('Please enter your mobile number.', backgroundColor: Colors.red);
+      _showSnackBar(l10n.pleaseEnterMobileNumber, backgroundColor: Colors.red);
       return;
     }
     
     // 10-digit mobile number validation (Starts with 6-9)
     final phoneRegex = RegExp(r'^[6-9]\d{9}$');
     if (!phoneRegex.hasMatch(phone)) {
-      _showSnackBar('Please enter a valid 10-digit mobile number.', backgroundColor: Colors.red);
+      _showSnackBar(l10n.enterValidMobileNumber, backgroundColor: Colors.red);
       return;
     }
 
@@ -73,10 +74,10 @@ class _MobileLoginPageState extends ConsumerState<MobileLoginPage> {
       } else if (state is AuthError) {
         _showSnackBar(state.message, backgroundColor: Colors.red);
       } else {
-        _showSnackBar('Failed to send OTP. Please try again.', backgroundColor: Colors.red);
+        _showSnackBar(l10n.failedToSendOtp, backgroundColor: Colors.red);
       }
     } catch (e) {
-      _showSnackBar('An error occurred. Please try again.', backgroundColor: Colors.red);
+      _showSnackBar(l10n.anErrorOccurred, backgroundColor: Colors.red);
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }
@@ -84,6 +85,7 @@ class _MobileLoginPageState extends ConsumerState<MobileLoginPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final screenSize = MediaQuery.of(context).size;
     final bool isSmallScreen = screenSize.height < 600;
 
@@ -121,7 +123,7 @@ class _MobileLoginPageState extends ConsumerState<MobileLoginPage> {
                     ).animate().fadeIn(duration: 600.ms).scale(delay: 200.ms),
                     SizedBox(height: isSmallScreen ? 20 : 32),
                     Text(
-                      'Login with Mobile Number',
+                      l10n.loginWithMobileNumber,
                       style: TextStyle(
                           fontSize: isSmallScreen ? 20 : 24,
                           fontWeight: FontWeight.w900,
@@ -129,7 +131,7 @@ class _MobileLoginPageState extends ConsumerState<MobileLoginPage> {
                     ).animate().fadeIn(delay: 300.ms).slideX(begin: -0.1),
                     const SizedBox(height: 10),
                     Text(
-                      'Enter your 10-digit mobile number to receive an OTP.',
+                      l10n.enterMobileDescription,
                       style: TextStyle(
                           fontSize: isSmallScreen ? 13 : 14, 
                           color: const Color(0xFF64748B), 
@@ -138,8 +140,8 @@ class _MobileLoginPageState extends ConsumerState<MobileLoginPage> {
                     SizedBox(height: isSmallScreen ? 25 : 38),
                     InputField(
                       controller: _phoneController,
-                      label: 'Mobile Number',
-                      hintText: 'e.g. 9876543210',
+                      label: l10n.mobileNumber,
+                      hintText: l10n.mobileHint,
                       prefixIcon: Icons.phone_android,
                       keyboardType: TextInputType.phone,
                       maxLength: 10,
@@ -147,7 +149,7 @@ class _MobileLoginPageState extends ConsumerState<MobileLoginPage> {
                     ).animate().fadeIn(delay: 500.ms).slideY(begin: 0.1),
                     SizedBox(height: isSmallScreen ? 24 : 32),
                     GestureDetector(
-                      onTap: _isSubmitting ? null : _handleContinue,
+                      onTap: _isSubmitting ? null : () => _handleContinue(l10n),
                       child: Container(
                         width: double.infinity,
                         height: 56,
@@ -173,9 +175,9 @@ class _MobileLoginPageState extends ConsumerState<MobileLoginPage> {
                               width: 24,
                               child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
                             )
-                          : const Text(
-                              'Send OTP',
-                              style: TextStyle(
+                          : Text(
+                              l10n.sendOtp,
+                              style: const TextStyle(
                                 color: Colors.white,
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
@@ -186,10 +188,10 @@ class _MobileLoginPageState extends ConsumerState<MobileLoginPage> {
                       ),
                     ),
                     SizedBox(height: isSmallScreen ? 30 : 40),
-                    const Center(
+                    Center(
                       child: Text(
-                        "Secure and Fast login with OTP",
-                        style: TextStyle(color: Color(0xFF64748B), fontSize: 13),
+                        l10n.secureLoginText,
+                        style: const TextStyle(color: Color(0xFF64748B), fontSize: 13),
                       ),
                     ),
                   ],

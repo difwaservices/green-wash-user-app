@@ -15,7 +15,8 @@ class CartSummaryBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (cart.itemCount == 0) return const SizedBox.shrink();
+    final count = cart.itemCount;
+    if (count == 0) return const SizedBox.shrink();
 
     return GestureDetector(
       onTap: onTap ?? () {
@@ -28,11 +29,11 @@ class CartSummaryBar extends StatelessWidget {
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
-          color: const Color(0xFF1A1A1A), // Dark premium bar
+          color: AppColors.primary,
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: AppColors.primary.withOpacity(0.3),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -43,12 +44,12 @@ class CartSummaryBar extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.1),
+                color: Colors.white.withOpacity(0.2),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
                 Icons.shopping_basket_rounded,
-                color: AppColors.primary,
+                color: Colors.white,
                 size: 20,
               ),
             ),
@@ -58,7 +59,7 @@ class CartSummaryBar extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  '${cart.itemCount} ITEM${cart.itemCount > 1 ? 'S' : ''}',
+                  '$count ITEM${count > 1 ? 'S' : ''}',
                   style: const TextStyle(
                     color: Colors.white70,
                     fontSize: 10,
@@ -80,7 +81,7 @@ class CartSummaryBar extends StatelessWidget {
             const Text(
               'VIEW CART',
               style: TextStyle(
-                color: AppColors.primary,
+                color: Colors.white,
                 fontSize: 13,
                 fontWeight: FontWeight.w900,
                 letterSpacing: 1,
@@ -89,7 +90,7 @@ class CartSummaryBar extends StatelessWidget {
             const SizedBox(width: 6),
             const Icon(
               Icons.arrow_forward_ios_rounded,
-              color: AppColors.primary,
+              color: Colors.white,
               size: 14,
             ),
           ],

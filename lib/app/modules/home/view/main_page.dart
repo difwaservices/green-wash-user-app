@@ -14,6 +14,7 @@ import '../../../../core/state/auth_store.dart';
 import '../../../routes/app_routes.dart';
 import '../../../data/services/socket_service.dart';
 import '../../profile/widgets/review_dialog.dart';
+import '../../../../l10n/generated/app_localizations.dart';
 
 class MainPage extends ConsumerStatefulWidget {
   const MainPage({super.key});
@@ -89,6 +90,7 @@ class _MainPageState extends ConsumerState<MainPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final currentIndex = ref.watch(mainIndexProvider);
     final cart = CartProviderScope.of(context);
     final bool showSummary =
@@ -167,6 +169,7 @@ class _MainPageState extends ConsumerState<MainPage> {
   }
 
   Widget _buildCustomBottomBar(int currentIndex) {
+    final l10n = AppLocalizations.of(context);
     bool isCartSelected = currentIndex == 2;
     return Container(
       decoration: BoxDecoration(
@@ -190,17 +193,17 @@ class _MainPageState extends ConsumerState<MainPage> {
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
                   Expanded(
-                    child: _buildNavItem(currentIndex, 0, Icons.home_filled, 'Home'),
+                    child: _buildNavItem(currentIndex, 0, Icons.home_filled, l10n.navHome),
                   ),
                   Expanded(
-                    child: _buildNavItem(currentIndex, 1, Icons.local_shipping_rounded, 'Daily'),
+                    child: _buildNavItem(currentIndex, 1, Icons.local_shipping_rounded, l10n.subscription),
                   ),
                   const SizedBox(width: 80), // Space for the FAB
                   Expanded(
-                    child: _buildNavItem(currentIndex, 3, Icons.wallet_rounded, 'Wallet'),
+                    child: _buildNavItem(currentIndex, 3, Icons.wallet_rounded, l10n.wallet),
                   ),
                   Expanded(
-                    child: _buildNavItem(currentIndex, 4, Icons.person_rounded, 'Profile'),
+                    child: _buildNavItem(currentIndex, 4, Icons.person_rounded, l10n.profile),
                   ),
                 ],
               ),

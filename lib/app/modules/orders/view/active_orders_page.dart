@@ -19,6 +19,10 @@ class ActiveOrdersPage extends ConsumerStatefulWidget {
 
 class _ActiveOrdersPageState extends ConsumerState<ActiveOrdersPage> {
   late void Function(dynamic) _onOrderUpdate;
+  late void Function(dynamic) _onDeliveryOtp;
+
+  // Keyed by orderId — holds OTP payloads received via socket
+  final Map<String, Map<String, dynamic>> _socketOtps = {};
 
   @override
   void initState() {
@@ -26,7 +30,20 @@ class _ActiveOrdersPageState extends ConsumerState<ActiveOrdersPage> {
     _onOrderUpdate = (data) {
       if (!mounted) return;
       debugPrint('📦 Order status updated via socket: $data');
-      ref.invalidate(activeOrdersProvider);
+      // Reactively handled by ActiveOrdersNotifier
+    };
+
+    _onDeliveryOtp = (data) {
+      if (!mounted) return;
+      debugPrint('🔐 DELIVERY_OTP received: $data');
+      if (data is Map) {
+        final orderId = data['orderId']?.toString() ?? '';
+        if (orderId.isNotEmpty) {
+          setState(() {
+            _socketOtps[orderId] = Map<String, dynamic>.from(data);
+          });
+        }
+      }
     };
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -35,6 +52,7 @@ class _ActiveOrdersPageState extends ConsumerState<ActiveOrdersPage> {
         final socket = ref.read(socketServiceProvider);
         socket.joinUserRoom(user.id);
         socket.onOrderUpdate(_onOrderUpdate);
+        socket.onDeliveryOtp(_onDeliveryOtp);
       }
     });
   }
@@ -43,6 +61,7 @@ class _ActiveOrdersPageState extends ConsumerState<ActiveOrdersPage> {
   void dispose() {
     final socket = ref.read(socketServiceProvider);
     socket.offOrderUpdate(_onOrderUpdate);
+    socket.offDeliveryOtp(_onDeliveryOtp);
     super.dispose();
   }
 
@@ -97,8 +116,11 @@ class _ActiveOrdersPageState extends ConsumerState<ActiveOrdersPage> {
               child: ListView.builder(
                 padding: const EdgeInsets.fromLTRB(20, 12, 20, 100),
                 itemCount: sortedOrders.length,
-                itemBuilder: (context, index) =>
-                    _ActiveOrderCard(order: sortedOrders[index]),
+                itemBuilder: (context, index) {
+                  final order = sortedOrders[index];
+                  final socketOtp = _socketOtps[order.id];
+                  return _ActiveOrderCard(order: order, socketOtpData: socketOtp);
+                },
               ),
             );
           },
@@ -211,7 +233,41 @@ class _ActiveOrdersPageState extends ConsumerState<ActiveOrdersPage> {
 
 class _ActiveOrderCard extends ConsumerWidget {
   final UserOrder order;
-  const _ActiveOrderCard({required this.order});
+  final Map<String, dynamic>? socketOtpData;
+  const _ActiveOrderCard({required this.order, this.socketOtpData});
+
+  String? _resolvedOtp() {
+    final now = DateTime.now();
+    // Prefer socket data (most recent), fall back to API-persisted OTP
+    if (socketOtpData != null) {
+      final otp = socketOtpData!['otp']?.toString();
+      final expiresAtStr = socketOtpData!['expiresAt']?.toString();
+      final expiresAt = expiresAtStr != null ? DateTime.tryParse(expiresAtStr)?.toLocal() : null;
+      if (otp != null && otp.isNotEmpty && (expiresAt == null || expiresAt.isAfter(now))) {
+        return otp;
+      }
+    }
+    if (order.deliveryOtp != null && order.deliveryOtp!.isNotEmpty) {
+      final expiresAt = order.deliveryOtpExpiresAt;
+      if (expiresAt == null || expiresAt.isAfter(now)) {
+        return order.deliveryOtp;
+      }
+    }
+    return null;
+  }
+
+  String _otpExpiryLabel() {
+    DateTime? expiresAt;
+    if (socketOtpData != null) {
+      final str = socketOtpData!['expiresAt']?.toString();
+      expiresAt = str != null ? DateTime.tryParse(str)?.toLocal() : null;
+    }
+    expiresAt ??= order.deliveryOtpExpiresAt;
+    if (expiresAt == null) return '';
+    final h = expiresAt.hour.toString().padLeft(2, '0');
+    final m = expiresAt.minute.toString().padLeft(2, '0');
+    return 'Valid until $h:$m';
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -822,6 +878,77 @@ class _ActiveOrderCard extends ConsumerWidget {
               ),
 
               const SizedBox(height: 12),
+
+              // ── Delivery OTP Banner ───────────────────────────────────────────
+              Builder(builder: (context) {
+                final otp = _resolvedOtp();
+                if (otp == null) return const SizedBox.shrink();
+                final expiryLabel = _otpExpiryLabel();
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF0891B2), Color(0xFF06B6D4)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Column(
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(Icons.lock_rounded, color: Colors.white, size: 18),
+                          const SizedBox(width: 8),
+                          const Expanded(
+                            child: Text(
+                              'Share this OTP with the rider',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: otp.split('').map((digit) => Container(
+                          width: 48,
+                          height: 54,
+                          margin: const EdgeInsets.symmetric(horizontal: 6),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          alignment: Alignment.center,
+                          child: Text(
+                            digit,
+                            style: const TextStyle(
+                              fontSize: 26,
+                              fontWeight: FontWeight.w900,
+                              color: Color(0xFF0891B2),
+                            ),
+                          ),
+                        )).toList(),
+                      ),
+                      if (expiryLabel.isNotEmpty) ...[
+                        const SizedBox(height: 10),
+                        Text(
+                          expiryLabel,
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.85),
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                );
+              }),
 
               // ── Price & View Details ───────────────────────────────────────────
               Align(

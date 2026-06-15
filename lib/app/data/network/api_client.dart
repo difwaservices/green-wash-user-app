@@ -36,8 +36,8 @@ final apiClientProvider = Provider<ApiClient>((ref) {
 
   final dio = Dio(BaseOptions(
     baseUrl: normalizedBaseUrl,
-    connectTimeout: const Duration(seconds: 15),
-    receiveTimeout: const Duration(seconds: 15),
+    connectTimeout: const Duration(seconds: 30),
+    receiveTimeout: const Duration(seconds: 30),
     contentType: Headers.jsonContentType,
   ));
 
@@ -86,8 +86,8 @@ class ApiClient {
 
     final dio = Dio(BaseOptions(
       baseUrl: normalizedBaseUrl,
-      connectTimeout: const Duration(seconds: 15),
-      receiveTimeout: const Duration(seconds: 15),
+      connectTimeout: const Duration(seconds: 30),
+      receiveTimeout: const Duration(seconds: 30),
       contentType: Headers.jsonContentType,
     ));
 

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/state/auth_store.dart';
 import '../../routes/app_routes.dart';
-import '../../core/constants/app_images.dart';
 
 class SplashPage extends ConsumerStatefulWidget {
   const SplashPage({super.key});
@@ -11,48 +10,31 @@ class SplashPage extends ConsumerStatefulWidget {
   ConsumerState<SplashPage> createState() => _SplashPageState();
 }
 
-class _SplashPageState extends ConsumerState<SplashPage>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _fadeAnim;
-  late Animation<double> _scaleAnim;
-
+class _SplashPageState extends ConsumerState<SplashPage> {
   @override
   void initState() {
     super.initState();
-
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1200),
-    );
-
-    _fadeAnim = CurvedAnimation(parent: _controller, curve: Curves.easeIn);
-    _scaleAnim = Tween<double>(
-      begin: 0.8,
-      end: 1.0,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutBack));
-
-    _controller.forward();
-
-    // ── INITIAL AUTH CHECK ──
     _initializeApp();
   }
 
   Future<void> _initializeApp() async {
-    // 1. Give animations a moment to start
-    await Future.delayed(const Duration(milliseconds: 1200));
-
-    // 2. Perform initialization check via AuthStore
-    await ref.read(authStoreProvider.notifier).init();
+    try {
+      // 3-second cap — cached users finish instantly, others don't wait all day.
+      await ref.read(authStoreProvider.notifier).init()
+          .timeout(const Duration(seconds: 3));
+    } catch (_) {
+      // Timeout or error — navigate with whatever state we already have.
+    }
 
     if (!mounted) return;
+    _navigate();
+  }
 
-    // 3. Decide navigation based on Auth status
+  void _navigate() {
     final authState = ref.read(authStoreProvider);
 
     if (authState is AuthAuthenticated) {
-      final role = (authState.user.role).toLowerCase();
-
+      final role = authState.user.role.toLowerCase();
       if (role.contains('rider') ||
           role.contains('delivery') ||
           role.contains('driver') ||
@@ -69,37 +51,16 @@ class _SplashPageState extends ConsumerState<SplashPage>
   }
 
   @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return const Scaffold(
       backgroundColor: Colors.white,
       body: Center(
-        child: FadeTransition(
-          opacity: _fadeAnim,
-          child: ScaleTransition(
-            scale: _scaleAnim,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Image.asset(
-                  AppImages.difwaLogoPng,
-                  width: 300,
-                  height: 300,
-                  fit: BoxFit.contain,
-                ),
-                const SizedBox(height: 40),
-                // ── SUBTLE PROGRESS ──
-                const CircularProgressIndicator(
-                  strokeWidth: 3,
-                  valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF06B6D4)),
-                ),
-              ],
-            ),
+        child: SizedBox(
+          width: 24,
+          height: 24,
+          child: CircularProgressIndicator(
+            strokeWidth: 2.5,
+            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF00ACC1)),
           ),
         ),
       ),

@@ -32,4 +32,6 @@ class AppRoutes {
   static const String faq = '/faq';
   static const String retailerHome = '/retailer-home';
   static const String communicationHub = '/communication-hub';
+  static const String languageSelection = '/language-selection';
+  static const String firstTimeLanguage = '/first-time-language';
 }

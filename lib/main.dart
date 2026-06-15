@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'app/routes/app_routes.dart';
 import 'app/routes/app_pages.dart';
 import 'app/data/services/cart_service.dart';
@@ -15,10 +16,10 @@ import 'app/data/services/fcm_service.dart';
 import 'app/data/models/food_models.dart';
 import 'app/core/constants/app_images.dart';
 import 'app/modules/auth/provider/auth_provider.dart';
+import 'app/core/localization/language_provider.dart';
+import 'app/core/localization/supported_languages.dart';
+import 'l10n/generated/app_localizations.dart';
 import 'firebase_options.dart';
-
-final GlobalKey<ScaffoldMessengerState> rootScaffoldMessengerKey =
-    GlobalKey<ScaffoldMessengerState>();
 
 final cartProviderManager = Provider<CartProvider>((ref) {
   final user = ref.watch(currentUserProvider);
@@ -61,7 +62,19 @@ void main() async {
   }
 
   final container = ProviderContainer();
-  await FCMService.init(container);
+
+  // Restore saved language before first frame
+  try {
+    await container.read(localeProvider.notifier).loadSavedLocale();
+  } catch (e) {
+    debugPrint("Warning: Could not load saved locale: $e");
+  }
+
+  try {
+    await FCMService.init(container);
+  } catch (e) {
+    debugPrint("Warning: Could not initialize FCMService: $e");
+  }
 
   runApp(
     UncontrolledProviderScope(
@@ -76,23 +89,47 @@ class DifwaWaterApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final cartProvider = ref.watch(cartProviderManager);
+    final locale = ref.watch(localeProvider);
 
-    return CartProviderScope(
-      provider: cartProvider,
-      child: MaterialApp(
-        title: 'Difwa Water',
-        navigatorKey: FCMService.navigatorKey,
-        scaffoldMessengerKey: rootScaffoldMessengerKey,
-        debugShowCheckedModeBanner: false,
-        theme: AppTheme.lightTheme,
-        initialRoute: AppRoutes.splash,
-        routes: AppPages.routes,
-        scrollBehavior: const MaterialScrollBehavior().copyWith(
-          physics: const BouncingScrollPhysics(
-              parent: AlwaysScrollableScrollPhysics()),
-        ),
+    return MaterialApp(
+      title: 'Difwa Water',
+      navigatorKey: FCMService.navigatorKey,
+      debugShowCheckedModeBanner: false,
+      theme: AppTheme.lightTheme,
+      locale: locale,
+      supportedLocales: kSupportedLocales,
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      localeResolutionCallback: (deviceLocale, supportedLocales) {
+        // If explicitly set by user, use that (already in locale)
+        if (supportedLocales.any(
+            (s) => s.languageCode == locale.languageCode)) {
+          return locale;
+        }
+        // Fallback to English
+        return const Locale('en');
+      },
+      initialRoute: AppRoutes.splash,
+      routes: AppPages.routes,
+      scrollBehavior: const MaterialScrollBehavior().copyWith(
+        physics: const BouncingScrollPhysics(
+            parent: AlwaysScrollableScrollPhysics()),
       ),
+      builder: (context, child) {
+        return Consumer(
+          builder: (context, ref, _) {
+            final cartProvider = ref.watch(cartProviderManager);
+            return CartProviderScope(
+              provider: cartProvider,
+              child: child!,
+            );
+          },
+        );
+      },
     );
   }
 }

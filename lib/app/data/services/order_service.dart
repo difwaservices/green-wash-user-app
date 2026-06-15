@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/food_models.dart';
 import '../network/api_client.dart';
 import 'socket_service.dart';
+import '../../../core/state/auth_store.dart';
 
 class OrderService {
   final ApiClient _apiClient;
@@ -258,6 +259,29 @@ class OrderService {
       return {};
     }
   }
+
+  Future<Map<String, dynamic>> cancelOrder({
+    required String orderId,
+    required String reason,
+  }) async {
+    try {
+      final response = await _apiClient.post(
+        '${ApiClient.baseUrl}/orders/$orderId/cancel',
+        data: {'reason': reason},
+        requiresAuth: true,
+      );
+      return {
+        'success': response['success'] ?? true,
+        'scenario': response['scenario'],
+        'message': response['message'] ?? 'Order cancelled successfully',
+      };
+    } catch (e) {
+      return {
+        'success': false,
+        'message': e.toString(),
+      };
+    }
+  }
 }
 
 final orderServiceProvider = Provider<OrderService>((ref) {
@@ -265,6 +289,7 @@ final orderServiceProvider = Provider<OrderService>((ref) {
 });
 
 final myOrdersProvider = FutureProvider.autoDispose<List<UserOrder>>((ref) async {
+  ref.watch(authStoreProvider); // Invalidate when auth changes
   // keepAlive: order history can be large; cache it for the session so
   // navigating to/from My Orders page doesn't trigger a full re-fetch.
   ref.keepAlive();
@@ -278,6 +303,8 @@ final activeOrdersProvider =
 class ActiveOrdersNotifier extends AsyncNotifier<List<UserOrder>> {
   @override
   Future<List<UserOrder>> build() async {
+    ref.watch(authStoreProvider); // Invalidate when auth changes
+
     // Listen for real-time order status updates from socket
     final socket = ref.watch(socketServiceProvider);
     socket.onOrderUpdate((data) {
@@ -291,14 +318,18 @@ class ActiveOrdersNotifier extends AsyncNotifier<List<UserOrder>> {
 
         if (index != -1) {
           final updatedOrders = List<UserOrder>.from(currentOrders);
-          updatedOrders[index] = updatedOrders[index].copyWith(status: newStatus);
+          final statusLower = newStatus.toLowerCase();
+          if (statusLower == 'delivered' || statusLower == 'cancelled' || statusLower == 'completed' || statusLower == 'canceled') {
+            // Remove from active orders
+            updatedOrders.removeAt(index);
+          } else {
+            // Update status
+            updatedOrders[index] = updatedOrders[index].copyWith(status: newStatus);
+          }
           state = AsyncValue.data(updatedOrders);
-          debugPrint('✅ Updated order $orderId status to $newStatus locally');
-          return;
+          debugPrint('✅ Updated active orders list locally for order $orderId');
         }
       }
-      debugPrint('🔄 Order not found or list not ready, invalidating self...');
-      ref.invalidateSelf();
     });
 
     ref.onDispose(() {

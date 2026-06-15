@@ -4,7 +4,6 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../controller/categories_controller.dart';
 import '../../../data/models/food_models.dart';
 import '../../../data/services/db_service.dart';
-import '../../../data/models/product_model.dart';
 import '../../home/widgets/product_card.dart';
 
 class CategoryItemsPage extends ConsumerWidget {
@@ -102,15 +101,6 @@ class _ProductGrid extends StatelessWidget {
         final product = products[index];
         return ProductCard(
           product: product,
-          onAdd: () {
-            cart.addToCart(CartItem.fromProduct(product));
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('${product.name} added to cart!'),
-                duration: const Duration(seconds: 1),
-              ),
-            );
-          },
         )
             .animate(delay: (50 * index).ms)
             .fadeIn(duration: 300.ms)

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../data/models/shop_product_model.dart';
 import '../provider/shop_provider.dart';
 import '../view/restaurant_menu_page.dart';
@@ -8,21 +9,6 @@ import '../../../core/constants/app_images.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../provider/search_provider.dart';
 import '../../../routes/app_routes.dart';
-
-// ── Cuisine types to cycle through for display ───────────────────────────────
-const List<String> _cuisineTypes = [
-  'Purified · Mineral',
-  'Alkaline · RO+UV',
-  'Natural · Spring',
-  'Distilled · Clean',
-  'Ionized · Balanced',
-  'Bottled · Bulk',
-  'Sparkling · Fresh',
-  'Filtered · Pure',
-  'Eco-Friendly · Safe',
-  'Premium · Health',
-  'Domestic · Supply',
-];
 
 class RestaurantListSection extends ConsumerWidget {
   const RestaurantListSection({super.key});
@@ -147,10 +133,7 @@ class _ShopsList extends ConsumerWidget {
           shrinkWrap: true,
           itemCount: shops.length,
           itemBuilder: (context, index) {
-            return _ShopCard(
-              shop: shops[index],
-              index: index,
-            );
+            return _ShopCard(shop: shops[index]);
           },
         ),
       ],
@@ -160,237 +143,530 @@ class _ShopsList extends ConsumerWidget {
 
 // ── Individual Shop Card ──────────────────────────────────────────────────────
 
-class _ShopCard extends StatelessWidget {
+class _ShopCard extends ConsumerWidget {
   final ShopModel shop;
-  final int index;
 
-  const _ShopCard({required this.shop, required this.index});
-
-  String get _cuisine => _cuisineTypes[index % _cuisineTypes.length];
-
-  // Generate a deterministic rating from shop ID
-
-  bool get _isFeatured => shop.isFeatured;
+  const _ShopCard({required this.shop});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final productsAsync = ref.watch(shopProductsProvider(shop.id));
+    final userPosAsync = ref.watch(userLocationProvider);
+    final distLabel = userPosAsync.whenOrNull(
+      data: (pos) => shopDistanceLabel(
+        userPos: pos,
+        shopLat: shop.lat,
+        shopLng: shop.lng,
+      ),
+    );
+
     return GestureDetector(
-        onTap: () {
-          if (!shop.isShopActive) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('This plant is currently not accepting orders.'),
-                backgroundColor: Colors.black87,
-                behavior: SnackBarBehavior.floating,
-              ),
-            );
-            return;
-          }
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => RestaurantMenuPage(shop: shop),
+      onTap: () {
+        if (!shop.isShopActive) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('This plant is currently not accepting orders.'),
+              backgroundColor: Colors.black87,
+              behavior: SnackBarBehavior.floating,
             ),
           );
-        },
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(16),
-          child: Opacity(
-            opacity: shop.isShopActive ? 1.0 : 0.8,
-            child: ColorFiltered(
-              colorFilter: shop.isShopActive
-                  ? const ColorFilter.mode(
-                      Colors.transparent, BlendMode.multiply)
-                  : const ColorFilter.mode(
-                      Color.fromARGB(255, 255, 255, 255), BlendMode.saturation),
-              child: Container(
-                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: const Color(0xFF00ACC1).withOpacity(0.2),
-                    width: 1.0,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+          return;
+        }
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => RestaurantMenuPage(shop: shop)),
+        );
+      },
+      child: Opacity(
+        opacity: shop.isShopActive ? 1.0 : 0.85,
+        child: Container(
+          clipBehavior: Clip.antiAlias,
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: const Color(0xFF00ACC1).withValues(alpha: 0.18),
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.07),
+                blurRadius: 12,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // ── 1. Info Row: thumbnail left, details right ───────────────
+              Padding(
+                padding: const EdgeInsets.fromLTRB(12, 12, 12, 10),
+                child: IntrinsicHeight(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      // ── Hero Banner ─────────────────────────────────────────────────
-                      Stack(
-                        children: [
-                          ClipRRect(
-                            borderRadius: const BorderRadius.vertical(
-                                top: Radius.circular(16)),
-                            child: _buildHeroImage(),
+                      // Shop thumbnail
+                      _ShopThumb(shop: shop),
+                      // Vertical divider between image and details
+                      Container(
+                        width: 1,
+                        margin: const EdgeInsets.symmetric(horizontal: 12),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              const Color(0xFF00ACC1).withValues(alpha: 0.0),
+                              const Color(0xFF00ACC1).withValues(alpha: 0.25),
+                              const Color(0xFF00ACC1).withValues(alpha: 0.25),
+                              const Color(0xFF00ACC1).withValues(alpha: 0.0),
+                            ],
                           ),
-                          // Closed/Offline Overlay
-                          if (!shop.isShopActive)
-                            Positioned.fill(
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: Colors.black.withOpacity(0.2),
-                                  borderRadius: const BorderRadius.vertical(
-                                      top: Radius.circular(16)),
+                        ),
+                      ),
+                      // Details column — fills the full height of the image
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Name + featured badge
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    shop.name,
+                                    style: const TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w800,
+                                      color: Color(0xFF1A1A1A),
+                                      height: 1.25,
+                                    ),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
                                 ),
-                                child: Center(
-                                  child: Container(
+                                if (shop.isFeatured) ...[
+                                  const SizedBox(width: 6),
+                                  Container(
                                     padding: const EdgeInsets.symmetric(
-                                        horizontal: 12, vertical: 6),
+                                        horizontal: 6, vertical: 2),
                                     decoration: BoxDecoration(
-                                      color: Colors.red.shade700,
-                                      borderRadius: BorderRadius.circular(8),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.black.withOpacity(0.3),
-                                          blurRadius: 10,
-                                        ),
-                                      ],
+                                      color: const Color(0xFFFFF3CD),
+                                      borderRadius: BorderRadius.circular(4),
+                                      border: Border.all(
+                                          color: const Color(0xFFFFD600)),
                                     ),
                                     child: const Text(
-                                      'CLOSED',
+                                      '⭐ Top',
                                       style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.w900,
-                                        letterSpacing: 1.2,
+                                        fontSize: 9,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF5D4037),
                                       ),
                                     ),
                                   ),
-                                ),
-                              ),
+                                ],
+                              ],
                             ),
-                          // Top dish label overlay
-                          Positioned(
-                            top: 12,
-                            left: 12,
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 10, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: Colors.black.withValues(alpha: 0.65),
-                                borderRadius: BorderRadius.circular(6),
+                            const SizedBox(height: 3),
+                            Text(
+                              shop.location.isNotEmpty
+                                  ? shop.location
+                                  : 'Water Supplier',
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: Color(0xFF94A3B8),
+                                fontWeight: FontWeight.w500,
                               ),
-                              child: Text(
-                                shop.businessName.isNotEmpty
-                                    ? shop.businessName
-                                    : 'Pure Water · ₹499+',
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
-                          ),
-                          // Featured badge
-                          if (_isFeatured)
-                            Positioned(
-                              bottom: 10,
-                              left: 12,
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 8, vertical: 3),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFFFF3CD),
-                                  borderRadius: BorderRadius.circular(4),
-                                  border: Border.all(
-                                      color: const Color(0xFFFFD600)),
-                                ),
-                                child: const Text(
-                                  '⭐ Featured',
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.bold,
-                                    color: Color(0xFF5D4037),
-                                  ),
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
-
-                      // ── Info Row ─────────────────────────────────────────────────
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(14, 12, 14, 0),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                            // Rating row (shown when available)
+                            if (shop.rating > 0) ...[
+                              const SizedBox(height: 4),
+                              Row(
                                 children: [
+                                  const Icon(Icons.star_rounded,
+                                      size: 13, color: Color(0xFFFBBF24)),
+                                  const SizedBox(width: 3),
                                   Text(
-                                    shop.name,
+                                    shop.rating.toStringAsFixed(1),
                                     style: const TextStyle(
-                                      fontSize: 17,
-                                      fontWeight: FontWeight.w800,
-                                      color: Color(0xFF1A1A1A),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    _cuisine,
-                                    style: TextStyle(
                                       fontSize: 12,
-                                      color: Colors.grey.shade600,
+                                      fontWeight: FontWeight.w700,
+                                      color: Color(0xFF1A1A1A),
                                     ),
                                   ),
                                 ],
                               ),
+                            ],
+                            const Spacer(),
+                            // Thin rule before chips
+                            Container(
+                              height: 1,
+                              margin: const EdgeInsets.only(bottom: 7),
+                              color: const Color(0xFF00ACC1)
+                                  .withValues(alpha: 0.1),
+                            ),
+                            // Info chips: distance · open/closed · contact
+                            Wrap(
+                              spacing: 5,
+                              runSpacing: 4,
+                              children: [
+                                if (distLabel != null)
+                                  _InfoChip(
+                                    icon: Icons.place_rounded,
+                                    label: distLabel,
+                                    color: const Color(0xFF0891B2),
+                                    bg: const Color(0xFFE0F7FA),
+                                  ),
+                                _InfoChip(
+                                  icon: shop.isShopActive
+                                      ? Icons.check_circle_outline_rounded
+                                      : Icons.cancel_outlined,
+                                  label: shop.isShopActive ? 'Open' : 'Closed',
+                                  color: shop.isShopActive
+                                      ? const Color(0xFF059669)
+                                      : const Color(0xFFDC2626),
+                                  bg: shop.isShopActive
+                                      ? const Color(0xFFD1FAE5)
+                                      : const Color(0xFFFFE4E6),
+                                ),
+                                if (shop.contact.isNotEmpty)
+                                  _ContactChip(contact: shop.contact),
+                              ],
                             ),
                           ],
                         ),
                       ),
+                    ],
+                  ),
+                ),
+              ),
 
-                      const SizedBox(height: 12),
-                    ]),
+              // ── 2. Product Carousel ──────────────────────────────────────
+              productsAsync.when(
+                data: (products) {
+                  final items = products
+                      .where((p) => p.status == 'Published')
+                      .take(12)
+                      .toList();
+                  if (items.isEmpty) return const SizedBox.shrink();
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        height: 1,
+                        color: const Color(0xFF00ACC1).withValues(alpha: 0.1),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(12, 7, 12, 4),
+                        child: Row(
+                          children: [
+                            const Text(
+                              'Products',
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700,
+                                color: Color(0xFF64748B),
+                              ),
+                            ),
+                            const Spacer(),
+                            Text(
+                              '${items.length} items',
+                              style: const TextStyle(
+                                fontSize: 10,
+                                color: Color(0xFF06B6D4),
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const SizedBox(width: 2),
+                            const Icon(Icons.arrow_forward_ios_rounded,
+                                size: 9, color: Color(0xFF06B6D4)),
+                          ],
+                        ),
+                      ),
+                      _ProductCarouselStrip(
+                        products: items,
+                        shopActive: shop.isShopActive,
+                        shopName: shop.name,
+                      ),
+                    ],
+                  );
+                },
+                loading: () => _CarouselShimmer(),
+                error: (_, __) => const SizedBox.shrink(),
+              ),
+            ],
+          ),
+        ),
+      ),
+    ).animate().fadeIn(duration: 400.ms).slideY(
+        begin: 0.04, end: 0, duration: 400.ms, curve: Curves.easeOutQuad);
+  }
+}
+
+// ── Shop Thumbnail ────────────────────────────────────────────────────────────
+
+class _ShopThumb extends StatelessWidget {
+  final ShopModel shop;
+  const _ShopThumb({required this.shop});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 96,
+      height: 96,
+      decoration: BoxDecoration(
+        color: const Color(0xFFF1F9FE),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: const Color(0xFF00ACC1).withValues(alpha: 0.18),
+        ),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(13),
+        child: shop.image.length > 5
+            ? Image.network(
+                shop.image,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => _fallback(),
+              )
+            : _fallback(),
+      ),
+    );
+  }
+
+  Widget _fallback() => Padding(
+        padding: const EdgeInsets.all(14),
+        child: Image.asset(AppImages.difwaLogoPng, fit: BoxFit.contain),
+      );
+}
+
+// ── Info Chip ─────────────────────────────────────────────────────────────────
+
+class _InfoChip extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final Color color;
+  final Color bg;
+
+  const _InfoChip({
+    required this.icon,
+    required this.label,
+    required this.color,
+    required this.bg,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 11, color: color),
+          const SizedBox(width: 3),
+          Text(
+            label,
+            style: TextStyle(
+                fontSize: 10, fontWeight: FontWeight.w700, color: color),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Contact Chip (tappable) ───────────────────────────────────────────────────
+
+class _ContactChip extends StatelessWidget {
+  final String contact;
+  const _ContactChip({required this.contact});
+
+  @override
+  Widget build(BuildContext context) {
+    final isEmail = contact.contains('@');
+    final displayLabel = isEmail ? contact.split('@').first : contact;
+    return GestureDetector(
+      onTap: () {
+        final uri = isEmail
+            ? Uri(scheme: 'mailto', path: contact)
+            : Uri(scheme: 'tel', path: contact);
+        launchUrl(uri);
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+        decoration: BoxDecoration(
+          color: const Color(0xFFE0F7FA),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              isEmail ? Icons.alternate_email_rounded : Icons.phone_rounded,
+              size: 11,
+              color: const Color(0xFF0891B2),
+            ),
+            const SizedBox(width: 3),
+            Text(
+              displayLabel,
+              style: const TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF0891B2)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── Carousel Shimmer ──────────────────────────────────────────────────────────
+
+class _CarouselShimmer extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 112,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
+        physics: const NeverScrollableScrollPhysics(),
+        itemCount: 4,
+        itemBuilder: (_, __) => Container(
+          width: 84,
+          margin: const EdgeInsets.only(right: 10),
+          decoration: BoxDecoration(
+            color: Colors.grey.withValues(alpha: 0.12),
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ── Product Strip (manually swipeable, no auto-scroll) ───────────────────────
+
+class _ProductCarouselStrip extends StatelessWidget {
+  final List<ShopProduct> products;
+  final bool shopActive;
+  final String shopName;
+  const _ProductCarouselStrip({
+    required this.products,
+    required this.shopActive,
+    required this.shopName,
+  });
+
+  static const double _itemW = 84.0;
+  static const double _gap = 10.0;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 106,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
+        physics: const BouncingScrollPhysics(),
+        itemCount: products.length,
+        itemBuilder: (_, i) => _ProductChip(
+          product: products[i],
+        ),
+      ),
+    );
+  }
+}
+
+// ── Product Chip (item in carousel) ──────────────────────────────────────────
+
+class _ProductChip extends StatelessWidget {
+  final ShopProduct product;
+  const _ProductChip({required this.product});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: _ProductCarouselStrip._itemW,
+      margin: const EdgeInsets.only(right: _ProductCarouselStrip._gap),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF1F9FE),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: const Color(0xFF00ACC1).withValues(alpha: 0.18),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Product image
+          ClipRRect(
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(11)),
+            child: SizedBox(
+              height: 56,
+              width: double.infinity,
+              child: product.primaryImage.isNotEmpty
+                  ? Image.network(
+                      product.primaryImage,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => _fallback(),
+                    )
+                  : _fallback(),
+            ),
+          ),
+          // Name + price
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(6, 2, 6, 2),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    product.name,
+                    style: const TextStyle(
+                      fontSize: 9,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF1E293B),
+                      height: 1.2,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    '₹${product.price.toStringAsFixed(0)}',
+                    style: const TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w800,
+                      color: Color(0xFF0891B2),
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
-        ));
+        ],
+      ),
+    );
   }
 
-  Widget _buildHeroImage() {
-    // Prefer banner from API, then local asset fallback
-    final networkUrl = shop.image;
-    if (networkUrl.length > 5) {
-      return Container(
-        color: Colors.white,
-        child: Image.network(
-          networkUrl,
-          height: 180,
-          width: double.infinity,
-          fit: BoxFit.cover,
-          errorBuilder: (_, __, ___) => _localFallback(),
-        ),
-      );
-    }
-    return _localFallback();
-  }
-
-  Widget _localFallback() {
+  Widget _fallback() {
     return Container(
-      height: 180,
-      width: double.infinity,
-      color: Colors.white,
-      child: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Image.asset(
-            AppImages.difwaLogoPng,
-            fit: BoxFit.contain,
-          ),
-        ),
+      color: const Color(0xFFE0F7FA),
+      child: const Center(
+        child:
+            Icon(Icons.water_drop_outlined, color: Color(0xFF06B6D4), size: 22),
       ),
     );
   }
@@ -461,61 +737,75 @@ class _ShopShimmerCardState extends State<_ShopShimmerCard>
   Widget build(BuildContext context) {
     return AnimatedBuilder(
       animation: _anim,
-      builder: (_, __) => Container(
-        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Image placeholder
-            Container(
-              height: 180,
-              decoration: BoxDecoration(
-                color: Colors.grey.withValues(alpha: _anim.value),
-                borderRadius:
-                    const BorderRadius.vertical(top: Radius.circular(16)),
+      builder: (_, __) {
+        final c1 = Colors.grey.withValues(alpha: _anim.value);
+        final c2 = Colors.grey.withValues(alpha: _anim.value * 0.7);
+        final c3 = Colors.grey.withValues(alpha: _anim.value * 0.5);
+        return Container(
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Thumb placeholder
+              Container(
+                width: 96,
+                height: 96,
+                decoration: BoxDecoration(
+                  color: c1,
+                  borderRadius: BorderRadius.circular(14),
+                ),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(14),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    height: 16,
-                    width: 160,
-                    decoration: BoxDecoration(
-                      color: Colors.grey.withValues(alpha: _anim.value),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Container(
-                    height: 12,
-                    width: 100,
-                    decoration: BoxDecoration(
-                      color: Colors.grey.withValues(alpha: _anim.value * 0.7),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Container(
-                    height: 12,
-                    width: 200,
-                    decoration: BoxDecoration(
-                      color: Colors.grey.withValues(alpha: _anim.value * 0.5),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                  ),
-                ],
+              const SizedBox(width: 13),
+              // Text lines placeholder
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                        height: 14,
+                        width: 130,
+                        decoration: BoxDecoration(
+                            color: c1, borderRadius: BorderRadius.circular(4))),
+                    const SizedBox(height: 8),
+                    Container(
+                        height: 10,
+                        width: 90,
+                        decoration: BoxDecoration(
+                            color: c2, borderRadius: BorderRadius.circular(4))),
+                    const SizedBox(height: 12),
+                    Container(
+                        height: 10,
+                        width: 60,
+                        decoration: BoxDecoration(
+                            color: c2, borderRadius: BorderRadius.circular(4))),
+                    const SizedBox(height: 12),
+                    Row(children: [
+                      Container(
+                          height: 20,
+                          width: 52,
+                          decoration: BoxDecoration(
+                              color: c3,
+                              borderRadius: BorderRadius.circular(20))),
+                      const SizedBox(width: 6),
+                      Container(
+                          height: 20,
+                          width: 44,
+                          decoration: BoxDecoration(
+                              color: c3,
+                              borderRadius: BorderRadius.circular(20))),
+                    ]),
+                  ],
+                ),
               ),
-            ),
-          ],
-        ),
-      ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

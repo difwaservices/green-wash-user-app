@@ -112,6 +112,42 @@ class RiderService {
     }
   }
 
+  Future<Map<String, dynamic>> requestOtp({required String orderId}) async {
+    try {
+      final res = await _apiClient.post(
+        '${ApiClient.riderBaseUrl}/generate-otp',
+        data: {'orderId': orderId},
+        requiresAuth: true,
+      );
+      return res is Map<String, dynamic> ? res : {'success': true, 'data': res};
+    } catch (e) {
+      return {'success': false, 'message': e.toString()};
+    }
+  }
+
+  Future<Map<String, dynamic>> verifyOtp({
+    required String orderId,
+    required String otp,
+  }) async {
+    try {
+      final res = await _apiClient.patch(
+        '${ApiClient.riderBaseUrl}/complete',
+        data: {'orderId': orderId, 'otp': otp},
+        requiresAuth: true,
+      );
+      if (res is Map<String, dynamic>) {
+        if (res['success'] != false) {
+          _notifySocketServer(orderId, 'delivered');
+        }
+        return res;
+      }
+      _notifySocketServer(orderId, 'delivered');
+      return {'success': true, 'data': res};
+    } catch (e) {
+      return {'success': false, 'message': e.toString()};
+    }
+  }
+
   /// Marks the order as delivered by:
   /// 1. Calling the Vercel API PATCH /rider/complete
   /// 2. Notifying the Socket/Render server via POST /api/order/delivered
@@ -197,21 +233,36 @@ class RiderService {
     }
   }
 
-  Future<Map<String, dynamic>> getEarnings() async {
+
+
+  /// Step 1: Initiate cancellation — starts the 5-minute countdown on the backend.
+  Future<Map<String, dynamic>> initiateCancellation({
+    required String orderId,
+    required String reason,
+  }) async {
     try {
-      final res = await _apiClient.get(
-        '${ApiClient.riderBaseUrl}/earnings',
+      final res = await _apiClient.post(
+        '${ApiClient.riderBaseUrl}/orders/$orderId/cancel-initiate',
+        data: {'reason': reason},
         requiresAuth: true,
       );
-      // Normalise: always return { success: true, data: <map> }
-      if (res is Map) {
-        final map = Map<String, dynamic>.from(res);
-        // If already wrapped correctly, return as-is
-        if (map.containsKey('success')) return map;
-        // Otherwise wrap it
-        return {'success': true, 'data': map};
-      }
-      return {'success': false, 'message': 'Unexpected response format'};
+      return res is Map<String, dynamic> ? res : {'success': false, 'message': 'Unexpected response'};
+    } catch (e) {
+      return {'success': false, 'message': e.toString()};
+    }
+  }
+
+  /// Step 2: Confirm cancellation — callable only after the 5-minute wait.
+  Future<Map<String, dynamic>> confirmCancellation({
+    required String orderId,
+  }) async {
+    try {
+      final res = await _apiClient.post(
+        '${ApiClient.riderBaseUrl}/orders/$orderId/cancel-confirm',
+        data: <String, dynamic>{},
+        requiresAuth: true,
+      );
+      return res is Map<String, dynamic> ? res : {'success': false, 'message': 'Unexpected response'};
     } catch (e) {
       return {'success': false, 'message': e.toString()};
     }

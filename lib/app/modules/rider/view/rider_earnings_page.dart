@@ -9,36 +9,7 @@ import '../../../data/services/rider_service.dart';
 
 final riderEarningsProvider = FutureProvider<Map<String, dynamic>>((ref) async {
   final riderService = ref.read(riderServiceProvider);
-  final result = await riderService.getEarnings();
-
   Map<String, dynamic> data = {};
-
-  // ── Shape 1: { success: true, data: { today, weekly, ... } }
-  if (result['success'] == true && result['data'] is Map) {
-    data = Map<String, dynamic>.from(result['data'] as Map);
-  }
-  // ── Shape 2: { success: true, today: ..., weekly: ... }  (flat)
-  else if (result['success'] == true) {
-    data = Map<String, dynamic>.from(result);
-    data.remove('success');
-    data.remove('message');
-  }
-  // ── Shape 3: raw data object – no success flag but has numeric fields
-  else {
-    final hasData = result.keys.any((k) => [
-          'today',
-          'weekly',
-          'deliveries',
-          'walletBalance',
-          'balance',
-          'todayEarnings',
-          'weeklyEarnings',
-          'totalDeliveries'
-        ].contains(k));
-    if (hasData) {
-      data = Map<String, dynamic>.from(result);
-    }
-  }
 
   // ── Fallback: Calculate from History if empty ─────────────────────────────
   final hasDeliveries =
@@ -50,10 +21,14 @@ final riderEarningsProvider = FutureProvider<Map<String, dynamic>>((ref) async {
       (data['deliveries'] == 0 && data['weekly'] == 0)) {
     try {
       final history = await riderService.getDeliveryHistory();
-      if (history.isNotEmpty) {
-        data['deliveries'] = history.length;
+      final deliveredHistory = history.where((o) {
+        final s = (o['status']?.toString() ?? '').toLowerCase();
+        return s == 'delivered' || s == 'completed';
+      }).toList();
+      if (deliveredHistory.isNotEmpty) {
+        data['deliveries'] = deliveredHistory.length;
         double total = 0;
-        for (final item in history) {
+        for (final item in deliveredHistory) {
           total += (item['commission'] ?? item['earnings'] ?? 30.0);
         }
         data['weekly'] = total;

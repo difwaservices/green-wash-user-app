@@ -105,9 +105,7 @@ class _OrdersPageState extends ConsumerState<OrdersPage> {
       ),
       body: ordersAsync.when(
         data: (orders) {
-          final filteredOrders = orders
-              .where((o) => o.status.toLowerCase() != 'cancelled')
-              .toList()
+          final filteredOrders = List.of(orders)
             ..sort((a, b) => b.date.compareTo(a.date));
           
           if (filteredOrders.isEmpty) return const Center(child: Text('No orders yet', style: TextStyle(color: Colors.grey)));
@@ -237,8 +235,16 @@ class _LiveOrderCardState extends State<_LiveOrderCard> with SingleTickerProvide
   Widget _summaryText(String t) => Text(t, style: TextStyle(color: Colors.grey.shade600, fontSize: 13));
 
   Widget _buildStatusBadge(String status) {
-    Color color = const Color(0xFF2E7D32); Color bg = const Color(0xFFE2F5E9);
-    if (status.toLowerCase() != 'delivered') { color = const Color(0xFFB45309); bg = const Color(0xFFFEF3C7); }
+    final s = status.toLowerCase();
+    Color color;
+    Color bg;
+    if (s == 'delivered' || s == 'completed') {
+      color = const Color(0xFF2E7D32); bg = const Color(0xFFE2F5E9);
+    } else if (s == 'cancelled') {
+      color = const Color(0xFFB91C1C); bg = const Color(0xFFFEE2E2);
+    } else {
+      color = const Color(0xFFB45309); bg = const Color(0xFFFEF3C7);
+    }
     return Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4), decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(12)), child: Text(status.toUpperCase(), style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.bold)));
   }
 
@@ -276,6 +282,38 @@ class _OrderDetailsSheet extends StatelessWidget {
                       fontWeight: FontWeight.bold),
                 ),
               ],
+            ),
+          ],
+          if (order.status.toLowerCase() == 'cancelled') ...[
+            const SizedBox(height: 16),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFEE2E2),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFFFCA5A5)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(children: [
+                    const Icon(Icons.cancel_rounded, size: 16, color: Color(0xFFB91C1C)),
+                    const SizedBox(width: 8),
+                    Text(
+                      order.cancelledBy != null
+                          ? 'Cancelled by ${order.cancelledBy![0].toUpperCase()}${order.cancelledBy!.substring(1)}'
+                          : 'Order Cancelled',
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFFB91C1C)),
+                    ),
+                  ]),
+                  if (order.cancelReason != null && order.cancelReason!.isNotEmpty) ...[
+                    const SizedBox(height: 6),
+                    Text('Reason: ${order.cancelReason}',
+                        style: const TextStyle(fontSize: 13, color: Color(0xFF7F1D1D))),
+                  ],
+                ],
+              ),
             ),
           ],
           const SizedBox(height: 24),

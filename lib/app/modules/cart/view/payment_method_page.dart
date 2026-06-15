@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:difwawaterapp/app/data/services/db_service.dart';
 import '../../../data/services/order_service.dart';
 import '../../../data/services/subscription_service.dart';
@@ -8,7 +10,6 @@ import '../../../data/services/wallet_service.dart';
 import 'order_success_page.dart';
 
 import '../../../data/services/shop_service.dart';
-import '../../../../main.dart'; // To access rootScaffoldMessengerKey
 import '../../../data/models/shop_product_model.dart';
 
 class PaymentMethodPage extends ConsumerStatefulWidget {
@@ -21,6 +22,8 @@ class PaymentMethodPage extends ConsumerStatefulWidget {
 class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
   bool _isLoading = false;
   int _orderType = 0; // 0: One-time, 1: Scheduled
+  String _paymentMethod = 'Wallet'; // 'Wallet' or 'Cash' (one-time orders)
+  String _subscriptionPaymentType = 'Wallet'; // 'Wallet' (upfront) or 'PayLater' (subscription orders)
   String _frequency = 'Daily';
   List<String> _selectedDays = [];
   String? _selectedSlot;
@@ -30,16 +33,14 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
   /// Show a clean, user-friendly snackbar — no 'Exception:' prefix ever shown.
   void _showError(String message) {
     if (!mounted) return;
-
-    // Use context since we already checked mounted
-    ScaffoldMessenger.of(context).showSnackBar(
+    final messenger = ScaffoldMessenger.maybeOf(context);
+    messenger?.showSnackBar(
       SnackBar(
         content: Row(
           children: [
             const Icon(Icons.info_outline, color: Colors.white, size: 18),
             const SizedBox(width: 10),
-            Expanded(
-                child: Text(message, style: const TextStyle(fontSize: 14))),
+            Expanded(child: Text(message, style: const TextStyle(fontSize: 14))),
           ],
         ),
         backgroundColor: const Color(0xFF0891B2),
@@ -51,24 +52,23 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
     );
   }
 
-  Future<void> _refreshAfterPurchase(
-      WidgetRef ref, CartProvider cartProvider) async {
+  Future<void> _refreshAfterPurchase(WidgetRef ref, CartProvider cartProvider) async {
     // 1. Sync the CartProvider's internal wallet and orders state
     await cartProvider.syncWallet();
     await cartProvider.syncOrders();
-
+    
     // 2. Invalidate Riverpod providers to force global UI updates
     ref.invalidate(walletBalanceProvider);
     ref.invalidate(walletHistoryProvider);
     ref.invalidate(walletTransactionsProvider);
     ref.invalidate(activeOrdersProvider);
     ref.invalidate(myOrdersProvider);
-
+    
     // 3. Refresh subscriptions list notifier
     if (mounted) {
       ref.invalidate(mySubscriptionsProvider);
     }
-
+    
     // 4. Clear the cart
     cartProvider.clearCart();
   }
@@ -92,10 +92,9 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
   @override
   void initState() {
     super.initState();
-    // Default start date = tomorrow
     _startDate = DateTime.now().add(const Duration(days: 1));
+    _loadCheckoutDraft();
 
-    // Sync wallet balance when page is opened to reflect latest money
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         final cart = CartProviderScope.of(context);
@@ -115,12 +114,9 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
     try {
       String? dateParam;
       if (_orderType == 1) {
-        dateParam =
-            "${_startDate.year}-${_startDate.month.toString().padLeft(2, '0')}-${_startDate.day.toString().padLeft(2, '0')}";
+        dateParam = "${_startDate.year}-${_startDate.month.toString().padLeft(2, '0')}-${_startDate.day.toString().padLeft(2, '0')}";
       }
-      var slots = await ref
-          .read(shopServiceProvider)
-          .getShopSlots(shopId, date: dateParam);
+      var slots = await ref.read(shopServiceProvider).getShopSlots(shopId, date: dateParam);
       if (slots.isEmpty) {
         final shopVal = ref.read(shopDetailsProvider(shopId)).value;
         if (shopVal != null && shopVal.deliverySlots.isNotEmpty) {
@@ -132,13 +128,13 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
       if (mounted) {
         setState(() {
           _slotsAvailability = slots;
-
+          
           // Verify current slot is still valid and available
           if (_selectedSlot != null) {
-            final slotExistsAndAvailable =
-                slots.any((s) => s.slot == _selectedSlot && s.available);
+            final slotExistsAndAvailable = slots.any((s) => s.slot == _selectedSlot && s.available);
             if (!slotExistsAndAvailable) {
               _selectedSlot = null; // Reset selection if no longer available
+              _saveCheckoutDraft();
             }
           }
         });
@@ -153,6 +149,66 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
   @override
   void dispose() {
     super.dispose();
+  }
+
+  Future<void> _loadCheckoutDraft() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final orderType = prefs.getInt('checkout_draft_order_type');
+      final frequency = prefs.getString('checkout_draft_frequency');
+      final selectedDays = prefs.getStringList('checkout_draft_selected_days');
+      final startDateStr = prefs.getString('checkout_draft_start_date');
+      final selectedSlot = prefs.getString('checkout_draft_selected_slot');
+
+      final subPaymentType = prefs.getString('checkout_draft_sub_payment_type');
+
+      if (mounted) {
+        setState(() {
+          if (orderType != null) _orderType = orderType;
+          if (frequency != null) _frequency = frequency;
+          if (selectedDays != null) _selectedDays = selectedDays;
+          if (startDateStr != null) {
+            _startDate = DateTime.tryParse(startDateStr) ?? DateTime.now().add(const Duration(days: 1));
+          }
+          if (selectedSlot != null) _selectedSlot = selectedSlot;
+          if (subPaymentType != null) _subscriptionPaymentType = subPaymentType;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error loading checkout draft: $e');
+    }
+  }
+
+  Future<void> _saveCheckoutDraft() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setInt('checkout_draft_order_type', _orderType);
+      await prefs.setString('checkout_draft_frequency', _frequency);
+      await prefs.setStringList('checkout_draft_selected_days', _selectedDays);
+      await prefs.setString('checkout_draft_start_date', _startDate.toIso8601String());
+      if (_selectedSlot != null) {
+        await prefs.setString('checkout_draft_selected_slot', _selectedSlot!);
+      } else {
+        await prefs.remove('checkout_draft_selected_slot');
+      }
+      await prefs.setString('checkout_draft_sub_payment_type', _subscriptionPaymentType);
+    } catch (e) {
+      debugPrint('Error saving checkout draft: $e');
+    }
+  }
+
+  Future<void> _clearCheckoutDraft() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('checkout_draft_order_type');
+      await prefs.remove('checkout_draft_frequency');
+      await prefs.remove('checkout_draft_selected_days');
+      await prefs.remove('checkout_draft_start_date');
+      await prefs.remove('checkout_draft_selected_slot');
+      await prefs.remove('checkout_draft_sub_payment_type');
+    } catch (e) {
+      debugPrint('Error clearing checkout draft: $e');
+    }
   }
 
   Future<void> _pickDate() async {
@@ -174,7 +230,10 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
       ),
     );
     if (picked != null) {
-      setState(() => _startDate = picked);
+      setState(() {
+        _startDate = picked;
+        _saveCheckoutDraft();
+      });
       _fetchSlotsAvailability();
     }
   }
@@ -220,10 +279,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                   Expanded(
                     child: Text(
                       cartProvider.deliveryMessage,
-                      style: TextStyle(
-                          color: Colors.red.shade700,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600),
+                      style: TextStyle(color: Colors.red.shade700, fontSize: 13, fontWeight: FontWeight.w600),
                     ),
                   ),
                 ],
@@ -235,6 +291,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+
                   GestureDetector(
                     onTap: () async {
                       await Navigator.pushNamed(context, '/wallet');
@@ -343,21 +400,13 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                             const Text('Delivery Charges',
                                 style: TextStyle(color: Colors.grey)),
                             if (cartProvider.isCalculatingDelivery)
-                              const SizedBox(
-                                  width: 12,
-                                  height: 12,
-                                  child: CircularProgressIndicator(
-                                      strokeWidth: 2, color: Colors.grey))
+                              const SizedBox(width: 12, height: 12, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.grey))
                             else
                               Text(
                                 '₹${cartProvider.deliveryFee.toStringAsFixed(0)}',
                                 style: TextStyle(
-                                  color: cartProvider.deliveryFee > 0
-                                      ? Colors.black
-                                      : Colors.green,
-                                  fontWeight: cartProvider.deliveryFee > 0
-                                      ? FontWeight.bold
-                                      : FontWeight.w500,
+                                  color: cartProvider.deliveryFee > 0 ? Colors.black : Colors.green,
+                                  fontWeight: cartProvider.deliveryFee > 0 ? FontWeight.bold : FontWeight.w500,
                                 ),
                               ),
                           ],
@@ -382,6 +431,124 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                     ),
                   ),
                   const SizedBox(height: 24),
+                  const Text('Payment Method',
+                      style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF1F2937))),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () => setState(() => _paymentMethod = 'Wallet'),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 16, horizontal: 12),
+                            decoration: BoxDecoration(
+                              color: _paymentMethod == 'Wallet'
+                                  ? AppColors.primary
+                                  : Colors.white,
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: _paymentMethod == 'Wallet'
+                                    ? AppColors.primary
+                                    : const Color(0xFF00ACC1).withOpacity(0.2),
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.05),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: Column(
+                              children: [
+                                Icon(
+                                  Icons.account_balance_wallet_rounded,
+                                  color: _paymentMethod == 'Wallet'
+                                      ? Colors.white
+                                      : AppColors.primary,
+                                  size: 26,
+                                ),
+                                const SizedBox(height: 8),
+                                Text('Wallet',
+                                    style: TextStyle(
+                                        color: _paymentMethod == 'Wallet'
+                                            ? Colors.white
+                                            : Colors.black87,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 13)),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: _orderType == 1
+                              ? null
+                              : () => setState(() => _paymentMethod = 'Cash'),
+                          child: Opacity(
+                            opacity: _orderType == 1 ? 0.45 : 1.0,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: 16, horizontal: 12),
+                              decoration: BoxDecoration(
+                                color: _paymentMethod == 'Cash'
+                                    ? AppColors.primary
+                                    : Colors.white,
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(
+                                  color: _paymentMethod == 'Cash'
+                                      ? AppColors.primary
+                                      : const Color(0xFF00ACC1).withOpacity(0.2),
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.05),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: Column(
+                                children: [
+                                  Icon(
+                                    Icons.payments_rounded,
+                                    color: _paymentMethod == 'Cash'
+                                        ? Colors.white
+                                        : Colors.green.shade700,
+                                    size: 26,
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text('Cash on Delivery',
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                          color: _paymentMethod == 'Cash'
+                                              ? Colors.white
+                                              : Colors.black87,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 13)),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (_orderType == 1 && _paymentMethod == 'Cash')
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: Text(
+                        'Cash on Delivery is not available for scheduled orders.',
+                        style: TextStyle(color: Colors.orange.shade700, fontSize: 12),
+                      ),
+                    ),
+                  const SizedBox(height: 24),
                   const Text('Order Type',
                       style: TextStyle(
                           fontSize: 16,
@@ -394,7 +561,10 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                         label: 'One-time Order',
                         selected: _orderType == 0,
                         onTap: () {
-                          setState(() => _orderType = 0);
+                          setState(() {
+                            _orderType = 0;
+                            _saveCheckoutDraft();
+                          });
                           _fetchSlotsAvailability();
                         },
                         icon: Icons.shopping_bag_outlined,
@@ -404,7 +574,12 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                         label: 'Daily Deliveries',
                         selected: _orderType == 1,
                         onTap: () {
-                          setState(() => _orderType = 1);
+                          setState(() {
+                            _orderType = 1;
+                            // COD not supported for scheduled orders
+                            if (_paymentMethod == 'Cash') _paymentMethod = 'Wallet';
+                            _saveCheckoutDraft();
+                          });
                           _fetchSlotsAvailability();
                         },
                         icon: Icons.calendar_today_outlined,
@@ -428,10 +603,10 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                           onTap: () => setState(() {
                             _frequency = f;
                             if (f != 'Weekly') _selectedDays = [];
+                            _saveCheckoutDraft();
                           }),
                           child: Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 10),
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                             decoration: BoxDecoration(
                               color: isSel ? AppColors.primary : Colors.white,
                               borderRadius: BorderRadius.circular(12),
@@ -453,8 +628,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                               f,
                               style: TextStyle(
                                 color: isSel ? Colors.white : Colors.black,
-                                fontWeight:
-                                    isSel ? FontWeight.bold : FontWeight.w500,
+                                fontWeight: isSel ? FontWeight.bold : FontWeight.w500,
                                 fontSize: 13,
                               ),
                             ),
@@ -483,19 +657,20 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                               } else {
                                 _selectedDays.add(day);
                               }
+                              _saveCheckoutDraft();
                             }),
                             child: Container(
                               width: 44,
                               height: 44,
                               decoration: BoxDecoration(
-                                color:
-                                    selected ? AppColors.primary : Colors.white,
+                                color: selected
+                                    ? AppColors.primary
+                                    : Colors.white,
                                 borderRadius: BorderRadius.circular(12),
                                 border: Border.all(
                                   color: selected
                                       ? AppColors.primary
-                                      : const Color(0xFF00ACC1)
-                                          .withOpacity(0.2),
+                                      : const Color(0xFF00ACC1).withOpacity(0.2),
                                   width: 1.0,
                                 ),
                                 boxShadow: [
@@ -575,6 +750,43 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                       ),
                     ),
                     const SizedBox(height: 24),
+                    const Text('Payment Type',
+                        style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF1F2937))),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        _TypeButton(
+                          label: 'Pay Upfront',
+                          selected: _subscriptionPaymentType == 'Wallet',
+                          onTap: () => setState(() {
+                            _subscriptionPaymentType = 'Wallet';
+                            _saveCheckoutDraft();
+                          }),
+                          icon: Icons.account_balance_wallet_outlined,
+                        ),
+                        const SizedBox(width: 12),
+                        _TypeButton(
+                          label: 'Pay Later',
+                          selected: _subscriptionPaymentType == 'PayLater',
+                          onTap: () => setState(() {
+                            _subscriptionPaymentType = 'PayLater';
+                            _saveCheckoutDraft();
+                          }),
+                          icon: Icons.schedule_outlined,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      _subscriptionPaymentType == 'Wallet'
+                          ? 'Load your wallet once — daily cost is auto-deducted each morning.'
+                          : 'Deliveries start immediately; wallet balance may go negative.',
+                      style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+                    ),
+                    const SizedBox(height: 16),
                   ],
                   const Text('Delivery Slot',
                       style: TextStyle(
@@ -594,37 +806,31 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                       ),
                     )
                   else
-                    ref
-                        .watch(
-                            shopDetailsProvider(cartProvider.cartShopId ?? ''))
-                        .when(
+                    ref.watch(shopDetailsProvider(cartProvider.cartShopId ?? '')).when(
                           data: (shop) {
                             final List<DeliverySlotAvailability> displaySlots;
-                            if (_slotsAvailability != null &&
-                                _slotsAvailability!.isNotEmpty) {
+                            if (_slotsAvailability != null && _slotsAvailability!.isNotEmpty) {
                               displaySlots = _slotsAvailability!;
                             } else {
                               displaySlots = (shop?.deliverySlots ?? [])
-                                  .map((s) => DeliverySlotAvailability(
-                                      slot: s, available: true))
+                                  .map((s) => DeliverySlotAvailability(slot: s, available: true))
                                   .toList();
                             }
 
                             if (displaySlots.isEmpty) {
                               return Text('No slots available',
-                                  style:
-                                      TextStyle(color: Colors.grey.shade500));
+                                  style: TextStyle(color: Colors.grey.shade500));
                             }
 
                             // Verify selected slot is still valid and available
                             if (_selectedSlot != null) {
-                              final slotExistsAndAvailable = displaySlots.any(
-                                  (s) =>
-                                      s.slot == _selectedSlot && s.available);
+                              final slotExistsAndAvailable = displaySlots.any((s) => s.slot == _selectedSlot && s.available);
                               if (!slotExistsAndAvailable) {
-                                WidgetsBinding.instance
-                                    .addPostFrameCallback((_) {
-                                  setState(() => _selectedSlot = null);
+                                WidgetsBinding.instance.addPostFrameCallback((_) {
+                                  setState(() {
+                                    _selectedSlot = null;
+                                    _saveCheckoutDraft();
+                                  });
                                 });
                               }
                             }
@@ -639,42 +845,39 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                                   final slot = slotData.slot;
                                   final isAvailable = slotData.available;
                                   final isSelected = _selectedSlot == slot;
-
+                                  
                                   return Padding(
-                                    padding: const EdgeInsets.only(
-                                        right: 8, bottom: 8),
+                                    padding: const EdgeInsets.only(right: 8, bottom: 8),
                                     child: GestureDetector(
                                       onTap: !isAvailable
-                                          ? null
-                                          : () => setState(
-                                              () => _selectedSlot = slot),
+                                          ? () => _showError('This slot is currently full/unavailable.')
+                                          : () => setState(() {
+                                                _selectedSlot = slot;
+                                                _saveCheckoutDraft();
+                                              }),
                                       child: Opacity(
                                         opacity: isAvailable ? 1.0 : 0.45,
                                         child: Container(
-                                          padding: const EdgeInsets.symmetric(
-                                              horizontal: 16, vertical: 10),
+                                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                                           decoration: BoxDecoration(
-                                            color: isSelected
-                                                ? AppColors.primary
-                                                : isAvailable
-                                                    ? Colors.white
+                                            color: isSelected 
+                                                ? AppColors.primary 
+                                                : isAvailable 
+                                                    ? Colors.white 
                                                     : Colors.grey.shade200,
-                                            borderRadius:
-                                                BorderRadius.circular(12),
+                                            borderRadius: BorderRadius.circular(12),
                                             border: Border.all(
                                               color: isSelected
                                                   ? AppColors.primary
                                                   : isAvailable
-                                                      ? const Color(0xFF00ACC1)
-                                                          .withOpacity(0.2)
+                                                      ? const Color(0xFF00ACC1).withOpacity(0.2)
                                                       : Colors.grey.shade300,
                                               width: 1.0,
                                             ),
                                             boxShadow: [
                                               if (isAvailable)
                                                 BoxShadow(
-                                                  color: Colors.black
-                                                      .withOpacity(0.05),
+                                                  color: Colors.black.withOpacity(0.05),
                                                   blurRadius: 10,
                                                   offset: const Offset(0, 4),
                                                 ),
@@ -684,19 +887,14 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                                             child: Text(
                                               slot,
                                               style: TextStyle(
-                                                color: isSelected
-                                                    ? Colors.white
-                                                    : isAvailable
-                                                        ? Colors.black
+                                                color: isSelected 
+                                                    ? Colors.white 
+                                                    : isAvailable 
+                                                        ? Colors.black 
                                                         : Colors.grey.shade500,
-                                                fontWeight: isSelected
-                                                    ? FontWeight.bold
-                                                    : FontWeight.w500,
+                                                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
                                                 fontSize: 13,
-                                                decoration: isAvailable
-                                                    ? null
-                                                    : TextDecoration
-                                                        .lineThrough,
+                                                decoration: isAvailable ? null : TextDecoration.lineThrough,
                                               ),
                                             ),
                                           ),
@@ -715,8 +913,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                                   child: CircularProgressIndicator())),
                           error: (_, __) => Text(
                             'Could not load delivery slots. Pull to refresh.',
-                            style: TextStyle(
-                                color: Colors.grey.shade500, fontSize: 13),
+                            style: TextStyle(color: Colors.grey.shade500, fontSize: 13),
                           ),
                         ),
                   const SizedBox(height: 32),
@@ -730,28 +927,24 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
               width: double.infinity,
               height: 56,
               child: ElevatedButton(
-                onPressed: (_isLoading ||
-                        !cartProvider.isDeliverable ||
-                        cartProvider.isCalculatingDelivery)
+                onPressed: (_isLoading || !cartProvider.isDeliverable || cartProvider.isCalculatingDelivery)
                     ? null
                     : () async {
+                        HapticFeedback.mediumImpact();
                         // ── Validate user inputs BEFORE setting loading ────────
                         final selectedAddr = cartProvider.selectedAddress;
                         if (selectedAddr == null) {
-                          _showError(
-                              'Please select a delivery address to continue.');
+                          _showError('Please select a delivery address to continue.');
                           return;
                         }
-                        if (cartProvider.walletBalance < cartProvider.total) {
-                          _showError(
-                              'Your wallet balance is low. Please top up to proceed.');
+                        if (_orderType == 0 &&
+                            _paymentMethod == 'Wallet' &&
+                            cartProvider.walletBalance < cartProvider.total) {
+                          _showError('Your wallet balance is low. Please top up to proceed.');
                           return;
                         }
-                        if (_orderType == 1 &&
-                            _frequency == 'Weekly' &&
-                            _selectedDays.isEmpty) {
-                          _showError(
-                              'Please choose at least one day for your weekly delivery.');
+                        if (_orderType == 1 && _frequency == 'Weekly' && _selectedDays.isEmpty) {
+                          _showError('Please choose at least one day for your weekly delivery.');
                           return;
                         }
                         if (_selectedSlot == null) {
@@ -764,8 +957,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                         // ── Fetch latest slots to check availability right before submit ──
                         await _fetchSlotsAvailability();
                         if (_selectedSlot == null) {
-                          _showError(
-                              'The selected delivery slot is no longer available. Please select another slot.');
+                          _showError('The selected delivery slot is no longer available. Please select another slot.');
                           setState(() => _isLoading = false);
                           return;
                         }
@@ -787,9 +979,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                             final stateParts = parts[1].trim().split(' ');
                             if (stateParts.length > 1) {
                               pincode = stateParts.last;
-                              state = stateParts
-                                  .sublist(0, stateParts.length - 1)
-                                  .join(' ');
+                              state = stateParts.sublist(0, stateParts.length - 1).join(' ');
                             } else {
                               state = parts[1].trim();
                             }
@@ -799,8 +989,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                             'fullName': fullName,
                             'street': selectedAddr.street,
                             'address': selectedAddr.street,
-                            'fullAddress':
-                                '${selectedAddr.street}, ${selectedAddr.details}',
+                            'fullAddress': '${selectedAddr.street}, ${selectedAddr.details}',
                             'city': city,
                             'state': state,
                             'pincode': pincode,
@@ -824,57 +1013,49 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
 
                           if (_orderType == 1) {
                             // SCHEDULED ORDER
-                            final subService =
-                                ref.read(subscriptionServiceProvider);
+                            final subService = ref.read(subscriptionServiceProvider);
                             for (final item in cartProvider.items) {
                               final res = await subService.subscribeToProduct(
                                 productId: item.id,
                                 frequency: _frequency,
                                 quantity: item.quantity,
                                 deliveryAddress: deliveryAddressMap,
-                                customDays:
-                                    _frequency == 'Weekly' ? _selectedDays : [],
+                                customDays: _frequency == 'Weekly' ? _selectedDays : [],
                                 startDate: _startDate,
                                 deliverySlot: _selectedSlot,
+                                paymentMethod: _subscriptionPaymentType,
                               );
                               if (res['success'] != true) {
                                 final String errMsg = res['message'] ?? '';
-                                if (errMsg.contains('slot') ||
-                                    errMsg.contains('Slot') ||
-                                    errMsg.contains('no longer available')) {
+                                if (errMsg.contains('slot') || errMsg.contains('Slot') || errMsg.contains('no longer available')) {
                                   await _fetchSlotsAvailability();
                                 }
-                                final cleanMsg = errMsg.replaceAll(
-                                    RegExp(r'^ApiException(\(\d+\))?:\s*'), '');
-                                _showError(cleanMsg.isNotEmpty
-                                    ? cleanMsg
-                                    : 'Could not subscribe to ${item.title}. Please try again.');
+                                final cleanMsg = errMsg.replaceAll(RegExp(r'^ApiException(\(\d+\))?:\s*'), '');
+                                _showError(cleanMsg.isNotEmpty ? cleanMsg : 'Could not subscribe to ${item.title}. Please try again.');
                                 return;
                               }
                             }
                             await _refreshAfterPurchase(ref, cartProvider);
+                            await _clearCheckoutDraft();
                             if (!mounted) return;
                             navigator.pushAndRemoveUntil(
-                                MaterialPageRoute(
-                                    builder: (_) => const OrderSuccessPage()),
+                                MaterialPageRoute(builder: (_) => const OrderSuccessPage()),
                                 (route) => route.isFirst);
                           } else {
                             // ONE-TIME ORDER
                             final orderService = ref.read(orderServiceProvider);
-                            final itemsMap = cartProvider.items
-                                .map((item) => {
-                                      'product': item.id,
-                                      'retailer': item.shopId,
-                                      'quantity': item.quantity,
-                                      'price': item.unitPrice,
-                                    })
-                                .toList();
+                            final itemsMap = cartProvider.items.map((item) => {
+                                'product': item.id,
+                                'retailer': item.shopId,
+                                'quantity': item.quantity,
+                                'price': item.unitPrice,
+                              }).toList();
 
                             final response = await orderService.placeOrder(
                                 items: itemsMap,
                                 totalAmount: cartProvider.total,
                                 deliveryAddress: deliveryAddressMap,
-                                paymentMethod: 'Wallet',
+                                paymentMethod: _paymentMethod,
                                 deliverySlot: _selectedSlot,
                                 coordinates: (selectedAddr.latitude != null &&
                                         selectedAddr.longitude != null)
@@ -888,30 +1069,24 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
 
                             if (response['success'] == true) {
                               await _refreshAfterPurchase(ref, cartProvider);
+                              await _clearCheckoutDraft();
                               if (!mounted) return;
                               navigator.pushAndRemoveUntil(
                                   MaterialPageRoute(
-                                      builder: (_) => OrderSuccessPage(
-                                          order: response['order'])),
+                                      builder: (_) => OrderSuccessPage(order: response['order'])),
                                   (route) => route.isFirst);
                             } else {
                               final String errMsg = response['message'] ?? '';
-                              if (errMsg.contains('slot') ||
-                                  errMsg.contains('Slot') ||
-                                  errMsg.contains('no longer available')) {
+                              if (errMsg.contains('slot') || errMsg.contains('Slot') || errMsg.contains('no longer available')) {
                                 await _fetchSlotsAvailability();
                               }
-                              final cleanMsg = errMsg.replaceAll(
-                                  RegExp(r'^ApiException(\(\d+\))?:\s*'), '');
-                              _showError(cleanMsg.isNotEmpty
-                                  ? cleanMsg
-                                  : 'Order could not be placed. Please try again.');
+                              final cleanMsg = errMsg.replaceAll(RegExp(r'^ApiException(\(\d+\))?:\s*'), '');
+                              _showError(cleanMsg.isNotEmpty ? cleanMsg : 'Order could not be placed. Please try again.');
                             }
                           }
                         } catch (_) {
                           // Unexpected network/server error — never show raw exception to user
-                          _showError(
-                              'Something went wrong. Please check your connection and try again.');
+                          _showError('Something went wrong. Please check your connection and try again.');
                         } finally {
                           if (mounted) setState(() => _isLoading = false);
                         }
@@ -929,8 +1104,11 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                         width: 20,
                         child: CircularProgressIndicator(
                             color: Colors.white, strokeWidth: 2))
-                    : const Text('Make a payment',
-                        style: TextStyle(
+                    : Text(
+                        _paymentMethod == 'Cash'
+                            ? 'Place Order (Pay on Delivery)'
+                            : 'Make a payment',
+                        style: const TextStyle(
                             fontSize: 17, fontWeight: FontWeight.bold)),
               ),
             ),
@@ -979,8 +1157,7 @@ class _TypeButton extends StatelessWidget {
           ),
           child: Column(
             children: [
-              Icon(icon,
-                  color: selected ? Colors.white : Colors.grey, size: 24),
+              Icon(icon, color: selected ? Colors.white : Colors.grey, size: 24),
               const SizedBox(height: 8),
               Text(
                 label,
@@ -997,6 +1174,8 @@ class _TypeButton extends StatelessWidget {
     );
   }
 }
+
+
 
 class _CheckoutStepper extends StatelessWidget {
   final int currentStep;
@@ -1058,8 +1237,9 @@ class _StepDot extends StatelessWidget {
           style: TextStyle(
               fontSize: 10,
               fontWeight: FontWeight.w600,
-              color:
-                  (done || active) ? AppColors.primary : Colors.grey.shade400,
+              color: (done || active)
+                  ? AppColors.primary
+                  : Colors.grey.shade400,
               letterSpacing: 0.5),
         ),
       ],

@@ -29,6 +29,8 @@ import '../modules/support/view/help_support_page.dart';
 import '../modules/support/view/faq_page.dart';
 import '../modules/retailer/view/retailer_home_page.dart';
 import '../modules/communication_hub/view/communication_hub_page.dart';
+import '../modules/settings/view/language_selection_page.dart';
+import '../modules/settings/view/first_time_language_page.dart';
 
 class AppPages {
   static Map<String, WidgetBuilder> get routes => {
@@ -90,5 +92,7 @@ class AppPages {
         AppRoutes.faq: (context) => const FaqPage(),
         AppRoutes.retailerHome: (context) => const RetailerHomePage(),
         AppRoutes.communicationHub: (context) => const CommunicationHubPage(),
+        AppRoutes.languageSelection: (context) => const LanguageSelectionPage(),
+        AppRoutes.firstTimeLanguage: (context) => const FirstTimeLanguagePage(),
       };
 }
