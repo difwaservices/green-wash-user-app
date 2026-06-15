@@ -217,6 +217,7 @@ class SubscriptionService {
     List<String> customDays = const [],
     DateTime? startDate,
     String? deliverySlot,
+    String paymentMethod = 'Wallet', // 'Wallet' (upfront) or 'PayLater'
   }) async {
     try {
       final payload = {
@@ -227,6 +228,7 @@ class SubscriptionService {
         'customDays': customDays,
         'startDate': startDate?.toIso8601String(),
         if (deliverySlot != null) 'deliverySlot': deliverySlot,
+        'paymentMethod': paymentMethod,
       };
 
       final json = await _client.post(

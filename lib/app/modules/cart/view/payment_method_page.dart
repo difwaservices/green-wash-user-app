@@ -22,7 +22,8 @@ class PaymentMethodPage extends ConsumerStatefulWidget {
 class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
   bool _isLoading = false;
   int _orderType = 0; // 0: One-time, 1: Scheduled
-  String _paymentMethod = 'Wallet'; // 'Wallet' or 'Cash'
+  String _paymentMethod = 'Wallet'; // 'Wallet' or 'Cash' (one-time orders)
+  String _subscriptionPaymentType = 'Wallet'; // 'Wallet' (upfront) or 'PayLater' (subscription orders)
   String _frequency = 'Daily';
   List<String> _selectedDays = [];
   String? _selectedSlot;
@@ -159,6 +160,8 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
       final startDateStr = prefs.getString('checkout_draft_start_date');
       final selectedSlot = prefs.getString('checkout_draft_selected_slot');
 
+      final subPaymentType = prefs.getString('checkout_draft_sub_payment_type');
+
       if (mounted) {
         setState(() {
           if (orderType != null) _orderType = orderType;
@@ -168,6 +171,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
             _startDate = DateTime.tryParse(startDateStr) ?? DateTime.now().add(const Duration(days: 1));
           }
           if (selectedSlot != null) _selectedSlot = selectedSlot;
+          if (subPaymentType != null) _subscriptionPaymentType = subPaymentType;
         });
       }
     } catch (e) {
@@ -187,6 +191,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
       } else {
         await prefs.remove('checkout_draft_selected_slot');
       }
+      await prefs.setString('checkout_draft_sub_payment_type', _subscriptionPaymentType);
     } catch (e) {
       debugPrint('Error saving checkout draft: $e');
     }
@@ -200,6 +205,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
       await prefs.remove('checkout_draft_selected_days');
       await prefs.remove('checkout_draft_start_date');
       await prefs.remove('checkout_draft_selected_slot');
+      await prefs.remove('checkout_draft_sub_payment_type');
     } catch (e) {
       debugPrint('Error clearing checkout draft: $e');
     }
@@ -744,6 +750,43 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                       ),
                     ),
                     const SizedBox(height: 24),
+                    const Text('Payment Type',
+                        style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF1F2937))),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        _TypeButton(
+                          label: 'Pay Upfront',
+                          selected: _subscriptionPaymentType == 'Wallet',
+                          onTap: () => setState(() {
+                            _subscriptionPaymentType = 'Wallet';
+                            _saveCheckoutDraft();
+                          }),
+                          icon: Icons.account_balance_wallet_outlined,
+                        ),
+                        const SizedBox(width: 12),
+                        _TypeButton(
+                          label: 'Pay Later',
+                          selected: _subscriptionPaymentType == 'PayLater',
+                          onTap: () => setState(() {
+                            _subscriptionPaymentType = 'PayLater';
+                            _saveCheckoutDraft();
+                          }),
+                          icon: Icons.schedule_outlined,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      _subscriptionPaymentType == 'Wallet'
+                          ? 'Load your wallet once — daily cost is auto-deducted each morning.'
+                          : 'Deliveries start immediately; wallet balance may go negative.',
+                      style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+                    ),
+                    const SizedBox(height: 16),
                   ],
                   const Text('Delivery Slot',
                       style: TextStyle(
@@ -894,7 +937,8 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                           _showError('Please select a delivery address to continue.');
                           return;
                         }
-                        if (_paymentMethod == 'Wallet' &&
+                        if (_orderType == 0 &&
+                            _paymentMethod == 'Wallet' &&
                             cartProvider.walletBalance < cartProvider.total) {
                           _showError('Your wallet balance is low. Please top up to proceed.');
                           return;
@@ -979,6 +1023,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                                 customDays: _frequency == 'Weekly' ? _selectedDays : [],
                                 startDate: _startDate,
                                 deliverySlot: _selectedSlot,
+                                paymentMethod: _subscriptionPaymentType,
                               );
                               if (res['success'] != true) {
                                 final String errMsg = res['message'] ?? '';
