@@ -87,7 +87,7 @@ class _ProductDetailsPageState extends ConsumerState<ProductDetailsPage> {
     final isLowStock = product.stockStatus == 'Low Stock';
     final isAvailable = product.isShopActive && !isOutOfStock;
 
-    // ── Live favourite state from provider ──────────────────────────────────
+    // â”€â”€ Live favourite state from provider â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     final favsAsync = ref.watch(favoritesProvider);
     final isFav = favsAsync.asData?.value.contains(product.id) ?? false;
 
@@ -101,7 +101,7 @@ class _ProductDetailsPageState extends ConsumerState<ProductDetailsPage> {
     }
 
     final description = cleanText(product.description.isNotEmpty &&
-            !product.description.contains('तथा')
+            !product.description.contains('à¤¤à¤¥à¤¾')
         ? product.description
         : 'Enjoy pure, healthy, and refreshing hydration with Difwa Alkaline Water. Enriched with essential minerals and balanced pH, it is ideal for homes, offices, gyms, and commercial use.');
 
@@ -243,7 +243,7 @@ class _ProductDetailsPageState extends ConsumerState<ProductDetailsPage> {
                               ),
                               const SizedBox(width: 16),
                               Text(
-                                '₹${product.price.toStringAsFixed(0)}',
+                                'â‚¹${product.price.toStringAsFixed(0)}',
                                 style: const TextStyle(
                                   fontSize: 24,
                                   fontWeight: FontWeight.w800,
@@ -393,7 +393,7 @@ class _ProductDetailsPageState extends ConsumerState<ProductDetailsPage> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       if (isInCart) ...[
-                        // Item is in cart — show live quantity stepper + Go to Cart
+                        // Item is in cart â€” show live quantity stepper + Go to Cart
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -434,7 +434,7 @@ class _ProductDetailsPageState extends ConsumerState<ProductDetailsPage> {
                           ),
                         ),
                       ] else ...[
-                        // Item is NOT in cart — show simple Add to Cart button
+                        // Item is NOT in cart â€” show simple Add to Cart button
                         ElevatedButton(
                           onPressed: isAvailable
                               ? () {

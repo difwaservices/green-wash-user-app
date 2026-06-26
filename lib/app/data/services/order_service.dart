@@ -308,7 +308,7 @@ class ActiveOrdersNotifier extends AsyncNotifier<List<UserOrder>> {
     // Listen for real-time order status updates from socket
     final socket = ref.watch(socketServiceProvider);
     socket.onOrderUpdate((data) {
-      debugPrint('🔔 ActiveOrdersNotifier: Order update received: $data');
+      debugPrint('ðŸ”” ActiveOrdersNotifier: Order update received: $data');
       final orderId = (data['orderId'] ?? data['_id'] ?? '').toString();
       final newStatus = (data['status'] ?? '').toString();
 
@@ -327,7 +327,7 @@ class ActiveOrdersNotifier extends AsyncNotifier<List<UserOrder>> {
             updatedOrders[index] = updatedOrders[index].copyWith(status: newStatus);
           }
           state = AsyncValue.data(updatedOrders);
-          debugPrint('✅ Updated active orders list locally for order $orderId');
+          debugPrint('âœ… Updated active orders list locally for order $orderId');
         }
       }
     });

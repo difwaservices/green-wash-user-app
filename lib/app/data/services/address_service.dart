@@ -89,8 +89,8 @@ class AddressService {
     };
 
     if (kDebugMode) {
-      debugPrint('📍 Updating Address: $id');
-      debugPrint('📍 Payload: $payload');
+      debugPrint('ðŸ“ Updating Address: $id');
+      debugPrint('ðŸ“ Payload: $payload');
     }
 
     try {
@@ -101,12 +101,12 @@ class AddressService {
       );
       
       if (kDebugMode) {
-        debugPrint('📍 Update Response: $response');
+        debugPrint('ðŸ“ Update Response: $response');
       }
       
       return response;
     } catch (e) {
-      debugPrint('📍 Update Address Error: $e');
+      debugPrint('ðŸ“ Update Address Error: $e');
       rethrow;
     }
   }

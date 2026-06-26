@@ -44,7 +44,7 @@ class LoaderUtils {
           context: context,
           barrierDismissible: false,
           builder: (ctx) => const Center(
-            child: CircularProgressIndicator(color: Color(0xFF06B6D4)),
+            child: CircularProgressIndicator(color: Color(0xFF2E7D32)),
           ),
         );
       }

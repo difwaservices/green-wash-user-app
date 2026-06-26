@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/constants/app_images.dart';
+import '../../core/constants/app_colors.dart';
 import 'provider/auth_provider.dart';
 import '../../data/models/food_models.dart';
 import '../../data/services/db_service.dart';
@@ -27,11 +28,11 @@ class OtpVerificationPage extends ConsumerStatefulWidget {
 
 class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage>
     with TickerProviderStateMixin {
-  // ── Controllers & Focus ──────────────────────────────────────────────────
+  // â”€â”€ Controllers & Focus â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   final TextEditingController _pinController = TextEditingController();
   final FocusNode _pinFocusNode = FocusNode();
 
-  // ── State ────────────────────────────────────────────────────────────────
+  // â”€â”€ State â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   int _resendTimer = 30;
   bool _isVerifying = false;
   bool _isSendingOtp = false;
@@ -40,7 +41,7 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage>
   // track which box is "filled" for animation
   final List<bool> _filled = List.generate(6, (_) => false);
 
-  // ── Animation Controllers ─────────────────────────────────────────────────
+  // â”€â”€ Animation Controllers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   late AnimationController _fadeCtrl;
   late AnimationController _slideCtrl;
   late AnimationController _shakeCtrl;
@@ -94,7 +95,7 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage>
       SnackBar(
         content: Text('Test OTP: $otp',
             style: const TextStyle(fontWeight: FontWeight.bold)),
-        backgroundColor: const Color(0xFF06B6D4),
+        backgroundColor: const Color(0xFF2E7D32),
         behavior: SnackBarBehavior.floating,
         margin: EdgeInsets.only(
           bottom: MediaQuery.of(context).size.height - 200,
@@ -125,7 +126,7 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage>
   void _onDigitChanged(int index, String value) {}
   bool _handleKeyEvent(int index, KeyEvent event) => false;
 
-  // ── Timer ─────────────────────────────────────────────────────────────────
+  // â”€â”€ Timer â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   void _startTimer() {
     Future.delayed(const Duration(seconds: 1), () {
       if (mounted && _resendTimer > 0) {
@@ -135,7 +136,7 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage>
     });
   }
 
-  // ── Network actions ───────────────────────────────────────────────────────
+  // â”€â”€ Network actions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Future<void> _sendOtp() async {
     if (_isSendingOtp) return;
     setState(() => _isSendingOtp = true);
@@ -215,7 +216,7 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage>
     super.dispose();
   }
 
-  // ── Build ─────────────────────────────────────────────────────────────────
+  // â”€â”€ Build â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -263,7 +264,7 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage>
     });
 
     return Scaffold(
-      backgroundColor: const Color(0xFFE0F7FA),
+      backgroundColor: Colors.white,
       body: SafeArea(
         bottom: false,
         child: FadeTransition(
@@ -274,7 +275,7 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage>
               physics: const BouncingScrollPhysics(),
               child: Column(
                 children: [
-                  // ── Back button ───────────────────────────────────────────
+                  // â”€â”€ Back button â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
                   Padding(
                     padding: const EdgeInsets.symmetric(
                         horizontal: 24, vertical: 16),
@@ -284,13 +285,13 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage>
                           onTap: () => Navigator.pop(context),
                           child: Container(
                             padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.5),
+                            decoration: const BoxDecoration(
+                              color: Color(0xFFF1F5F9),
                               shape: BoxShape.circle,
                             ),
                             child: const Icon(
                               Icons.arrow_back,
-                              color: Color(0xFF06B6D4),
+                              color: Color(0xFF2E7D32),
                               size: 24,
                             ),
                           ),
@@ -298,22 +299,17 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage>
                       ],
                     ),
                   ),
-                  const SizedBox(height: 16),
 
-                  // ── White card ────────────────────────────────────────────
+                  // â”€â”€ White card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
                   Container(
                     width: double.infinity,
                     constraints: BoxConstraints(
-                      minHeight: screenSize.height - (isSmallScreen ? 80 : 120),
+                      minHeight: screenSize.height,
                     ),
                     padding: EdgeInsets.fromLTRB(
-                        28, isSmallScreen ? 30 : 40, 28, 40),
+                        28, isSmallScreen ? 10 : 20, 28, 40),
                     decoration: const BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(40),
-                        topRight: Radius.circular(40),
-                      ),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.center,
@@ -328,7 +324,7 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage>
                           child: const Icon(
                             Icons.vpn_key_outlined,
                             size: 44,
-                            color: Color(0xFF06B6D4),
+                            color: Color(0xFF2E7D32),
                           ),
                         )
                             .animate()
@@ -358,7 +354,7 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage>
                               TextSpan(
                                 text: widget.phoneNumber,
                                 style: const TextStyle(
-                                  color: Color(0xFF06B6D4),
+                                  color: Color(0xFF2E7D32),
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
@@ -369,12 +365,12 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage>
 
                         const SizedBox(height: 36),
 
-                        // ── OTP boxes ────────────────────────────────────────
+                        // â”€â”€ OTP boxes â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
                         if (_isSendingOtp)
                           const Padding(
                             padding: EdgeInsets.symmetric(vertical: 20),
                             child: CircularProgressIndicator(
-                                color: Color(0xFF06B6D4)),
+                                color: Color(0xFF2E7D32)),
                           )
                         else
                           Pinput(
@@ -396,7 +392,7 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage>
                                 color: const Color(0xFFEDF8FA),
                                 borderRadius: BorderRadius.circular(16),
                                 border: Border.all(
-                                  color: const Color(0xFF06B6D4)
+                                  color: const Color(0xFF2E7D32)
                                       .withValues(alpha: 0.2),
                                   width: 1,
                                 ),
@@ -408,13 +404,13 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage>
                               textStyle: const TextStyle(
                                 fontSize: 22,
                                 fontWeight: FontWeight.bold,
-                                color: Color(0xFF06B6D4),
+                                color: Color(0xFF2E7D32),
                               ),
                               decoration: BoxDecoration(
                                 color: Colors.white,
                                 borderRadius: BorderRadius.circular(16),
                                 border: Border.all(
-                                    color: const Color(0xFF06B6D4), width: 2),
+                                    color: const Color(0xFF2E7D32), width: 2),
                                 boxShadow: [
                                   BoxShadow(
                                     color: Colors.black.withOpacity(0.1),
@@ -430,14 +426,14 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage>
                               textStyle: const TextStyle(
                                 fontSize: 22,
                                 fontWeight: FontWeight.bold,
-                                color: Color(0xFF06B6D4),
+                                color: Color(0xFF2E7D32),
                               ),
                               decoration: BoxDecoration(
-                                color: const Color(0xFF06B6D4)
+                                color: const Color(0xFF2E7D32)
                                     .withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(16),
                                 border:
-                                    Border.all(color: const Color(0xFF06B6D4)),
+                                    Border.all(color: const Color(0xFF2E7D32)),
                               ),
                             ),
                             keyboardType: TextInputType.number,
@@ -452,7 +448,7 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage>
                                   margin: const EdgeInsets.only(bottom: 12),
                                   width: 20,
                                   height: 2,
-                                  color: const Color(0xFF06B6D4),
+                                  color: const Color(0xFF2E7D32),
                                 ),
                               ],
                             ),
@@ -462,7 +458,7 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage>
 
                         const SizedBox(height: 40),
 
-                        // ── Resend timer ──────────────────────────────────────
+                        // â”€â”€ Resend timer â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
@@ -483,7 +479,7 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage>
                                 child: Text(
                                   l10n.resendOtp,
                                   style: const TextStyle(
-                                    color: Color(0xFF06B6D4),
+                                    color: Color(0xFF2E7D32),
                                     fontWeight: FontWeight.w700,
                                     fontSize: 13,
                                   ),
@@ -495,7 +491,7 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage>
 
                         const SizedBox(height: 48),
 
-                        // ── Verify button ─────────────────────────────────────
+                        // â”€â”€ Verify button â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
                         AnimatedScale(
                           scale: _isVerifying ? 0.97 : 1.0,
                           duration: const Duration(milliseconds: 150),
@@ -507,21 +503,14 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage>
                               height: 56,
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(30),
-                                gradient: LinearGradient(
-                                  colors: _isVerifying
-                                      ? [
-                                          const Color(0xFF006064)
-                                              .withValues(alpha: 0.6),
-                                          const Color(0xFF00ACC1)
-                                              .withValues(alpha: 0.6)
-                                        ]
-                                      : [
-                                          const Color(0xFF006064),
-                                          const Color(0xFF00ACC1)
+                                gradient: _isVerifying
+                                    ? LinearGradient(
+                                        colors: [
+                                          AppColors.iconBgStart.withValues(alpha: 0.6),
+                                          AppColors.iconBgEnd.withValues(alpha: 0.6),
                                         ],
-                                  begin: Alignment.centerLeft,
-                                  end: Alignment.centerRight,
-                                ),
+                                      )
+                                    : AppColors.buttonBgGradient,
                                 boxShadow: _isVerifying
                                     ? []
                                     : [

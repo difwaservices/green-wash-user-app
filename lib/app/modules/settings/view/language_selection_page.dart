@@ -5,13 +5,27 @@ import '../../../core/localization/language_provider.dart';
 import '../../../core/localization/supported_languages.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 
-class LanguageSelectionPage extends ConsumerWidget {
+class LanguageSelectionPage extends ConsumerStatefulWidget {
   const LanguageSelectionPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<LanguageSelectionPage> createState() =>
+      _LanguageSelectionPageState();
+}
+
+class _LanguageSelectionPageState extends ConsumerState<LanguageSelectionPage> {
+  String _searchQuery = '';
+
+  @override
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final currentLocale = ref.watch(localeProvider);
+
+    final filteredLanguages = kSupportedLanguages.where((lang) {
+      final query = _searchQuery.toLowerCase();
+      return lang.name.toLowerCase().contains(query) ||
+          lang.nativeName.toLowerCase().contains(query);
+    }).toList();
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -33,7 +47,7 @@ class LanguageSelectionPage extends ConsumerWidget {
         children: [
           const Divider(height: 1),
           Padding(
-            padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 4),
             child: Text(
               l10n.chooseLanguage,
               style: const TextStyle(
@@ -42,40 +56,78 @@ class LanguageSelectionPage extends ConsumerWidget {
               ),
             ),
           ),
-          Expanded(
-            child: ListView.separated(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              itemCount: kSupportedLanguages.length,
-              separatorBuilder: (_, __) => const Divider(height: 1, indent: 56),
-              itemBuilder: (context, index) {
-                final lang = kSupportedLanguages[index];
-                final isSelected =
-                    currentLocale.languageCode == lang.locale.languageCode;
-
-                return _LanguageTile(
-                  language: lang,
-                  isSelected: isSelected,
-                  onTap: () async {
-                    await ref
-                        .read(localeProvider.notifier)
-                        .setLocale(lang.locale);
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(l10n.languageChanged),
-                          behavior: SnackBarBehavior.floating,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          duration: const Duration(seconds: 2),
-                          backgroundColor: AppColors.primary,
-                        ),
-                      );
-                    }
-                  },
-                );
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+            child: TextField(
+              decoration: InputDecoration(
+                hintText: 'Search language...',
+                prefixIcon: const Icon(Icons.search, color: Colors.grey),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Colors.grey.shade300),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Colors.grey.shade300),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: AppColors.primary),
+                ),
+                contentPadding: const EdgeInsets.symmetric(vertical: 0),
+                filled: true,
+                fillColor: Colors.grey.shade50,
+              ),
+              onChanged: (value) {
+                setState(() {
+                  _searchQuery = value;
+                });
               },
             ),
+          ),
+          Expanded(
+            child: filteredLanguages.isEmpty
+                ? const Center(
+                    child: Text(
+                      'No languages found.',
+                      style: TextStyle(color: Colors.grey),
+                    ),
+                  )
+                : ListView.separated(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    itemCount: filteredLanguages.length,
+                    separatorBuilder: (_, __) =>
+                        const Divider(height: 1, indent: 56),
+                    itemBuilder: (context, index) {
+                      final lang = filteredLanguages[index];
+                      final isSelected = currentLocale.languageCode ==
+                          lang.locale.languageCode;
+
+                      return _LanguageTile(
+                        language: lang,
+                        isSelected: isSelected,
+                        onTap: () async {
+                          await ref
+                              .read(localeProvider.notifier)
+                              .setLocale(lang.locale);
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(l10n.languageChanged),
+                                behavior: SnackBarBehavior.floating,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                duration: const Duration(seconds: 2),
+                                backgroundColor: AppColors.primary,
+                              ),
+                            );
+                          }
+                        },
+                      );
+                    },
+                  ),
           ),
         ],
       ),
@@ -162,17 +214,17 @@ class _LanguageTile extends StatelessWidget {
 
   String _flagEmoji(String code) {
     const flags = {
-      'en': '🇬🇧',
-      'hi': '🇮🇳',
-      'bn': '🇮🇳',
-      'te': '🇮🇳',
-      'mr': '🇮🇳',
-      'ta': '🇮🇳',
-      'kn': '🇮🇳',
-      'ml': '🇮🇳',
-      'gu': '🇮🇳',
-      'pa': '🇮🇳',
+      'en': 'ðŸ‡¬ðŸ‡§',
+      'hi': 'ðŸ‡®ðŸ‡³',
+      'bn': 'ðŸ‡®ðŸ‡³',
+      'te': 'ðŸ‡®ðŸ‡³',
+      'mr': 'ðŸ‡®ðŸ‡³',
+      'ta': 'ðŸ‡®ðŸ‡³',
+      'kn': 'ðŸ‡®ðŸ‡³',
+      'ml': 'ðŸ‡®ðŸ‡³',
+      'gu': 'ðŸ‡®ðŸ‡³',
+      'pa': 'ðŸ‡®ðŸ‡³',
     };
-    return flags[code] ?? '🌐';
+    return flags[code] ?? 'ðŸŒ';
   }
 }

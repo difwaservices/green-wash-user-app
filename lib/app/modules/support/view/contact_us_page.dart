@@ -35,7 +35,7 @@ class _ContactUsPageState extends ConsumerState<ContactUsPage> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: const Text('Message sent successfully!'),
-              backgroundColor: const Color(0xFF06B6D4),
+              backgroundColor: const Color(0xFF2E7D32),
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               margin: const EdgeInsets.fromLTRB(16, 0, 16, 24),
@@ -108,7 +108,7 @@ class _ContactUsPageState extends ConsumerState<ContactUsPage> {
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
           child: Container(
-            color: const Color(0xFF00ACC1).withOpacity(0.1),
+            color: const Color(0xFF2E7D32).withOpacity(0.1),
             height: 1,
           ),
         ),
@@ -122,29 +122,29 @@ class _ContactUsPageState extends ConsumerState<ContactUsPage> {
               _ContactInfoTile(
                 icon: Icons.phone_android_rounded,
                 title: 'Phone',
-                content: '+91 8853-3893-95',
-                onTap: () => _launchURL('tel:+918853389395'),
+                content: '+91 9451034909',
+                onTap: () => _launchURL('tel:+919451034909'),
               ),
               const SizedBox(height: 16),
               _ContactInfoTile(
                 icon: Icons.email_outlined,
                 title: 'Email',
-                content: 'difwaservices@gmail.com',
-                onTap: () => _launchURL('mailto:difwaservices@gmail.com'),
+                content: 'ask003683@gmail.com',
+                onTap: () => _launchURL('mailto:ask003683@gmail.com'),
               ),
               const SizedBox(height: 16),
               _ContactInfoTile(
                 icon: Icons.location_on_outlined,
                 title: 'Address',
-                content: '4/37 Vibhav Khand, Lucknow, India',
-                onTap: () => _launchURL('https://maps.apple.com/?address=4/37,Vibhav+Khand,Lucknow,India'),
+                content: 'Hari Nagar colony, near riya boy\'s hostel, Chinhat, Semra, Uttar Pradesh 226028',
+                onTap: () => _launchURL('https://maps.apple.com/?address=Hari+Nagar+colony,+Chinhat,+Semra,+Uttar+Pradesh+226028'),
               ),
               const SizedBox(height: 16),
               _ContactInfoTile(
                 icon: Icons.public_rounded,
                 title: 'Website',
-                content: 'www.difwa.com',
-                onTap: () => _launchURL('https://www.difwa.com'),
+                content: 'ironwala.vercel.app',
+                onTap: () => _launchURL('https://ironwala.vercel.app/'),
               ),
               const SizedBox(height: 32),
               const Text('Send us a message', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.primaryDark)),
@@ -160,7 +160,7 @@ class _ContactUsPageState extends ConsumerState<ContactUsPage> {
                         decoration: const InputDecoration(
                           labelText: 'Subject',
                           labelStyle: TextStyle(color: Colors.grey),
-                          prefixIcon: Icon(Icons.subject_rounded, color: Color(0xFF00ACC1)),
+                          prefixIcon: Icon(Icons.subject_rounded, color: Color(0xFF2E7D32)),
                           border: InputBorder.none,
                           enabledBorder: InputBorder.none,
                           focusedBorder: InputBorder.none,
@@ -180,7 +180,7 @@ class _ContactUsPageState extends ConsumerState<ContactUsPage> {
                         decoration: const InputDecoration(
                           labelText: 'Message',
                           labelStyle: TextStyle(color: Colors.grey),
-                          prefixIcon: Icon(Icons.message_rounded, color: Color(0xFF00ACC1)),
+                          prefixIcon: Icon(Icons.message_rounded, color: Color(0xFF2E7D32)),
                           border: InputBorder.none,
                           enabledBorder: InputBorder.none,
                           focusedBorder: InputBorder.none,
@@ -221,7 +221,7 @@ class _ContactUsPageState extends ConsumerState<ContactUsPage> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: const Color(0xFF00ACC1).withOpacity(0.2),
+          color: const Color(0xFF2E7D32).withOpacity(0.2),
           width: 1.0,
         ),
         boxShadow: [
@@ -255,7 +255,7 @@ class _ContactInfoTile extends StatelessWidget {
           color: Colors.white,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: const Color(0xFF00ACC1).withOpacity(0.2),
+            color: const Color(0xFF2E7D32).withOpacity(0.2),
             width: 1.0,
           ),
           boxShadow: [

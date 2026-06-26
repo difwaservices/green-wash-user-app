@@ -8,7 +8,7 @@ class LabTestPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Lab Test')),
-      body: const Center(child: Text('Lab Test Page — Coming Soon')),
+      body: const Center(child: Text('Lab Test Page â€” Coming Soon')),
     );
   }
 }

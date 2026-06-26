@@ -46,7 +46,7 @@ final apiClientProvider = Provider<ApiClient>((ref) {
 
   dio.interceptors.addAll([
     AuthInterceptor(dio, storage),
-    // PrettyDioLogger only runs in debug mode — never in APKs shared externally
+    // PrettyDioLogger only runs in debug mode â€” never in APKs shared externally
     if (kDebugMode)
       PrettyDioLogger(
         requestHeader: true,
@@ -63,7 +63,7 @@ final apiClientProvider = Provider<ApiClient>((ref) {
 });
 
 class ApiClient {
-  // ── Module Base Paths ──────────────────────────────────────────────────
+  // â”€â”€ Module Base Paths â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   static const String baseUrl = '/app';
   static const String riderBaseUrl = '/rider';
   static const String otpBaseUrl = '/otp';
@@ -99,10 +99,10 @@ class ApiClient {
     return ApiClient(dio);
   }
 
-  // ── Helper to ensure leading slash ──────────────────────────────────────
+  // â”€â”€ Helper to ensure leading slash â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   String _normalizePath(String path) => path.startsWith('/') ? path : '/$path';
 
-  // ── HTTP Methods ────────────────────────────────────────────────────────
+  // â”€â”€ HTTP Methods â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   Future<dynamic> get(
     String path, {
@@ -224,7 +224,7 @@ class ApiClient {
         message: e.message ?? 'A network error occurred. Please try again.');
   }
 
-  // ── Helper static methods for token access ──────────────────────────────
+  // â”€â”€ Helper static methods for token access â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   static Future<String?> getToken() async =>
       await SecureStorageService().getAccessToken();
 

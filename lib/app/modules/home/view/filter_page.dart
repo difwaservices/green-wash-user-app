@@ -71,7 +71,7 @@ class _FilterPageState extends State<FilterPage> {
           child: ElevatedButton(
             onPressed: () => Navigator.pop(context),
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF06B6D4),
+              backgroundColor: const Color(0xFF2E7D32),
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),

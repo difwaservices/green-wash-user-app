@@ -47,7 +47,7 @@ class _HelpSupportPageState extends ConsumerState<HelpSupportPage> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: const Text('Support request sent successfully!'),
-              backgroundColor: const Color(0xFF06B6D4),
+              backgroundColor: const Color(0xFF2E7D32),
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               margin: const EdgeInsets.fromLTRB(16, 0, 16, 24),

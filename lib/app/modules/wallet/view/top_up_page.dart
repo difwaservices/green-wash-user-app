@@ -19,7 +19,7 @@ class _TopUpPageState extends ConsumerState<TopUpPage> {
   bool _isLoading = false;
   // Cache service so we can call dispose() without using ref after unmount
   late PaymentService _paymentService;
-  // Cache context-dependent refs — Razorpay callbacks fire after CheckoutActivity
+  // Cache context-dependent refs â€” Razorpay callbacks fire after CheckoutActivity
   // closes and Flutter's InheritedWidget tree is mid-resume, so .of(context)
   // calls inside callbacks throw "No ancestor found / wrap in X" errors.
   ScaffoldMessengerState? _messenger;
@@ -81,7 +81,7 @@ class _TopUpPageState extends ConsumerState<TopUpPage> {
         _messenger?.showSnackBar(
           SnackBar(
             content: const Text('Wallet topped up successfully!'),
-            backgroundColor: const Color(0xFF06B6D4),
+            backgroundColor: const Color(0xFF2E7D32),
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             margin: const EdgeInsets.fromLTRB(16, 0, 16, 24),
@@ -110,7 +110,7 @@ class _TopUpPageState extends ConsumerState<TopUpPage> {
 
   void _handlePaymentFailure(PaymentFailureResponse response) {
     debugPrint('TopUpPage: Payment FAILED: Code=${response.code}, Message=${response.message}');
-    // Use cached messenger — widget may already be unmounted at this point
+    // Use cached messenger â€” widget may already be unmounted at this point
     if (!mounted) return;
     _messenger?.showSnackBar(
       SnackBar(
@@ -131,12 +131,12 @@ class _TopUpPageState extends ConsumerState<TopUpPage> {
 
   void _handleExternalWallet(ExternalWalletResponse response) {
     debugPrint('TopUpPage: External Wallet selected: ${response.walletName}');
-    // Use cached messenger — safe after native callback
+    // Use cached messenger â€” safe after native callback
     if (!mounted) return;
     _messenger?.showSnackBar(
       SnackBar(
         content: Text('External Wallet: ${response.walletName}'),
-        backgroundColor: const Color(0xFF06B6D4),
+        backgroundColor: const Color(0xFF2E7D32),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         margin: const EdgeInsets.fromLTRB(16, 0, 16, 24),
@@ -147,7 +147,7 @@ class _TopUpPageState extends ConsumerState<TopUpPage> {
   @override
   void dispose() {
     _amountController.dispose();
-    _paymentService.dispose(); // use cached ref — safe after unmount
+    _paymentService.dispose(); // use cached ref â€” safe after unmount
     super.dispose();
   }
 
@@ -207,7 +207,7 @@ class _TopUpPageState extends ConsumerState<TopUpPage> {
               child: Row(
                 children: [
                   const Text(
-                    '₹',
+                    'â‚¹',
                     style: TextStyle(
                         fontSize: 32,
                         fontWeight: FontWeight.w900,
@@ -268,7 +268,7 @@ class _TopUpPageState extends ConsumerState<TopUpPage> {
                           ] : [],
                         ),
                         child: Text(
-                          '₹$amt',
+                          'â‚¹$amt',
                           style: TextStyle(
                             color: isSelected ? const Color(0xFF00ACC1) : const Color(0xFF1E293B),
                             fontWeight: isSelected ? FontWeight.w900 : FontWeight.bold,
@@ -293,7 +293,7 @@ class _TopUpPageState extends ConsumerState<TopUpPage> {
                       if (amount < 100) {
                         ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
-                                content: Text('Minimum top-up is ₹100')));
+                                content: Text('Minimum top-up is â‚¹100')));
                         return;
                       }
                       final messenger = ScaffoldMessenger.of(context);

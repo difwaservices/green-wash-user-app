@@ -170,7 +170,7 @@ class _HomeBannerState extends ConsumerState<HomeBanner> {
                       width: _current == entry.key ? 20 : 6,
                       decoration: BoxDecoration(
                         color: _current == entry.key
-                            ? const Color(0xFF06B6D4)
+                            ? const Color(0xFF2E7D32)
                             : const Color(0xFFE2E8F0),
                         borderRadius: BorderRadius.circular(4),
                       ),

@@ -267,7 +267,7 @@ class _LocationPickerPageState extends State<LocationPickerPage> {
                           onSelected: (val) {
                             if (val) setSheetState(() => selectedTag = tag);
                           },
-                          selectedColor: const Color(0xFF06B6D4),
+                          selectedColor: const Color(0xFF2E7D32),
                           labelStyle: TextStyle(
                             color: isSelected ? Colors.white : Colors.grey,
                             fontWeight: FontWeight.bold,
@@ -324,7 +324,7 @@ class _LocationPickerPageState extends State<LocationPickerPage> {
                       }
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF06B6D4),
+                      backgroundColor: const Color(0xFF2E7D32),
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                     ),
@@ -394,7 +394,7 @@ class _LocationPickerPageState extends State<LocationPickerPage> {
                     decoration: InputDecoration(
                       hintText: 'Search for area, landmark...',
                       border: InputBorder.none,
-                      icon: const Icon(Icons.search, color: Color(0xFF06B6D4)),
+                      icon: const Icon(Icons.search, color: Color(0xFF2E7D32)),
                       hintStyle: const TextStyle(fontSize: 14, color: Colors.grey),
                       suffixIcon: _searchCtrl.text.isNotEmpty 
                         ? IconButton(
@@ -450,7 +450,7 @@ class _LocationPickerPageState extends State<LocationPickerPage> {
           ),
           // Loading Overlay
           if (_isLoading)
-            const Center(child: CircularProgressIndicator(color: Color(0xFF06B6D4))),
+            const Center(child: CircularProgressIndicator(color: Color(0xFF2E7D32))),
           
           // Address Info Card
           Positioned(
@@ -474,7 +474,7 @@ class _LocationPickerPageState extends State<LocationPickerPage> {
                      const SizedBox(height: 8),
                      Row(
                        children: [
-                         const Icon(Icons.location_pin, color: Color(0xFF06B6D4), size: 20),
+                         const Icon(Icons.location_pin, color: Color(0xFF2E7D32), size: 20),
                          const SizedBox(width: 8),
                          Expanded(
                            child: Text(_address, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15), maxLines: 2, overflow: TextOverflow.ellipsis),
@@ -488,7 +488,7 @@ class _LocationPickerPageState extends State<LocationPickerPage> {
                        child: ElevatedButton(
                          onPressed: _showRefinementSheet,
                          style: ElevatedButton.styleFrom(
-                           backgroundColor: const Color(0xFF06B6D4),
+                           backgroundColor: const Color(0xFF2E7D32),
                            foregroundColor: Colors.white,
                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                            elevation: 0,
@@ -509,7 +509,7 @@ class _LocationPickerPageState extends State<LocationPickerPage> {
             child: FloatingActionButton(
               onPressed: _determinePosition,
               backgroundColor: Colors.white,
-              child: const Icon(Icons.my_location, color: Color(0xFF06B6D4)),
+              child: const Icon(Icons.my_location, color: Color(0xFF2E7D32)),
             ),
           ),
         ],

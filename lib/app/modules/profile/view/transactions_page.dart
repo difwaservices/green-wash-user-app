@@ -34,7 +34,7 @@ class TransactionsPage extends StatelessWidget {
               width: double.infinity,
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                color: const Color(0xFF0891B2), // Using our deep green brand color for contrast
+                color: const Color(0xFF1B5E20), // Using our deep green brand color for contrast
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
@@ -100,28 +100,28 @@ class TransactionsPage extends StatelessWidget {
             _buildTransactionItem(
               icon: Icons.set_meal_rounded,
               title: 'Difwa Shack',
-              subtitle: 'Wallet balance used • 7:30 PM',
+              subtitle: 'Wallet balance used â€¢ 7:30 PM',
               amount: '-\$24.50',
               isPositive: false,
             ),
             _buildTransactionItem(
               icon: Icons.account_balance_wallet_rounded,
               title: 'Add money to wallet',
-              subtitle: 'From Chase Credit Card • 10:00 AM',
+              subtitle: 'From Chase Credit Card â€¢ 10:00 AM',
               amount: '+\$55.00',
               isPositive: true,
             ),
             _buildTransactionItem(
               icon: Icons.set_meal_rounded,
               title: 'The Fried Prawn',
-              subtitle: 'Visa ###12oe used • 8:45 PM',
+              subtitle: 'Visa ###12oe used â€¢ 8:45 PM',
               amount: '-\$16.05',
               isPositive: false,
             ),
             _buildTransactionItem(
               icon: Icons.local_cafe_rounded, // Approximate for the soup icon
               title: 'Difwa Shack',
-              subtitle: 'Refund to Wallet • 12:30 PM',
+              subtitle: 'Refund to Wallet â€¢ 12:30 PM',
               amount: '+\$12.00',
               isPositive: true,
             ),
@@ -139,9 +139,9 @@ class TransactionsPage extends StatelessWidget {
     required bool isPositive,
   }) {
     // Subtle colors for the light theme icons
-    final Color iconColor = isPositive ? const Color(0xFF06B6D4) : const Color(0xFFE85D04);
+    final Color iconColor = isPositive ? const Color(0xFF2E7D32) : const Color(0xFFE85D04);
     final Color iconBgColor = isPositive 
-        ? const Color(0xFF06B6D4).withValues(alpha: 0.1) 
+        ? const Color(0xFF2E7D32).withValues(alpha: 0.1) 
         : const Color(0xFFE85D04).withValues(alpha: 0.1);
 
     return Container(
@@ -197,7 +197,7 @@ class TransactionsPage extends StatelessWidget {
             style: TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 16,
-              color: isPositive ? const Color(0xFF06B6D4) : const Color(0xFF1A1A1A),
+              color: isPositive ? const Color(0xFF2E7D32) : const Color(0xFF1A1A1A),
             ),
           ),
         ],

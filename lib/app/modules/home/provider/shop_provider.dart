@@ -17,7 +17,7 @@ class ShopsNotifier extends AsyncNotifier<List<ShopModel>> {
       () => service.getShops().timeout(const Duration(seconds: 20)),
     );
 
-    // Listen for real-time shop status updates — deregister first to prevent
+    // Listen for real-time shop status updates â€” deregister first to prevent
     // listener stacking if build() is called more than once.
     final socket = ref.read(socketServiceProvider);
     socket.offShopStatusUpdate();

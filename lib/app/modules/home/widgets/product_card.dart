@@ -172,7 +172,7 @@ class ProductCard extends ConsumerWidget {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
-                                '₹${product.price.toStringAsFixed(0)}',
+                                'â‚¹${product.price.toStringAsFixed(0)}',
                                 style: const TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w800,
@@ -491,7 +491,7 @@ class _ProductHeartState extends ConsumerState<_ProductHeart>
   Widget build(BuildContext context) {
     final favsValue = ref.watch(favoritesProvider);
 
-    // Sync local state once loaded — assign directly so the current build frame
+    // Sync local state once loaded â€” assign directly so the current build frame
     // already has the correct value; no setState/addPostFrameCallback needed
     // because ref.watch above already drives the rebuild.
     favsValue.whenData((ids) {

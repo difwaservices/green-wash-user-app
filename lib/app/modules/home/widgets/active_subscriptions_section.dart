@@ -135,7 +135,7 @@ class _SubscriptionCard extends ConsumerWidget {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    '${subscription.frequency} • Qty ${subscription.quantity}',
+                    '${subscription.frequency} â€¢ Qty ${subscription.quantity}',
                     style: TextStyle(
                       color: Colors.grey.shade600,
                       fontSize: 11,

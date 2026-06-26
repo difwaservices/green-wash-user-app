@@ -81,7 +81,7 @@ class CartPage extends ConsumerWidget {
             child: const Icon(
               Icons.shopping_cart_outlined,
               size: 80,
-              color: Color(0xFF06B6D4),
+              color: Color(0xFF2E7D32),
             ),
           ),
           const SizedBox(height: 24),
@@ -105,15 +105,10 @@ class CartPage extends ConsumerWidget {
             height: 52,
             child: ElevatedButton(
               onPressed: () {
-                ref.read(mainIndexProvider.notifier).setIndex(0);
-                Navigator.pushNamedAndRemoveUntil(
-                  context,
-                  AppRoutes.home,
-                  (route) => false,
-                );
+                Navigator.pushNamed(context, AppRoutes.search);
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF06B6D4),
+                backgroundColor: const Color(0xFF2E7D32),
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
@@ -227,9 +222,9 @@ class CartPage extends ConsumerWidget {
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      '₹${item.unitPrice.toStringAsFixed(0)}',
+                      'â‚¹${item.unitPrice.toStringAsFixed(0)}',
                       style: const TextStyle(
-                        color: Color(0xFF06B6D4),
+                        color: Color(0xFF2E7D32),
                         fontWeight: FontWeight.bold,
                         fontSize: 15,
                       ),
@@ -278,11 +273,11 @@ class CartPage extends ConsumerWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            _buildSummaryRow('Subtotal', '₹${cart.subtotal.toStringAsFixed(0)}'),
+            _buildSummaryRow('Subtotal', 'â‚¹${cart.subtotal.toStringAsFixed(0)}'),
             const SizedBox(height: 12),
             _buildSummaryRow(
               'Shipping',
-              '₹${cart.shippingCharges.toStringAsFixed(0)}',
+              'â‚¹${cart.shippingCharges.toStringAsFixed(0)}',
             ),
             const Padding(
               padding: EdgeInsets.symmetric(vertical: 16),
@@ -300,11 +295,11 @@ class CartPage extends ConsumerWidget {
                   ),
                 ),
                 Text(
-                  '₹${cart.total.toStringAsFixed(0)}',
+                  'â‚¹${cart.total.toStringAsFixed(0)}',
                   style: const TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF06B6D4),
+                    color: Color(0xFF2E7D32),
                   ),
                 ),
               ],
@@ -330,7 +325,7 @@ class CartPage extends ConsumerWidget {
                   );
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF06B6D4),
+                  backgroundColor: const Color(0xFF2E7D32),
                   foregroundColor: Colors.white,
                   elevation: 0,
                   shape: RoundedRectangleBorder(
@@ -347,7 +342,7 @@ class CartPage extends ConsumerWidget {
                     Row(
                       children: [
                         Text(
-                          '₹${cart.total.toStringAsFixed(0)}',
+                          'â‚¹${cart.total.toStringAsFixed(0)}',
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w900,

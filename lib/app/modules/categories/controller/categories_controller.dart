@@ -2,7 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../data/models/food_models.dart';
 import '../../../data/services/product_service.dart';
 
-// ── Categories state ─────────────────────────────────────────────────────────
+// â”€â”€ Categories state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 /// Async provider that fetches category list from the API.
 final categoriesProvider = FutureProvider<List<FoodCategory>>((ref) async {
@@ -10,7 +10,7 @@ final categoriesProvider = FutureProvider<List<FoodCategory>>((ref) async {
   return service.getCategories();
 });
 
-// ── Products by category state ───────────────────────────────────────────────
+// â”€â”€ Products by category state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 /// Async provider that fetches products filtered by a given category name.
 final productsByCategoryProvider =

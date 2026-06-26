@@ -97,7 +97,7 @@ class _PaymentPageState extends State<PaymentPage> {
                   Switch(
                     value: _saveCard,
                     onChanged: (v) => setState(() => _saveCard = v),
-                    activeThumbColor: const Color(0xFF06B6D4),
+                    activeThumbColor: const Color(0xFF2E7D32),
                     activeTrackColor: const Color(0xFFCFFAFE),
                   ),
                   const Text(
@@ -133,7 +133,7 @@ class _PaymentPageState extends State<PaymentPage> {
                   );
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF06B6D4),
+                  backgroundColor: const Color(0xFF2E7D32),
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
@@ -141,7 +141,7 @@ class _PaymentPageState extends State<PaymentPage> {
                   elevation: 0,
                 ),
                 child: Text(
-                  'Pay ₹${cart.total.toStringAsFixed(0)}',
+                  'Pay â‚¹${cart.total.toStringAsFixed(0)}',
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -165,7 +165,7 @@ class _PaymentPageState extends State<PaymentPage> {
       ),
       child: Column(
         children: [
-          const Icon(Icons.info_outline, color: Color(0xFF06B6D4), size: 40),
+          const Icon(Icons.info_outline, color: Color(0xFF2E7D32), size: 40),
           const SizedBox(height: 16),
           Text(
             'Secure Payment via $_selectedMethod',
@@ -207,11 +207,11 @@ class _PaymentPageState extends State<PaymentPage> {
             ),
           ),
           const SizedBox(height: 16),
-          _buildSummaryRow('Subtotal', '₹${cart.subtotal.toStringAsFixed(0)}'),
+          _buildSummaryRow('Subtotal', 'â‚¹${cart.subtotal.toStringAsFixed(0)}'),
           const SizedBox(height: 8),
           _buildSummaryRow(
             'Shipping',
-            '₹${cart.shippingCharges.toStringAsFixed(0)}',
+            'â‚¹${cart.shippingCharges.toStringAsFixed(0)}',
           ),
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 12),
@@ -219,7 +219,7 @@ class _PaymentPageState extends State<PaymentPage> {
           ),
           _buildSummaryRow(
             'Total Amount',
-            '₹${cart.total.toStringAsFixed(0)}',
+            'â‚¹${cart.total.toStringAsFixed(0)}',
             isTotal: true,
           ),
         ],
@@ -243,7 +243,7 @@ class _PaymentPageState extends State<PaymentPage> {
           value,
           style: TextStyle(
             fontSize: isTotal ? 18 : 14,
-            color: isTotal ? const Color(0xFF06B6D4) : const Color(0xFF1A1A1A),
+            color: isTotal ? const Color(0xFF2E7D32) : const Color(0xFF1A1A1A),
             fontWeight: FontWeight.w900,
           ),
         ),
@@ -277,7 +277,7 @@ class _PaymentPageState extends State<PaymentPage> {
           height: 36,
           decoration: BoxDecoration(
             color: isCompleted
-                ? const Color(0xFF06B6D4)
+                ? const Color(0xFF2E7D32)
                 : Colors.grey.withValues(alpha:  0.2),
             shape: BoxShape.circle,
           ),
@@ -312,7 +312,7 @@ class _PaymentPageState extends State<PaymentPage> {
       height: 2,
       margin: const EdgeInsets.only(bottom: 20, left: 4, right: 4),
       color: isCompleted
-          ? const Color(0xFF06B6D4)
+          ? const Color(0xFF2E7D32)
           : Colors.grey.withValues(alpha:  0.2),
     );
   }
@@ -329,7 +329,7 @@ class _PaymentPageState extends State<PaymentPage> {
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
               color: isSelected
-                  ? const Color(0xFF06B6D4).withValues(alpha:  0.5)
+                  ? const Color(0xFF2E7D32).withValues(alpha:  0.5)
                   : Colors.grey.shade100,
               width: isSelected ? 2 : 1,
             ),
@@ -339,7 +339,7 @@ class _PaymentPageState extends State<PaymentPage> {
               Icon(
                 icon,
                 color: isSelected
-                    ? const Color(0xFF06B6D4)
+                    ? const Color(0xFF2E7D32)
                     : color.withValues(alpha:  0.6),
                 size: 32,
               ),
@@ -365,7 +365,7 @@ class _PaymentPageState extends State<PaymentPage> {
       height: 200,
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [Color(0xFF06B6D4), Color(0xFF06B6D4)],
+          colors: [Color(0xFF2E7D32), Color(0xFF2E7D32)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),

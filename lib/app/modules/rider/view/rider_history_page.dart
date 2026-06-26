@@ -28,9 +28,9 @@ class RiderHistoryPage extends ConsumerWidget {
             style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 18,
-                color: Color(0xFF0891B2))),
+                color: Color(0xFF1B5E20))),
         backgroundColor: const Color(0xFFF0F4EC),
-        foregroundColor: const Color(0xFF0891B2),
+        foregroundColor: const Color(0xFF1B5E20),
         elevation: 0,
         centerTitle: true,
         actions: const [],
@@ -100,7 +100,7 @@ class RiderHistoryPage extends ConsumerWidget {
               style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 20,
-                  color: Color(0xFF0891B2))),
+                  color: Color(0xFF1B5E20))),
           const SizedBox(height: 8),
           Text('Completed deliveries will appear here',
               style: TextStyle(color: Colors.grey.shade500, fontSize: 14)),
@@ -110,7 +110,7 @@ class RiderHistoryPage extends ConsumerWidget {
   }
 }
 
-// ── History Card ────────────────────────────────────────────────────────────
+// â”€â”€ History Card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _DeliveryHistoryCard extends StatelessWidget {
   final dynamic item;
@@ -118,14 +118,14 @@ class _DeliveryHistoryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // ── Order ID ─────────────────────────────────────────────────────────────
+    // â”€â”€ Order ID â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     final String rawId =
         (item['orderId'] ?? item['_id'] ?? item['id'] ?? '').toString();
     final String shortId = rawId.length > 8
         ? rawId.substring(rawId.length - 8).toUpperCase()
         : rawId.toUpperCase();
 
-    // ── Date ────────────────────────────────────────────────────────────────
+    // â”€â”€ Date â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     String displayDate = '';
     final ds = item['deliveredAt']?.toString() ??
         item['updatedAt']?.toString() ??
@@ -133,14 +133,14 @@ class _DeliveryHistoryCard extends StatelessWidget {
         '';
     if (ds.isNotEmpty) {
       try {
-        displayDate = DateFormat('MMM dd, yyyy  •  hh:mm a')
+        displayDate = DateFormat('MMM dd, yyyy  â€¢  hh:mm a')
             .format(DateTime.parse(ds).toLocal());
       } catch (_) {
         displayDate = ds;
       }
     }
 
-    // ── Customer ─────────────────────────────────────────────────────────────
+    // â”€â”€ Customer â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     final userData = item['user'] ?? item['customer'];
     final String customerName = userData is Map
         ? (userData['fullName'] ?? userData['name'] ?? 'Customer')
@@ -149,7 +149,7 @@ class _DeliveryHistoryCard extends StatelessWidget {
         ? (userData['phoneNumber'] ?? userData['phone'] ?? '')
         : (item['phoneNumber']?.toString() ?? '');
 
-    // ── Address ──────────────────────────────────────────────────────────────
+    // â”€â”€ Address â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     String addressStr = 'Address not available';
     final addrRaw = item['deliveryAddress'] ?? item['address'];
     if (addrRaw is Map) {
@@ -171,7 +171,7 @@ class _DeliveryHistoryCard extends StatelessWidget {
       addressStr = addrRaw;
     }
 
-    // ── Items ────────────────────────────────────────────────────────────────
+    // â”€â”€ Items â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     final itemsList = item['items'] as List<dynamic>? ?? [];
     final String itemsSummary = itemsList.isNotEmpty
         ? itemsList.map((i) {
@@ -215,7 +215,7 @@ class _DeliveryHistoryCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ── Header (ID + Status) ─────────────────────────────────────────
+            // â”€â”€ Header (ID + Status) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -230,7 +230,7 @@ class _DeliveryHistoryCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 12),
-            // ── Date Row ─────────────────────────────────────────────────────
+            // â”€â”€ Date Row â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             Row(
               children: [
                 const Icon(Icons.calendar_today_rounded,
@@ -249,7 +249,7 @@ class _DeliveryHistoryCard extends StatelessWidget {
             Divider(color: Colors.grey.shade100, thickness: 1.5),
             const SizedBox(height: 16),
 
-            // ── Details ──
+            // â”€â”€ Details â”€â”€
             Row(
               children: [
                 Expanded(
@@ -315,11 +315,11 @@ class _DeliveryHistoryCard extends StatelessWidget {
             _Row(
               icon: Icons.currency_rupee_rounded,
               label: 'Bill Amount',
-              value: '₹${(item['totalAmount'] ?? item['total'] ?? 0).toString()}',
+              value: 'â‚¹${(item['totalAmount'] ?? item['total'] ?? 0).toString()}',
               isBoldValue: true,
             ),
 
-            // ── Cancellation reason (rider-cancelled orders) ─────────────────
+            // â”€â”€ Cancellation reason (rider-cancelled orders) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             if ((item['status']?.toString().toLowerCase() ?? '') == 'cancelled') ...[
               const SizedBox(height: 12),
               Container(
@@ -422,7 +422,7 @@ class _Row extends StatelessWidget {
             color: const Color(0xFFF0F4EC),
             borderRadius: BorderRadius.circular(8),
           ),
-          child: Icon(icon, size: 16, color: const Color(0xFF0891B2)),
+          child: Icon(icon, size: 16, color: const Color(0xFF1B5E20)),
         ),
         const SizedBox(width: 12),
         Expanded(

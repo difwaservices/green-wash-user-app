@@ -13,7 +13,7 @@ class CartService {
 
   CartService({required ApiClient client}) : _client = client;
 
-  // ── Fetch Cart ───────────────────────────────────────────────────────────
+  // â”€â”€ Fetch Cart â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   /// GET /api/app/cart (requires auth token)
   Future<List<CartItem>> getCart() async {
     try {
@@ -46,7 +46,7 @@ class CartService {
     }
   }
 
-  // ── Add to Cart ──────────────────────────────────────────────────────────
+  // â”€â”€ Add to Cart â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   /// POST /api/app/cart/add (requires auth token)
   Future<bool> addToCart(String productId, int quantity) async {
     try {
@@ -65,7 +65,7 @@ class CartService {
     }
   }
 
-  // ── Update Cart Item ─────────────────────────────────────────────────────
+  // â”€â”€ Update Cart Item â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   /// PUT /api/app/cart/update (requires auth token)
   Future<void> updateQuantity(String productId, int quantity) async {
     try {
@@ -82,7 +82,7 @@ class CartService {
     }
   }
 
-  // ── Remove from Cart ─────────────────────────────────────────────────────
+  // â”€â”€ Remove from Cart â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   /// DELETE /api/app/cart/remove/:productId (requires auth token)
   Future<void> removeFromCart(String productId) async {
     try {
@@ -95,7 +95,7 @@ class CartService {
     }
   }
 
-  // ── Clear Cart ───────────────────────────────────────────────────────────
+  // â”€â”€ Clear Cart â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   /// DELETE /api/app/cart/clear (requires auth token)
   Future<void> clearCart() async {
     try {
@@ -108,7 +108,7 @@ class CartService {
     }
   }
 
-  // ── Mapper ───────────────────────────────────────────────────────────────
+  // â”€â”€ Mapper â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   CartItem _mapToCartItem(Map<String, dynamic> json) {
     // Backend may return nested product details or flat structure
     final Map<String, dynamic> p =

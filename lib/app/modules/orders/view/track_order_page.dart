@@ -10,7 +10,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:intl/intl.dart';
 import 'order_chat_page.dart';
 
-/// Maps every backend status string → a 0-based step index (0 = just placed).
+/// Maps every backend status string â†’ a 0-based step index (0 = just placed).
 int _statusToStep(String status) {
   switch (status.toLowerCase().replaceAll('_', ' ').replaceAll('-', ' ')) {
     case 'pending':
@@ -218,7 +218,7 @@ class _TrackOrderPageState extends ConsumerState<TrackOrderPage>
 
     _onRiderAssigned = (data) {
       if (!mounted) return;
-      debugPrint('🛵 Rider assigned/working: ${data['riderName']}');
+      debugPrint('ðŸ›µ Rider assigned/working: ${data['riderName']}');
       setState(() {
         _riderName = data['riderName']?.toString() ?? _riderName;
         _riderPhone = data['riderPhone']?.toString() ?? _riderPhone;
@@ -230,7 +230,7 @@ class _TrackOrderPageState extends ConsumerState<TrackOrderPage>
 
     _onRiderLocation = (data) {
       if (!mounted) return;
-      debugPrint('📍 Rider location updated: $data');
+      debugPrint('ðŸ“ Rider location updated: $data');
       setState(() {
         _lastRiderUpdate = 'Last updated: ${DateFormat('hh:mm a').format(DateTime.now())}';
       });
@@ -252,12 +252,12 @@ class _TrackOrderPageState extends ConsumerState<TrackOrderPage>
           mainAxisSize: MainAxisSize.min,
           children: [
             const Icon(Icons.check_circle_rounded,
-                color: Color(0xFF06B6D4), size: 72),
+                color: Color(0xFF2E7D32), size: 72),
             const SizedBox(height: 16),
             const Text('Order Delivered!',
                 style: TextStyle(fontWeight: FontWeight.w900, fontSize: 22)),
             const SizedBox(height: 8),
-            const Text('Enjoy your fresh water! 💧',
+            const Text('Enjoy your fresh water! ðŸ’§',
                 textAlign: TextAlign.center,
                 style: TextStyle(color: Colors.grey)),
             const SizedBox(height: 24),
@@ -269,7 +269,7 @@ class _TrackOrderPageState extends ConsumerState<TrackOrderPage>
                   Navigator.pop(context); // back to active orders
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF0891B2),
+                  backgroundColor: const Color(0xFF1B5E20),
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14)),
                   padding: const EdgeInsets.symmetric(vertical: 14),
@@ -387,13 +387,13 @@ class _TrackOrderPageState extends ConsumerState<TrackOrderPage>
         child: _isLoading
             ? const Center(
                 child: CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF0891B2)),
+                  valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF1B5E20)),
                 ),
               )
             : ListView(
                 padding: const EdgeInsets.fromLTRB(24, 24, 24, 100),
               children: [
-                // ── Live Status Header ─────────────────────────────────
+                // â”€â”€ Live Status Header â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
                 Container(
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
@@ -467,7 +467,7 @@ class _TrackOrderPageState extends ConsumerState<TrackOrderPage>
                               shape: BoxShape.circle,
                             ),
                             child: const Icon(Icons.timer_outlined,
-                                color: Color(0xFF0891B2), size: 20),
+                                color: Color(0xFF1B5E20), size: 20),
                           ),
                           const SizedBox(height: 4),
                           Text(shortId,
@@ -483,12 +483,12 @@ class _TrackOrderPageState extends ConsumerState<TrackOrderPage>
 
                 const SizedBox(height: 24),
 
-                // ── Delivery Address ───────────────────────────────────
+                // â”€â”€ Delivery Address â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
                 _buildAddressCard(),
 
                 const SizedBox(height: 24),
 
-                // ── Stepper ────────────────────────────────────────────
+                // â”€â”€ Stepper â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
                 Container(
                   padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
@@ -511,13 +511,13 @@ class _TrackOrderPageState extends ConsumerState<TrackOrderPage>
 
                 const SizedBox(height: 24),
 
-                // ── Plant Info ─────────────────────────────────────────
+                // â”€â”€ Plant Info â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
                 if (_plantName.isNotEmpty) ...[
                   _buildPlantCard(),
                   const SizedBox(height: 24),
                 ],
 
-                // ── Rider Info ─────────────────────────────────────────
+                // â”€â”€ Rider Info â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
                 if (step >= 1) ...[
                   _buildRiderCard(),
                   const SizedBox(height: 24),
@@ -558,13 +558,13 @@ class _TrackOrderPageState extends ConsumerState<TrackOrderPage>
                     height: 22,
                     decoration: BoxDecoration(
                       color: isDone
-                          ? const Color(0xFF0891B2)
+                          ? const Color(0xFF1B5E20)
                           : Colors.grey.shade200,
                       shape: BoxShape.circle,
                       boxShadow: isCurrent
                           ? [
                               BoxShadow(
-                                  color: const Color(0xFF0891B2)
+                                  color: const Color(0xFF1B5E20)
                                       .withValues(alpha: 0.3),
                                   blurRadius: 8)
                             ]
@@ -582,7 +582,7 @@ class _TrackOrderPageState extends ConsumerState<TrackOrderPage>
                       width: 2,
                       height: 40,
                       color: isDone
-                          ? const Color(0xFF0891B2)
+                          ? const Color(0xFF1B5E20)
                           : Colors.grey.shade200,
                     ),
                 ],
@@ -607,7 +607,7 @@ class _TrackOrderPageState extends ConsumerState<TrackOrderPage>
             Padding(
               padding: const EdgeInsets.only(top: 2),
               child: Text(
-                isDone ? _getTimeForStep(i) : '—',
+                isDone ? _getTimeForStep(i) : 'â€”',
                 style: TextStyle(fontSize: 11, color: Colors.grey.shade400),
               ),
             ),
@@ -703,7 +703,7 @@ class _TrackOrderPageState extends ConsumerState<TrackOrderPage>
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(Icons.location_on,
-                    color: Color(0xFF0891B2), size: 18),
+                    color: Color(0xFF1B5E20), size: 18),
               ),
               const SizedBox(width: 14),
               Expanded(
@@ -723,7 +723,7 @@ class _TrackOrderPageState extends ConsumerState<TrackOrderPage>
                         child: Text(
                           label.toUpperCase(),
                           style: const TextStyle(
-                            color: Color(0xFF06B6D4),
+                            color: Color(0xFF2E7D32),
                             fontSize: 10,
                             fontWeight: FontWeight.bold,
                           ),
@@ -807,7 +807,7 @@ class _TrackOrderPageState extends ConsumerState<TrackOrderPage>
                 shape: BoxShape.circle,
               ),
               child: const Icon(Icons.location_on,
-                  color: Color(0xFF0891B2), size: 18),
+                  color: Color(0xFF1B5E20), size: 18),
             ),
             const SizedBox(width: 14),
             Expanded(
@@ -935,7 +935,7 @@ class _TrackOrderPageState extends ConsumerState<TrackOrderPage>
               shape: BoxShape.circle,
             ),
             child: const Icon(Icons.location_on,
-                color: Color(0xFF0891B2), size: 18),
+                color: Color(0xFF1B5E20), size: 18),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -955,7 +955,7 @@ class _TrackOrderPageState extends ConsumerState<TrackOrderPage>
                     child: Text(
                       label.toString().toUpperCase(),
                       style: const TextStyle(
-                        color: Color(0xFF06B6D4),
+                        color: Color(0xFF2E7D32),
                         fontSize: 10,
                         fontWeight: FontWeight.bold,
                       ),
@@ -1116,7 +1116,7 @@ class _TrackOrderPageState extends ConsumerState<TrackOrderPage>
         children: [
           CircleAvatar(
             radius: 26,
-            backgroundColor: const Color(0xFF0891B2),
+            backgroundColor: const Color(0xFF1B5E20),
             child: (hasRider && _riderName.trim().isNotEmpty)
                 ? Text(
                     _riderName.trim()[0].toUpperCase(),
@@ -1216,9 +1216,9 @@ class _TrackOrderPageState extends ConsumerState<TrackOrderPage>
       case 'out_for_delivery':
       case 'ontheway':
       case 'on the way':
-        return 'Your order is on the way! 🛵';
+        return 'Your order is on the way! ðŸ›µ';
       case 'delivered':
-        return 'Enjoy your fresh water! 💧';
+        return 'Enjoy your fresh water! ðŸ’§';
       case 'cancelled':
       case 'canceled':
         return 'This order has been cancelled';
@@ -1282,7 +1282,7 @@ class _TrackOrderPageState extends ConsumerState<TrackOrderPage>
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: Color(0xFF0891B2), width: 1.5),
+                          borderSide: const BorderSide(color: Color(0xFF1B5E20), width: 1.5),
                         ),
                       ),
                       validator: (value) {
@@ -1414,7 +1414,7 @@ class _IconBtn extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: isPrimary ? const Color(0xFF0891B2) : Colors.white,
+          color: isPrimary ? const Color(0xFF1B5E20) : Colors.white,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
               color: isPrimary ? Colors.transparent : Colors.grey.shade200),

@@ -56,7 +56,7 @@ class CategoryItemsPage extends ConsumerWidget {
               ref.invalidate(productsByCategoryProvider(categoryName)),
         ),
         data: (products) {
-          // Show only real API products — no local fallback
+          // Show only real API products â€” no local fallback
           if (products.isEmpty) return const _EmptyState();
 
           final cart = CartProviderScope.of(context);
@@ -70,7 +70,7 @@ class CategoryItemsPage extends ConsumerWidget {
   }
 }
 
-// ── Product Grid ─────────────────────────────────────────────────────────────
+// â”€â”€ Product Grid â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _ProductGrid extends StatelessWidget {
   // Accepts either List of Product (food_models) or List of dynamic (local)
@@ -110,7 +110,7 @@ class _ProductGrid extends StatelessWidget {
   }
 }
 
-// ── Loading skeleton ──────────────────────────────────────────────────────────
+// â”€â”€ Loading skeleton â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _ProductLoadingGrid extends StatelessWidget {
   const _ProductLoadingGrid();
@@ -178,7 +178,7 @@ class _SkeletonProductCard extends StatelessWidget {
   }
 }
 
-// ── Error view ────────────────────────────────────────────────────────────────
+// â”€â”€ Error view â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _ErrorView extends StatelessWidget {
   final String message;
@@ -241,7 +241,7 @@ class _ErrorView extends StatelessWidget {
   }
 }
 
-// ── Empty state ───────────────────────────────────────────────────────────────
+// â”€â”€ Empty state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _EmptyState extends StatelessWidget {
   const _EmptyState();

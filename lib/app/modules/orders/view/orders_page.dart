@@ -62,17 +62,17 @@ class _OrdersPageState extends ConsumerState<OrdersPage> {
               Container(
                 padding: const EdgeInsets.all(18),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF0891B2).withValues(alpha: 0.08),
+                  color: const Color(0xFF1B5E20).withValues(alpha: 0.08),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.delivery_dining, size: 48, color: Color(0xFF0891B2)),
+                child: const Icon(Icons.delivery_dining, size: 48, color: Color(0xFF1B5E20)),
               ),
               const SizedBox(height: 20),
-              const Text('🎉 Rider Assigned!', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+              const Text('ðŸŽ‰ Rider Assigned!', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
               const SizedBox(height: 8),
               Text('$riderName is on the way to pick up your order.', textAlign: TextAlign.center, style: const TextStyle(color: Colors.grey, fontSize: 14)),
               const SizedBox(height: 24),
-              SizedBox(width: double.infinity, child: OutlinedButton(onPressed: () => Navigator.pop(context), style: OutlinedButton.styleFrom(side: const BorderSide(color: Color(0xFF0891B2)), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))), child: const Text('OK', style: TextStyle(color: Color(0xFF0891B2))))),
+              SizedBox(width: double.infinity, child: OutlinedButton(onPressed: () => Navigator.pop(context), style: OutlinedButton.styleFrom(side: const BorderSide(color: Color(0xFF1B5E20)), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))), child: const Text('OK', style: TextStyle(color: Color(0xFF1B5E20))))),
             ],
           ),
         ),
@@ -92,13 +92,13 @@ class _OrdersPageState extends ConsumerState<OrdersPage> {
         elevation: 0,
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Color(0xFF0891B2), size: 20),
+          icon: const Icon(Icons.arrow_back_ios_new, color: Color(0xFF1B5E20), size: 20),
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text('My Orders', style: TextStyle(color: AppColors.primary, fontSize: 18, fontWeight: FontWeight.bold)),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh, color: Color(0xFF0891B2)),
+            icon: const Icon(Icons.refresh, color: Color(0xFF1B5E20)),
             onPressed: () => ref.invalidate(myOrdersProvider),
           ),
         ],
@@ -117,7 +117,7 @@ class _OrdersPageState extends ConsumerState<OrdersPage> {
             itemBuilder: (context, index) => _LiveOrderCard(order: filteredOrders[index]),
           );
         },
-        loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF0891B2))),
+        loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF1B5E20))),
         error: (err, _) => Center(child: Text('Error: $err')),
       ),
     );
@@ -153,7 +153,7 @@ class _LiveOrderCardState extends State<_LiveOrderCard> with SingleTickerProvide
     HapticFeedback.mediumImpact();
     final cartProv = CartProviderScope.of(context);
     for (var item in widget.order.items) { cartProv.addToCart(CartItem(id: item.id.isNotEmpty ? item.id : 'reorder_${item.name}', title: item.name, unitPrice: item.price, subtitle: 'Reorder', image: item.image, category: 'Reorder', quantity: item.quantity)); }
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Added to cart for reorder!'), backgroundColor: Color(0xFF06B6D4), behavior: SnackBarBehavior.floating));
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Added to cart for reorder!'), backgroundColor: Color(0xFF2E7D32), behavior: SnackBarBehavior.floating));
     _controller.forward().then((_) => _controller.reverse());
   }
 
@@ -209,7 +209,7 @@ class _LiveOrderCardState extends State<_LiveOrderCard> with SingleTickerProvide
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    Column(crossAxisAlignment: CrossAxisAlignment.start, children: [const Text('Total Bill', style: TextStyle(color: Colors.grey, fontSize: 11, fontWeight: FontWeight.w600)), const SizedBox(height: 2), Text('₹${widget.order.total.toStringAsFixed(0)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: Colors.black))]),
+                    Column(crossAxisAlignment: CrossAxisAlignment.start, children: [const Text('Total Bill', style: TextStyle(color: Colors.grey, fontSize: 11, fontWeight: FontWeight.w600)), const SizedBox(height: 2), Text('â‚¹${widget.order.total.toStringAsFixed(0)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: Colors.black))]),
                     BounceWidget(
                       onTap: () => _reorder(context),
                       child: Container(
@@ -248,7 +248,7 @@ class _LiveOrderCardState extends State<_LiveOrderCard> with SingleTickerProvide
     return Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4), decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(12)), child: Text(status.toUpperCase(), style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.bold)));
   }
 
-  Widget _placeholder() => const Center(child: Icon(Icons.water_drop, color: Color(0xFF0891B2), size: 32));
+  Widget _placeholder() => const Center(child: Icon(Icons.water_drop, color: Color(0xFF1B5E20), size: 32));
 }
 
 class _OrderDetailsSheet extends StatelessWidget {
@@ -272,12 +272,12 @@ class _OrderDetailsSheet extends StatelessWidget {
             Row(
               children: [
                 const Icon(Icons.factory_outlined,
-                    size: 16, color: Color(0xFF0891B2)),
+                    size: 16, color: Color(0xFF1B5E20)),
                 const SizedBox(width: 8),
                 Text(
                   order.plantName,
                   style: const TextStyle(
-                      color: Color(0xFF0891B2),
+                      color: Color(0xFF1B5E20),
                       fontSize: 14,
                       fontWeight: FontWeight.bold),
                 ),
@@ -319,13 +319,13 @@ class _OrderDetailsSheet extends StatelessWidget {
           const SizedBox(height: 24),
           const Text('ITEMS ORDERED', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey, letterSpacing: 1)),
           const SizedBox(height: 12),
-          ...order.items.map((item) => Padding(padding: const EdgeInsets.only(bottom: 8), child: Row(children: [Container(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2), decoration: BoxDecoration(border: Border.all(color: Colors.grey.shade300), borderRadius: BorderRadius.circular(4)), child: Text('${item.quantity}x', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12))), const SizedBox(width: 12), Expanded(child: Text(item.name, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: Color(0xFF1E293B)))), Text('₹${(item.price * item.quantity).toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.bold))]))),
+          ...order.items.map((item) => Padding(padding: const EdgeInsets.only(bottom: 8), child: Row(children: [Container(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2), decoration: BoxDecoration(border: Border.all(color: Colors.grey.shade300), borderRadius: BorderRadius.circular(4)), child: Text('${item.quantity}x', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12))), const SizedBox(width: 12), Expanded(child: Text(item.name, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: Color(0xFF1E293B)))), Text('â‚¹${(item.price * item.quantity).toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.bold))]))),
           const Divider(height: 40),
           const Text('BILL DETAILS', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey, letterSpacing: 1)),
           _row('Item Total', order.total - order.deliveryFee),
           _row('Delivery Fee', order.deliveryFee),
           const SizedBox(height: 8),
-          Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [const Text('Grand Total', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)), Text('₹${order.total.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Color(0xFF1A1A1A)))]),
+          Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [const Text('Grand Total', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)), Text('â‚¹${order.total.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Color(0xFF1A1A1A)))]),
           const SizedBox(height: 32),
           SizedBox(
             width: double.infinity,
@@ -344,5 +344,5 @@ class _OrderDetailsSheet extends StatelessWidget {
       ),
     );
   }
-  Widget _row(String l, double v) => Padding(padding: const EdgeInsets.only(bottom: 6), child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text(l, style: const TextStyle(color: Colors.grey, fontSize: 14)), Text('₹${v.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.w600))]));
+  Widget _row(String l, double v) => Padding(padding: const EdgeInsets.only(bottom: 6), child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text(l, style: const TextStyle(color: Colors.grey, fontSize: 14)), Text('â‚¹${v.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.w600))]));
 }

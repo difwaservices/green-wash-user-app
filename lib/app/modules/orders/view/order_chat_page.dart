@@ -134,7 +134,7 @@ class _OrderChatPageState extends State<OrderChatPage> {
           children: [
             CircleAvatar(
               radius: 18,
-              backgroundColor: const Color(0xFF0891B2),
+              backgroundColor: const Color(0xFF1B5E20),
               child: Text(
                 widget.riderName.isNotEmpty ? widget.riderName[0].toUpperCase() : 'R',
                 style: const TextStyle(
@@ -184,7 +184,7 @@ class _OrderChatPageState extends State<OrderChatPage> {
         actions: [
           if (widget.riderPhone.isNotEmpty)
             IconButton(
-              icon: const Icon(Icons.call_outlined, color: Color(0xFF0891B2)),
+              icon: const Icon(Icons.call_outlined, color: Color(0xFF1B5E20)),
               onPressed: () async {
                 final Uri uri = Uri.parse('tel:${widget.riderPhone}');
                 if (await canLaunchUrl(uri)) {
@@ -205,7 +205,7 @@ class _OrderChatPageState extends State<OrderChatPage> {
               children: [
                 const Icon(
                   Icons.chat_bubble_rounded,
-                  color: Color(0xFF0891B2),
+                  color: Color(0xFF1B5E20),
                   size: 18,
                 ),
                 const SizedBox(width: 10),
@@ -213,7 +213,7 @@ class _OrderChatPageState extends State<OrderChatPage> {
                   child: Text(
                     "Chat on Working (Active support)",
                     style: TextStyle(
-                      color: Color(0xFF0891B2),
+                      color: Color(0xFF1B5E20),
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
                     ),
@@ -234,8 +234,8 @@ class _OrderChatPageState extends State<OrderChatPage> {
                         ),
                       );
                     },
-                    activeThumbColor: const Color(0xFF0891B2),
-                    activeTrackColor: const Color(0xFF0891B2).withValues(alpha: 0.3),
+                    activeThumbColor: const Color(0xFF1B5E20),
+                    activeTrackColor: const Color(0xFF1B5E20).withValues(alpha: 0.3),
                   ),
                 ),
               ],
@@ -267,7 +267,7 @@ class _OrderChatPageState extends State<OrderChatPage> {
                           margin: const EdgeInsets.only(bottom: 12),
                           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                           decoration: BoxDecoration(
-                            color: message.isMe ? const Color(0xFF0891B2) : Colors.white,
+                            color: message.isMe ? const Color(0xFF1B5E20) : Colors.white,
                             borderRadius: BorderRadius.only(
                               topLeft: const Radius.circular(16),
                               topRight: const Radius.circular(16),
@@ -360,7 +360,7 @@ class _OrderChatPageState extends State<OrderChatPage> {
                   onTap: _isChatWorking ? _sendMessage : null,
                   child: CircleAvatar(
                     radius: 20,
-                    backgroundColor: _isChatWorking ? const Color(0xFF0891B2) : Colors.grey[300],
+                    backgroundColor: _isChatWorking ? const Color(0xFF1B5E20) : Colors.grey[300],
                     child: const Icon(
                       Icons.send,
                       color: Colors.white,

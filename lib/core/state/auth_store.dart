@@ -103,12 +103,12 @@ class AuthStore extends Notifier<AuthState> {
       final cached = await _getCachedUserProfile();
       if (cached != null) {
         state = AuthAuthenticated(cached);
-        // Silently verify + refresh in background — won't block splash navigation.
+        // Silently verify + refresh in background â€” won't block splash navigation.
         unawaited(_refreshProfileInBackground());
         return;
       }
 
-      // No cache (first launch after login) — must wait for network once.
+      // No cache (first launch after login) â€” must wait for network once.
       final response = await ref.read(authServiceProvider).getProfile();
       if (response.success && response.data != null) {
         state = AuthAuthenticated(response.data!);
@@ -143,7 +143,7 @@ class AuthStore extends Notifier<AuthState> {
       }
       // Any other error: keep cached state, don't disrupt the user.
     } catch (_) {
-      // Network unavailable — user stays on cached profile, no disruption.
+      // Network unavailable â€” user stays on cached profile, no disruption.
     }
   }
 

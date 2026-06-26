@@ -31,7 +31,7 @@ class FavoritesPage extends ConsumerWidget {
         iconTheme: const IconThemeData(color: Color(0xFF1E293B)),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh, color: Color(0xFF06B6D4)),
+            icon: const Icon(Icons.refresh, color: Color(0xFF2E7D32)),
             onPressed: () => ref.invalidate(favoriteProductsProvider),
           ),
         ],
@@ -46,7 +46,7 @@ class FavoritesPage extends ConsumerWidget {
       body: SafeArea(
         child: productsAsync.when(
           loading: () => const Center(
-            child: CircularProgressIndicator(color: Color(0xFF06B6D4)),
+            child: CircularProgressIndicator(color: Color(0xFF2E7D32)),
           ),
           error: (err, _) => _buildError(context, ref, err),
           data: (products) => products.isEmpty
@@ -95,7 +95,7 @@ class FavoritesPage extends ConsumerWidget {
             child: const Icon(
               Icons.favorite_outline_rounded,
               size: 72,
-              color: Color(0xFF06B6D4),
+              color: Color(0xFF2E7D32),
             ),
           ),
           const SizedBox(height: 24),
@@ -123,7 +123,7 @@ class FavoritesPage extends ConsumerWidget {
                 Navigator.pop(context);
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF06B6D4),
+                backgroundColor: const Color(0xFF2E7D32),
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16)),

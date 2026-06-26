@@ -93,10 +93,26 @@ class DsButton extends StatelessWidget {
       width: width ?? double.infinity,
       height: height,
       decoration: BoxDecoration(
-        color: resolvedBgColor,
+        gradient: variant == DsButtonVariant.primary && !isDisabled
+            ? const LinearGradient(
+                colors: [Color(0xFF0F766E), Color(0xFF065F46)], // Teal to Deep Green Gradient
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              )
+            : null,
+        color: variant != DsButtonVariant.primary || isDisabled ? resolvedBgColor : null,
         borderRadius: BorderRadius.circular(borderRadius),
         border: resolvedBorderSide != BorderSide.none
             ? Border.fromBorderSide(resolvedBorderSide)
+            : null,
+        boxShadow: variant == DsButtonVariant.primary && !isDisabled
+            ? [
+                BoxShadow(
+                  color: const Color(0xFF065F46).withOpacity(0.3),
+                  blurRadius: 8,
+                  offset: const Offset(0, 4),
+                )
+              ]
             : null,
       ),
       child: Material(
@@ -104,6 +120,8 @@ class DsButton extends StatelessWidget {
         child: InkWell(
           onTap: isDisabled ? null : onPressed,
           borderRadius: BorderRadius.circular(borderRadius),
+          splashColor: Colors.white.withOpacity(0.2),
+          highlightColor: Colors.white.withOpacity(0.1),
           child: Center(
             child: Padding(
               padding: DsSpacing.symmetricH16,
@@ -114,15 +132,6 @@ class DsButton extends StatelessWidget {
       ),
     );
 
-    // Provide immediate visual/tactile feedback on taps if enabled
-    if (isDisabled) {
-      return buttonWidget;
-    } else {
-      return BounceWidget(
-        scaleFactor: 0.96,
-        onTap: onPressed ?? () {},
-        child: IgnorePointer(child: buttonWidget),
-      );
-    }
+    return buttonWidget;
   }
 }

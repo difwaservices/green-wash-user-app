@@ -10,7 +10,7 @@ class VegetablesPage extends StatelessWidget {
     final List<Map<String, dynamic>> products = [
       {
         'title': '20L Mineral Jar',
-        'price': '₹80.00',
+        'price': 'â‚¹80.00',
         'subtitle': 'Premium RO+UV',
         'image': AppImages.water20L,
         'hasCounter': false,
@@ -21,7 +21,7 @@ class VegetablesPage extends StatelessWidget {
       },
       {
         'title': '1L Bottle',
-        'price': '₹20.00',
+        'price': 'â‚¹20.00',
         'subtitle': 'Pack of 1',
         'image': AppImages.waterSmall,
         'hasCounter': true,
@@ -32,7 +32,7 @@ class VegetablesPage extends StatelessWidget {
       },
       {
         'title': 'Dispenser Tap',
-        'price': '₹150.00',
+        'price': 'â‚¹150.00',
         'subtitle': 'Food Grade',
         'image': AppImages.bottleIcon,
         'hasCounter': false,
@@ -41,7 +41,7 @@ class VegetablesPage extends StatelessWidget {
       },
       {
         'title': 'Automatic Pump',
-        'price': '₹299.00',
+        'price': 'â‚¹299.00',
         'subtitle': 'USB Rechargeable',
         'image': AppImages.water20L,
         'hasCounter': false,
@@ -52,7 +52,7 @@ class VegetablesPage extends StatelessWidget {
       },
       {
         'title': 'Bottle Stand',
-        'price': '₹499.00',
+        'price': 'â‚¹499.00',
         'subtitle': 'Metal Frame',
         'image': AppImages.waterSmall,
         'hasCounter': true,
@@ -63,7 +63,7 @@ class VegetablesPage extends StatelessWidget {
       },
       {
         'title': 'Cleaning Kit',
-        'price': '₹99.00',
+        'price': 'â‚¹99.00',
         'subtitle': '3-Piece Set',
         'image': AppImages.bottleIcon,
         'hasCounter': false,

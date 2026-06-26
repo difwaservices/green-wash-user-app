@@ -114,11 +114,11 @@ class RetailerHomePage extends ConsumerWidget {
       crossAxisSpacing: 16,
       childAspectRatio: 1.2,
       children: [
-        _buildStatCard('Total Sales', '₹$totalSales', Icons.payments_outlined, const Color(0xFF0EA5E9)),
+        _buildStatCard('Total Sales', 'â‚¹$totalSales', Icons.payments_outlined, const Color(0xFF0EA5E9)),
         _buildStatCard('Total Orders', totalOrders.toString(), Icons.shopping_bag_outlined, const Color(0xFF8B5CF6)),
         _buildStatCard('Active Products', activeProducts.toString(), Icons.inventory_2_outlined, const Color(0xFFF59E0B)),
-        _buildStatCard('Customers', totalCustomers.toString(), Icons.people_outline, const Color(0xFF10B981)),
-        _buildStatCard('Income', '₹$deliveryIncome', Icons.account_balance_wallet_outlined, const Color(0xFFEC4899)),
+        _buildStatCard('Customers', totalCustomers.toString(), Icons.people_outline, const Color(0xFF4CAF50)),
+        _buildStatCard('Income', 'â‚¹$deliveryIncome', Icons.account_balance_wallet_outlined, const Color(0xFFEC4899)),
       ],
     );
   }

@@ -11,6 +11,7 @@ import 'app/data/services/shop_service.dart';
 import 'app/data/services/order_service.dart';
 import 'app/data/services/db_service.dart';
 import 'app/core/theme/app_theme.dart';
+import 'app/core/theme/theme_provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'app/data/services/fcm_service.dart';
 import 'app/data/models/food_models.dart';
@@ -20,6 +21,7 @@ import 'app/core/localization/language_provider.dart';
 import 'app/core/localization/supported_languages.dart';
 import 'l10n/generated/app_localizations.dart';
 import 'firebase_options.dart';
+import 'app/core/ads/ad_service.dart';
 
 final cartProviderManager = Provider<CartProvider>((ref) {
   final user = ref.watch(currentUserProvider);
@@ -56,7 +58,8 @@ void main() async {
   }
   try {
     await dotenv.load(fileName: ".env");
-    debugPrint("Dotenv loaded. RAZORPAY_KEY_ID: ${dotenv.env['RAZORPAY_KEY_ID']}");
+    debugPrint(
+        "Dotenv loaded. RAZORPAY_KEY_ID: ${dotenv.env['RAZORPAY_KEY_ID']}");
   } catch (e) {
     debugPrint("Warning: Could not load .env file: $e");
   }
@@ -76,6 +79,13 @@ void main() async {
     debugPrint("Warning: Could not initialize FCMService: $e");
   }
 
+  // Initialize AdMob
+  try {
+    await AdService.instance.initialize();
+  } catch (e) {
+    debugPrint("Warning: Could not initialize AdMob: $e");
+  }
+
   runApp(
     UncontrolledProviderScope(
       container: container,
@@ -90,12 +100,15 @@ class DifwaWaterApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final locale = ref.watch(localeProvider);
+    final themeMode = ref.watch(themeProvider);
 
     return MaterialApp(
       title: 'Difwa Water',
       navigatorKey: FCMService.navigatorKey,
       debugShowCheckedModeBanner: false,
+      themeMode: themeMode,
       theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
       locale: locale,
       supportedLocales: kSupportedLocales,
       localizationsDelegates: const [
@@ -106,8 +119,8 @@ class DifwaWaterApp extends ConsumerWidget {
       ],
       localeResolutionCallback: (deviceLocale, supportedLocales) {
         // If explicitly set by user, use that (already in locale)
-        if (supportedLocales.any(
-            (s) => s.languageCode == locale.languageCode)) {
+        if (supportedLocales
+            .any((s) => s.languageCode == locale.languageCode)) {
           return locale;
         }
         // Fallback to English
@@ -120,14 +133,17 @@ class DifwaWaterApp extends ConsumerWidget {
             parent: AlwaysScrollableScrollPhysics()),
       ),
       builder: (context, child) {
-        return Consumer(
-          builder: (context, ref, _) {
-            final cartProvider = ref.watch(cartProviderManager);
-            return CartProviderScope(
-              provider: cartProvider,
-              child: child!,
-            );
-          },
+        return MediaQuery(
+          data: MediaQuery.of(context).copyWith(accessibleNavigation: false),
+          child: Consumer(
+            builder: (context, ref, _) {
+              final cartProvider = ref.watch(cartProviderManager);
+              return CartProviderScope(
+                provider: cartProvider,
+                child: child!,
+              );
+            },
+          ),
         );
       },
     );

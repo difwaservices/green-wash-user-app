@@ -102,7 +102,7 @@ class ConsultPage extends StatelessWidget {
                       width: 14,
                       height: 14,
                       decoration: BoxDecoration(
-                        color: const Color(0xFF06B6D4),
+                        color: const Color(0xFF2E7D32),
                         shape: BoxShape.circle,
                         border: Border.all(color: Colors.white, width: 2),
                       ),
@@ -155,7 +155,7 @@ class ConsultPage extends StatelessWidget {
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFFCFFAFE),
-                foregroundColor: const Color(0xFF06B6D4),
+                foregroundColor: const Color(0xFF2E7D32),
                 elevation: 0,
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 shape: RoundedRectangleBorder(

@@ -49,7 +49,7 @@ class _FirstTimeLanguagePageState
       body: SafeArea(
         child: Column(
           children: [
-            // ── Header ──────────────────────────────────────────────────
+            // â”€â”€ Header â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             Padding(
               padding: const EdgeInsets.fromLTRB(24, 32, 24, 0),
               child: Column(
@@ -86,7 +86,7 @@ class _FirstTimeLanguagePageState
             const SizedBox(height: 20),
             const Divider(height: 1),
 
-            // ── Language list ────────────────────────────────────────────
+            // â”€â”€ Language list â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             Expanded(
               child: ListView.separated(
                 padding:
@@ -109,7 +109,7 @@ class _FirstTimeLanguagePageState
               ),
             ),
 
-            // ── Continue button ──────────────────────────────────────────
+            // â”€â”€ Continue button â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             Padding(
               padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
               child: GestureDetector(
@@ -238,17 +238,17 @@ class _LangTile extends StatelessWidget {
 
   String _flag(String code) {
     const flags = {
-      'en': '🇬🇧',
-      'hi': '🇮🇳',
-      'bn': '🇮🇳',
-      'te': '🇮🇳',
-      'mr': '🇮🇳',
-      'ta': '🇮🇳',
-      'kn': '🇮🇳',
-      'ml': '🇮🇳',
-      'gu': '🇮🇳',
-      'pa': '🇮🇳',
+      'en': 'ðŸ‡¬ðŸ‡§',
+      'hi': 'ðŸ‡®ðŸ‡³',
+      'bn': 'ðŸ‡®ðŸ‡³',
+      'te': 'ðŸ‡®ðŸ‡³',
+      'mr': 'ðŸ‡®ðŸ‡³',
+      'ta': 'ðŸ‡®ðŸ‡³',
+      'kn': 'ðŸ‡®ðŸ‡³',
+      'ml': 'ðŸ‡®ðŸ‡³',
+      'gu': 'ðŸ‡®ðŸ‡³',
+      'pa': 'ðŸ‡®ðŸ‡³',
     };
-    return flags[code] ?? '🌐';
+    return flags[code] ?? 'ðŸŒ';
   }
 }

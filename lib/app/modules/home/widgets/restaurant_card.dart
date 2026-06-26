@@ -90,7 +90,7 @@ class WaterPlantCard extends StatelessWidget {
                       vertical: 2,
                     ),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF06B6D4),
+                      color: const Color(0xFF2E7D32),
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: Row(
@@ -126,13 +126,13 @@ class WaterPlantCard extends StatelessWidget {
             // Delivery Info Row
             Row(
               children: [
-                const Icon(Icons.bolt, color: Color(0xFF06B6D4), size: 14),
+                const Icon(Icons.bolt, color: Color(0xFF2E7D32), size: 14),
                 const SizedBox(width: 2),
                 Text(
                   restaurant.deliveryTime,
                   style: const TextStyle(
                     fontSize: 11,
-                    color: Color(0xFF06B6D4),
+                    color: Color(0xFF2E7D32),
                     fontWeight: FontWeight.w600,
                   ),
                 ),

@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../../../core/localization/language_provider.dart';
-import '../../../core/localization/supported_languages.dart';
 import './profile_detail_page.dart';
 import './edit_profile_page.dart';
 import 'package:difwawaterapp/app/core/utils/auth_helper.dart';
@@ -46,7 +44,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
       );
     }
 
-    // ── Primary: use cached user from the unified source of truth ─────────
+    // â”€â”€ Primary: use cached user from the unified source of truth â”€â”€â”€â”€â”€â”€â”€â”€â”€
     final coreState = ref.watch(authStoreProvider);
     final user = coreState is AuthAuthenticated ? coreState.user : null;
     return Scaffold(
@@ -216,8 +214,8 @@ class _ProfileHeader extends StatelessWidget {
                         const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
                       color: user.isShopActive
-                          ? AppColors.primary.withOpacity(0.1)
-                          : Colors.red.withOpacity(0.1),
+                          ? AppColors.primary.withValues(alpha: 0.1)
+                          : Colors.red.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
                         color:
@@ -272,12 +270,12 @@ class _ProfileHeader extends StatelessWidget {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: const Color(0xFF00ACC1).withOpacity(0.1),
+                    color: const Color(0xFF00ACC1).withValues(alpha: 0.1),
                     width: 1.0,
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
+                      color: Colors.black.withValues(alpha: 0.1),
                       blurRadius: 10,
                       offset: const Offset(0, 4),
                     ),
@@ -303,12 +301,12 @@ class _ProfileHeader extends StatelessWidget {
                   width: 26,
                   height: 26,
                   decoration: BoxDecoration(
-                    color: const Color(0xFF00ACC1),
+                    color: const Color(0xFF2E7D32),
                     shape: BoxShape.circle,
                     border: Border.all(color: Colors.white, width: 2),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.15),
+                        color: Colors.black.withValues(alpha: 0.15),
                         blurRadius: 4,
                         offset: const Offset(0, 2),
                       ),
@@ -397,7 +395,7 @@ class _ActiveOrdersAndSubscriptions extends ConsumerWidget {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: const BoxDecoration(
-                      color: Color(0xFF00ACC1),
+                      color: Color(0xFF2E7D32),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(Icons.inventory_2_outlined,
@@ -415,7 +413,7 @@ class _ActiveOrdersAndSubscriptions extends ConsumerWidget {
                   const Text(
                     'Track Live',
                     style: TextStyle(
-                      color: Color(0xFF06B6D4),
+                      color: Color(0xFF2E7D32),
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
                     ),
@@ -425,7 +423,7 @@ class _ActiveOrdersAndSubscriptions extends ConsumerWidget {
                     padding:
                         const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF06B6D4).withValues(alpha: 0.1),
+                      color: const Color(0xFF2E7D32).withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
@@ -433,7 +431,7 @@ class _ActiveOrdersAndSubscriptions extends ConsumerWidget {
                             ? '$activeOrdersCount Live'
                             : 'Track',
                         style: const TextStyle(
-                            color: Color(0xFF06B6D4),
+                            color: Color(0xFF2E7D32),
                             fontSize: 10,
                             fontWeight: FontWeight.w600)),
                   ),
@@ -469,11 +467,11 @@ class _ActiveOrdersAndSubscriptions extends ConsumerWidget {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF06B6D4).withValues(alpha: 0.1),
+                      color: const Color(0xFF2E7D32).withValues(alpha: 0.1),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(Icons.card_membership_outlined,
-                        color: Color(0xFF06B6D4), size: 20),
+                        color: Color(0xFF2E7D32), size: 20),
                   ),
                   const SizedBox(height: 12),
                   const Text(
@@ -487,7 +485,7 @@ class _ActiveOrdersAndSubscriptions extends ConsumerWidget {
                   const Text(
                     'Active Plans',
                     style: TextStyle(
-                      color: Color(0xFF06B6D4),
+                      color: Color(0xFF2E7D32),
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
                     ),
@@ -497,7 +495,7 @@ class _ActiveOrdersAndSubscriptions extends ConsumerWidget {
                     padding:
                         const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF06B6D4).withValues(alpha: 0.1),
+                      color: const Color(0xFF2E7D32).withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
@@ -505,7 +503,7 @@ class _ActiveOrdersAndSubscriptions extends ConsumerWidget {
                             ? '$activeSubsCount Managed'
                             : 'View Plans',
                         style: const TextStyle(
-                            color: Color(0xFF06B6D4),
+                            color: Color(0xFF2E7D32),
                             fontSize: 10,
                             fontWeight: FontWeight.w600)),
                   ),
@@ -676,21 +674,21 @@ class _ListTilesSection extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // ── Account section ──────────────────────────────────────────────
+        // â”€â”€ Account section â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         const _SectionHeader(title: 'Account'),
         const SizedBox(height: 10),
         if (isAdmin) ...[
           const _ListTileItem(
             icon: Icons.campaign_rounded,
             title: 'Manage Banners',
-            color: Color(0xFF0EA5E9),
+            color: Color(0xFF2E7D32),
           ),
           const SizedBox(height: 12),
         ],
         _ListTileItem(
           icon: Icons.notifications_none_rounded,
           title: 'Notifications',
-          color: const Color(0xFF0EA5E9),
+          color: const Color(0xFF2E7D32),
           badgeCount: unreadCount,
         ),
         // const SizedBox(height: 12),
@@ -701,32 +699,32 @@ class _ListTilesSection extends ConsumerWidget {
         //   color: const Color(0xFF6366F1),
         // ),
 
-        // ── Support section ──────────────────────────────────────────────
+        // â”€â”€ Support section â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         const SizedBox(height: 24),
         const _SectionHeader(title: 'Support'),
         const SizedBox(height: 10),
         const _ListTileItem(
           icon: Icons.help_outline_rounded,
           title: 'Help & Support',
-          color: Color(0xFF8B5CF6),
+          color: Color(0xFF2E7D32),
         ),
         const SizedBox(height: 12),
         const _ListTileItem(
           icon: Icons.info_outline_rounded,
-          title: 'About Difwa',
-          color: Color(0xFF10B981),
+          title: 'About Green Wash',
+          color: Color(0xFF2E7D32),
         ),
         const SizedBox(height: 12),
         const _ListTileItem(
           icon: Icons.contact_support_outlined,
           title: 'Contact Us',
-          color: Color(0xFFF59E0B),
+          color: Color(0xFF2E7D32),
         ),
         const SizedBox(height: 12),
         const _ListTileItem(
           icon: Icons.star_outline_rounded,
           title: 'Rate Us',
-          color: Color(0xFFEF4444),
+          color: Color(0xFF2E7D32),
         ),
       ],
     );
@@ -754,7 +752,6 @@ class _SectionHeader extends StatelessWidget {
 class _ListTileItem extends StatelessWidget {
   final IconData icon;
   final String title;
-  final String? subtitle;
   final Color color;
   final int badgeCount;
 
@@ -762,7 +759,6 @@ class _ListTileItem extends StatelessWidget {
     required this.icon,
     required this.title,
     required this.color,
-    this.subtitle,
     this.badgeCount = 0,
   });
 
@@ -776,18 +772,70 @@ class _ListTileItem extends StatelessWidget {
       );
     } else if (title == 'Language') {
       Navigator.pushNamed(context, AppRoutes.languageSelection);
-    } else if (title == 'About Difwa') {
+    } else if (title == 'About Green Wash') {
       Navigator.pushNamed(context, AppRoutes.about);
     } else if (title == 'Contact Us') {
       Navigator.pushNamed(context, AppRoutes.contact);
     } else if (title == 'Help & Support') {
       Navigator.pushNamed(context, AppRoutes.help);
     } else if (title == 'Rate Us') {
-      final Uri url = Uri.parse(
-          'https://play.google.com/store/apps/details?id=com.difmo.difwa');
-      if (await canLaunchUrl(url)) {
-        await launchUrl(url, mode: LaunchMode.externalApplication);
-      }
+      int selectedStars = 0;
+      showDialog(
+        context: context,
+        builder: (context) => StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              title: const Text('Rate Green Wash Co.', textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold)),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text('How would you rate your experience?', textAlign: TextAlign.center),
+                  const SizedBox(height: 20),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: List.generate(5, (index) {
+                      return GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            selectedStars = index + 1;
+                          });
+                        },
+                        child: Icon(
+                          index < selectedStars ? Icons.star_rounded : Icons.star_border_rounded,
+                          size: 40,
+                          color: Colors.orange,
+                        ),
+                      );
+                    }),
+                  ),
+                ],
+              ),
+              actionsAlignment: MainAxisAlignment.center,
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Later', style: TextStyle(color: Colors.grey)),
+                ),
+                ElevatedButton(
+                  onPressed: selectedStars > 0 ? () {
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Thank you for your feedback!')),
+                    );
+                  } : null,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF0A4429),
+                    disabledBackgroundColor: Colors.grey.shade300,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                  child: const Text('Submit', style: TextStyle(color: Colors.white)),
+                ),
+              ],
+            );
+          }
+        ),
+      );
     } else {
       Navigator.push(
         context,
@@ -864,17 +912,6 @@ class _ListTileItem extends StatelessWidget {
                       ],
                     ],
                   ),
-                  if (subtitle != null) ...[
-                    const SizedBox(height: 2),
-                    Text(
-                      subtitle!,
-                      style: const TextStyle(
-                        color: Colors.grey,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w400,
-                      ),
-                    ),
-                  ],
                 ],
               ),
             ),
@@ -897,7 +934,7 @@ class _AppVersionFooter extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Text(
-        'Difwa v1.0.53',
+        'Green Wash Co. v1.0.53',
         style: TextStyle(
           fontSize: 12,
           color: Colors.grey.shade400,

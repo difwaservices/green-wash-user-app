@@ -47,7 +47,7 @@ class _RiderMainPageState extends State<RiderMainPage> {
                 'Press back again to exit the app.',
                 style: TextStyle(color: Colors.white, fontSize: 13),
               ),
-              backgroundColor: Color(0xFF0891B2),
+              backgroundColor: Color(0xFF1B5E20),
               duration: Duration(seconds: 2),
               behavior: SnackBarBehavior.floating,
               margin: EdgeInsets.all(20),

@@ -27,7 +27,7 @@ class _FaqPageState extends ConsumerState<FaqPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: const Text('FAQ deleted'),
-            backgroundColor: const Color(0xFF06B6D4),
+            backgroundColor: const Color(0xFF2E7D32),
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             margin: const EdgeInsets.fromLTRB(16, 0, 16, 24),
@@ -82,7 +82,7 @@ class _FaqPageState extends ConsumerState<FaqPage> {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text(isEditing ? 'Updated' : 'Created'),
-                      backgroundColor: const Color(0xFF06B6D4),
+                      backgroundColor: const Color(0xFF2E7D32),
                       behavior: SnackBarBehavior.floating,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       margin: const EdgeInsets.fromLTRB(16, 0, 16, 24),
@@ -182,7 +182,7 @@ class _FaqPageState extends ConsumerState<FaqPage> {
               },
             );
           },
-          loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF06B6D4))),
+          loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF2E7D32))),
           error: (e, _) => const Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,

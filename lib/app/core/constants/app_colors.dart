@@ -3,23 +3,23 @@ import 'package:flutter/material.dart';
 class AppColors {
   AppColors._();
 
-  // Unified Brand Colors (Water-Inspired)
-  static const Color primary = Color(0xFF00ACC1); // Premium Cyan
-  static const Color primaryDark = Color(0xFF0891B2); // Deeper Cyan
-  static const Color primaryLight = Color(0xFFCFFAFE); // Very Light Aqua
+  // Unified Brand Colors (Eco Green)
+  static const Color primary = Color(0xFF2E7D32); // Eco Green
+  static const Color primaryDark = Color(0xFF1B5E20); // Dark Green
+  static const Color primaryLight = Color(0xFFD1FAE5); // Light Green
   
-  static const Color logoPrimary = Color(0xFF164E63); // Dark Cyan Navy
-  static const Color logoSecondary = Color(0xFF22D3EE); // Brightest Cyan
+  static const Color logoPrimary = Color(0xFF064E3B); // Darkest Green
+  static const Color logoSecondary = Color(0xFF4CAF50); // Bright Green
   
-  static const Color secondary = Color(0xFFECFEFF); // Tinted Cyan White
-  static const Color buttonBgColor = Color(0xFF06B6D4); 
+  static const Color secondary = Color(0xFFECFDF5); // Tinted Green White
+  static const Color buttonBgColor = Color(0xFF2E7D32); 
   static const Color buttonTextColor = Colors.white;
-  static const Color inputField = Color(0xFF06B6D4);
+  static const Color inputField = Color(0xFF2E7D32);
   static const Color cardBgColor = Color(0xFFFFFFFF);
 
   // Theme Helpers
-  static const Color primaryTheme = Color(0xFF06B6D4);
-  static const Color primaryColorNew = Color(0xFF0891B2);
+  static const Color primaryTheme = Color(0xFF2E7D32);
+  static const Color primaryColorNew = Color(0xFF1B5E20);
   static const Color primaryColor = primary;
 
   // Neutrals
@@ -35,21 +35,21 @@ class AppColors {
   // Semantic
   static const Color red = Colors.red;
   static const Color redColor = Color.fromARGB(255, 240, 31, 31);
-  static const Color green = Color(0xFF06B6D4); // Swapped to brand cyan
+  static const Color green = Color(0xFF2E7D32); // Swapped to brand green
   static const Color grey = Colors.grey;
-  static const Color myGreen = Color(0xFF06B6D4);
+  static const Color myGreen = Color(0xFF2E7D32);
 
   // Gradients
   static const LinearGradient buttonBgGradient = LinearGradient(
-    colors: [Color(0xFF3EFFFF), Color(0xFF169DFF)],
+    colors: [Color(0xFF4CAF50), Color(0xFF1B5E20)],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
 
   static const LinearGradient iconBg = LinearGradient(
-    colors: [Color(0xFF3EFFFF), Color(0xFF169DFF)],
-    begin: Alignment.topCenter,
-    end: Alignment.bottomCenter,
+    colors: [Color(0xFF4CAF50), Color(0xFF1B5E20)],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
   );
 
   static const LinearGradient splashGradient = LinearGradient(
@@ -67,7 +67,7 @@ class AppColors {
   static const Color iconBgStart = Color(0xFF3EFFFF);
   static const Color iconBgEnd = Color(0xFF169DFF);
 
-  // ── Backward Compatibility Aliases ──────────────────────────
+  // â”€â”€ Backward Compatibility Aliases â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   static const Color error = redColor;
   static const Color scaffoldBg = softGrey;
   static const Color scaffoldBgAlt = Color(0xFFF5F5F5);

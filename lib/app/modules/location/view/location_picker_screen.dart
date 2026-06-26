@@ -204,7 +204,7 @@ class _LocationPickerScreenState extends ConsumerState<LocationPickerScreen> {
           ? const Center(child: CircularProgressIndicator(color: AppColors.accentGreen))
           : Column(
               children: [
-                // ── Map Section (Flexible) ──────────────────────────────────
+                // â”€â”€ Map Section (Flexible) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
                 Expanded(
                   flex: 5,
                   child: Stack(
@@ -262,7 +262,7 @@ class _LocationPickerScreenState extends ConsumerState<LocationPickerScreen> {
                   ),
                 ),
 
-                // ── Error Message Banner ──────────────────────────────────
+                // â”€â”€ Error Message Banner â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
                 if (_errorMessage != null)
                   Container(
                     width: double.infinity,
@@ -274,7 +274,7 @@ class _LocationPickerScreenState extends ConsumerState<LocationPickerScreen> {
                     ),
                   ),
 
-                // ── Address Fields Section (Flexible) ─────────────────────
+                // â”€â”€ Address Fields Section (Flexible) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
                 Expanded(
                   flex: 6,
                   child: Container(
@@ -364,7 +364,7 @@ class _LocationPickerScreenState extends ConsumerState<LocationPickerScreen> {
                           
                           const SizedBox(height: 32),
                           
-                          // ── Action Buttons ────────────────────────────────
+                          // â”€â”€ Action Buttons â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
                           Row(
                             children: [
                               Expanded(

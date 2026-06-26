@@ -15,6 +15,9 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
   late TextEditingController _nameController;
   late TextEditingController _emailController;
   late TextEditingController _phoneController;
+  late TextEditingController _altPhoneController;
+  late TextEditingController _dobController;
+  String _selectedGender = 'Male';
   bool _isSaving = false;
   bool _isInitialized = false;
 
@@ -24,6 +27,8 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
     _nameController = TextEditingController();
     _emailController = TextEditingController();
     _phoneController = TextEditingController();
+    _altPhoneController = TextEditingController();
+    _dobController = TextEditingController();
   }
 
   @override
@@ -31,6 +36,8 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
     _nameController.dispose();
     _emailController.dispose();
     _phoneController.dispose();
+    _altPhoneController.dispose();
+    _dobController.dispose();
     super.dispose();
   }
 
@@ -98,7 +105,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
             content: Text(response.message.isNotEmpty 
                 ? response.message 
                 : 'Profile updated successfully!'),
-            backgroundColor: const Color(0xFF06B6D4),
+            backgroundColor: const Color(0xFF2E7D32),
           ),
         );
         Navigator.pop(context);
@@ -156,7 +163,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                     children: [
                       CircleAvatar(
                         radius: 60,
-                        backgroundColor: const Color(0xFFCFFAFE),
+                        backgroundColor: const Color(0xFFD1FAE5),
                         child: Text(
                           _nameController.text.isNotEmpty
                               ? _nameController.text[0].toUpperCase()
@@ -164,7 +171,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                           style: const TextStyle(
                             fontSize: 48,
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFF0891B2),
+                            color: Color(0xFF1B5E20),
                           ),
                         ),
                       ),
@@ -198,6 +205,19 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                   keyboardType: TextInputType.phone,
                   enabled: false,
                 ),
+                const SizedBox(height: 20),
+                _buildTextField(
+                  controller: _altPhoneController,
+                  label: 'Alternate Phone (Optional)',
+                  hint: 'Enter alternate phone number',
+                  icon: Icons.contact_phone_outlined,
+                  keyboardType: TextInputType.phone,
+                  enabled: !_isSaving,
+                ),
+                const SizedBox(height: 20),
+                _buildDatePicker(),
+                const SizedBox(height: 20),
+                _buildGenderDropdown(),
                 const SizedBox(height: 40),
                 // Save Button
                 SizedBox(
@@ -206,7 +226,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                   child: ElevatedButton(
                     onPressed: _isSaving ? null : _saveProfile,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF06B6D4),
+                      backgroundColor: const Color(0xFF2E7D32),
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
@@ -227,7 +247,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
           );
         },
         loading: () => const Center(
-            child: CircularProgressIndicator(color: Color(0xFF06B6D4))),
+            child: CircularProgressIndicator(color: Color(0xFF2E7D32))),
         error: (e, _) => Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -271,33 +291,158 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
           enabled: enabled,
           decoration: InputDecoration(
             hintText: hint,
-            prefixIcon: Icon(icon, color: Colors.grey.shade400, size: 20),
+            prefixIcon: Icon(icon, color: const Color(0xFF2E7D32), size: 20),
             filled: true,
-            fillColor: enabled ? Colors.grey.shade50 : Colors.grey.shade100,
+            fillColor: enabled ? const Color(0xFF2E7D32).withValues(alpha: 0.03) : Colors.grey.shade100,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(
-                color: const Color(0xFF00ACC1).withValues(alpha: 0.2),
+                color: const Color(0xFF2E7D32).withValues(alpha: 0.3),
                 width: 1,
               ),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(
-                color: const Color(0xFF00ACC1).withValues(alpha: 0.15),
+                color: const Color(0xFF2E7D32).withValues(alpha: 0.3),
                 width: 1,
               ),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: const BorderSide(
-                color: Color(0xFF06B6D4),
+                color: Color(0xFF2E7D32),
                 width: 1.5,
               ),
             ),
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 16,
               vertical: 16,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDatePicker() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Date of Birth',
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: Color(0xFF4B5563),
+          ),
+        ),
+        const SizedBox(height: 8),
+        GestureDetector(
+          onTap: _isSaving
+              ? null
+              : () async {
+                  final date = await showDatePicker(
+                    context: context,
+                    initialDate: DateTime.now().subtract(const Duration(days: 365 * 20)),
+                    firstDate: DateTime(1900),
+                    lastDate: DateTime.now(),
+                    builder: (context, child) {
+                      return Theme(
+                        data: Theme.of(context).copyWith(
+                          colorScheme: const ColorScheme.light(
+                            primary: Color(0xFF2E7D32),
+                            onPrimary: Colors.white,
+                            onSurface: Colors.black,
+                          ),
+                        ),
+                        child: child!,
+                      );
+                    },
+                  );
+                  if (date != null) {
+                    setState(() {
+                      _dobController.text =
+                          "\${date.day.toString().padLeft(2, '0')}/\${date.month.toString().padLeft(2, '0')}/\${date.year}";
+                    });
+                  }
+                },
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            decoration: BoxDecoration(
+              color: const Color(0xFF2E7D32).withValues(alpha: 0.03),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFF2E7D32).withValues(alpha: 0.3)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.calendar_today_outlined, color: Color(0xFF2E7D32), size: 20),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    _dobController.text.isEmpty ? 'Select your date of birth' : _dobController.text,
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: _dobController.text.isEmpty
+                          ? const Color(0xFF9CA3AF)
+                          : const Color(0xFF1F2937),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildGenderDropdown() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Gender',
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: Color(0xFF4B5563),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+          decoration: BoxDecoration(
+            color: const Color(0xFF2E7D32).withValues(alpha: 0.03),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: const Color(0xFF2E7D32).withValues(alpha: 0.3)),
+          ),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<String>(
+              value: _selectedGender,
+              isExpanded: true,
+              icon: const Icon(Icons.keyboard_arrow_down_rounded, color: Color(0xFF2E7D32)),
+              items: ['Male', 'Female', 'Other'].map((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(
+                    value,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      color: Color(0xFF1F2937),
+                    ),
+                  ),
+                );
+              }).toList(),
+              onChanged: _isSaving
+                  ? null
+                  : (newValue) {
+                      if (newValue != null) {
+                        setState(() {
+                          _selectedGender = newValue;
+                        });
+                      }
+                    },
             ),
           ),
         ),

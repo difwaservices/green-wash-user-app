@@ -23,7 +23,13 @@ class _SearchPageState extends ConsumerState<SearchPage> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _focusNode.requestFocus();
+      final args = ModalRoute.of(context)?.settings.arguments as String?;
+      if (args != null && args.isNotEmpty) {
+        _searchController.text = args;
+        _onSearch(args);
+      } else {
+        _focusNode.requestFocus();
+      }
     });
   }
 
@@ -65,7 +71,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
             onSubmitted: _onSearch,
             textInputAction: TextInputAction.search,
             decoration: InputDecoration(
-              hintText: 'Search water plants with name',
+              hintText: 'Search laundry services, packages...',
               hintStyle: const TextStyle(fontSize: 14, color: Colors.grey),
               prefixIcon:
                   Icon(Icons.search, color: AppColors.primary, size: 20),
@@ -131,7 +137,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
               ),
               const SizedBox(width: 8),
               Text(
-                isFiltering ? 'Product Results' : 'Water Plants',
+                isFiltering ? 'Product Results' : 'Services & Partners',
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w800,
@@ -220,7 +226,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
   Widget _buildBody(SearchState state) {
     if (state.isLoading) {
       return const Center(
-          child: CircularProgressIndicator(color: Color(0xFF06B6D4)));
+          child: CircularProgressIndicator(color: Color(0xFF2E7D32)));
     }
 
     if (state.error != null) {
@@ -242,8 +248,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
     }
 
     if (!state.hasSearched) {
-      return _buildEmptyState(
-          'Type something to search...', Icons.search_outlined);
+      return _buildInitialState();
     }
 
     final bool isFiltering = state.priceRange != null ||
@@ -280,7 +285,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
     final shops = state.result?.shops ?? [];
     if (shops.isEmpty) {
       return _buildEmptyState(
-          'No plants found for "${state.query}"', Icons.sentiment_dissatisfied);
+          'No services found for "${state.query}"', Icons.sentiment_dissatisfied);
     }
 
     return ListView.builder(
@@ -396,7 +401,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                   const SizedBox(height: 6),
                   Text(
                     'Delivers in ${shop.deliveryTime}',
-                    style: const TextStyle(color: Color(0xFF06B6D4), fontSize: 11, fontWeight: FontWeight.bold),
+                    style: const TextStyle(color: Color(0xFF2E7D32), fontSize: 11, fontWeight: FontWeight.bold),
                   ),
                 ],
               ),
@@ -404,6 +409,98 @@ class _SearchPageState extends ConsumerState<SearchPage> {
             const Icon(Icons.chevron_right, color: Colors.grey),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildInitialState() {
+    final categories = [
+      {'icon': Icons.local_laundry_service_rounded, 'name': 'Wash & Fold'},
+      {'icon': Icons.dry_cleaning_rounded, 'name': 'Dry Cleaning'},
+      {'icon': Icons.iron_rounded, 'name': 'Ironing Only'},
+      {'icon': Icons.king_bed_rounded, 'name': 'Blankets'},
+    ];
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Center(
+            child: Container(
+              padding: const EdgeInsets.all(24),
+              decoration: const BoxDecoration(
+                color: Color(0xFFE8F5E9),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.search_rounded, size: 64, color: Color(0xFF2E7D32)),
+            ),
+          ),
+          const SizedBox(height: 24),
+          const Center(
+            child: Text(
+              'What are you looking for?',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: Color(0xFF0A4429)),
+            ),
+          ),
+          const SizedBox(height: 12),
+          const Center(
+            child: Text(
+              'Search for specific services, packages,\nor partner laundromats near you.',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 14, color: Colors.grey, height: 1.5),
+            ),
+          ),
+          const SizedBox(height: 40),
+          const Text(
+            'Popular Services',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Color(0xFF0A4429)),
+          ),
+          const SizedBox(height: 16),
+          GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              crossAxisSpacing: 16,
+              mainAxisSpacing: 16,
+              childAspectRatio: 2.5,
+            ),
+            itemCount: categories.length,
+            itemBuilder: (context, index) {
+              return GestureDetector(
+                onTap: () {
+                  _searchController.text = categories[index]['name'] as String;
+                  _onSearch(categories[index]['name'] as String);
+                },
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: const Color(0xFFE8F5E9), width: 1.5),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF0A4429).withOpacity(0.04),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(categories[index]['icon'] as IconData, color: const Color(0xFF2E7D32), size: 20),
+                      const SizedBox(width: 8),
+                      Text(
+                        categories[index]['name'] as String,
+                        style: const TextStyle(fontWeight: FontWeight.w700, color: Color(0xFF1B5E20), fontSize: 13),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        ],
       ),
     );
   }
@@ -446,10 +543,10 @@ class _FilterChip extends StatelessWidget {
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(horizontal: 16),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF06B6D4) : Colors.transparent,
+          color: isSelected ? const Color(0xFF2E7D32) : Colors.transparent,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: isSelected ? const Color(0xFF06B6D4) : Colors.grey.shade300,
+            color: isSelected ? const Color(0xFF2E7D32) : Colors.grey.shade300,
           ),
         ),
         child: Center(

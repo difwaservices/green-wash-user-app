@@ -9,7 +9,7 @@ class FavoritesService {
   final ApiClient _apiClient;
   FavoritesService(this._apiClient);
 
-  /// POST /api/app/favorites  →  { "message": "...", "isFavorite": true/false }
+  /// POST /api/app/favorites  â†’  { "message": "...", "isFavorite": true/false }
   Future<bool> toggleFavorite(String productId) async {
     try {
       final response = await _apiClient.post(
@@ -31,7 +31,7 @@ class FavoritesService {
     }
   }
 
-  /// GET /api/app/favorites  →  list of favourite products
+  /// GET /api/app/favorites  â†’  list of favourite products
   Future<List<ShopProduct>> getFavoriteProducts() async {
     try {
       final response = await _apiClient.get(
@@ -71,7 +71,7 @@ class FavoritesService {
   }
 }
 
-// ── Providers ─────────────────────────────────────────────────────────────────
+// â”€â”€ Providers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 final favoritesServiceProvider = Provider<FavoritesService>((ref) {
   return FavoritesService(ref.watch(apiClientProvider));
@@ -90,7 +90,7 @@ class FavoritesNotifier extends AsyncNotifier<Set<String>> {
     return ids;
   }
 
-  /// Toggle a product. Optimistic → API → reconcile → refresh product list.
+  /// Toggle a product. Optimistic â†’ API â†’ reconcile â†’ refresh product list.
   Future<void> toggle(String productId) async {
     final previous = state;
     final currentSet = Set<String>.from(state.asData?.value ?? {});
@@ -121,7 +121,7 @@ class FavoritesNotifier extends AsyncNotifier<Set<String>> {
       // 4. Refresh the full product list so FavoritesPage immediately shows/hides the item
       ref.invalidate(favoriteProductsProvider);
 
-      debugPrint('[FavoritesNotifier] toggled $productId → isFav=$isFavNow, total=${reconciled.length}');
+      debugPrint('[FavoritesNotifier] toggled $productId â†’ isFav=$isFavNow, total=${reconciled.length}');
     } catch (e) {
       debugPrint('[FavoritesNotifier] toggle failed, rolling back: $e');
       state = previous;
@@ -136,7 +136,7 @@ final favoritesProvider =
 });
 
 /// Full [ShopProduct] list for the current user's favorites.
-/// Non-autoDispose → keeps data alive across page navigations.
+/// Non-autoDispose â†’ keeps data alive across page navigations.
 /// Invalidated explicitly by [FavoritesNotifier.toggle] after every API call.
 final favoriteProductsProvider = FutureProvider<List<ShopProduct>>((ref) {
   final isAuthenticated = ref.watch(isAuthenticatedProvider);

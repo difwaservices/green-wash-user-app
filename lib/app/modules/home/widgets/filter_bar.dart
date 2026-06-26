@@ -51,14 +51,14 @@ class _FilterBarState extends State<FilterBar> {
           const SizedBox(width: 8),
           _buildFilterChip(
             null,
-            'Under ₹150',
+            'Under â‚¹150',
             index: 2,
-            isSelected: _selectedFilter == 'Under ₹150',
+            isSelected: _selectedFilter == 'Under â‚¹150',
             onTap: () {
               setState(() {
-                _selectedFilter = _selectedFilter == 'Under ₹150'
+                _selectedFilter = _selectedFilter == 'Under â‚¹150'
                     ? ''
-                    : 'Under ₹150';
+                    : 'Under â‚¹150';
               });
             },
           ),
@@ -98,7 +98,7 @@ class _FilterBarState extends State<FilterBar> {
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: isSelected
-                ? const Color(0xFF06B6D4)
+                ? const Color(0xFF2E7D32)
                 : Colors.grey.withValues(alpha:  0.2),
             width: 1,
           ),
@@ -110,7 +110,7 @@ class _FilterBarState extends State<FilterBar> {
               Icon(
                 icon,
                 size: 16,
-                color: isSelected ? const Color(0xFF06B6D4) : Colors.black,
+                color: isSelected ? const Color(0xFF2E7D32) : Colors.black,
               ),
               const SizedBox(width: 4),
             ],

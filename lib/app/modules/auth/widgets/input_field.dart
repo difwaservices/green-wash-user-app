@@ -75,8 +75,8 @@ class _InputFieldState extends State<InputField> {
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
               color: _isFocused 
-                ? const Color(0xFF06B6D4) 
-                : const Color(0xFF06B6D4).withValues(alpha: 0.15),
+                ? const Color(0xFF2E7D32) 
+                : const Color(0xFF2E7D32).withValues(alpha: 0.15),
               width: 1.5,
             ),
             boxShadow: [

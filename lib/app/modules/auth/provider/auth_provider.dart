@@ -11,7 +11,7 @@ export '../../../../core/state/auth_store.dart' show
   AuthError,
   AuthSuccess;
 
-// ── UNIFIED AUTH ARCHITECTURE BRIDGE ──
+// â”€â”€ UNIFIED AUTH ARCHITECTURE BRIDGE â”€â”€
 // This file maintains compatibility with existing UI imports while
 // redirecting all logic and state to the single source of truth in core.
 

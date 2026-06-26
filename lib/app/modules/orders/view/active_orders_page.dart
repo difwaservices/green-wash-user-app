@@ -21,7 +21,7 @@ class _ActiveOrdersPageState extends ConsumerState<ActiveOrdersPage> {
   late void Function(dynamic) _onOrderUpdate;
   late void Function(dynamic) _onDeliveryOtp;
 
-  // Keyed by orderId — holds OTP payloads received via socket
+  // Keyed by orderId â€” holds OTP payloads received via socket
   final Map<String, Map<String, dynamic>> _socketOtps = {};
 
   @override
@@ -29,13 +29,13 @@ class _ActiveOrdersPageState extends ConsumerState<ActiveOrdersPage> {
     super.initState();
     _onOrderUpdate = (data) {
       if (!mounted) return;
-      debugPrint('📦 Order status updated via socket: $data');
+      debugPrint('ðŸ“¦ Order status updated via socket: $data');
       // Reactively handled by ActiveOrdersNotifier
     };
 
     _onDeliveryOtp = (data) {
       if (!mounted) return;
-      debugPrint('🔐 DELIVERY_OTP received: $data');
+      debugPrint('ðŸ” DELIVERY_OTP received: $data');
       if (data is Map) {
         final orderId = data['orderId']?.toString() ?? '';
         if (orderId.isNotEmpty) {
@@ -110,7 +110,7 @@ class _ActiveOrdersPageState extends ConsumerState<ActiveOrdersPage> {
             final sortedOrders = List<UserOrder>.from(pendingCancelledOrders)
               ..sort((a, b) => b.date.compareTo(a.date));
             return RefreshIndicator(
-              color: const Color(0xFF0891B2),
+              color: const Color(0xFF1B5E20),
               onRefresh: () async =>
                   ref.read(activeOrdersProvider.notifier).refresh(),
               child: ListView.builder(
@@ -161,7 +161,7 @@ class _ActiveOrdersPageState extends ConsumerState<ActiveOrdersPage> {
                 shape: BoxShape.circle,
               ),
               child: const Icon(Icons.inventory_2_outlined,
-                  size: 56, color: Color(0xFF06B6D4)),
+                  size: 56, color: Color(0xFF2E7D32)),
             ),
             const SizedBox(height: 24),
             const Text('No Active Orders',
@@ -183,7 +183,7 @@ class _ActiveOrdersPageState extends ConsumerState<ActiveOrdersPage> {
                     style:
                         TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF0891B2),
+                  backgroundColor: const Color(0xFF1B5E20),
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20)),
@@ -217,7 +217,7 @@ class _ActiveOrdersPageState extends ConsumerState<ActiveOrdersPage> {
             icon: const Icon(Icons.refresh, size: 18),
             label: const Text('Retry'),
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF0891B2),
+              backgroundColor: const Color(0xFF1B5E20),
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12)),
@@ -229,7 +229,7 @@ class _ActiveOrdersPageState extends ConsumerState<ActiveOrdersPage> {
   }
 }
 
-// ── Order Card ─────────────────────────────────────────────────────────────────
+// â”€â”€ Order Card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _ActiveOrderCard extends ConsumerWidget {
   final UserOrder order;
@@ -323,7 +323,7 @@ class _ActiveOrderCard extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // ── Header (Matching Screenshot) ─────────────────────────────
+              // â”€â”€ Header (Matching Screenshot) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -386,7 +386,7 @@ class _ActiveOrderCard extends ConsumerWidget {
 
               const Divider(height: 32, thickness: 1, color: Color(0xFFF3F4F6)),
 
-              // ── Item Row ────────────────────────────────────────────────────
+              // â”€â”€ Item Row â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -448,7 +448,7 @@ class _ActiveOrderCard extends ConsumerWidget {
 
               const SizedBox(height: 16),
 
-              // ── Plant Section (Added) ──────────────────────────────────
+              // â”€â”€ Plant Section (Added) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
               if (order.plantName.isNotEmpty) ...[
                 Container(
                   padding: const EdgeInsets.all(16),
@@ -504,7 +504,7 @@ class _ActiveOrderCard extends ConsumerWidget {
                 ),
               ],
 
-              // ── Location Section (Matching Screenshot) ──────────────────────
+              // â”€â”€ Location Section (Matching Screenshot) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
@@ -615,7 +615,7 @@ class _ActiveOrderCard extends ConsumerWidget {
                                           child: Text(
                                             label.toUpperCase(),
                                             style: const TextStyle(
-                                              color: Color(0xFF06B6D4),
+                                              color: Color(0xFF2E7D32),
                                               fontSize: 9,
                                               fontWeight: FontWeight.bold,
                                             ),
@@ -815,7 +815,7 @@ class _ActiveOrderCard extends ConsumerWidget {
                                       child: Text(
                                         label.toString().toUpperCase(),
                                         style: const TextStyle(
-                                          color: Color(0xFF06B6D4),
+                                          color: Color(0xFF2E7D32),
                                           fontSize: 9,
                                           fontWeight: FontWeight.bold,
                                         ),
@@ -879,7 +879,7 @@ class _ActiveOrderCard extends ConsumerWidget {
 
               const SizedBox(height: 12),
 
-              // ── Delivery OTP Banner ───────────────────────────────────────────
+              // â”€â”€ Delivery OTP Banner â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
               Builder(builder: (context) {
                 final otp = _resolvedOtp();
                 if (otp == null) return const SizedBox.shrink();
@@ -889,7 +889,7 @@ class _ActiveOrderCard extends ConsumerWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
-                      colors: [Color(0xFF0891B2), Color(0xFF06B6D4)],
+                      colors: [Color(0xFF1B5E20), Color(0xFF2E7D32)],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
@@ -930,7 +930,7 @@ class _ActiveOrderCard extends ConsumerWidget {
                             style: const TextStyle(
                               fontSize: 26,
                               fontWeight: FontWeight.w900,
-                              color: Color(0xFF0891B2),
+                              color: Color(0xFF1B5E20),
                             ),
                           ),
                         )).toList(),
@@ -950,13 +950,13 @@ class _ActiveOrderCard extends ConsumerWidget {
                 );
               }),
 
-              // ── Price & View Details ───────────────────────────────────────────
+              // â”€â”€ Price & View Details â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
               Align(
                 alignment: Alignment.centerRight,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    Text('₹${total.toStringAsFixed(0)}',
+                    Text('â‚¹${total.toStringAsFixed(0)}',
                         style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 22,
@@ -1024,7 +1024,7 @@ class _ActiveOrderCard extends ConsumerWidget {
       AppImages.waterBottle,
       fit: BoxFit.contain,
       errorBuilder: (_, __, ___) => const Center(
-        child: Icon(Icons.water_drop, color: Color(0xFF0891B2), size: 32),
+        child: Icon(Icons.water_drop, color: Color(0xFF1B5E20), size: 32),
       ),
     );
   }

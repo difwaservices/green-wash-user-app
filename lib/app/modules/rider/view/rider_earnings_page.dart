@@ -5,13 +5,13 @@ import 'package:intl/intl.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../data/services/rider_service.dart';
 
-// ── Provider ────────────────────────────────────────────────────────────────
+// â”€â”€ Provider â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 final riderEarningsProvider = FutureProvider<Map<String, dynamic>>((ref) async {
   final riderService = ref.read(riderServiceProvider);
   Map<String, dynamic> data = {};
 
-  // ── Fallback: Calculate from History if empty ─────────────────────────────
+  // â”€â”€ Fallback: Calculate from History if empty â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   final hasDeliveries =
       data['deliveries'] != null || data['totalDeliveries'] != null;
   final hasEarnings = data['weekly'] != null || data['walletBalance'] != null;
@@ -51,7 +51,7 @@ final riderEarningsProvider = FutureProvider<Map<String, dynamic>>((ref) async {
   };
 });
 
-// ── Helpers ──────────────────────────────────────────────────────────────────
+// â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 /// Returns the next Monday from today as a formatted string, e.g. "Monday, 17 Mar"
 String _nextSettlementDate() {
@@ -82,7 +82,7 @@ int _parseInt(Map<String, dynamic> map, List<String> keys) {
   return 0;
 }
 
-// ── Page ─────────────────────────────────────────────────────────────────────
+// â”€â”€ Page â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class RiderEarningsPage extends ConsumerWidget {
   const RiderEarningsPage({super.key});
@@ -129,7 +129,7 @@ class RiderEarningsPage extends ConsumerWidget {
           ),
         ),
         data: (earnings) {
-          // ── Parse earnings fields (multi-key fallback for different API schemas)
+          // â”€â”€ Parse earnings fields (multi-key fallback for different API schemas)
           final walletBalance = _parseNum(earnings, [
             'walletBalance',
             'wallet_balance',
@@ -187,7 +187,7 @@ class RiderEarningsPage extends ConsumerWidget {
               padding: const EdgeInsets.all(20),
               child: Column(
                 children: [
-                  // ── Hero Balance Card ──────────────────────────────────────
+                  // â”€â”€ Hero Balance Card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
                   _WalletBalanceCard(
                     walletBalance: walletBalance,
                     today: today,
@@ -199,7 +199,7 @@ class RiderEarningsPage extends ConsumerWidget {
 
                   const SizedBox(height: 24),
 
-                  // ── Stats Grid ────────────────────────────────────────────
+                  // â”€â”€ Stats Grid â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
                   Row(
                     children: [
                       Expanded(
@@ -221,7 +221,7 @@ class RiderEarningsPage extends ConsumerWidget {
                           iconColor: Colors.amber,
                           bgColor: const Color(0xFFFFF8E1),
                           label: 'Avg per order',
-                          value: '₹${avgPerOrder.toStringAsFixed(0)}',
+                          value: 'â‚¹${avgPerOrder.toStringAsFixed(0)}',
                         )
                             .animate(delay: 150.ms)
                             .fadeIn()
@@ -232,7 +232,7 @@ class RiderEarningsPage extends ConsumerWidget {
 
                   const SizedBox(height: 24),
 
-                  // ── Payout Section ────────────────────────────────────────
+                  // â”€â”€ Payout Section â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
                   _PayoutCard(
                     nextSettlement: nextSettlement,
                     pendingBalance: pendingBalance > 0
@@ -249,7 +249,7 @@ class RiderEarningsPage extends ConsumerWidget {
   }
 }
 
-// ── Wallet Balance Card ───────────────────────────────────────────────────────
+// â”€â”€ Wallet Balance Card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _WalletBalanceCard extends StatelessWidget {
   final double walletBalance;
@@ -268,7 +268,7 @@ class _WalletBalanceCard extends StatelessWidget {
       padding: const EdgeInsets.all(28),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [Color(0xFF06B6D4), Color(0xFF3A7A18)],
+          colors: [Color(0xFF2E7D32), Color(0xFF3A7A18)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -294,7 +294,7 @@ class _WalletBalanceCard extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            '₹${walletBalance.toStringAsFixed(2)}',
+            'â‚¹${walletBalance.toStringAsFixed(2)}',
             style: const TextStyle(
                 color: Colors.white, fontSize: 38, fontWeight: FontWeight.w900),
           ),
@@ -303,12 +303,12 @@ class _WalletBalanceCard extends StatelessWidget {
             children: [
               _StatPill(
                 label: "Today's Pay",
-                value: '₹${today.toStringAsFixed(0)}',
+                value: 'â‚¹${today.toStringAsFixed(0)}',
               ),
               const SizedBox(width: 12),
               _StatPill(
                 label: 'This Week',
-                value: '₹${weekly.toStringAsFixed(0)}',
+                value: 'â‚¹${weekly.toStringAsFixed(0)}',
               ),
             ],
           ),
@@ -318,7 +318,7 @@ class _WalletBalanceCard extends StatelessWidget {
   }
 }
 
-// ── Payout Card ───────────────────────────────────────────────────────────────
+// â”€â”€ Payout Card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _PayoutCard extends StatelessWidget {
   final String nextSettlement;
@@ -371,7 +371,7 @@ class _PayoutCard extends StatelessWidget {
           const Divider(height: 24),
           _PayoutRow(
             label: 'Pending Balance',
-            value: '₹${pendingBalance.toStringAsFixed(0)}',
+            value: 'â‚¹${pendingBalance.toStringAsFixed(0)}',
           ),
         ],
       ),
@@ -379,7 +379,7 @@ class _PayoutCard extends StatelessWidget {
   }
 }
 
-// ── Small Widgets ─────────────────────────────────────────────────────────────
+// â”€â”€ Small Widgets â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _StatPill extends StatelessWidget {
   final String label;

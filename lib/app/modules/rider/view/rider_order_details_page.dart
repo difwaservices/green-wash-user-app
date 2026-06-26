@@ -35,7 +35,7 @@ class _RiderOrderDetailsPageState extends ConsumerState<RiderOrderDetailsPage> {
   Map<String, dynamic>? _fetchedOrder;
   SocketService? _socket;
 
-  // ── Cancellation flow state ───────────────────────────────────────────────
+  // â”€â”€ Cancellation flow state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   bool _cancelInitiated = false;
   int _countdownSeconds = 300; // 5 minutes
   Timer? _countdownTimer;
@@ -69,7 +69,7 @@ class _RiderOrderDetailsPageState extends ConsumerState<RiderOrderDetailsPage> {
       if (newStatus.isNotEmpty && newStatus != _liveStatus) {
         setState(() => _liveStatus = newStatus);
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('📍 Status updated: $newStatus'),
+          content: Text('ðŸ“ Status updated: $newStatus'),
           backgroundColor: AppColors.accentGreen,
           behavior: SnackBarBehavior.floating,
           shape:
@@ -381,7 +381,7 @@ class _RiderOrderDetailsPageState extends ConsumerState<RiderOrderDetailsPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ── Quick Actions ─────────────────────────────────────────────
+            // â”€â”€ Quick Actions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             Row(
               children: [
                 Expanded(
@@ -406,7 +406,7 @@ class _RiderOrderDetailsPageState extends ConsumerState<RiderOrderDetailsPage> {
 
             const SizedBox(height: 20),
 
-            // ── Customer Info ─────────────────────────────────────────────
+            // â”€â”€ Customer Info â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             _SectionCard(
               title: 'Customer',
               child: Column(
@@ -437,7 +437,7 @@ class _RiderOrderDetailsPageState extends ConsumerState<RiderOrderDetailsPage> {
 
             const SizedBox(height: 16),
 
-            // ── Plant Info ─────────────────────────────────────────────
+            // â”€â”€ Plant Info â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             if (plantName.isNotEmpty)
               _SectionCard(
                 title: 'Plant / Retailer',
@@ -458,7 +458,7 @@ class _RiderOrderDetailsPageState extends ConsumerState<RiderOrderDetailsPage> {
 
             const SizedBox(height: 16),
 
-            // ── Order Info ────────────────────────────────────────────────
+            // â”€â”€ Order Info â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             _SectionCard(
               title: 'Order Info',
               child: Column(
@@ -479,7 +479,7 @@ class _RiderOrderDetailsPageState extends ConsumerState<RiderOrderDetailsPage> {
                   _InfoRow(
                     icon: Icons.currency_rupee_rounded,
                     label: 'Order Total Money',
-                    value: '₹${(order['totalAmount'] ?? order['total'] ?? 0).toString()}',
+                    value: 'â‚¹${(order['totalAmount'] ?? order['total'] ?? 0).toString()}',
                     valueColor: AppColors.accentGreen,
                     isBold: true,
                   ),
@@ -489,10 +489,10 @@ class _RiderOrderDetailsPageState extends ConsumerState<RiderOrderDetailsPage> {
 
             const SizedBox(height: 16),
 
-            // ── Items ─────────────────────────────────────────────────────
+            // â”€â”€ Items â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             if (items.isNotEmpty)
               _SectionCard(
-                title: 'Items (${items.length} Type • Total ${items.fold(0, (sum, i) => sum + (int.tryParse(i['quantity']?.toString() ?? '1') ?? 1))} qty)',
+                title: 'Items (${items.length} Type â€¢ Total ${items.fold(0, (sum, i) => sum + (int.tryParse(i['quantity']?.toString() ?? '1') ?? 1))} qty)',
                 child: Column(
                   children: items.map((item) {
                     final product = item['product'];
@@ -523,7 +523,7 @@ class _RiderOrderDetailsPageState extends ConsumerState<RiderOrderDetailsPage> {
                                       fontSize: 14,
                                       fontWeight: FontWeight.w500))),
                           if (price.isNotEmpty)
-                            Text('₹$price',
+                            Text('â‚¹$price',
                                 style: const TextStyle(
                                     fontWeight: FontWeight.bold,
                                     color: AppColors.accentGreen)),
@@ -536,7 +536,7 @@ class _RiderOrderDetailsPageState extends ConsumerState<RiderOrderDetailsPage> {
 
             const SizedBox(height: 24),
 
-            // ── Cancellation Flow ──────────────────────────────────────────
+            // â”€â”€ Cancellation Flow â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             if (!['delivered', 'cancelled', 'rejected', 'completed']
                 .contains(status.toLowerCase())) ...[
               const SizedBox(height: 8),
@@ -549,7 +549,7 @@ class _RiderOrderDetailsPageState extends ConsumerState<RiderOrderDetailsPage> {
     );
   }
 
-  // ── Cancel section ──────────────────────────────────────────────────────────
+  // â”€â”€ Cancel section â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   Widget _buildCancelSection(Map<String, dynamic> order) {
     final cancelOrderId = order['_id']?.toString() ??
@@ -607,7 +607,7 @@ class _RiderOrderDetailsPageState extends ConsumerState<RiderOrderDetailsPage> {
                         const SizedBox(width: 8),
                         Text(
                           timerDone
-                              ? 'Timer complete — you can confirm now.'
+                              ? 'Timer complete â€” you can confirm now.'
                               : 'Wait $mins:$secs before confirming.',
                           style: TextStyle(
                             fontSize: 13,
@@ -642,7 +642,7 @@ class _RiderOrderDetailsPageState extends ConsumerState<RiderOrderDetailsPage> {
   }
 }
 
-// ── Helpers ────────────────────────────────────────────────────────────────────
+// â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _SectionCard extends StatelessWidget {
   final String title;

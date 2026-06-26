@@ -225,7 +225,7 @@ class _ModernFilterBottomSheetState extends State<ModernFilterBottomSheet> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _buildPriceBox('Min', '₹${_priceRange.start.round()}'),
+              _buildPriceBox('Min', 'â‚¹${_priceRange.start.round()}'),
               const Text(
                 '-',
                 style: TextStyle(
@@ -234,7 +234,7 @@ class _ModernFilterBottomSheetState extends State<ModernFilterBottomSheet> {
                   fontWeight: FontWeight.w500,
                 ),
               ),
-              _buildPriceBox('Max', '₹${_priceRange.end.round()}'),
+              _buildPriceBox('Max', 'â‚¹${_priceRange.end.round()}'),
             ],
           ),
           const SizedBox(height: 24),
@@ -307,9 +307,9 @@ class _ModernFilterBottomSheetState extends State<ModernFilterBottomSheet> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        _buildRatingChip(4, '★ 4+'),
-        _buildRatingChip(3, '★ 3+'),
-        _buildRatingChip(2, '★ 2+'),
+        _buildRatingChip(4, 'â˜… 4+'),
+        _buildRatingChip(3, 'â˜… 3+'),
+        _buildRatingChip(2, 'â˜… 2+'),
       ],
     );
   }

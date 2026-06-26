@@ -9,7 +9,7 @@ class AboutPage extends StatelessWidget {
       backgroundColor: const Color(0xFFF7F8FA),
       appBar: AppBar(
         title: const Text(
-          'About Difwa',
+          'About Us',
           style: TextStyle(
             fontWeight: FontWeight.w900,
             fontSize: 20,
@@ -24,7 +24,7 @@ class AboutPage extends StatelessWidget {
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
           child: Container(
-            color: const Color(0xFF00ACC1).withValues(alpha: 0.1),
+            color: const Color(0xFF2E7D32).withValues(alpha: 0.1),
             height: 1,
           ),
         ),
@@ -46,7 +46,7 @@ class AboutPage extends StatelessWidget {
                     color: Colors.white,
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: const Color(0xFF00ACC1).withValues(alpha: 0.05),
+                      color: const Color(0xFF2E7D32).withValues(alpha: 0.05),
                       width: 1.0,
                     ),
                     boxShadow: [
@@ -58,11 +58,11 @@ class AboutPage extends StatelessWidget {
                     ],
                   ),
                   child: Image.asset(
-                    'assets/logos/app_logo.png',
+                    'assets/images/app_logo.png',
                     errorBuilder: (c, e, s) => const Icon(
                       Icons.water_drop_rounded,
                       size: 70,
-                      color: Color(0xFF06B6D4),
+                      color: Color(0xFF2E7D32),
                     ),
                   ),
                 ),
@@ -76,7 +76,7 @@ class AboutPage extends StatelessWidget {
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(24),
                   border: Border.all(
-                    color: const Color(0xFF00ACC1).withValues(alpha: 0.2),
+                    color: const Color(0xFF2E7D32).withValues(alpha: 0.2),
                     width: 1.0,
                   ),
                   boxShadow: [
@@ -91,7 +91,7 @@ class AboutPage extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      'Difwa Services',
+                      'Green Wash Services',
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.w900,
@@ -101,7 +101,7 @@ class AboutPage extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
                     const Text(
-                      'Difwa is your trusted partner for pure and fresh water delivery. We bridge the gap between water plants and customers, ensuring that you receive the best quality water at your doorstep with just a few clicks.',
+                      'Green Wash Co. is your trusted partner for eco-friendly cleaning and sustainable washing solutions. We are committed to delivering high-quality services while minimizing environmental impact. Through innovative technology and responsible practices, we help create a cleaner, greener future for everyone.',
                       style: TextStyle(
                         fontSize: 15,
                         color: Color(0xFF475569),
@@ -118,7 +118,7 @@ class AboutPage extends StatelessWidget {
               _ModernInfoCard(
                 title: 'Our Mission',
                 content:
-                    'To provide accessible, affordable, and high-quality drinking water to every household, promoting health and convenience through technology.',
+                    'To provide affordable, reliable, and environmentally responsible cleaning services that promote sustainability, conserve resources, and improve the quality of life for our customers and communities.',
                 icon: Icons.lightbulb_rounded,
                 iconColor: Colors.amber,
               ),
@@ -127,9 +127,18 @@ class AboutPage extends StatelessWidget {
               _ModernInfoCard(
                 title: 'Why Choose Us?',
                 content:
-                    '• Pure & Certified Water\n• Real-time Tracking\n• Flexible Subscriptions\n• Timely Delivery\n• Secure Payments',
+                    'â€¢ Eco-Friendly & Sustainable Solutions\nâ€¢ Water Conservation Practices\nâ€¢ High-Quality Service Standards\nâ€¢ Convenient Booking & Tracking\nâ€¢ Affordable Pricing Plans\nâ€¢ Safe & Secure Payments\nâ€¢ Dedicated Customer Support',
                 icon: Icons.verified_user_rounded,
-                iconColor: const Color(0xFF06B6D4),
+                iconColor: const Color(0xFF2E7D32),
+              ),
+              const SizedBox(height: 20),
+
+              _ModernInfoCard(
+                title: 'Short App Description',
+                content:
+                    'Green Wash Co. connects customers with professional eco-friendly cleaning services, ensuring convenience, quality, and environmental responsibility in every wash.',
+                icon: Icons.info_outline_rounded,
+                iconColor: Colors.blueAccent,
               ),
 
               const SizedBox(height: 48),
@@ -137,7 +146,7 @@ class AboutPage extends StatelessWidget {
                 child: Column(
                   children: [
                     Text(
-                      'Difwa App',
+                      'Green Wash App',
                       style: TextStyle(
                         color: Color(0xFF94A3B8),
                         fontSize: 14,
@@ -187,7 +196,7 @@ class _ModernInfoCard extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: const Color(0xFF00ACC1).withValues(alpha: 0.2),
+          color: const Color(0xFF2E7D32).withValues(alpha: 0.2),
           width: 1.0,
         ),
         boxShadow: [

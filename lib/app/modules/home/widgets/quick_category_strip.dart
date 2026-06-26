@@ -46,7 +46,7 @@ class QuickCategoryStrip extends ConsumerWidget {
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
-                        color: Color(0xFF0891B2),
+                        color: Color(0xFF1B5E20),
                       ),
                     ),
                   ),
@@ -78,7 +78,7 @@ class QuickCategoryStrip extends ConsumerWidget {
   }
 }
 
-// ── Category Chip ─────────────────────────────────────────────────────────────
+// â”€â”€ Category Chip â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _CategoryChip extends StatelessWidget {
   final FoodCategory category;
@@ -103,7 +103,7 @@ class _CategoryChip extends StatelessWidget {
   ];
 
   static const _iconColors = [
-    Color(0xFF06B6D4),
+    Color(0xFF2E7D32),
     Color(0xFF0EA5E9),
     Color(0xFF3B82F6),
     Color(0xFF8B5CF6),
@@ -185,7 +185,7 @@ class _CategoryChip extends StatelessWidget {
   }
 }
 
-// ── Loading Shimmer ───────────────────────────────────────────────────────────
+// â”€â”€ Loading Shimmer â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _Shimmer extends StatelessWidget {
   const _Shimmer();

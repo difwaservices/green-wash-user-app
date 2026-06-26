@@ -130,7 +130,7 @@ class UserSubscription {
         final m = int.tryParse(parts[1]);
         final d = int.tryParse(parts[2]);
         if (y != null && m != null && d != null) {
-          return DateTime(y, m, d); // midnight local — no UTC shift
+          return DateTime(y, m, d); // midnight local â€” no UTC shift
         }
       }
     }

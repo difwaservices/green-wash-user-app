@@ -53,7 +53,7 @@ class CartProvider extends ChangeNotifier {
     });
   }
 
-  // ── Getters ───────────────────────────────────────────────────────────────
+  // â”€â”€ Getters â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   AddressService? get addressService => _addressService;
   List<CartItem> get items => _items;
   UserProfile get userProfile => _userProfile;
@@ -173,8 +173,8 @@ class CartProvider extends ChangeNotifier {
   }
 
   final List<UserPaymentMethod> _payments = [];
-  
-  // ── Delivery Charge Logic ──────────────────────────────────────────────
+
+  // â”€â”€ Delivery Charge Logic â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   double _deliveryFee = 0.0;
   bool _isDeliverable = true;
   String _deliveryMessage = '';
@@ -200,8 +200,7 @@ class CartProvider extends ChangeNotifier {
     }
 
     // Hash of cart items to detect quantity changes
-    final cartHash =
-        _items.map((e) => '${e.id}:${e.quantity}').join('|');
+    final cartHash = _items.map((e) => '${e.id}:${e.quantity}').join('|');
 
     if (_lastCalculatedAddressId == addr.id &&
         _lastCalculatedCartHash == cartHash) {
@@ -219,12 +218,15 @@ class CartProvider extends ChangeNotifier {
 
       // PRIORITY 1: USE ADDRESS COORDINATES (Senior Dev Best Practice)
       // Use the coordinates explicitly saved with the address (from Map Picker)
-      if (addr.latitude != null && addr.longitude != null && addr.latitude != 0 && addr.longitude != 0) {
+      if (addr.latitude != null &&
+          addr.longitude != null &&
+          addr.latitude != 0 &&
+          addr.longitude != 0) {
         userLat = addr.latitude!;
         userLng = addr.longitude!;
         hasCoordinates = true;
-      } 
-      
+      }
+
       // PRIORITY 2: USE CURRENT GPS (Fallback only)
       if (!hasCoordinates) {
         try {
@@ -235,7 +237,8 @@ class CartProvider extends ChangeNotifier {
           if (permission == LocationPermission.always ||
               permission == LocationPermission.whileInUse) {
             final position = await Geolocator.getCurrentPosition(
-                desiredAccuracy: LocationAccuracy.high);
+                locationSettings:
+                    const LocationSettings(accuracy: LocationAccuracy.high));
             userLat = position.latitude;
             userLng = position.longitude;
             hasCoordinates = true;
@@ -323,19 +326,19 @@ class CartProvider extends ChangeNotifier {
   Future<void> syncLocalCartToServer() async {
     if (!isLoggedIn || _service == null || _items.isEmpty) return;
 
-    debugPrint('🛒 Syncing ${_items.length} local items to server...');
+    debugPrint('ðŸ›’ Syncing ${_items.length} local items to server...');
     for (final item in _items) {
       try {
         await _service!.addToCart(item.id, item.quantity);
       } catch (e) {
-        debugPrint('⚠️ Failed to sync item ${item.title} to server: $e');
+        debugPrint('âš ï¸ Failed to sync item ${item.title} to server: $e');
       }
     }
     // After syncing, reload the full cart from API to ensure everything is in sync
     await loadCartFromApi();
   }
 
-  // ── API Integration ───────────────────────────────────────────────────────
+  // â”€â”€ API Integration â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Future<void> loadCategories() async {
     if (_shopService == null) return;
     try {
@@ -360,7 +363,7 @@ class CartProvider extends ChangeNotifier {
           rating: s.rating,
           deliveryTime: s.deliveryTime,
           discount: 'Free Delivery',
-          minOrder: '₹0 min',
+          minOrder: 'â‚¹0 min',
         ));
       }
       notifyListeners();
@@ -431,7 +434,8 @@ class CartProvider extends ChangeNotifier {
             final statePin = parts[1].trim();
             if (statePin.contains(' ')) {
               pincodeStr = statePin.split(' ').last;
-              stateName = statePin.substring(0, statePin.lastIndexOf(' ')).trim();
+              stateName =
+                  statePin.substring(0, statePin.lastIndexOf(' ')).trim();
             } else {
               stateName = statePin;
             }
@@ -466,12 +470,15 @@ class CartProvider extends ChangeNotifier {
           latitude: lat,
           longitude: lng,
         );
-        final bool isSuccess = result['success'] == true || result['data'] != null || result['_id'] != null;
+        final bool isSuccess = result['success'] == true ||
+            result['data'] != null ||
+            result['_id'] != null;
         if (isSuccess) {
           await loadAddresses();
           // Auto-select the newly added address
           if (_addresses.isNotEmpty) {
-            final newIdx = _addresses.indexWhere((a) => a.title == address.title && a.street == address.street);
+            final newIdx = _addresses.indexWhere(
+                (a) => a.title == address.title && a.street == address.street);
             if (newIdx != -1) {
               _selectedAddressIndex = newIdx;
               notifyListeners();
@@ -513,9 +520,10 @@ class CartProvider extends ChangeNotifier {
       if (result['success']) {
         final List<dynamic> data = result['data'] ?? [];
         // Preserve selection by ID if possible
-        final previousId = _addresses.isNotEmpty && _selectedAddressIndex < _addresses.length 
-            ? _addresses[_selectedAddressIndex].id 
-            : null;
+        final previousId =
+            _addresses.isNotEmpty && _selectedAddressIndex < _addresses.length
+                ? _addresses[_selectedAddressIndex].id
+                : null;
 
         _addresses = data.map((json) {
           // ... (mapping logic)
@@ -616,7 +624,8 @@ class CartProvider extends ChangeNotifier {
               lng = locations.first.longitude;
             }
           } catch (e) {
-            debugPrint('CartProvider: Geocoding fallback failed for Update: $e');
+            debugPrint(
+                'CartProvider: Geocoding fallback failed for Update: $e');
           }
         }
 
@@ -633,7 +642,9 @@ class CartProvider extends ChangeNotifier {
           latitude: lat,
           longitude: lng,
         );
-        final bool isSuccess = result['success'] == true || result['data'] != null || result['_id'] != null;
+        final bool isSuccess = result['success'] == true ||
+            result['data'] != null ||
+            result['_id'] != null;
         if (isSuccess) {
           await loadAddresses();
         }
@@ -709,8 +720,12 @@ class CartProvider extends ChangeNotifier {
   void addToCart(CartItem cartItem) {
     if (cartItem.id.isEmpty || cartItem.quantity <= 0) return;
     final idx = _items.indexWhere((item) =>
-        (item.id.isNotEmpty && cartItem.id.isNotEmpty && item.id == cartItem.id) ||
-        (item.id.isEmpty && item.title == cartItem.title && item.shopId == cartItem.shopId));
+        (item.id.isNotEmpty &&
+            cartItem.id.isNotEmpty &&
+            item.id == cartItem.id) ||
+        (item.id.isEmpty &&
+            item.title == cartItem.title &&
+            item.shopId == cartItem.shopId));
     if (idx >= 0) {
       _items[idx].quantity += cartItem.quantity;
       if (isLoggedIn && _service != null) {
@@ -829,7 +844,9 @@ class CartProvider extends ChangeNotifier {
       'city': cityName,
       'state': stateName,
       'pincode': pincodeStr,
-      'phone': addr.email.isNotEmpty ? addr.email : _userProfile.phone, // fallback or direct if stored
+      'phone': addr.email.isNotEmpty
+          ? addr.email
+          : _userProfile.phone, // fallback or direct if stored
       'phoneNumber': _userProfile.phone,
       'label': addr.title,
     };

@@ -26,7 +26,7 @@ final riderOrdersProvider =
   }).toList();
 });
 
-// ── Rider dashboard stats: orders count, rating, earnings ───────────────────────
+// â”€â”€ Rider dashboard stats: orders count, rating, earnings â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _RiderStats {
   final int orders;
@@ -122,7 +122,7 @@ class _RiderHomePageState extends ConsumerState<RiderHomePage> {
   String? _selectedCustomerPhone;
   String? _selectedAddress;
 
-  // Cancel flow: orderId → time when cancel-initiate was called
+  // Cancel flow: orderId â†’ time when cancel-initiate was called
   final Map<String, DateTime> _cancelInitiatedAt = {};
   Timer? _countdownTicker;
 
@@ -149,14 +149,14 @@ class _RiderHomePageState extends ConsumerState<RiderHomePage> {
     // Also join user room for generic order updates
     socket.joinUserRoom(userId);
 
-    // 🔔 New order dispatched to this rider
+    // ðŸ”” New order dispatched to this rider
     socket.onNewOrderAssigned((data) {
       if (!mounted) return;
       ref.invalidate(riderOrdersProvider);
       _showNewOrderBanner(data);
     });
 
-    // 🔄 Any order status changed (accept/pickup/deliver)
+    // ðŸ”„ Any order status changed (accept/pickup/deliver)
     socket.onOrderUpdate((data) {
       if (!mounted) return;
 
@@ -225,7 +225,7 @@ class _RiderHomePageState extends ConsumerState<RiderHomePage> {
     super.dispose();
   }
 
-  /*  ── Location helpers (re-enable for production) ──────────────────────────
+  /*  â”€â”€ Location helpers (re-enable for production) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Future<bool> _ensureLocationPermission() async {
     final serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) { ... }
@@ -245,9 +245,9 @@ class _RiderHomePageState extends ConsumerState<RiderHomePage> {
     setState(() => _isTogglingStatus = true);
 
     try {
-      // ── Going ONLINE ────────────────────────────────────────────────────
+      // â”€â”€ Going ONLINE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
       if (value) {
-        // NOTE: Location check disabled for testing — re-enable in production
+        // NOTE: Location check disabled for testing â€” re-enable in production
         // final hasPermission = await _ensureLocationPermission();
         // if (!hasPermission) { setState(() => _isTogglingStatus = false); return; }
 
@@ -264,11 +264,11 @@ class _RiderHomePageState extends ConsumerState<RiderHomePage> {
           return;
         }
 
-        // NOTE: LocationTracking disabled for testing — re-enable in production
+        // NOTE: LocationTracking disabled for testing â€” re-enable in production
         // await LocationTrackingService.start();
         if (mounted) {
           setState(() => _isOnline = true);
-          _showSnack('You are now ONLINE ✅');
+          _showSnack('You are now ONLINE âœ…');
 
           // Explicitly join rooms again on manual toggle to be safe
           final authState = ref.read(authProvider);
@@ -282,9 +282,9 @@ class _RiderHomePageState extends ConsumerState<RiderHomePage> {
           ref.invalidate(riderStatsProvider);
         }
 
-        // ── Going OFFLINE ───────────────────────────────────────────────────
+        // â”€â”€ Going OFFLINE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
       } else {
-        // NOTE: Active delivery block disabled for testing — re-enable in production
+        // NOTE: Active delivery block disabled for testing â€” re-enable in production
         // final ordersAsyncValue = ref.read(riderOrdersProvider);
         // final orders = ordersAsyncValue.value ?? [];
         // if (_hasActiveDelivery(orders)) { ... return; }
@@ -302,7 +302,7 @@ class _RiderHomePageState extends ConsumerState<RiderHomePage> {
           return;
         }
 
-        // NOTE: LocationTracking disabled for testing — re-enable in production
+        // NOTE: LocationTracking disabled for testing â€” re-enable in production
         // await LocationTrackingService.stop();
         if (mounted) {
           setState(() => _isOnline = false);
@@ -335,7 +335,7 @@ class _RiderHomePageState extends ConsumerState<RiderHomePage> {
     ));
   }
 
-  /* _showAlert — re-enable with location helpers in production
+  /* _showAlert â€” re-enable with location helpers in production
   void _showAlert({
     required IconData icon,
     required String title,
@@ -429,7 +429,7 @@ class _RiderHomePageState extends ConsumerState<RiderHomePage> {
           );
       if (mounted) {
         messenger.showSnackBar(SnackBar(
-          content: Text(result['message'] ?? '🚚 Out for Delivery!'),
+          content: Text(result['message'] ?? 'ðŸšš Out for Delivery!'),
           backgroundColor: AppColors.accentGreen,
           behavior: SnackBarBehavior.floating,
           shape:
@@ -531,7 +531,7 @@ class _RiderHomePageState extends ConsumerState<RiderHomePage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // ── Rider Profile Card ──────────────────────────────────────────
+              // â”€â”€ Rider Profile Card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
               Container(
                 width: double.infinity,
                 margin: const EdgeInsets.all(20),
@@ -566,7 +566,7 @@ class _RiderHomePageState extends ConsumerState<RiderHomePage> {
                             child: const Icon(
                               Icons.person_rounded,
                               size: 32,
-                              color: Color(0xFF06B6D4),
+                              color: Color(0xFF2E7D32),
                             ),
                           ),
                           const SizedBox(width: 16),
@@ -658,7 +658,7 @@ class _RiderHomePageState extends ConsumerState<RiderHomePage> {
                           ),
                           error: (_, __) => Center(
                             child: _buildStat(
-                                'Total Delivered', '—', Icons.delivery_dining),
+                                'Total Delivered', 'â€”', Icons.delivery_dining),
                           ),
                           data: (stats) => Center(
                             child: _buildStat('Total Delivered', '${stats.orders}',
@@ -1038,7 +1038,7 @@ class _RiderHomePageState extends ConsumerState<RiderHomePage> {
       if (ts != null) initiatedAt = DateTime.parse(ts.toString()).toLocal();
     } catch (_) {}
     setState(() => _cancelInitiatedAt[orderId] = initiatedAt);
-    _showSnack('Cancellation initiated — wait 5 minutes to confirm.');
+    _showSnack('Cancellation initiated â€” wait 5 minutes to confirm.');
   }
 
   Future<void> _confirmCancellation(String orderId) async {
@@ -1072,7 +1072,7 @@ class _RiderHomePageState extends ConsumerState<RiderHomePage> {
       );
     }
     // Countdown and confirm button live in their own widget so only it rebuilds
-    // every second — not the entire dashboard page.
+    // every second â€” not the entire dashboard page.
     return _CancelCountdownWidget(
       initiatedAt: initiatedAt,
       onConfirm: () => _confirmCancellation(orderId),
@@ -1143,7 +1143,7 @@ class _RiderHomePageState extends ConsumerState<RiderHomePage> {
                             child: Text(
                               '#${(order['orderId']?.toString() ?? '').length >= 6 ? order['orderId'].toString().substring(order['orderId'].toString().length - 6).toUpperCase() : (order['orderId']?.toString() ?? '').toUpperCase()}',
                               style: const TextStyle(
-                                color: Color(0xFF06B6D4),
+                                color: Color(0xFF2E7D32),
                                 fontWeight: FontWeight.bold,
                                 fontSize: 11,
                                 letterSpacing: 0.5,
@@ -1264,7 +1264,7 @@ class _RiderHomePageState extends ConsumerState<RiderHomePage> {
                         child: _buildOrderInfoRow(
                           Icons.currency_rupee_rounded,
                           'Total Money',
-                          '₹${(order['totalAmount'] ?? order['total'] ?? 0).toString()}',
+                          'â‚¹${(order['totalAmount'] ?? order['total'] ?? 0).toString()}',
                         ),
                       ),
                       Expanded(
@@ -1325,14 +1325,14 @@ class _RiderHomePageState extends ConsumerState<RiderHomePage> {
                                     style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: Color(0xFF1B2D1F))
                                   ),
                                   Text(
-                                    '₹$price  x  $qty', 
+                                    'â‚¹$price  x  $qty', 
                                     style: TextStyle(fontSize: 12, color: Colors.grey.shade600)
                                   ),
                                 ],
                               ),
                             ),
                             Text(
-                              '₹${(double.tryParse(price.toString()) ?? 0) * (int.tryParse(qty.toString()) ?? 1)}', 
+                              'â‚¹${(double.tryParse(price.toString()) ?? 0) * (int.tryParse(qty.toString()) ?? 1)}', 
                               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF1B2D1F))
                             ),
                           ],
@@ -1375,7 +1375,7 @@ class _RiderHomePageState extends ConsumerState<RiderHomePage> {
                             style: ElevatedButton.styleFrom(
                               backgroundColor: isProcessing
                                   ? Colors.grey
-                                  : const Color(0xFF06B6D4),
+                                  : const Color(0xFF2E7D32),
                               foregroundColor: Colors.white,
                               elevation: 0,
                               shape: RoundedRectangleBorder(
@@ -1542,7 +1542,7 @@ class _RiderHomePageState extends ConsumerState<RiderHomePage> {
             ),
             child: Icon(Icons.delivery_dining_rounded,
                 size: 80,
-                color: const Color(0xFF06B6D4).withValues(alpha: 0.2)),
+                color: const Color(0xFF2E7D32).withValues(alpha: 0.2)),
           ),
           const SizedBox(height: 24),
           const Text(
@@ -1563,9 +1563,9 @@ class _RiderHomePageState extends ConsumerState<RiderHomePage> {
   }
 }
 
-// ── Cancel countdown widget ──────────────────────────────────────────────────
+// â”€â”€ Cancel countdown widget â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 //
-// Owns its own 1-second Timer so only this tiny widget rebuilds each tick —
+// Owns its own 1-second Timer so only this tiny widget rebuilds each tick â€”
 // the entire RiderHomePage (order list, images, stats) is never re-rendered
 // just to update the countdown display. This eliminates the BLASTBufferQueue
 // pressure caused by the previous global setState() ticker.
@@ -1661,7 +1661,7 @@ class _CancelCountdownWidgetState extends State<_CancelCountdownWidget> {
   }
 }
 
-// ── OTP Entry Bottom Sheet ────────────────────────────────────────────────────
+// â”€â”€ OTP Entry Bottom Sheet â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _OtpEntrySheet extends ConsumerStatefulWidget {
   final String orderId;
@@ -1786,7 +1786,7 @@ class _OtpEntrySheetState extends ConsumerState<_OtpEntrySheet>
             ),
           ),
           const SizedBox(height: 20),
-          const Icon(Icons.lock_rounded, size: 40, color: Color(0xFF0891B2)),
+          const Icon(Icons.lock_rounded, size: 40, color: Color(0xFF1B5E20)),
           const SizedBox(height: 12),
           const Text(
             'Enter OTP from customer',
@@ -1812,7 +1812,7 @@ class _OtpEntrySheetState extends ConsumerState<_OtpEntrySheet>
                   fontSize: 32, fontWeight: FontWeight.bold, letterSpacing: 16),
               decoration: InputDecoration(
                 counterText: '',
-                hintText: '• • • •',
+                hintText: 'â€¢ â€¢ â€¢ â€¢',
                 hintStyle: TextStyle(
                     color: Colors.grey.shade300,
                     fontSize: 28,
@@ -1826,7 +1826,7 @@ class _OtpEntrySheetState extends ConsumerState<_OtpEntrySheet>
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
                   borderSide: const BorderSide(
-                      color: Color(0xFF0891B2), width: 2),
+                      color: Color(0xFF1B5E20), width: 2),
                 ),
                 errorText: _errorMessage,
               ),
@@ -1872,7 +1872,7 @@ class _OtpEntrySheetState extends ConsumerState<_OtpEntrySheet>
                 : const Icon(Icons.refresh_rounded, size: 18),
             label: const Text('Resend OTP to customer'),
             style: TextButton.styleFrom(
-              foregroundColor: const Color(0xFF0891B2),
+              foregroundColor: const Color(0xFF1B5E20),
             ),
           ),
           const SizedBox(height: 8),
@@ -1882,7 +1882,7 @@ class _OtpEntrySheetState extends ConsumerState<_OtpEntrySheet>
   }
 }
 
-// ── New Order Banner ──────────────────────────────────────────────────────────
+// â”€â”€ New Order Banner â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 /// Shown inside a SnackBar when `newOrderAssigned` arrives via Socket.IO.
 class _NewOrderBanner extends StatelessWidget {
@@ -1902,7 +1902,7 @@ class _NewOrderBanner extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [Color(0xFF06B6D4), Color(0xFF06B6D4)],
+          colors: [Color(0xFF2E7D32), Color(0xFF2E7D32)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -1944,7 +1944,7 @@ class _NewOrderBanner extends StatelessWidget {
                 Row(
                   children: [
                     const Text(
-                      '🛵  New Order!',
+                      'ðŸ›µ  New Order!',
                       style: TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.w900,

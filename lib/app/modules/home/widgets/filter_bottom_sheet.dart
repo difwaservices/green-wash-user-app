@@ -51,7 +51,7 @@ class _FilterBottomSheetState extends ConsumerState<FilterBottomSheet> {
     '6-7 PM'
   ];
 
-  final Color _primaryColor = const Color(0xFF06B6D4);
+  final Color _primaryColor = const Color(0xFF2E7D32);
   final Color _bgColor = const Color(0xFFF8F9FA);
 
   @override
@@ -157,8 +157,8 @@ class _FilterBottomSheetState extends ConsumerState<FilterBottomSheet> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('₹${_priceRange.start.round()}', style: _labelStyle),
-                      Text('₹${_priceRange.end.round()}', style: _labelStyle),
+                      Text('â‚¹${_priceRange.start.round()}', style: _labelStyle),
+                      Text('â‚¹${_priceRange.end.round()}', style: _labelStyle),
                     ],
                   ),
                   SliderTheme(

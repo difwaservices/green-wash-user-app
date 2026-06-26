@@ -28,7 +28,7 @@ class DsColors {
   static const Color textOnPrimary = AppColors.white;
 
   // Semantic Feedback (Google/Swiggy/Uber-style harmonized accents)
-  static const Color success = Color(0xFF10B981); // Emerald Green
+  static const Color success = Color(0xFF4CAF50); // Emerald Green
   static const Color successLight = Color(0xFFECFDF5);
   
   static const Color error = Color(0xFFEF4444); // Slate Red

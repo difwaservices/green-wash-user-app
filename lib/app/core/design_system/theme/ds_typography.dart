@@ -11,7 +11,7 @@ class DsTypography {
   static final String primaryFont = GoogleFonts.poppins().fontFamily ?? 'Poppins';
   static final String secondaryFont = GoogleFonts.inter().fontFamily ?? 'Inter';
 
-  // ── Headings (Poppins) ──────────────────────────────────────────
+  // â”€â”€ Headings (Poppins) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   
   /// Large, impactful screen titles (e.g. Onboarding, Splash headers)
   static TextStyle get headingLarge => GoogleFonts.poppins(
@@ -37,7 +37,7 @@ class DsTypography {
         height: 1.3,
       );
 
-  // ── Body Text (Poppins & Inter) ─────────────────────────────────
+  // â”€â”€ Body Text (Poppins & Inter) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   /// Large body text, input fields, highlighted items
   static TextStyle get bodyLarge => GoogleFonts.poppins(
@@ -71,7 +71,7 @@ class DsTypography {
         height: 1.2,
       );
 
-  // ── Caption & Small Metadata (Inter) ─────────────────────────────
+  // â”€â”€ Caption & Small Metadata (Inter) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   /// Captions, minor labels, timestamps, input helper messages
   static TextStyle get caption => GoogleFonts.inter(

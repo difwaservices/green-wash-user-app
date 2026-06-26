@@ -82,12 +82,12 @@ class WalletPage extends ConsumerWidget {
               const SizedBox(height: 32),
 
               // Recent Transactions Header
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 4),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
+                    const Text(
                       'Recent Transactions',
                       style: TextStyle(
                         fontSize: 18,
@@ -95,12 +95,17 @@ class WalletPage extends ConsumerWidget {
                         color: Color(0xFF1E293B),
                       ),
                     ),
-                    Text(
-                      'View All',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF0891B2),
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.pushNamed(context, AppRoutes.walletStatement);
+                      },
+                      child: const Text(
+                        'View All',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF1B5E20),
+                        ),
                       ),
                     ),
                   ],
@@ -133,7 +138,7 @@ class WalletPage extends ConsumerWidget {
       height: 190,
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [Color(0xFF0891B2), Color(0xFF0E7490)],
+          colors: [Color(0xFF1B5E20), Color(0xFF2E7D32)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -185,7 +190,7 @@ class WalletPage extends ConsumerWidget {
                         const SizedBox(height: 8),
                         balance == null
                             ? const Text(
-                                '₹0.00',
+                                'â‚¹0.00',
                                 style: TextStyle(
                                   color: Colors.white,
                                   fontSize: 34,
@@ -194,7 +199,7 @@ class WalletPage extends ConsumerWidget {
                                 ),
                               )
                             : Text(
-                                '₹${balance.toStringAsFixed(2)}',
+                                'â‚¹${balance.toStringAsFixed(2)}',
                                 style: const TextStyle(
                                   color: Colors.white,
                                   fontSize: 34,
@@ -288,7 +293,7 @@ class WalletPage extends ConsumerWidget {
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
-                        color: const Color(0xFF0891B2).withValues(alpha: 0.25),
+                        color: const Color(0xFF1B5E20).withValues(alpha: 0.25),
                         width: 1.0,
                       ),
                       boxShadow: [
@@ -300,11 +305,11 @@ class WalletPage extends ConsumerWidget {
                       ],
                     ),
                     child: Text(
-                      '₹$amt',
+                      'â‚¹$amt',
                       style: const TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w800,
-                        color: Color(0xFF0891B2),
+                        color: Color(0xFF1B5E20),
                       ),
                     ),
                   ),
@@ -324,7 +329,7 @@ class WalletPage extends ConsumerWidget {
           child: _QuickActionButton(
             label: 'Add Money',
             icon: Icons.add_circle_rounded,
-            color: const Color(0xFF0891B2),
+            color: const Color(0xFF1B5E20),
             onTap: () => Navigator.pushNamed(context, AppRoutes.topUp),
           ),
         ),
@@ -396,7 +401,7 @@ class WalletPage extends ConsumerWidget {
         return _TransactionItem(
           title: description,
           date: date,
-          amount: '${isCredit ? '+' : '-'}₹${amount.toStringAsFixed(2)}',
+          amount: '${isCredit ? '+' : '-'}â‚¹${amount.toStringAsFixed(2)}',
           isCredit: isCredit,
         );
       },

@@ -27,7 +27,7 @@ class RiderProfilePage extends ConsumerWidget {
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-            // ── Avatar + Name ─────────────────────────────────────────────
+            // â”€â”€ Avatar + Name â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(28),
@@ -77,7 +77,7 @@ class RiderProfilePage extends ConsumerWidget {
                       color: const Color(0xFFCFFAFE),
                       borderRadius: BorderRadius.circular(20),
                     ),
-                    child: const Text('✅  Verified Rider', style: TextStyle(color: AppColors.accentGreen, fontWeight: FontWeight.bold, fontSize: 12)),
+                    child: const Text('âœ…  Verified Rider', style: TextStyle(color: AppColors.accentGreen, fontWeight: FontWeight.bold, fontSize: 12)),
                   ),
                 ],
               ),
@@ -85,7 +85,7 @@ class RiderProfilePage extends ConsumerWidget {
 
             const SizedBox(height: 20),
 
-            // ── Details Card ──────────────────────────────────────────────
+            // â”€â”€ Details Card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             Container(
               width: double.infinity,
               padding: const EdgeInsets.symmetric(vertical: 8),

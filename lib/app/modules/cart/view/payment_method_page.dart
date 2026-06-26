@@ -30,7 +30,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
   List<DeliverySlotAvailability>? _slotsAvailability;
   bool _isLoadingSlots = false;
 
-  /// Show a clean, user-friendly snackbar — no 'Exception:' prefix ever shown.
+  /// Show a clean, user-friendly snackbar â€” no 'Exception:' prefix ever shown.
   void _showError(String message) {
     if (!mounted) return;
     final messenger = ScaffoldMessenger.maybeOf(context);
@@ -43,7 +43,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
             Expanded(child: Text(message, style: const TextStyle(fontSize: 14))),
           ],
         ),
-        backgroundColor: const Color(0xFF0891B2),
+        backgroundColor: const Color(0xFF1B5E20),
         behavior: SnackBarBehavior.floating,
         margin: const EdgeInsets.fromLTRB(16, 0, 16, 24),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -328,7 +328,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                                   style: TextStyle(
                                       fontSize: 13, color: Colors.grey)),
                               Text(
-                                '₹${cartProvider.walletBalance.toStringAsFixed(2)}',
+                                'â‚¹${cartProvider.walletBalance.toStringAsFixed(2)}',
                                 style: const TextStyle(
                                     fontSize: 20,
                                     fontWeight: FontWeight.bold,
@@ -386,7 +386,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                                     ),
                                   ),
                                   Text(
-                                    '₹${(item.totalPrice).toStringAsFixed(0)}',
+                                    'â‚¹${(item.totalPrice).toStringAsFixed(0)}',
                                     style: const TextStyle(
                                         fontWeight: FontWeight.bold),
                                   ),
@@ -403,7 +403,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                               const SizedBox(width: 12, height: 12, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.grey))
                             else
                               Text(
-                                '₹${cartProvider.deliveryFee.toStringAsFixed(0)}',
+                                'â‚¹${cartProvider.deliveryFee.toStringAsFixed(0)}',
                                 style: TextStyle(
                                   color: cartProvider.deliveryFee > 0 ? Colors.black : Colors.green,
                                   fontWeight: cartProvider.deliveryFee > 0 ? FontWeight.bold : FontWeight.w500,
@@ -419,7 +419,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                                 style: TextStyle(
                                     fontWeight: FontWeight.bold, fontSize: 16)),
                             Text(
-                              '₹${cartProvider.total.toStringAsFixed(0)}',
+                              'â‚¹${cartProvider.total.toStringAsFixed(0)}',
                               style: const TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 18,
@@ -782,7 +782,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                     const SizedBox(height: 8),
                     Text(
                       _subscriptionPaymentType == 'Wallet'
-                          ? 'Load your wallet once — daily cost is auto-deducted each morning.'
+                          ? 'Load your wallet once â€” daily cost is auto-deducted each morning.'
                           : 'Deliveries start immediately; wallet balance may go negative.',
                       style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
                     ),
@@ -931,7 +931,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                     ? null
                     : () async {
                         HapticFeedback.mediumImpact();
-                        // ── Validate user inputs BEFORE setting loading ────────
+                        // â”€â”€ Validate user inputs BEFORE setting loading â”€â”€â”€â”€â”€â”€â”€â”€
                         final selectedAddr = cartProvider.selectedAddress;
                         if (selectedAddr == null) {
                           _showError('Please select a delivery address to continue.');
@@ -954,7 +954,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
 
                         setState(() => _isLoading = true);
 
-                        // ── Fetch latest slots to check availability right before submit ──
+                        // â”€â”€ Fetch latest slots to check availability right before submit â”€â”€
                         await _fetchSlotsAvailability();
                         if (_selectedSlot == null) {
                           _showError('The selected delivery slot is no longer available. Please select another slot.');
@@ -1085,7 +1085,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                             }
                           }
                         } catch (_) {
-                          // Unexpected network/server error — never show raw exception to user
+                          // Unexpected network/server error â€” never show raw exception to user
                           _showError('Something went wrong. Please check your connection and try again.');
                         } finally {
                           if (mounted) setState(() => _isLoading = false);

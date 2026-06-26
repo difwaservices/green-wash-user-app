@@ -103,7 +103,7 @@ class _ReviewDialogState extends ConsumerState<ReviewDialog>
                 ),
                 child: const Center(
                   child: Icon(Icons.stars_rounded,
-                      size: 50, color: Color(0xFF0891B2)),
+                      size: 50, color: Color(0xFF1B5E20)),
                 ),
               ),
 
@@ -243,7 +243,7 @@ class _ReviewDialogState extends ConsumerState<ReviewDialog>
                           child: ElevatedButton(
                             onPressed: _isSubmitting ? null : _submitReviews,
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF0891B2),
+                              backgroundColor: const Color(0xFF1B5E20),
                               foregroundColor: Colors.white,
                               padding: const EdgeInsets.symmetric(vertical: 14),
                               shape: RoundedRectangleBorder(
@@ -310,7 +310,7 @@ class _ReviewDialogState extends ConsumerState<ReviewDialog>
           messenger.showSnackBar(
             const SnackBar(
                 content: Text('Thank you! Reviews submitted.'),
-                backgroundColor: Color(0xFF0891B2),
+                backgroundColor: Color(0xFF1B5E20),
                 behavior: SnackBarBehavior.floating),
           );
         } else {

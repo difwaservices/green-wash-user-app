@@ -159,15 +159,9 @@ class SubscriptionDashboardPage extends ConsumerWidget {
                 ClipRRect(
                   borderRadius: BorderRadius.circular(12),
                   child: sub.productImage.isNotEmpty
-                      ? Image.network(sub.productImage,
-                          width: 60,
-                          height: 60,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => Container(
-                              color: Colors.grey.shade100,
-                              width: 60,
-                              height: 60,
-                              child: const Icon(Icons.shopping_basket)))
+                      ? (sub.productImage.startsWith('http')
+                          ? Image.network(sub.productImage, width: 60, height: 60, fit: BoxFit.cover, errorBuilder: (_, __, ___) => Container(color: Colors.grey.shade100, width: 60, height: 60, child: const Icon(Icons.shopping_basket)))
+                          : Image.asset(sub.productImage, width: 60, height: 60, fit: BoxFit.cover, errorBuilder: (_, __, ___) => Container(color: Colors.grey.shade100, width: 60, height: 60, child: const Icon(Icons.shopping_basket))))
                       : Container(
                           color: Colors.grey.shade100,
                           width: 60,
@@ -184,7 +178,7 @@ class SubscriptionDashboardPage extends ConsumerWidget {
                               fontWeight: FontWeight.bold, fontSize: 16)),
                       const SizedBox(height: 4),
                       Text(
-                          '${sub.frequency} • ₹${sub.price.toStringAsFixed(0)} / bottle • Total: ₹${(sub.price * sub.quantity).toStringAsFixed(0)}',
+                          '${sub.frequency} â€¢ â‚¹${sub.price.toStringAsFixed(0)} / bottle â€¢ Total: â‚¹${(sub.price * sub.quantity).toStringAsFixed(0)}',
                           style: TextStyle(
                               color: Colors.grey.shade600, fontSize: 13)),
                     ],

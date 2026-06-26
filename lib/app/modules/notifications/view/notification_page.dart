@@ -117,7 +117,7 @@ class _NotificationPageState extends ConsumerState<NotificationPage> {
                   },
                   child: Text(
                     allSelected ? 'Deselect All' : 'Select All',
-                    style: const TextStyle(color: Color(0xFF06B6D4), fontWeight: FontWeight.bold),
+                    style: const TextStyle(color: Color(0xFF2E7D32), fontWeight: FontWeight.bold),
                   ),
                 ),
                 IconButton(
@@ -142,7 +142,7 @@ class _NotificationPageState extends ConsumerState<NotificationPage> {
                     child: const Text(
                       'Mark all as read',
                       style: TextStyle(
-                        color: Color(0xFF06B6D4),
+                        color: Color(0xFF2E7D32),
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -295,7 +295,7 @@ class _NotificationItem extends StatelessWidget {
               Checkbox(
                 value: isSelected,
                 onChanged: (_) => onTap(),
-                activeColor: const Color(0xFF06B6D4),
+                activeColor: const Color(0xFF2E7D32),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
               ),
               const SizedBox(width: 8),
@@ -303,12 +303,12 @@ class _NotificationItem extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: (isRead ? const Color(0xFF94A3B8) : const Color(0xFF06B6D4)).withValues(alpha: 0.12),
+                color: (isRead ? const Color(0xFF94A3B8) : const Color(0xFF2E7D32)).withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Icon(
                 isRead ? Icons.notifications_none_rounded : Icons.notifications_active_rounded,
-                color: isRead ? const Color(0xFF64748B) : const Color(0xFF06B6D4),
+                color: isRead ? const Color(0xFF64748B) : const Color(0xFF2E7D32),
                 size: 24,
               ),
             ),
@@ -359,7 +359,7 @@ class _NotificationItem extends StatelessWidget {
                   Text(
                     date, 
                     style: TextStyle(
-                      color: isRead ? const Color(0xFF94A3B8) : const Color(0xFF06B6D4), 
+                      color: isRead ? const Color(0xFF94A3B8) : const Color(0xFF2E7D32), 
                       fontSize: 11, 
                       fontWeight: FontWeight.w700,
                       letterSpacing: 0.5,

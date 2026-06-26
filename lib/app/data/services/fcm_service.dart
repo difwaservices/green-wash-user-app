@@ -14,7 +14,7 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   // Ensure Firebase is initialized for background isolate if you need to use Firebase services
   // await Firebase.initializeApp(); 
 
-  debugPrint("📩 Background Message Received: ${message.messageId}");
+  debugPrint("ðŸ“© Background Message Received: ${message.messageId}");
   debugPrint("Data Payload: ${message.data}");
 
   // Handle background data logic (e.g., updating a local timestamp or clearing a quick cache)
@@ -74,7 +74,7 @@ class FCMService {
             final data = jsonDecode(response.payload!) as Map<String, dynamic>;
             _handleNavigationFromData(data);
           } catch (e) {
-            debugPrint('❌ Error parsing local notification payload: $e');
+            debugPrint('âŒ Error parsing local notification payload: $e');
           }
         }
       },
@@ -85,7 +85,7 @@ class FCMService {
 
     // Foreground listening
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      debugPrint('🔔 Got a message whilst in the foreground!');
+      debugPrint('ðŸ”” Got a message whilst in the foreground!');
       debugPrint('Message data: ${message.data}');
 
       // Live update the notification list
@@ -104,7 +104,7 @@ class FCMService {
 
     // Handle interaction when app is in background but not terminated
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-      debugPrint('🔔 Notification caused app to open from background!');
+      debugPrint('ðŸ”” Notification caused app to open from background!');
       _handleNavigationFromMessage(message);
     });
 
@@ -113,7 +113,7 @@ class FCMService {
         .getInitialMessage()
         .then((RemoteMessage? message) {
       if (message != null) {
-        debugPrint('🔔 Notification caused app to open from terminated state!');
+        debugPrint('ðŸ”” Notification caused app to open from terminated state!');
         _handleNavigationFromMessage(message);
       }
     });
@@ -129,7 +129,7 @@ class FCMService {
     // Initial token send (if user is already logged in)
     unawaited(sendTokenToBackend());
 
-    debugPrint('✅ FCMService initialized (Real Firebase)');
+    debugPrint('âœ… FCMService initialized (Real Firebase)');
   }
 
   static void _handleNavigationFromMessage(RemoteMessage message) {
@@ -137,11 +137,11 @@ class FCMService {
   }
 
   static void _handleNavigationFromData(Map<String, dynamic> data) {
-    debugPrint('🔔 Navigating from notification data: $data');
+    debugPrint('ðŸ”” Navigating from notification data: $data');
 
     final context = navigatorKey.currentContext;
     if (context == null) {
-      debugPrint('⚠️ Navigator context is null, cannot redirect');
+      debugPrint('âš ï¸ Navigator context is null, cannot redirect');
       return;
     }
 
@@ -176,16 +176,16 @@ class FCMService {
       provisional: false,
       sound: true,
     );
-    debugPrint('🔔 User granted permission: ${settings.authorizationStatus}');
+    debugPrint('ðŸ”” User granted permission: ${settings.authorizationStatus}');
   }
 
   Future<String?> getToken() async {
     try {
       final String? token = await FirebaseMessaging.instance.getToken();
-      debugPrint('📱 FCM Device Token: $token');
+      debugPrint('ðŸ“± FCM Device Token: $token');
       return token;
     } catch (e) {
-      debugPrint('❌ Error getting FCM token: $e');
+      debugPrint('âŒ Error getting FCM token: $e');
       return null;
     }
   }
@@ -198,7 +198,7 @@ class FCMService {
       final storage = SecureStorageService();
       final authToken = await storage.getAccessToken();
       if (authToken == null) {
-        debugPrint('ℹ️ Skip sending FCM token: User not logged in');
+        debugPrint('â„¹ï¸ Skip sending FCM token: User not logged in');
         return;
       }
 
@@ -218,15 +218,15 @@ class FCMService {
           requiresAuth: true,
         );
       }
-      debugPrint('✅ Device token sent to backend');
+      debugPrint('âœ… Device token sent to backend');
     } catch (e) {
-      debugPrint('⚠️ Failed to send device token to backend: $e');
+      debugPrint('âš ï¸ Failed to send device token to backend: $e');
     }
   }
 
   static void listenToTokenRefresh() {
     FirebaseMessaging.instance.onTokenRefresh.listen((newToken) async {
-      debugPrint('🔄 FCM Token refreshed!');
+      debugPrint('ðŸ”„ FCM Token refreshed!');
       // Optional: Send to backend immediately if logged in
       await sendTokenToBackend();
     });
@@ -262,7 +262,7 @@ class FCMService {
         payload: payload,
       );
     } catch (e) {
-      debugPrint('❌ Error showing local notification: $e');
+      debugPrint('âŒ Error showing local notification: $e');
     }
   }
 }

@@ -245,7 +245,7 @@ class _RestaurantMenuPageState extends ConsumerState<RestaurantMenuPage> {
                                     _MetaChip(
                                       icon: Icons.location_on_rounded,
                                       label: distanceStr,
-                                      iconColor: const Color(0xFF06B6D4),
+                                      iconColor: const Color(0xFF2E7D32),
                                     ),
                                     const SizedBox(width: 12),
                                     _MetaChip(
@@ -292,7 +292,7 @@ class _RestaurantMenuPageState extends ConsumerState<RestaurantMenuPage> {
                           ),
                         ),
 
-                        // ── Products Section Header ────────────────────────────────────
+                        // â”€â”€ Products Section Header â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
                         const SliverPadding(
                           padding: EdgeInsets.fromLTRB(16, 4, 16, 12),
                           sliver: SliverToBoxAdapter(
@@ -308,7 +308,7 @@ class _RestaurantMenuPageState extends ConsumerState<RestaurantMenuPage> {
                           ),
                         ),
 
-                        // ── Products Grid ─────────────────────────────────────────────
+                        // â”€â”€ Products Grid â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
                         productsAsync.when(
                           loading: () => const SliverToBoxAdapter(
                             child: _ProductsLoadingGrid(),
@@ -358,7 +358,7 @@ class _RestaurantMenuPageState extends ConsumerState<RestaurantMenuPage> {
               ),
             ),
 
-            // ── Floating Back Button removed (handled by SliverAppBar) ────────
+            // â”€â”€ Floating Back Button removed (handled by SliverAppBar) â”€â”€â”€â”€â”€â”€â”€â”€
 
             if (cart.itemCount > 0 && isShopActive)
               Positioned(
@@ -406,7 +406,7 @@ class _RestaurantMenuPageState extends ConsumerState<RestaurantMenuPage> {
   }
 }
 
-// ── Products Loading Grid ─────────────────────────────────────────────────────
+// â”€â”€ Products Loading Grid â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _ProductsLoadingGrid extends StatelessWidget {
   const _ProductsLoadingGrid();
@@ -503,7 +503,7 @@ class _ProductShimmerCardState extends State<_ProductShimmerCard>
   }
 }
 
-// ── Products Error/Empty States ───────────────────────────────────────────────
+// â”€â”€ Products Error/Empty States â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _ProductsErrorState extends StatelessWidget {
   final String message;
@@ -530,7 +530,7 @@ class _ProductsErrorState extends StatelessWidget {
                 Navigator.pushNamed(context, AppRoutes.login);
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF06B6D4),
+                backgroundColor: const Color(0xFF2E7D32),
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12)),
@@ -572,7 +572,7 @@ class _ProductsEmptyState extends StatelessWidget {
   }
 }
 
-// ── Meta Chip Helper ──────────────────────────────────────────────────────────
+// â”€â”€ Meta Chip Helper â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _MetaChip extends StatelessWidget {
   final IconData icon;

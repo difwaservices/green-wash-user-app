@@ -35,7 +35,7 @@ class MyOrdersPage extends ConsumerWidget {
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new,
-              color: Color(0xFF0891B2), size: 20),
+              color: Color(0xFF1B5E20), size: 20),
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
@@ -47,7 +47,7 @@ class MyOrdersPage extends ConsumerWidget {
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh, color: Color(0xFF0891B2)),
+            icon: const Icon(Icons.refresh, color: Color(0xFF1B5E20)),
             onPressed: () => ref.invalidate(myOrdersProvider),
           ),
         ],
@@ -67,7 +67,7 @@ class MyOrdersPage extends ConsumerWidget {
                 );
         },
         loading: () => const Center(
-            child: CircularProgressIndicator(color: Color(0xFF0891B2))),
+            child: CircularProgressIndicator(color: Color(0xFF1B5E20))),
         error: (err, _) => Center(child: Text('Error: $err')),
       ),
     );
@@ -134,7 +134,7 @@ class _OrderCard extends ConsumerWidget {
       }
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
         content: Text('Added to cart for reorder!'),
-        backgroundColor: Color(0xFF0891B2),
+        backgroundColor: Color(0xFF1B5E20),
         behavior: SnackBarBehavior.floating,
       ));
     }
@@ -186,7 +186,7 @@ class _OrderCard extends ConsumerWidget {
                     },
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 12),
-                      backgroundColor: const Color(0xFF0891B2),
+                      backgroundColor: const Color(0xFF1B5E20),
                       foregroundColor: Colors.white,
                       elevation: 0,
                       shape: RoundedRectangleBorder(
@@ -326,7 +326,7 @@ class _OrderCard extends ConsumerWidget {
                               fontSize: 11,
                               fontWeight: FontWeight.w600)),
                       const SizedBox(height: 2),
-                      Text('₹${order.total.toStringAsFixed(0)}',
+                      Text('â‚¹${order.total.toStringAsFixed(0)}',
                           style: const TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 22,
@@ -342,12 +342,12 @@ class _OrderCard extends ConsumerWidget {
                           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                           decoration: BoxDecoration(
                             color: Colors.white,
-                            border: Border.all(color: const Color(0xFF0891B2), width: 1.5),
+                            border: Border.all(color: const Color(0xFF1B5E20), width: 1.5),
                             borderRadius: BorderRadius.circular(30),
                           ),
                           child: const Text('Reorder',
                               style: TextStyle(
-                                  color: Color(0xFF0891B2),
+                                  color: Color(0xFF1B5E20),
                                   fontWeight: FontWeight.bold,
                                   fontSize: 13)),
                         ),
@@ -408,12 +408,12 @@ class _OrderCard extends ConsumerWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         decoration: BoxDecoration(
           color: Colors.white,
-          border: Border.all(color: const Color(0xFF0891B2), width: 1.5),
+          border: Border.all(color: const Color(0xFF1B5E20), width: 1.5),
           borderRadius: BorderRadius.circular(30),
         ),
         child: const Text('Rate Items',
             style: TextStyle(
-                color: Color(0xFF0891B2),
+                color: Color(0xFF1B5E20),
                 fontWeight: FontWeight.bold,
                 fontSize: 13)),
       ),
@@ -435,11 +435,11 @@ class _OrderCard extends ConsumerWidget {
       bg = const Color(0xFFE2F5E9);
       displayStatus = 'DELIVERED';
     } else if (status.contains('pickup') || status.contains('picked')) {
-      color = const Color(0xFF06B6D4); // Cyan for picked up
+      color = const Color(0xFF2E7D32); // Cyan for picked up
       bg = const Color(0xFFCFFAFE);
       displayStatus = 'PICKED UP';
     } else if (status.contains('way') || status.contains('delivery')) {
-      color = const Color(0xFF0891B2);
+      color = const Color(0xFF1B5E20);
       bg = const Color(0xFFECFEFF);
       displayStatus = 'OUT FOR DELIVERY';
     } else {
@@ -458,7 +458,7 @@ class _OrderCard extends ConsumerWidget {
   }
 
   Widget _fallbackIcon() => const Center(
-      child: Icon(Icons.water_drop, color: Color(0xFF0891B2), size: 32));
+      child: Icon(Icons.water_drop, color: Color(0xFF1B5E20), size: 32));
 }
 
 class _OrderDetailsSheet extends StatelessWidget {
@@ -500,12 +500,12 @@ class _OrderDetailsSheet extends StatelessWidget {
             Row(
               children: [
                 const Icon(Icons.factory_outlined,
-                    size: 16, color: Color(0xFF0891B2)),
+                    size: 16, color: Color(0xFF1B5E20)),
                 const SizedBox(width: 8),
                 Text(
                   order.plantName,
                   style: const TextStyle(
-                      color: Color(0xFF0891B2),
+                      color: Color(0xFF1B5E20),
                       fontSize: 14,
                       fontWeight: FontWeight.bold),
                 ),
@@ -541,7 +541,7 @@ class _OrderDetailsSheet extends StatelessWidget {
                                 fontWeight: FontWeight.w600,
                                 fontSize: 14,
                                 color: Color(0xFF1E293B)))),
-                    Text('₹${(item.price * item.quantity).toStringAsFixed(2)}',
+                    Text('â‚¹${(item.price * item.quantity).toStringAsFixed(2)}',
                         style: const TextStyle(fontWeight: FontWeight.bold)),
                   ],
                 ),
@@ -561,7 +561,7 @@ class _OrderDetailsSheet extends StatelessWidget {
             children: [
               const Text('Grand Total',
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-              Text('₹${order.total.toStringAsFixed(2)}',
+              Text('â‚¹${order.total.toStringAsFixed(2)}',
                   style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 18,
@@ -594,7 +594,7 @@ class _OrderDetailsSheet extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 6),
       child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
         Text(l, style: const TextStyle(color: Colors.grey, fontSize: 14)),
-        Text('₹${v.toStringAsFixed(2)}',
+        Text('â‚¹${v.toStringAsFixed(2)}',
             style: const TextStyle(fontWeight: FontWeight.w600))
       ]));
 }

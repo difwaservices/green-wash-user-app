@@ -12,7 +12,7 @@ final authServiceProvider = Provider<AuthService>((ref) {
 final userProfileProvider = FutureProvider.autoDispose<UserModel>((ref) async {
   ref.watch(authStoreProvider); // Invalidate on auth changes
   // keepAlive: Profile page prefers authStoreProvider (no network call).
-  // This provider is only a fallback — cache it for the session to avoid
+  // This provider is only a fallback â€” cache it for the session to avoid
   // re-fetching every time the user navigates away from Profile and returns.
   ref.keepAlive();
   final response = await ref.watch(authServiceProvider).getProfile();
@@ -29,7 +29,7 @@ class AuthService {
 
   AuthService({required ApiClient client}) : _client = client;
 
-  // ── Update Name (Requested Endpoint) ──────────────────────────────────────
+  // â”€â”€ Update Name (Requested Endpoint) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Future<AuthResponseModel> updateName({required String fullName}) async {
     try {
       final json = await _client.put(
@@ -103,7 +103,7 @@ class AuthService {
     }
   }
 
-  // ── Profile ───────────────────────────────────────────────────────────────
+  // â”€â”€ Profile â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Future<AuthResponseModel> getProfile() async {
     try {
       final data = await _client.get(
@@ -142,7 +142,7 @@ class AuthService {
     }
   }
 
-  // ── Update FCM Token ─────────────────────────────────────────────────────
+  // â”€â”€ Update FCM Token â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Future<AuthResponseModel> updateFcmToken({required String fcmToken}) async {
     try {
       final json = await _client.post(
@@ -158,7 +158,7 @@ class AuthService {
     }
   }
 
-  // ── Logout ────────────────────────────────────────────────────────────────
+  // â”€â”€ Logout â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Future<void> logout() async {
     await ApiClient.clearToken();
   }

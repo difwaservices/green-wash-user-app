@@ -9,6 +9,7 @@ import '../../../data/models/food_models.dart';
 import '../../../core/constants/app_colors.dart';
 import '../widgets/review_dialog.dart';
 import '../../../../core/state/auth_store.dart' as auth_store;
+import '../../../core/theme/theme_provider.dart';
 
 class ProfileDetailPage extends ConsumerStatefulWidget {
   final String title;
@@ -22,13 +23,13 @@ class ProfileDetailPage extends ConsumerStatefulWidget {
 class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
   int? _expandedOrderIndex = 0; // Default first one expanded as in Image 3
 
-  // ── Subscriptions state ───────────────────────────────────────────────────
+  // â”€â”€ Subscriptions state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   final SubscriptionService _subscriptionService = SubscriptionService();
   List<SubscriptionPlan> _subscriptionPlans = [];
   bool _subscriptionsLoading = false;
   String? _subscriptionsError;
   final Map<String, bool> _notificationSettings = {
-    'Allow Notifications': true, 
+    'Allow Notifications': true,
     'Email Notifications': false,
     'Order Notifications': false,
     'General Notifications': true,
@@ -92,22 +93,23 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
   Widget build(BuildContext context) {
     final cartProvider = CartProviderScope.of(context);
 
+    final isDark = context.isDarkMode;
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F8FA),
+      backgroundColor: isDark ? context.scaffoldBackgroundColor : const Color(0xFFF7F8FA),
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: isDark ? context.scaffoldBackgroundColor : Colors.white,
         elevation: 0,
         centerTitle: true,
         title: Text(
           widget.title,
-          style: const TextStyle(
-            color: Color(0xFF1A1A1A),
+          style: TextStyle(
+            color: isDark ? Colors.white : const Color(0xFF1A1A1A),
             fontWeight: FontWeight.bold,
             fontSize: 18,
           ),
         ),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF1A1A1A)),
+          icon: Icon(Icons.arrow_back, color: isDark ? Colors.white : const Color(0xFF1A1A1A)),
           onPressed: () => Navigator.pop(context),
         ),
         actions: [
@@ -157,6 +159,12 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
         return _buildCardsDetail(provider);
       case 'About me':
         return _buildAboutMeDetail(provider);
+      case 'Privacy Policy':
+        return _buildPrivacyPolicyDetail();
+      case 'Terms & Conditions':
+        return _buildTermsDetail();
+      case 'Company Details':
+        return _buildCompanyDetailsDetail();
       default:
         return Center(child: Text('Content for $title coming soon!'));
     }
@@ -186,7 +194,7 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
                   color: isSelected
-                      ? const Color(0xFF06B6D4)
+                      ? const Color(0xFF2E7D32)
                       : const Color(0xFF00ACC1).withValues(alpha: 0.2),
                   width: isSelected ? 2 : 1.0,
                 ),
@@ -215,7 +223,7 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
                           child: const Text(
                             'DEFAULT',
                             style: TextStyle(
-                              color: Color(0xFF06B6D4),
+                              color: Color(0xFF2E7D32),
                               fontSize: 10,
                               fontWeight: FontWeight.bold,
                             ),
@@ -231,7 +239,7 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
                           shape: BoxShape.circle,
                           border: Border.all(
                             color: isSelected
-                                ? const Color(0xFF06B6D4)
+                                ? const Color(0xFF2E7D32)
                                 : Colors.grey.shade300,
                             width: 2,
                           ),
@@ -242,7 +250,7 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
                                   width: 10,
                                   height: 10,
                                   decoration: const BoxDecoration(
-                                    color: Color(0xFF06B6D4),
+                                    color: Color(0xFF2E7D32),
                                     shape: BoxShape.circle,
                                   ),
                                 ),
@@ -265,7 +273,7 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
                                       addr.title.toLowerCase() == 'work'
                                   ? Icons.work_rounded
                                   : Icons.location_on_rounded,
-                          color: const Color(0xFF06B6D4),
+                          color: const Color(0xFF2E7D32),
                           size: 20,
                         ),
                       ),
@@ -295,7 +303,8 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
                                       icon: const Icon(Icons.edit_outlined,
                                           size: 18, color: Colors.grey),
                                       onPressed: () async {
-                                        final result = await Navigator.pushNamed(
+                                        final result =
+                                            await Navigator.pushNamed(
                                           context,
                                           '/location-picker',
                                           arguments: {'initialAddress': addr},
@@ -322,29 +331,33 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
                               ],
                             ),
                             const SizedBox(height: 4),
-                             Text(
-                               addr.fullName.isNotEmpty ? addr.fullName : (profile.name.isNotEmpty ? profile.name : 'Unknown Recipient'),
-                               style: const TextStyle(
-                                 fontWeight: FontWeight.bold,
-                                 fontSize: 14,
-                                 color: Color(0xFF4B5563),
-                               ),
-                             ),
-                             const SizedBox(height: 4),
-                             Text(
-                               addr.street,
-                               style: const TextStyle(
-                                   color: Colors.grey,
-                                   fontSize: 13,
-                                   height: 1.4),
-                             ),
-                             Text(
-                               addr.details,
-                               style: const TextStyle(
-                                   color: Color(0xFF9CA3AF),
-                                   fontSize: 12,
-                                   height: 1.2),
-                             ),
+                            Text(
+                              addr.fullName.isNotEmpty
+                                  ? addr.fullName
+                                  : (profile.name.isNotEmpty
+                                      ? profile.name
+                                      : 'Unknown Recipient'),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                                color: Color(0xFF4B5563),
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              addr.street,
+                              style: const TextStyle(
+                                  color: Colors.grey,
+                                  fontSize: 13,
+                                  height: 1.4),
+                            ),
+                            Text(
+                              addr.details,
+                              style: const TextStyle(
+                                  color: Color(0xFF9CA3AF),
+                                  fontSize: 12,
+                                  height: 1.2),
+                            ),
                             const SizedBox(height: 8),
                             Text(
                               profile.phone,
@@ -399,13 +412,13 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.add_circle_outline, color: Color(0xFF06B6D4)),
+                    Icon(Icons.add_circle_outline, color: Color(0xFF2E7D32)),
                     SizedBox(width: 8),
                     Text(
                       'Add New Address',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF06B6D4),
+                        color: Color(0xFF2E7D32),
                       ),
                     ),
                   ],
@@ -423,7 +436,7 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
       return const Padding(
         padding: EdgeInsets.only(top: 40),
         child:
-            Center(child: CircularProgressIndicator(color: Color(0xFF06B6D4))),
+            Center(child: CircularProgressIndicator(color: Color(0xFF2E7D32))),
       );
     }
 
@@ -469,7 +482,7 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
               backgroundColor: const Color(0xFFCFFAFE),
               child: const Icon(
                 Icons.inventory_2_outlined,
-                color: Color(0xFF06B6D4),
+                color: Color(0xFF2E7D32),
               ),
             ),
             title: Text(
@@ -503,7 +516,7 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
                       style: TextStyle(color: Colors.grey, fontSize: 12),
                     ),
                     Text(
-                      ' ₹${order.total.toStringAsFixed(2)}',
+                      ' â‚¹${order.total.toStringAsFixed(2)}',
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 12,
@@ -517,7 +530,7 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
               isExpanded
                   ? Icons.expand_less_rounded
                   : Icons.expand_more_rounded,
-              color: const Color(0xFF06B6D4),
+              color: const Color(0xFF2E7D32),
             ),
             onTap: () {
               setState(() {
@@ -555,13 +568,16 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
                   ),
                   _buildTimelineItem(
                     'Order Delivered',
-                    order.status == 'Delivered' ? _formatDate(order.date) : 'Pending',
+                    order.status == 'Delivered'
+                        ? _formatDate(order.date)
+                        : 'Pending',
                     Icons.shopping_basket_outlined,
                     order.status == 'Delivered',
                     order.status == 'Delivered',
                     isLast: true,
                   ),
-                  if (order.status == 'Delivered' || order.status == 'Completed') ...[
+                  if (order.status == 'Delivered' ||
+                      order.status == 'Completed') ...[
                     const SizedBox(height: 16),
                     SizedBox(
                       width: double.infinity,
@@ -597,23 +613,24 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
                                               'image': i.image,
                                             })
                                         .toList(),
-                                    retailerId: order.retailer?['_id']
-                                            ?.toString() ??
-                                        '65e9f8f8f8f8f8f8f8f8f8f8',
+                                    retailerId:
+                                        order.retailer?['_id']?.toString() ??
+                                            '65e9f8f8f8f8f8f8f8f8f8f8',
                                     isOrderReview: true,
                                   ),
                                 );
                               },
                               icon: const Icon(Icons.star_outline,
-                                  color: Color(0xFF06B6D4)),
+                                  color: Color(0xFF2E7D32)),
                               label: const Text(
                                 'Rate Items',
                                 style: TextStyle(
-                                    color: Color(0xFF06B6D4),
+                                    color: Color(0xFF2E7D32),
                                     fontWeight: FontWeight.bold),
                               ),
                               style: OutlinedButton.styleFrom(
-                                side: const BorderSide(color: Color(0xFF06B6D4)),
+                                side:
+                                    const BorderSide(color: Color(0xFF2E7D32)),
                                 shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(12)),
                                 padding:
@@ -634,15 +651,16 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
   Widget _buildNotificationsDetail() {
     return Column(
       children: _notificationSettings.keys.map((key) {
-        return _buildNotificationCard(
-          key,
-          'Get real-time updates for $key.',
-          _notificationSettings[key]!,
-        );
-      }).toList() + [
-        const SizedBox(height: 60),
-        _buildSaveButton('Save settings'),
-      ],
+            return _buildNotificationCard(
+              key,
+              'Get real-time updates for $key.',
+              _notificationSettings[key]!,
+            );
+          }).toList() +
+          [
+            const SizedBox(height: 60),
+            _buildSaveButton('Save settings'),
+          ],
     );
   }
 
@@ -655,12 +673,192 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
                 style: TextStyle(color: Colors.grey, fontSize: 16))),
       );
     }
-    
+
     return Column(
       children: [
         // Map over provider.payments here when ready
         const SizedBox(height: 32),
         _buildSaveButton('Save card'),
+      ],
+    );
+  }
+
+  Widget _buildPrivacyPolicyDetail() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: const Color(0xFF00ACC1).withValues(alpha: 0.2),
+          width: 1.0,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: const Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Privacy Policy',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF1A1A1A),
+            ),
+          ),
+          SizedBox(height: 16),
+          Text(
+            '1. Introduction\n'
+            'Welcome to Green Wash Co. We are committed to protecting your personal information and your right to privacy. If you have any questions or concerns about our policy, or our practices with regards to your personal information, please contact us.\n\n'
+            '2. Information We Collect\n'
+            'We collect personal information that you provide to us such as name, address, contact information, passwords and security data, and payment information.\n\n'
+            '3. How We Use Your Information\n'
+            'We use personal information collected via our App for a variety of business purposes described below. We process your personal information for these purposes in reliance on our legitimate business interests, in order to enter into or perform a contract with you, with your consent, and/or for compliance with our legal obligations.\n\n'
+            '4. Will Your Information Be Shared With Anyone?\n'
+            'We only share information with your consent, to comply with laws, to provide you with services, to protect your rights, or to fulfill business obligations.\n\n'
+            '5. How Long Do We Keep Your Information?\n'
+            'We keep your information for as long as necessary to fulfill the purposes outlined in this privacy policy unless otherwise required by law.',
+            style: TextStyle(
+              fontSize: 14,
+              color: Color(0xFF4B5563),
+              height: 1.6,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTermsDetail() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: const Color(0xFF00ACC1).withValues(alpha: 0.2),
+          width: 1.0,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: const Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Terms & Conditions',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF1A1A1A),
+            ),
+          ),
+          SizedBox(height: 16),
+          Text(
+            '1. Acceptance of Terms\n'
+            'By accessing or using the Green Wash Co. app, you agree to be bound by these Terms and Conditions and all applicable laws and regulations.\n\n'
+            '2. Services Provided\n'
+            'We provide an eco-friendly car wash booking service. The details of the services, pricing, and availability are subject to change without notice.\n\n'
+            '3. User Responsibilities\n'
+            'You are responsible for maintaining the confidentiality of your account information, including your password, and for all activity that occurs under your account.\n\n'
+            '4. Payments and Cancellations\n'
+            'All payments must be made through the app using the provided payment methods. Cancellations may be subject to a fee depending on how close to the scheduled time the cancellation is made.\n\n'
+            '5. Limitation of Liability\n'
+            'Green Wash Co. shall not be liable for any indirect, incidental, special, consequential or punitive damages, or any loss of profits or revenues.',
+            style: TextStyle(
+              fontSize: 14,
+              color: Color(0xFF4B5563),
+              height: 1.6,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCompanyDetailsDetail() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: const Color(0xFF00ACC1).withValues(alpha: 0.2),
+          width: 1.0,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Company Details',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF1A1A1A),
+            ),
+          ),
+          const SizedBox(height: 16),
+          const Text(
+            'Modernizing laundry management for businesses and individuals. Eco-friendly, fast, and professional.',
+            style: TextStyle(
+              fontSize: 15,
+              color: Color(0xFF64748B),
+              height: 1.5,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 24),
+          _buildSimpleContactRow(Icons.phone_android_rounded, '+91 9451034909'),
+          const SizedBox(height: 16),
+          _buildSimpleContactRow(Icons.email_outlined, 'ask003683@gmail.com'),
+          const SizedBox(height: 16),
+          _buildSimpleContactRow(Icons.language_rounded, 'www.greenwash.co'),
+          const SizedBox(height: 16),
+          _buildSimpleContactRow(Icons.location_on_outlined,
+              'Hari Nagar colony, near riya boy\'s hostel, Chinhat, Semra, Uttar Pradesh 226028'),
+          const SizedBox(height: 16),
+          _buildSimpleContactRow(
+              Icons.access_time_rounded, 'Mon - Sat: 8:00 AM - 8:00 PM'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSimpleContactRow(IconData icon, String text) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Icon(icon, color: const Color(0xFF2E7D32), size: 24),
+        const SizedBox(width: 16),
+        Expanded(
+          child: Text(
+            text,
+            style: const TextStyle(
+              fontSize: 16,
+              color: Color(0xFF64748B),
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
       ],
     );
   }
@@ -690,20 +888,23 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
           prefixIcon: Icon(icon, color: Colors.grey, size: 20),
           suffixIcon: trailingIcon != null
               ? Icon(trailingIcon, color: Colors.grey)
-              : (readOnly ? const Icon(Icons.lock_outline, size: 16, color: Colors.grey) : null),
+              : (readOnly
+                  ? const Icon(Icons.lock_outline, size: 16, color: Colors.grey)
+                  : null),
         ),
       ),
     );
   }
 
-  Widget _buildSaveButton(String text, {VoidCallback? onPressed, bool isLoading = false}) {
+  Widget _buildSaveButton(String text,
+      {VoidCallback? onPressed, bool isLoading = false}) {
     return SizedBox(
       width: double.infinity,
       height: 52,
       child: ElevatedButton(
         onPressed: isLoading ? null : onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF06B6D4),
+          backgroundColor: const Color(0xFF2E7D32),
           foregroundColor: Colors.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
@@ -714,11 +915,13 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
             ? const SizedBox(
                 width: 24,
                 height: 24,
-                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                child: CircularProgressIndicator(
+                    color: Colors.white, strokeWidth: 2),
               )
             : Text(
                 text,
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                style:
+                    const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
       ),
     );
@@ -748,7 +951,7 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
               ),
               child: Icon(
                 icon,
-                color: isCompleted ? const Color(0xFF06B6D4) : Colors.grey,
+                color: isCompleted ? const Color(0xFF2E7D32) : Colors.grey,
                 size: 24,
               ),
             ),
@@ -840,7 +1043,7 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
                 _notificationSettings[title] = v;
               });
             },
-            activeThumbColor: const Color(0xFF06B6D4),
+            activeThumbColor: const Color(0xFF2E7D32),
             activeTrackColor: const Color(0xFFCFFAFE),
           ),
         ],
@@ -865,7 +1068,7 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
         return _buildFavoriteCard(
           fav.name,
           fav.discount,
-          '—',
+          'â€”',
           1,
           fav.image,
           const Color(0xFFE3F2FD),
@@ -923,9 +1126,9 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '₹$price x $count',
+                    'â‚¹$price x $count',
                     style: const TextStyle(
-                      color: Color(0xFF06B6D4),
+                      color: Color(0xFF2E7D32),
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
                     ),
@@ -951,7 +1154,7 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
                   icon: const Icon(
                     Icons.add,
                     size: 18,
-                    color: Color(0xFF06B6D4),
+                    color: Color(0xFF2E7D32),
                   ),
                   onPressed: () {},
                 ),
@@ -993,7 +1196,7 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
         ),
       );
     }
-    
+
     return Column(
       children: cartProvider.transactions.map((tx) {
         final amount = tx['amount'] ?? 0;
@@ -1001,7 +1204,7 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
         return _buildTransactionItem(
           tx['description'] ?? 'Transaction',
           _formatDate(tx['createdAt'] ?? ''),
-          '${isNegative ? '-' : '+'}₹$amount',
+          '${isNegative ? '-' : '+'}â‚¹$amount',
           tx['status'] ?? 'Completed',
           isNegative: isNegative,
           isFailed: tx['status'] == 'Failed',
@@ -1104,13 +1307,17 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
 
   Widget _buildAboutMeDetail(CartProvider provider) {
     final profile = provider.userProfile;
-    
+
     // Refresh controllers if profile data in CartProvider has been updated externally
-    if (profile.name.isNotEmpty && _nameController.text != profile.name && !_isUpdatingProfile) {
-       _nameController.text = profile.name;
+    if (profile.name.isNotEmpty &&
+        _nameController.text != profile.name &&
+        !_isUpdatingProfile) {
+      _nameController.text = profile.name;
     }
-    if (profile.email.isNotEmpty && _emailController.text != profile.email && !_isUpdatingProfile) {
-       _emailController.text = profile.email;
+    if (profile.email.isNotEmpty &&
+        _emailController.text != profile.email &&
+        !_isUpdatingProfile) {
+      _emailController.text = profile.email;
     }
 
     return Column(
@@ -1125,16 +1332,20 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
           ),
         ),
         const SizedBox(height: 16),
-        _buildIconTextField(Icons.person_outline, 'Full Name', controller: _nameController),
+        _buildIconTextField(Icons.person_outline, 'Full Name',
+            controller: _nameController),
         const SizedBox(height: 12),
         // Email is now editable as per user request
-        _buildIconTextField(Icons.mail_outline, 'Email Address', controller: _emailController),
+        _buildIconTextField(Icons.mail_outline, 'Email Address',
+            controller: _emailController),
         const SizedBox(height: 12),
-        _buildIconTextField(Icons.phone_android_outlined, profile.phone, readOnly: true),
+        _buildIconTextField(Icons.phone_android_outlined, profile.phone,
+            readOnly: true),
         const SizedBox(height: 12),
         const Text(
           'Note: Phone number cannot be changed after verification.',
-          style: TextStyle(fontSize: 11, color: Colors.grey, fontStyle: FontStyle.italic),
+          style: TextStyle(
+              fontSize: 11, color: Colors.grey, fontStyle: FontStyle.italic),
         ),
         const SizedBox(height: 32),
         const Text(
@@ -1146,71 +1357,67 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
           ),
         ),
         const SizedBox(height: 16),
-        _buildIconTextField(Icons.lock_outline, 'Change password', trailingIcon: Icons.chevron_right),
+        _buildIconTextField(Icons.lock_outline, 'Change password',
+            trailingIcon: Icons.chevron_right),
         const SizedBox(height: 40),
-        _buildSaveButton(
-          'Update Profile', 
-          isLoading: _isUpdatingProfile,
-          onPressed: () async {
-            final currentProfile = provider.userProfile;
-            final newName = _nameController.text.trim();
-            final newEmail = _emailController.text.trim();
-            
-            String? nameToUpdate;
-            String? emailToUpdate;
-            
-            if (newName != currentProfile.name) nameToUpdate = newName;
-            if (newEmail != currentProfile.email) emailToUpdate = newEmail;
-            
-            if (nameToUpdate == null && emailToUpdate == null) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('No changes to save'),
-                  backgroundColor: Colors.orange,
-                )
-              );
-              return;
-            }
+        _buildSaveButton('Update Profile', isLoading: _isUpdatingProfile,
+            onPressed: () async {
+          final currentProfile = provider.userProfile;
+          final newName = _nameController.text.trim();
+          final newEmail = _emailController.text.trim();
 
-            setState(() => _isUpdatingProfile = true);
-            try {
-              final result = await ref.read(authServiceProvider).updateProfile(
-                fullName: nameToUpdate,
-                email: emailToUpdate,
-              );
-              
-                if (result.success && mounted) {
-                  // Sync with AuthStore to update header and other global UI
-                  if (result.data != null) {
-                    ref.read(auth_store.authStoreProvider.notifier).syncUser(result.data!);
-                  }
-                  // Refresh local profile
-                  await provider.syncUserProfile();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Profile updated successfully!'))
-                );
-              } else if (mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(result.message))
-                );
-              }
-            } finally {
-              if (mounted) setState(() => _isUpdatingProfile = false);
-            }
+          String? nameToUpdate;
+          String? emailToUpdate;
+
+          if (newName != currentProfile.name) nameToUpdate = newName;
+          if (newEmail != currentProfile.email) emailToUpdate = newEmail;
+
+          if (nameToUpdate == null && emailToUpdate == null) {
+            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+              content: Text('No changes to save'),
+              backgroundColor: Colors.orange,
+            ));
+            return;
           }
-        ),
+
+          setState(() => _isUpdatingProfile = true);
+          try {
+            final result = await ref.read(authServiceProvider).updateProfile(
+                  fullName: nameToUpdate,
+                  email: emailToUpdate,
+                );
+
+            if (result.success && mounted) {
+              // Sync with AuthStore to update header and other global UI
+              if (result.data != null) {
+                ref
+                    .read(auth_store.authStoreProvider.notifier)
+                    .syncUser(result.data!);
+              }
+              // Refresh local profile
+              await provider.syncUserProfile();
+              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                  content: Text('Profile updated successfully!')));
+            } else if (mounted) {
+              ScaffoldMessenger.of(context)
+                  .showSnackBar(SnackBar(content: Text(result.message)));
+            }
+          } finally {
+            if (mounted) setState(() => _isUpdatingProfile = false);
+          }
+        }),
       ],
     );
   }
 
-  // ── SUBSCRIPTIONS DESIGN ───────────────────────────────────────────────────
+  // â”€â”€ SUBSCRIPTIONS DESIGN â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildSubscriptionsDetail() {
     if (_subscriptionsLoading) {
       return const SizedBox(
         height: 300,
         child: Center(
           child: CircularProgressIndicator(
-            color: Color(0xFF06B6D4),
+            color: Color(0xFF2E7D32),
           ),
         ),
       );
@@ -1237,7 +1444,7 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
                 icon: const Icon(Icons.refresh),
                 label: const Text('Retry'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF06B6D4),
+                  backgroundColor: const Color(0xFF2E7D32),
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12)),
@@ -1269,7 +1476,7 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
             gradient: const LinearGradient(
-              colors: [Color(0xFF0891B2), Color(0xFF06B6D4)],
+              colors: [Color(0xFF1B5E20), Color(0xFF2E7D32)],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
@@ -1399,7 +1606,7 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
                           Text(
-                            '₹${plan.price}',
+                            'â‚¹${plan.price}',
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 28,
@@ -1544,7 +1751,7 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
                     ),
                     child: Text(
                       isSelected
-                          ? 'Selected ✓'
+                          ? 'Selected âœ“'
                           : 'Select ${plan.name.split(' ').first} Plan',
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
@@ -1591,5 +1798,3 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
     return '${date.day}/${date.month}/${date.year}';
   }
 }
-
-

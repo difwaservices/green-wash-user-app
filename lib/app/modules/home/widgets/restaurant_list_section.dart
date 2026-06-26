@@ -34,7 +34,7 @@ class RestaurantListSection extends ConsumerWidget {
   }
 }
 
-// ── Shops List ────────────────────────────────────────────────────────────────
+// â”€â”€ Shops List â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _ShopsList extends ConsumerWidget {
   final List<ShopModel> shops;
@@ -104,20 +104,20 @@ class _ShopsList extends ConsumerWidget {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF06B6D4).withValues(alpha: 0.1),
+                    color: const Color(0xFF2E7D32).withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Row(
                     children: [
                       Icon(Icons.filter_list_rounded,
-                          size: 16, color: Color(0xFF06B6D4)),
+                          size: 16, color: Color(0xFF2E7D32)),
                       SizedBox(width: 4),
                       Text(
                         'Filters',
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w700,
-                          color: Color(0xFF06B6D4),
+                          color: Color(0xFF2E7D32),
                         ),
                       ),
                     ],
@@ -141,7 +141,7 @@ class _ShopsList extends ConsumerWidget {
   }
 }
 
-// ── Individual Shop Card ──────────────────────────────────────────────────────
+// â”€â”€ Individual Shop Card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _ShopCard extends ConsumerWidget {
   final ShopModel shop;
@@ -199,7 +199,7 @@ class _ShopCard extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // ── 1. Info Row: thumbnail left, details right ───────────────
+              // â”€â”€ 1. Info Row: thumbnail left, details right â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
               Padding(
                 padding: const EdgeInsets.fromLTRB(12, 12, 12, 10),
                 child: IntrinsicHeight(
@@ -225,7 +225,7 @@ class _ShopCard extends ConsumerWidget {
                           ),
                         ),
                       ),
-                      // Details column — fills the full height of the image
+                      // Details column â€” fills the full height of the image
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -259,7 +259,7 @@ class _ShopCard extends ConsumerWidget {
                                           color: const Color(0xFFFFD600)),
                                     ),
                                     child: const Text(
-                                      '⭐ Top',
+                                      'â­ Top',
                                       style: TextStyle(
                                         fontSize: 9,
                                         fontWeight: FontWeight.bold,
@@ -310,7 +310,7 @@ class _ShopCard extends ConsumerWidget {
                               color: const Color(0xFF00ACC1)
                                   .withValues(alpha: 0.1),
                             ),
-                            // Info chips: distance · open/closed · contact
+                            // Info chips: distance Â· open/closed Â· contact
                             Wrap(
                               spacing: 5,
                               runSpacing: 4,
@@ -319,7 +319,7 @@ class _ShopCard extends ConsumerWidget {
                                   _InfoChip(
                                     icon: Icons.place_rounded,
                                     label: distLabel,
-                                    color: const Color(0xFF0891B2),
+                                    color: const Color(0xFF1B5E20),
                                     bg: const Color(0xFFE0F7FA),
                                   ),
                                 _InfoChip(
@@ -328,7 +328,7 @@ class _ShopCard extends ConsumerWidget {
                                       : Icons.cancel_outlined,
                                   label: shop.isShopActive ? 'Open' : 'Closed',
                                   color: shop.isShopActive
-                                      ? const Color(0xFF059669)
+                                      ? const Color(0xFF2E7D32)
                                       : const Color(0xFFDC2626),
                                   bg: shop.isShopActive
                                       ? const Color(0xFFD1FAE5)
@@ -346,7 +346,7 @@ class _ShopCard extends ConsumerWidget {
                 ),
               ),
 
-              // ── 2. Product Carousel ──────────────────────────────────────
+              // â”€â”€ 2. Product Carousel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
               productsAsync.when(
                 data: (products) {
                   final items = products
@@ -378,13 +378,13 @@ class _ShopCard extends ConsumerWidget {
                               '${items.length} items',
                               style: const TextStyle(
                                 fontSize: 10,
-                                color: Color(0xFF06B6D4),
+                                color: Color(0xFF2E7D32),
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
                             const SizedBox(width: 2),
                             const Icon(Icons.arrow_forward_ios_rounded,
-                                size: 9, color: Color(0xFF06B6D4)),
+                                size: 9, color: Color(0xFF2E7D32)),
                           ],
                         ),
                       ),
@@ -408,7 +408,7 @@ class _ShopCard extends ConsumerWidget {
   }
 }
 
-// ── Shop Thumbnail ────────────────────────────────────────────────────────────
+// â”€â”€ Shop Thumbnail â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _ShopThumb extends StatelessWidget {
   final ShopModel shop;
@@ -445,7 +445,7 @@ class _ShopThumb extends StatelessWidget {
       );
 }
 
-// ── Info Chip ─────────────────────────────────────────────────────────────────
+// â”€â”€ Info Chip â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _InfoChip extends StatelessWidget {
   final IconData icon;
@@ -484,7 +484,7 @@ class _InfoChip extends StatelessWidget {
   }
 }
 
-// ── Contact Chip (tappable) ───────────────────────────────────────────────────
+// â”€â”€ Contact Chip (tappable) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _ContactChip extends StatelessWidget {
   final String contact;
@@ -513,7 +513,7 @@ class _ContactChip extends StatelessWidget {
             Icon(
               isEmail ? Icons.alternate_email_rounded : Icons.phone_rounded,
               size: 11,
-              color: const Color(0xFF0891B2),
+              color: const Color(0xFF1B5E20),
             ),
             const SizedBox(width: 3),
             Text(
@@ -521,7 +521,7 @@ class _ContactChip extends StatelessWidget {
               style: const TextStyle(
                   fontSize: 10,
                   fontWeight: FontWeight.w700,
-                  color: Color(0xFF0891B2)),
+                  color: Color(0xFF1B5E20)),
             ),
           ],
         ),
@@ -530,7 +530,7 @@ class _ContactChip extends StatelessWidget {
   }
 }
 
-// ── Carousel Shimmer ──────────────────────────────────────────────────────────
+// â”€â”€ Carousel Shimmer â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _CarouselShimmer extends StatelessWidget {
   @override
@@ -555,7 +555,7 @@ class _CarouselShimmer extends StatelessWidget {
   }
 }
 
-// ── Product Strip (manually swipeable, no auto-scroll) ───────────────────────
+// â”€â”€ Product Strip (manually swipeable, no auto-scroll) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _ProductCarouselStrip extends StatelessWidget {
   final List<ShopProduct> products;
@@ -587,7 +587,7 @@ class _ProductCarouselStrip extends StatelessWidget {
   }
 }
 
-// ── Product Chip (item in carousel) ──────────────────────────────────────────
+// â”€â”€ Product Chip (item in carousel) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _ProductChip extends StatelessWidget {
   final ShopProduct product;
@@ -645,11 +645,11 @@ class _ProductChip extends StatelessWidget {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    '₹${product.price.toStringAsFixed(0)}',
+                    'â‚¹${product.price.toStringAsFixed(0)}',
                     style: const TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.w800,
-                      color: Color(0xFF0891B2),
+                      color: Color(0xFF1B5E20),
                     ),
                   ),
                 ],
@@ -666,13 +666,13 @@ class _ProductChip extends StatelessWidget {
       color: const Color(0xFFE0F7FA),
       child: const Center(
         child:
-            Icon(Icons.water_drop_outlined, color: Color(0xFF06B6D4), size: 22),
+            Icon(Icons.water_drop_outlined, color: Color(0xFF2E7D32), size: 22),
       ),
     );
   }
 }
 
-// ── Loading State ─────────────────────────────────────────────────────────────
+// â”€â”€ Loading State â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _ShopsLoadingState extends StatelessWidget {
   const _ShopsLoadingState();
@@ -810,7 +810,7 @@ class _ShopShimmerCardState extends State<_ShopShimmerCard>
   }
 }
 
-// ── Error State ───────────────────────────────────────────────────────────────
+// â”€â”€ Error State â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _ShopsErrorState extends StatelessWidget {
   final String message;
@@ -844,7 +844,7 @@ class _ShopsErrorState extends StatelessWidget {
             ElevatedButton.icon(
               onPressed: onRetry,
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF06B6D4),
+                backgroundColor: const Color(0xFF2E7D32),
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12)),
@@ -862,7 +862,7 @@ class _ShopsErrorState extends StatelessWidget {
   }
 }
 
-// ── Empty State ───────────────────────────────────────────────────────────────
+// â”€â”€ Empty State â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _ShopsEmptyState extends StatelessWidget {
   final VoidCallback onRetry;
@@ -894,7 +894,7 @@ class _ShopsEmptyState extends StatelessWidget {
             ElevatedButton.icon(
               onPressed: onRetry,
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF06B6D4),
+                backgroundColor: const Color(0xFF2E7D32),
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12)),

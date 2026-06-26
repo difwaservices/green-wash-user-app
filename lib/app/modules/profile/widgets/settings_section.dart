@@ -50,7 +50,7 @@ class SettingsSection extends StatelessWidget {
                   onTap: item.onTap,
                   leading: Icon(
                     item.icon,
-                    color: const Color(0xFF06B6D4),
+                    color: const Color(0xFF2E7D32),
                     size: 24,
                   ),
                   title: Text(

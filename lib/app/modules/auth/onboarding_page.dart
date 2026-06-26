@@ -113,7 +113,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
     );
   }
 
-  // ─── Layout 1: Standard (title top, logo center) ──────────────────────────
+  // â”€â”€â”€ Layout 1: Standard (title top, logo center) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildStandardLayout(Map<String, dynamic> page) {
     return SafeArea(
       child: Padding(
@@ -164,7 +164,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
     );
   }
 
-  // ─── Layout 2: Card (title top, image in rounded card) ───────────────────
+  // â”€â”€â”€ Layout 2: Card (title top, image in rounded card) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildCardLayout(Map<String, dynamic> page) {
     return SafeArea(
       child: Padding(
@@ -221,7 +221,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
     );
   }
 
-  // ─── Layout 3: Full image top, curved white bottom ────────────────────────
+  // â”€â”€â”€ Layout 3: Full image top, curved white bottom â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildFullImageLayout(Map<String, dynamic> page) {
     return Stack(
       children: [
@@ -280,7 +280,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
     );
   }
 
-  // ─── Layout 4: Image top half, text bottom, Skip/Next ────────────────────
+  // â”€â”€â”€ Layout 4: Image top half, text bottom, Skip/Next â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildBottomLayout(Map<String, dynamic> page) {
     return Column(
       children: [
@@ -334,7 +334,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
     );
   }
 
-  // ─── Nav: Skip · dots · Next ──────────────────────────────────────────────
+  // â”€â”€â”€ Nav: Skip Â· dots Â· Next â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildSkipNextNav(AppLocalizations l10n, int pageCount) {
     return Container(
       color: Colors.white,
@@ -370,7 +370,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
     );
   }
 
-  // ─── Dots ─────────────────────────────────────────────────────────────────
+  // â”€â”€â”€ Dots â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildDots(int pageCount) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,

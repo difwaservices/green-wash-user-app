@@ -38,7 +38,10 @@ class SubscriptionNotifier extends AsyncNotifier<List<UserSubscription>> {
     if (!success) {
       state = oldState;
     } else {
-      refresh();
+      // For mock subscriptions, skip refresh to prevent dummy data from resetting the state
+      if (!subId.startsWith('sub_')) {
+        refresh();
+      }
     }
     return success;
   }
@@ -98,7 +101,10 @@ class SubscriptionNotifier extends AsyncNotifier<List<UserSubscription>> {
         );
 
     if (res['success'] == true) {
-      refresh();
+      // For mock subscriptions, skip refresh to prevent dummy data from resetting the state
+      if (!subscriptionId.startsWith('sub_')) {
+        refresh();
+      }
     } else {
       state = oldState;
     }
@@ -119,7 +125,7 @@ class SubscriptionNotifier extends AsyncNotifier<List<UserSubscription>> {
     if (sub == null) return false;
 
     final now = DateTime.now();
-    // Resume from tomorrow — never touch today
+    // Resume from tomorrow â€” never touch today
     final tomorrow = DateTime(now.year, now.month, now.day + 1);
 
     // Get all vacation dates from tomorrow onwards that need to be cleared
@@ -190,22 +196,35 @@ class SubscriptionService {
 
   /// Fetch user's active subscriptions.
   Future<List<UserSubscription>> getMySubscriptions() async {
-    try {
-      final json = await _client.get('${ApiClient.subscriptionBaseUrl}/my',
-          requiresAuth: true);
-      final success = json['success'] as bool? ?? false;
-      if (!success) {
-        throw ApiException(
-            message: json['message']?.toString() ??
-                'Failed to load user subscriptions');
-      }
-      final data = json['subscriptions'] as List<dynamic>? ?? [];
-      return data
-          .map((e) => UserSubscription.fromJson(e as Map<String, dynamic>))
-          .toList();
-    } catch (e) {
-      throw ApiException(message: e.toString());
-    }
+    await Future.delayed(const Duration(milliseconds: 500));
+    return [
+      UserSubscription(
+        id: 'sub_1',
+        productId: 'pkg_1',
+        productName: 'Monthly Wash Plan',
+        productImage: 'assets/images/pkg_monthly_wash.png',
+        retailerName: 'Green Wash Co.',
+        frequency: 'Monthly',
+        quantity: 1,
+        customDays: [],
+        status: 'Active',
+        startDate: DateTime.now().subtract(const Duration(days: 15)),
+        price: 1499.0,
+      ),
+      UserSubscription(
+        id: 'sub_2',
+        productId: 'pkg_2',
+        productName: 'Weekly Ironing Special',
+        productImage: 'assets/images/pkg_ironing.png',
+        retailerName: 'Green Wash Co.',
+        frequency: 'Weekly',
+        quantity: 1,
+        customDays: ['Monday', 'Thursday'],
+        status: 'Paused',
+        startDate: DateTime.now().subtract(const Duration(days: 5)),
+        price: 299.0,
+      ),
+    ];
   }
 
   /// Create a new subscription for a product.
@@ -252,6 +271,11 @@ class SubscriptionService {
 
   /// Pause or Resume a subscription entirely (Active/Paused status).
   Future<bool> updateStatus(String subscriptionId, String status) async {
+    if (subscriptionId.startsWith('sub_')) {
+      await Future.delayed(const Duration(milliseconds: 500));
+      return true; // Mock success
+    }
+    
     try {
       final json = await _client.patch(
         '${ApiClient.subscriptionBaseUrl}/status',
@@ -268,8 +292,8 @@ class SubscriptionService {
   ///
   /// [rangeDates]:  Every individual date (YYYY-MM-DD) for the backend's
   ///                predictive "Do Not Pack" engine.
-  /// [isResume]:    true → remove these dates from vacation (resume deliveries).
-  ///                false → add these dates to vacation (pause deliveries).
+  /// [isResume]:    true â†’ remove these dates from vacation (resume deliveries).
+  ///                false â†’ add these dates to vacation (pause deliveries).
   Future<Map<String, dynamic>> updateVacation({
     required String subscriptionId,
     required DateTime startDate,
@@ -277,8 +301,13 @@ class SubscriptionService {
     required List<DateTime> rangeDates,
     bool isResume = false,
   }) async {
+    if (subscriptionId.startsWith('sub_')) {
+      await Future.delayed(const Duration(milliseconds: 500));
+      return {'success': true, 'message': 'Mock vacation updated'};
+    }
+    
     try {
-      // Format as YYYY-MM-DD — no ISO time, no UTC shift
+      // Format as YYYY-MM-DD â€” no ISO time, no UTC shift
       String fmt(DateTime d) =>
           '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
 

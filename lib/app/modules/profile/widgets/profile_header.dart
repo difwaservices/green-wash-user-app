@@ -56,7 +56,7 @@ class ProfileHeader extends StatelessWidget {
                   child: Container(
                     padding: const EdgeInsets.all(6),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF06B6D4), // Design green
+                      color: const Color(0xFF2E7D32), // Design green
                       shape: BoxShape.circle,
                       border: Border.all(color: Colors.white, width: 2),
                     ),

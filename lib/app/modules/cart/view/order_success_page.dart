@@ -94,7 +94,7 @@ class _OrderSuccessPageState extends State<OrderSuccessPage> {
                   ),
                   child: const Icon(
                     Icons.shopping_bag_outlined,
-                    color: Color(0xFF06B6D4),
+                    color: Color(0xFF2E7D32),
                     size: 80,
                   ),
                 )
@@ -172,18 +172,18 @@ class _OrderSuccessPageState extends State<OrderSuccessPage> {
                         );
                       },
                       icon: const Icon(Icons.local_shipping_outlined,
-                          color: Color(0xFF06B6D4)),
+                          color: Color(0xFF2E7D32)),
                       label: const Text(
                         'Track Order',
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFF06B6D4),
+                          color: Color(0xFF2E7D32),
                         ),
                       ),
                       style: OutlinedButton.styleFrom(
                         side: const BorderSide(
-                            color: Color(0xFF06B6D4), width: 1.5),
+                            color: Color(0xFF2E7D32), width: 1.5),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -203,7 +203,7 @@ class _OrderSuccessPageState extends State<OrderSuccessPage> {
                           context, AppRoutes.home, (route) => false);
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF06B6D4),
+                      backgroundColor: const Color(0xFF2E7D32),
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -235,7 +235,7 @@ class _OrderSuccessPageState extends State<OrderSuccessPage> {
               numberOfParticles: 20,
               gravity: 0.1,
               colors: const [
-                Color(0xFF06B6D4),
+                Color(0xFF2E7D32),
                 Color(0xFF0E7490),
                 Color(0xFFFFD700),
                 Colors.white,

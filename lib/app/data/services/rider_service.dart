@@ -195,9 +195,9 @@ class RiderService {
         endpoint,
         data: {'orderId': orderId},
       );
-      debugPrint('🔔 Socket server notified: $endpoint');
+      debugPrint('ðŸ”” Socket server notified: $endpoint');
     } catch (e) {
-      debugPrint('⚠️ Failed to notify socket server ($status): $e');
+      debugPrint('âš ï¸ Failed to notify socket server ($status): $e');
     }
   }
 
@@ -235,7 +235,7 @@ class RiderService {
 
 
 
-  /// Step 1: Initiate cancellation — starts the 5-minute countdown on the backend.
+  /// Step 1: Initiate cancellation â€” starts the 5-minute countdown on the backend.
   Future<Map<String, dynamic>> initiateCancellation({
     required String orderId,
     required String reason,
@@ -252,7 +252,7 @@ class RiderService {
     }
   }
 
-  /// Step 2: Confirm cancellation — callable only after the 5-minute wait.
+  /// Step 2: Confirm cancellation â€” callable only after the 5-minute wait.
   Future<Map<String, dynamic>> confirmCancellation({
     required String orderId,
   }) async {

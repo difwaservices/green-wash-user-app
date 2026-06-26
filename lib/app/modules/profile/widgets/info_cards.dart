@@ -25,7 +25,7 @@ class InfoCards extends StatelessWidget {
             child: _buildCard(
               icon: Icons.account_balance_wallet_outlined,
               title: 'Zomato Money',
-              subtitle: '₹${money.toInt()}',
+              subtitle: 'â‚¹${money.toInt()}',
               iconColor: Colors.blueGrey,
               onTap: onMoneyTap,
             ),

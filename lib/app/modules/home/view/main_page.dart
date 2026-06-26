@@ -123,7 +123,7 @@ class _MainPageState extends ConsumerState<MainPage> {
                 'Press back again to exit the app.',
                 style: TextStyle(color: Colors.white, fontSize: 13),
               ),
-              backgroundColor: Color(0xFF0891B2),
+              backgroundColor: Color(0xFF2E7D32),
               duration: Duration(seconds: 2),
               behavior: SnackBarBehavior.floating,
               margin: EdgeInsets.all(20),
@@ -193,17 +193,21 @@ class _MainPageState extends ConsumerState<MainPage> {
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
                   Expanded(
-                    child: _buildNavItem(currentIndex, 0, Icons.home_filled, l10n.navHome),
+                    child: _buildNavItem(
+                        currentIndex, 0, Icons.home_filled, l10n.navHome),
                   ),
                   Expanded(
-                    child: _buildNavItem(currentIndex, 1, Icons.local_shipping_rounded, l10n.subscription),
+                    child: _buildNavItem(currentIndex, 1,
+                        Icons.local_shipping_rounded, l10n.subscription),
                   ),
                   const SizedBox(width: 80), // Space for the FAB
                   Expanded(
-                    child: _buildNavItem(currentIndex, 3, Icons.wallet_rounded, l10n.wallet),
+                    child: _buildNavItem(
+                        currentIndex, 3, Icons.wallet_rounded, l10n.wallet),
                   ),
                   Expanded(
-                    child: _buildNavItem(currentIndex, 4, Icons.person_rounded, l10n.profile),
+                    child: _buildNavItem(
+                        currentIndex, 4, Icons.person_rounded, l10n.profile),
                   ),
                 ],
               ),
@@ -217,7 +221,7 @@ class _MainPageState extends ConsumerState<MainPage> {
                     width: 65,
                     height: 65,
                     decoration: BoxDecoration(
-                      color: const Color(0xFF06B6D4),
+                      color: const Color(0xFF2E7D32),
                       shape: BoxShape.circle,
                       border: Border.all(
                         color: Colors.white,
@@ -225,7 +229,7 @@ class _MainPageState extends ConsumerState<MainPage> {
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFF06B6D4).withOpacity(0.3),
+                          color: const Color(0xFF2E7D32).withOpacity(0.3),
                           blurRadius: 12,
                           offset: const Offset(0, 6),
                         ),
@@ -249,8 +253,9 @@ class _MainPageState extends ConsumerState<MainPage> {
   Widget _buildNavItem(
       int currentIndex, int index, IconData icon, String label) {
     bool isSelected = currentIndex == index;
-    final Color color = isSelected ? const Color(0xFF06B6D4) : const Color(0xFF94A3B8);
-    
+    final Color color =
+        isSelected ? const Color(0xFF2E7D32) : const Color(0xFF94A3B8);
+
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: () {

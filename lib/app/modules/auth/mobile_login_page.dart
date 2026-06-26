@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/constants/app_images.dart';
+import '../../core/constants/app_colors.dart';
 import 'widgets/input_field.dart';
 import '../../routes/app_routes.dart';
 import '../../../../core/state/auth_store.dart';
@@ -29,7 +30,8 @@ class _MobileLoginPageState extends ConsumerState<MobileLoginPage> {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(message, style: const TextStyle(fontWeight: FontWeight.w500)),
+        content:
+            Text(message, style: const TextStyle(fontWeight: FontWeight.w500)),
         backgroundColor: backgroundColor,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -45,7 +47,7 @@ class _MobileLoginPageState extends ConsumerState<MobileLoginPage> {
       _showSnackBar(l10n.pleaseEnterMobileNumber, backgroundColor: Colors.red);
       return;
     }
-    
+
     // 10-digit mobile number validation (Starts with 6-9)
     final phoneRegex = RegExp(r'^[6-9]\d{9}$');
     if (!phoneRegex.hasMatch(phone)) {
@@ -56,21 +58,17 @@ class _MobileLoginPageState extends ConsumerState<MobileLoginPage> {
     setState(() => _isSubmitting = true);
 
     try {
-      // ── SEND REAL OTP ──
+      // â”€â”€ SEND REAL OTP â”€â”€
       // This calls the backend API to send an OTP
       await ref.read(authStoreProvider.notifier).sendOtp(phoneNumber: phone);
-      
+
       final state = ref.read(authStoreProvider);
       if (state is AuthOtpSent) {
         if (!mounted) return;
-        Navigator.pushNamed(
-          context, 
-          AppRoutes.otp, 
-          arguments: {
-            'phoneNumber': phone,
-            'otp': state.otp, 
-          }
-        );
+        Navigator.pushNamed(context, AppRoutes.otp, arguments: {
+          'phoneNumber': phone,
+          'otp': state.otp,
+        });
       } else if (state is AuthError) {
         _showSnackBar(state.message, backgroundColor: Colors.red);
       } else {
@@ -90,35 +88,30 @@ class _MobileLoginPageState extends ConsumerState<MobileLoginPage> {
     final bool isSmallScreen = screenSize.height < 600;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFE0F7FA),
+      backgroundColor: Colors.white,
       body: SafeArea(
         child: SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
           child: Column(
             children: [
-              // Dynamic top spacing
-              SizedBox(height: isSmallScreen ? 30 : 60),
               Container(
                 width: double.infinity,
                 constraints: BoxConstraints(
                   // Ensures the container takes at least the remaining screen height
-                  minHeight: screenSize.height - (isSmallScreen ? 80 : 120),
+                  minHeight: screenSize.height,
                 ),
-                padding: EdgeInsets.fromLTRB(28, isSmallScreen ? 25 : 40, 28, 40),
+                padding:
+                    EdgeInsets.fromLTRB(28, isSmallScreen ? 25 : 40, 28, 40),
                 decoration: const BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(40),
-                    topRight: Radius.circular(40),
-                  ),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Center(
                       child: Image.asset(
-                        AppImages.difwaLogoPng,
-                        width: isSmallScreen ? 120 : 160,
+                        'assets/images/app_logo.png',
+                        width: isSmallScreen ? 130 : 160,
                       ),
                     ).animate().fadeIn(duration: 600.ms).scale(delay: 200.ms),
                     SizedBox(height: isSmallScreen ? 20 : 32),
@@ -133,8 +126,8 @@ class _MobileLoginPageState extends ConsumerState<MobileLoginPage> {
                     Text(
                       l10n.enterMobileDescription,
                       style: TextStyle(
-                          fontSize: isSmallScreen ? 13 : 14, 
-                          color: const Color(0xFF64748B), 
+                          fontSize: isSmallScreen ? 13 : 14,
+                          color: const Color(0xFF64748B),
                           height: 1.5),
                     ).animate().fadeIn(delay: 400.ms),
                     SizedBox(height: isSmallScreen ? 25 : 38),
@@ -155,11 +148,7 @@ class _MobileLoginPageState extends ConsumerState<MobileLoginPage> {
                         height: 56,
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(30),
-                          gradient: const LinearGradient(
-                            colors: [Color(0xFF006064), Color(0xFF00ACC1)],
-                            begin: Alignment.centerLeft,
-                            end: Alignment.centerRight,
-                          ),
+                          gradient: AppColors.buttonBgGradient,
                           boxShadow: [
                             BoxShadow(
                               color: Colors.black.withOpacity(0.1),
@@ -169,21 +158,22 @@ class _MobileLoginPageState extends ConsumerState<MobileLoginPage> {
                           ],
                         ),
                         child: Center(
-                          child: _isSubmitting 
-                          ? const SizedBox(
-                              height: 24,
-                              width: 24,
-                              child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                            )
-                          : Text(
-                              l10n.sendOtp,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 0.5,
-                              ),
-                            ),
+                          child: _isSubmitting
+                              ? const SizedBox(
+                                  height: 24,
+                                  width: 24,
+                                  child: CircularProgressIndicator(
+                                      color: Colors.white, strokeWidth: 2),
+                                )
+                              : Text(
+                                  l10n.sendOtp,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    letterSpacing: 0.5,
+                                  ),
+                                ),
                         ),
                       ),
                     ),
@@ -191,7 +181,8 @@ class _MobileLoginPageState extends ConsumerState<MobileLoginPage> {
                     Center(
                       child: Text(
                         l10n.secureLoginText,
-                        style: const TextStyle(color: Color(0xFF64748B), fontSize: 13),
+                        style: const TextStyle(
+                            color: Color(0xFF64748B), fontSize: 13),
                       ),
                     ),
                   ],
