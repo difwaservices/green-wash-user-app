@@ -44,6 +44,9 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
+# Java heap dumps (can be huge, never commit)
+*.hprof
+
 # Secret keys — never commit
 android/local.properties
 
