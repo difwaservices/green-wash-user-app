@@ -328,7 +328,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                                   style: TextStyle(
                                       fontSize: 13, color: Colors.grey)),
                               Text(
-                                'â‚¹${cartProvider.walletBalance.toStringAsFixed(2)}',
+                                '₹${cartProvider.walletBalance.toStringAsFixed(2)}',
                                 style: const TextStyle(
                                     fontSize: 20,
                                     fontWeight: FontWeight.bold,
@@ -386,7 +386,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                                     ),
                                   ),
                                   Text(
-                                    'â‚¹${(item.totalPrice).toStringAsFixed(0)}',
+                                    '₹${(item.totalPrice).toStringAsFixed(0)}',
                                     style: const TextStyle(
                                         fontWeight: FontWeight.bold),
                                   ),
@@ -403,7 +403,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                               const SizedBox(width: 12, height: 12, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.grey))
                             else
                               Text(
-                                'â‚¹${cartProvider.deliveryFee.toStringAsFixed(0)}',
+                                '₹${cartProvider.deliveryFee.toStringAsFixed(0)}',
                                 style: TextStyle(
                                   color: cartProvider.deliveryFee > 0 ? Colors.black : Colors.green,
                                   fontWeight: cartProvider.deliveryFee > 0 ? FontWeight.bold : FontWeight.w500,
@@ -419,7 +419,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                                 style: TextStyle(
                                     fontWeight: FontWeight.bold, fontSize: 16)),
                             Text(
-                              'â‚¹${cartProvider.total.toStringAsFixed(0)}',
+                              '₹${cartProvider.total.toStringAsFixed(0)}',
                               style: const TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 18,
@@ -439,107 +439,29 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                   const SizedBox(height: 12),
                   Row(
                     children: [
-                      Expanded(
-                        child: GestureDetector(
-                          onTap: () => setState(() => _paymentMethod = 'Wallet'),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                                vertical: 16, horizontal: 12),
-                            decoration: BoxDecoration(
-                              color: _paymentMethod == 'Wallet'
-                                  ? AppColors.primary
-                                  : Colors.white,
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(
-                                color: _paymentMethod == 'Wallet'
-                                    ? AppColors.primary
-                                    : const Color(0xFF00ACC1).withOpacity(0.2),
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.05),
-                                  blurRadius: 8,
-                                  offset: const Offset(0, 4),
-                                ),
-                              ],
-                            ),
-                            child: Column(
-                              children: [
-                                Icon(
-                                  Icons.account_balance_wallet_rounded,
-                                  color: _paymentMethod == 'Wallet'
-                                      ? Colors.white
-                                      : AppColors.primary,
-                                  size: 26,
-                                ),
-                                const SizedBox(height: 8),
-                                Text('Wallet',
-                                    style: TextStyle(
-                                        color: _paymentMethod == 'Wallet'
-                                            ? Colors.white
-                                            : Colors.black87,
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 13)),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
+                      _buildMethodSelector('UPI', Icons.mobile_screen_share_rounded, Colors.indigo),
                       const SizedBox(width: 12),
-                      Expanded(
-                        child: GestureDetector(
-                          onTap: _orderType == 1
-                              ? null
-                              : () => setState(() => _paymentMethod = 'Cash'),
-                          child: Opacity(
-                            opacity: _orderType == 1 ? 0.45 : 1.0,
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                  vertical: 16, horizontal: 12),
-                              decoration: BoxDecoration(
-                                color: _paymentMethod == 'Cash'
-                                    ? AppColors.primary
-                                    : Colors.white,
-                                borderRadius: BorderRadius.circular(16),
-                                border: Border.all(
-                                  color: _paymentMethod == 'Cash'
-                                      ? AppColors.primary
-                                      : const Color(0xFF00ACC1).withOpacity(0.2),
-                                ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.05),
-                                    blurRadius: 8,
-                                    offset: const Offset(0, 4),
-                                  ),
-                                ],
-                              ),
-                              child: Column(
-                                children: [
-                                  Icon(
-                                    Icons.payments_rounded,
-                                    color: _paymentMethod == 'Cash'
-                                        ? Colors.white
-                                        : Colors.green.shade700,
-                                    size: 26,
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text('Cash on Delivery',
-                                      textAlign: TextAlign.center,
-                                      style: TextStyle(
-                                          color: _paymentMethod == 'Cash'
-                                              ? Colors.white
-                                              : Colors.black87,
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 13)),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
+                      _buildMethodSelector('Credit Card', Icons.credit_card, Colors.grey),
                     ],
                   ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      _buildMethodSelector('Cash on Delivery', Icons.money, Colors.green),
+                      const SizedBox(width: 12),
+                      _buildMethodSelector('Online Payment', Icons.account_balance, Colors.blue),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      _buildMethodSelector('Wallet', Icons.account_balance_wallet_rounded, AppColors.primary),
+                      const SizedBox(width: 12),
+                      const Expanded(child: SizedBox()), // empty spacer
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  _buildAlternateMethodInfo(),
                   if (_orderType == 1 && _paymentMethod == 'Cash')
                     Padding(
                       padding: const EdgeInsets.only(top: 8),
@@ -576,8 +498,8 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                         onTap: () {
                           setState(() {
                             _orderType = 1;
-                            // COD not supported for scheduled orders
-                            if (_paymentMethod == 'Cash') _paymentMethod = 'Wallet';
+                            // Non-wallet options not supported for scheduled orders
+                            if (_paymentMethod != 'Wallet') _paymentMethod = 'Wallet';
                             _saveCheckoutDraft();
                           });
                           _fetchSlotsAvailability();
@@ -1115,6 +1037,248 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildMethodSelector(String label, IconData icon, Color color) {
+    bool isSelected = _paymentMethod == label;
+    bool isDisabled = _orderType == 1 && label != 'Wallet';
+    return Expanded(
+      child: GestureDetector(
+        onTap: isDisabled ? null : () => setState(() => _paymentMethod = label),
+        child: Opacity(
+          opacity: isDisabled ? 0.45 : 1.0,
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 20),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: isSelected
+                    ? const Color(0xFF2E7D32).withOpacity(0.5)
+                    : Colors.grey.shade100,
+                width: isSelected ? 2 : 1,
+              ),
+            ),
+            child: Column(
+              children: [
+                Icon(
+                  icon,
+                  color: isSelected ? const Color(0xFF2E7D32) : color.withOpacity(0.6),
+                  size: 32,
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  label,
+                  style: TextStyle(
+                    color: Colors.grey,
+                    fontSize: 11,
+                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAlternateMethodInfo() {
+    if (_paymentMethod == 'Wallet') return const SizedBox();
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFCFFAFE), width: 1),
+      ),
+      child: Column(
+        children: [
+          const Icon(Icons.info_outline, color: Color(0xFF2E7D32), size: 40),
+          const SizedBox(height: 16),
+          Text(
+            _paymentMethod == 'Online Payment'
+                ? 'Secure Online Payment'
+                : 'Secure Payment via $_paymentMethod',
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+              color: Color(0xFF1A1A1A),
+            ),
+          ),
+          const SizedBox(height: 8),
+          if (_paymentMethod == 'UPI')
+            Column(
+              children: [
+                const SizedBox(height: 12),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    _buildUpiAppIcon('GPay', Colors.blue, 'G'),
+                    _buildUpiAppIcon('PhonePe', Colors.deepPurple, 'P'),
+                    _buildUpiAppIcon('Paytm', Colors.lightBlue, 'Pt'),
+                    _buildUpiAppIcon('BHIM', Colors.orange, 'B'),
+                  ],
+                ),
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 16.0),
+                  child: Text(
+                    'OR',
+                    style: TextStyle(
+                      color: Colors.grey,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+                TextField(
+                  decoration: InputDecoration(
+                    hintText: 'Enter UPI ID (e.g. name@upi)',
+                    prefixIcon: const Icon(Icons.account_balance_wallet, size: 22),
+                    filled: true,
+                    fillColor: const Color(0xFFF7F8FA),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                ),
+              ],
+            )
+          else if (_paymentMethod == 'Cash on Delivery' || _paymentMethod == 'Cash')
+            const Text(
+              'You can pay with cash or UPI when the delivery arrives.',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 14, color: Color(0xFF64748B)),
+            )
+          else if (_paymentMethod == 'Online Payment')
+            Column(
+              children: [
+                const Text(
+                  'Enter your bank details to proceed with the payment securely.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  decoration: InputDecoration(
+                    hintText: 'Account Holder Name',
+                    prefixIcon: const Icon(Icons.person_outline, size: 22),
+                    filled: true,
+                    fillColor: const Color(0xFFF7F8FA),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  decoration: InputDecoration(
+                    hintText: 'Bank Name (e.g. HDFC, SBI)',
+                    prefixIcon: const Icon(Icons.account_balance, size: 22),
+                    filled: true,
+                    fillColor: const Color(0xFFF7F8FA),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(
+                    hintText: 'Account Number',
+                    prefixIcon: const Icon(Icons.numbers, size: 22),
+                    filled: true,
+                    fillColor: const Color(0xFFF7F8FA),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  decoration: InputDecoration(
+                    hintText: 'IFSC Code',
+                    prefixIcon: const Icon(Icons.pin, size: 22),
+                    filled: true,
+                    fillColor: const Color(0xFFF7F8FA),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                ),
+              ],
+            )
+          else
+            const Text(
+              'You will be redirected to complete your payment securely.',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 14, color: Color(0xFF64748B)),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildUpiAppIcon(String name, Color color, String letter) {
+    return Column(
+      children: [
+        GestureDetector(
+          onTap: () {
+            // Mock UPI click (will be handled by Place Order button in this screen)
+          },
+          child: Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.grey.shade200, width: 2),
+              boxShadow: [
+                BoxShadow(color: color.withOpacity(0.1), blurRadius: 8, offset: const Offset(0, 4)),
+              ],
+            ),
+            child: Center(
+              child: Text(
+                letter,
+                style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 20),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          name,
+          style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF1A1A1A)),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBankDetailRow(String label, String value) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(fontSize: 12, color: Colors.grey),
+        ),
+        Text(
+          value,
+          style: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.bold,
+            color: Color(0xFF1A1A1A),
+          ),
+        ),
+      ],
     );
   }
 }

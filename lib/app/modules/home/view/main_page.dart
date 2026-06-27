@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'home_page.dart';
 import '../../cart/view/cart_page.dart';
-import '../../profile/view/profile_page.dart';
+import '../../profile/view/settings_page.dart';
 import '../../subscription/subscription_page.dart';
 import '../../wallet/view/wallet_page.dart';
 import '../controller/main_controller.dart';
@@ -31,7 +31,7 @@ class _MainPageState extends ConsumerState<MainPage> {
     const SubscriptionPage(), // Index 1: Daily
     const CartPage(), // Index 2: Central FAB
     const WalletPage(), // Index 3
-    const ProfilePage(), // Index 4
+    const SettingsPage(), // Index 4
   ];
 
   @override
@@ -163,12 +163,12 @@ class _MainPageState extends ConsumerState<MainPage> {
             ],
           ),
         ),
-        bottomNavigationBar: _buildCustomBottomBar(currentIndex),
+        bottomNavigationBar: _buildCustomBottomBar(currentIndex, cart.itemCount > 0),
       ),
     );
   }
 
-  Widget _buildCustomBottomBar(int currentIndex) {
+  Widget _buildCustomBottomBar(int currentIndex, bool hasItems) {
     final l10n = AppLocalizations.of(context);
     bool isCartSelected = currentIndex == 2;
     return Container(
@@ -200,18 +200,19 @@ class _MainPageState extends ConsumerState<MainPage> {
                     child: _buildNavItem(currentIndex, 1,
                         Icons.local_shipping_rounded, l10n.subscription),
                   ),
-                  const SizedBox(width: 80), // Space for the FAB
+                  if (hasItems) const SizedBox(width: 80), // Space for the FAB
                   Expanded(
                     child: _buildNavItem(
                         currentIndex, 3, Icons.wallet_rounded, l10n.wallet),
                   ),
                   Expanded(
                     child: _buildNavItem(
-                        currentIndex, 4, Icons.person_rounded, l10n.profile),
+                        currentIndex, 4, Icons.settings_rounded, 'Settings'),
                   ),
                 ],
               ),
-              Positioned(
+              if (hasItems)
+                Positioned(
                 top: -30,
                 child: GestureDetector(
                   onTap: () {

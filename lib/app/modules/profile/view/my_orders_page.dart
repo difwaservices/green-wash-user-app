@@ -326,7 +326,7 @@ class _OrderCard extends ConsumerWidget {
                               fontSize: 11,
                               fontWeight: FontWeight.w600)),
                       const SizedBox(height: 2),
-                      Text('â‚¹${order.total.toStringAsFixed(0)}',
+                      Text('₹${order.total.toStringAsFixed(0)}',
                           style: const TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 22,
@@ -541,7 +541,7 @@ class _OrderDetailsSheet extends StatelessWidget {
                                 fontWeight: FontWeight.w600,
                                 fontSize: 14,
                                 color: Color(0xFF1E293B)))),
-                    Text('â‚¹${(item.price * item.quantity).toStringAsFixed(2)}',
+                    Text('₹${(item.price * item.quantity).toStringAsFixed(2)}',
                         style: const TextStyle(fontWeight: FontWeight.bold)),
                   ],
                 ),
@@ -561,7 +561,7 @@ class _OrderDetailsSheet extends StatelessWidget {
             children: [
               const Text('Grand Total',
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-              Text('â‚¹${order.total.toStringAsFixed(2)}',
+              Text('₹${order.total.toStringAsFixed(2)}',
                   style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 18,
@@ -594,7 +594,7 @@ class _OrderDetailsSheet extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 6),
       child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
         Text(l, style: const TextStyle(color: Colors.grey, fontSize: 14)),
-        Text('â‚¹${v.toStringAsFixed(2)}',
+        Text('₹${v.toStringAsFixed(2)}',
             style: const TextStyle(fontWeight: FontWeight.w600))
       ]));
 }

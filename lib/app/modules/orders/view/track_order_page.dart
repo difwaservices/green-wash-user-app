@@ -152,6 +152,8 @@ class _TrackOrderPageState extends ConsumerState<TrackOrderPage>
 
           _isLoading = false;
         });
+      } else {
+        setState(() => _isLoading = false);
       }
     } catch (e) {
       debugPrint('Error fetching order details: $e');

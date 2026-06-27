@@ -21,12 +21,27 @@ class SubscriptionPage extends ConsumerStatefulWidget {
 class _SubscriptionPageState extends ConsumerState<SubscriptionPage> {
   DateTime _selectedDate = DateTime.now();
   late final DateTime _startDate;
+  late final PageController _pageController;
+  int _currentImageIndex = 0;
+
+  final List<String> _sliderImages = [
+    'https://images.unsplash.com/photo-1582735689369-4fe89db7114c?q=80&w=800&auto=format&fit=crop',
+    'assets/images/hero_banner_wash.png',
+    'assets/images/laundry_package_1.png',
+  ];
 
   @override
   void initState() {
     super.initState();
     // Show 3 days in the past and scroll forward from there
     _startDate = DateTime.now().subtract(const Duration(days: 3));
+    _pageController = PageController();
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
   }
 
   /// Returns true if the subscription delivers on the given date (ignoring vacation)
@@ -184,7 +199,7 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage> {
                         color: Colors.white, size: 14),
                     const SizedBox(width: 6),
                     balanceAsync.when(
-                      data: (b) => Text('â‚¹${b.toStringAsFixed(0)}',
+                      data: (b) => Text('₹${b.toStringAsFixed(0)}',
                           style: const TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.bold,
@@ -328,51 +343,56 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (!hasDelivery)
-            Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFDBEAFE),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Text(
-                      'NO DELIVERY',
-                      style: TextStyle(
-                          color: Color(0xFF1E3A8A),
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Center(
-                    child: Column(
-                      children: [
-                        Image.asset(
-                          'assets/images/empty_wash.png',
-                          width: 120,
-                          height: 120,
-                          fit: BoxFit.contain,
-                        ),
-                        const SizedBox(height: 16),
-                        const Text(
-                          'No deliveries scheduled for this\nday.',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                              color: Color(0xFF475569),
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600),
-                        ),
-                      ],
+            Stack(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(24),
+                  child: SizedBox(
+                    height: 220,
+                    width: double.infinity,
+                    child: PageView.builder(
+                      controller: _pageController,
+                      onPageChanged: (index) {
+                        setState(() {
+                          _currentImageIndex = index;
+                        });
+                      },
+                      itemCount: _sliderImages.length,
+                      itemBuilder: (context, index) {
+                        final img = _sliderImages[index];
+                        if (img.startsWith('http')) {
+                          return Image.network(img, fit: BoxFit.cover);
+                        }
+                        return Image.asset(img, fit: BoxFit.cover);
+                      },
                     ),
                   ),
-                  const SizedBox(height: 16),
-                ],
-              ),
+                ),
+
+                Positioned(
+                  bottom: 12,
+                  left: 0,
+                  right: 0,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: List.generate(
+                      _sliderImages.length,
+                      (index) => AnimatedContainer(
+                        duration: const Duration(milliseconds: 300),
+                        margin: const EdgeInsets.symmetric(horizontal: 4),
+                        width: _currentImageIndex == index ? 16 : 8,
+                        height: 8,
+                        decoration: BoxDecoration(
+                          color: _currentImageIndex == index
+                              ? Colors.white
+                              : Colors.white.withValues(alpha: 0.5),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             )
           else ...[
             Padding(
@@ -466,7 +486,7 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage> {
                   runSpacing: 4,
                   crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
-                    Text('Qty $totalQty â€¢ â‚¹${order.total.toStringAsFixed(0)}',
+                    Text('Qty $totalQty • ₹${order.total.toStringAsFixed(0)}',
                         style:
                             TextStyle(color: Colors.grey[600], fontSize: 11)),
                     if (order.deliverySlot != null &&
@@ -848,138 +868,73 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage> {
   Widget _buildPlanItem(UserSubscription sub) {
     final isActive = sub.status == 'Active';
 
-    if (isActive) {
-      return GestureDetector(
-        onTap: () => _showPlanDetailsSheet(sub),
-        child: Container(
-          margin: const EdgeInsets.only(bottom: 16),
-          decoration: BoxDecoration(
-            color: const Color(0xFF064E3B),
-            borderRadius: BorderRadius.circular(24),
-          ),
-          child: Column(
-            children: [
-              const SizedBox(height: 20),
-              Container(
-                decoration: BoxDecoration(
-                  color: const Color(0xFF064E3B),
-                  borderRadius: BorderRadius.circular(24),
-                  border: Border.all(color: const Color(0xFF064E3B), width: 3),
-                ),
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Expanded(
-                          child: Text(sub.productName,
-                              style: const TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w900,
-                                  color: Colors.white)),
-                        ),
-                        Switch(
-                          value: isActive,
-                          activeColor: const Color(0xFF064E3B),
-                          activeTrackColor: const Color(0xFFA7F3D0),
-                          onChanged: (val) async {
-                            // ... Pause logic ...
-                            await ref.read(mySubscriptionsProvider.notifier).updateStatus(sub.id, 'Paused');
-                          },
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: [
-                        _planChip('QTY ${sub.quantity}', Colors.white.withOpacity(0.2), Colors.white),
-                        _planChip(sub.frequency.toUpperCase(), Colors.white.withOpacity(0.2), Colors.white),
-                        _planChip('â‚¹${(sub.price * sub.quantity).toStringAsFixed(0)}', const Color(0xFFA7F3D0), const Color(0xFF064E3B)),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
-                    Container(height: 1, color: Colors.white.withOpacity(0.2)),
-                    const SizedBox(height: 16),
-                    Row(
-                      children: const [
-                        Icon(Icons.check_circle_outline, color: Colors.white, size: 18),
-                        SizedBox(width: 8),
-                        Text('ACTIVE PLAN', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w900)),
-                        Spacer(),
-                        Icon(Icons.chevron_right, color: Colors.white70),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
+    return GestureDetector(
+      onTap: () => _showPlanDetailsSheet(sub),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: const Color(0xFF064E3B),
+          borderRadius: BorderRadius.circular(20),
         ),
-      );
-    } else {
-      return GestureDetector(
-        onTap: () => _showPlanDetailsSheet(sub),
-        child: Container(
-          margin: const EdgeInsets.only(bottom: 16),
-          decoration: BoxDecoration(
-            color: const Color(0xFFD1FAE5), // Light green
-            borderRadius: BorderRadius.circular(24),
-          ),
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: Text(sub.productName,
-                        style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w900,
-                            color: Color(0xFF064E3B))),
-                  ),
-                  Switch(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(sub.productName,
+                      style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white)),
+                ),
+                Transform.scale(
+                  scale: 0.8,
+                  child: Switch(
                     value: isActive,
+                    activeColor: const Color(0xFF064E3B),
+                    activeTrackColor: const Color(0xFFA7F3D0),
                     inactiveThumbColor: Colors.white,
                     inactiveTrackColor: Colors.grey.shade400,
                     onChanged: (val) async {
-                       await ref.read(mySubscriptionsProvider.notifier).updateStatus(sub.id, 'Active');
+                      if (isActive) {
+                        await ref.read(mySubscriptionsProvider.notifier).updateStatus(sub.id, 'Paused');
+                      } else {
+                        await ref.read(mySubscriptionsProvider.notifier).updateStatus(sub.id, 'Active');
+                      }
                     },
                   ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  _planChip('Qty ${sub.quantity}', Colors.white, const Color(0xFF064E3B)),
-                  _planChip(sub.frequency, Colors.white, const Color(0xFF064E3B)),
-                  _planChip('â‚¹${(sub.price * sub.quantity).toStringAsFixed(0)}', Colors.white, const Color(0xFF064E3B)),
-                ],
-              ),
-              const SizedBox(height: 20),
-              Row(
-                children: [
-                  const Icon(Icons.calendar_today_outlined, color: Color(0xFF064E3B), size: 16),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text('Scheduled: ${sub.customDays.isNotEmpty ? sub.customDays.join(', ') : sub.frequency}',
-                        style: const TextStyle(color: Color(0xFF064E3B), fontSize: 12, fontWeight: FontWeight.w600)),
-                  ),
-                ],
-              ),
-            ],
-          ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                _planChip('QTY ${sub.quantity}', Colors.white.withOpacity(0.2), Colors.white),
+                _planChip(sub.frequency.toUpperCase(), Colors.white.withOpacity(0.2), Colors.white),
+                _planChip('₹${(sub.price * sub.quantity).toStringAsFixed(0)}', const Color(0xFFA7F3D0), const Color(0xFF064E3B)),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Container(height: 1, color: Colors.white.withOpacity(0.2)),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Icon(isActive ? Icons.check_circle_outline : Icons.pause_circle_outline, color: Colors.white, size: 16),
+                const SizedBox(width: 6),
+                Text(isActive ? 'ACTIVE PLAN' : 'PAUSED PLAN', style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
+                const Spacer(),
+                const Icon(Icons.chevron_right, color: Colors.white70, size: 20),
+              ],
+            ),
+          ],
         ),
-      );
-    }
+      ),
+    );
   }
 
   Widget _planChip(String label, Color bg, Color textColor) {
@@ -1122,7 +1077,7 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage> {
                   const Text('Price per delivery',
                       style: TextStyle(
                           color: Colors.grey, fontWeight: FontWeight.w500)),
-                  Text('â‚¹${(sub.price * sub.quantity).toStringAsFixed(2)}',
+                  Text('₹${(sub.price * sub.quantity).toStringAsFixed(2)}',
                       style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w900,

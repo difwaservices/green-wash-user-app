@@ -12,6 +12,63 @@ class PaymentPage extends StatefulWidget {
 class _PaymentPageState extends State<PaymentPage> {
   String _selectedMethod = 'Credit Card';
   bool _saveCard = true;
+  bool _isProcessing = false;
+
+  Future<void> _processPayment(CartProvider cart) async {
+    setState(() => _isProcessing = true);
+
+    // Show a processing dialog
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        content: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const CircularProgressIndicator(color: Color(0xFF2E7D32)),
+              const SizedBox(height: 24),
+              Text(
+                'Processing $_selectedMethod...',
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                  color: Color(0xFF1A1A1A),
+                ),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Please do not press back or close the app.',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.grey, fontSize: 12),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    // Simulate Payment Gateway Network Call (e.g. Razorpay/Stripe)
+    await Future.delayed(const Duration(seconds: 3));
+
+    // Close the dialog
+    if (mounted) Navigator.pop(context);
+
+    // Finalize Order
+    cart.clearCart();
+    if (mounted) {
+      // Use pushReplacement so the user can't go back to the payment page
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const OrderSuccessPage()),
+      );
+    }
+
+    if (mounted) setState(() => _isProcessing = false);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -59,8 +116,22 @@ class _PaymentPageState extends State<PaymentPage> {
                   Icons.credit_card,
                   Colors.grey,
                 ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                _buildMethodSelector(
+                  'Cash on Delivery',
+                  Icons.money,
+                  Colors.green,
+                ),
                 const SizedBox(width: 12),
-                _buildMethodSelector('Apple pay', Icons.apple, Colors.black),
+                _buildMethodSelector(
+                  'Online Payment', 
+                  Icons.account_balance, 
+                  Colors.blue,
+                ),
               ],
             ),
             const SizedBox(height: 24),
@@ -124,14 +195,7 @@ class _PaymentPageState extends State<PaymentPage> {
               width: double.infinity,
               height: 56,
               child: ElevatedButton(
-                onPressed: () {
-                  // Finalize Order Logic
-                  cart.clearCart();
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const OrderSuccessPage()),
-                  );
-                },
+                onPressed: _isProcessing ? null : () => _processPayment(cart),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF2E7D32),
                   foregroundColor: Colors.white,
@@ -141,7 +205,7 @@ class _PaymentPageState extends State<PaymentPage> {
                   elevation: 0,
                 ),
                 child: Text(
-                  'Pay â‚¹${cart.total.toStringAsFixed(0)}',
+                  'Pay ₹${cart.total.toStringAsFixed(0)}',
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -168,7 +232,9 @@ class _PaymentPageState extends State<PaymentPage> {
           const Icon(Icons.info_outline, color: Color(0xFF2E7D32), size: 40),
           const SizedBox(height: 16),
           Text(
-            'Secure Payment via $_selectedMethod',
+            _selectedMethod == 'Online Payment'
+                ? 'Secure Online Payment'
+                : 'Secure Payment via $_selectedMethod',
             textAlign: TextAlign.center,
             style: const TextStyle(
               fontWeight: FontWeight.bold,
@@ -177,11 +243,119 @@ class _PaymentPageState extends State<PaymentPage> {
             ),
           ),
           const SizedBox(height: 8),
-          const Text(
-            'You will be redirected to complete your payment securely.',
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 14, color: Colors.grey),
-          ),
+          if (_selectedMethod == 'UPI')
+            Column(
+              children: [
+                const SizedBox(height: 12),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    _buildUpiAppIcon('GPay', Colors.blue, 'G'),
+                    _buildUpiAppIcon('PhonePe', Colors.deepPurple, 'P'),
+                    _buildUpiAppIcon('Paytm', Colors.lightBlue, 'Pt'),
+                    _buildUpiAppIcon('BHIM', Colors.orange, 'B'),
+                  ],
+                ),
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 16.0),
+                  child: Text(
+                    'OR',
+                    style: TextStyle(
+                      color: Colors.grey,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+                TextField(
+                  decoration: InputDecoration(
+                    hintText: 'Enter UPI ID (e.g. name@upi)',
+                    prefixIcon: const Icon(Icons.account_balance_wallet, size: 22),
+                    filled: true,
+                    fillColor: const Color(0xFFF7F8FA),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                ),
+              ],
+            )
+          else if (_selectedMethod == 'Cash on Delivery')
+            const Text(
+              'You can pay with cash or UPI when the delivery arrives.',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 14, color: Color(0xFF64748B)),
+            )
+          else if (_selectedMethod == 'Online Payment')
+            Column(
+              children: [
+                const Text(
+                  'Enter your bank details to proceed with the payment securely.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  decoration: InputDecoration(
+                    hintText: 'Account Holder Name',
+                    prefixIcon: const Icon(Icons.person_outline, size: 22),
+                    filled: true,
+                    fillColor: const Color(0xFFF7F8FA),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  decoration: InputDecoration(
+                    hintText: 'Bank Name (e.g. HDFC, SBI)',
+                    prefixIcon: const Icon(Icons.account_balance, size: 22),
+                    filled: true,
+                    fillColor: const Color(0xFFF7F8FA),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(
+                    hintText: 'Account Number',
+                    prefixIcon: const Icon(Icons.numbers, size: 22),
+                    filled: true,
+                    fillColor: const Color(0xFFF7F8FA),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  decoration: InputDecoration(
+                    hintText: 'IFSC Code',
+                    prefixIcon: const Icon(Icons.pin, size: 22),
+                    filled: true,
+                    fillColor: const Color(0xFFF7F8FA),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                ),
+              ],
+            )
+          else
+            const Text(
+              'You will be redirected to complete your payment securely.',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 14, color: Color(0xFF64748B)),
+            ),
         ],
       ),
     );
@@ -207,11 +381,11 @@ class _PaymentPageState extends State<PaymentPage> {
             ),
           ),
           const SizedBox(height: 16),
-          _buildSummaryRow('Subtotal', 'â‚¹${cart.subtotal.toStringAsFixed(0)}'),
+          _buildSummaryRow('Subtotal', '₹${cart.subtotal.toStringAsFixed(0)}'),
           const SizedBox(height: 8),
           _buildSummaryRow(
             'Shipping',
-            'â‚¹${cart.shippingCharges.toStringAsFixed(0)}',
+            '₹${cart.shippingCharges.toStringAsFixed(0)}',
           ),
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 12),
@@ -219,7 +393,7 @@ class _PaymentPageState extends State<PaymentPage> {
           ),
           _buildSummaryRow(
             'Total Amount',
-            'â‚¹${cart.total.toStringAsFixed(0)}',
+            '₹${cart.total.toStringAsFixed(0)}',
             isTotal: true,
           ),
         ],
@@ -471,6 +645,74 @@ class _PaymentPageState extends State<PaymentPage> {
         hintText: hint,
         prefixIcon: Icon(icon, size: 22),
       ),
+    );
+  }
+
+  Widget _buildUpiAppIcon(String name, Color color, String letter) {
+    return Column(
+      children: [
+        GestureDetector(
+          onTap: () {
+            // Selecting the UPI app will visually highlight it or we just process payment directly
+            _processPayment(CartProviderScope.of(context));
+          },
+          child: Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.grey.shade200, width: 2),
+              boxShadow: [
+                BoxShadow(
+                  color: color.withOpacity(0.1),
+                  blurRadius: 8,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Center(
+              child: Text(
+                letter,
+                style: TextStyle(
+                  color: color,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 20,
+                ),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          name,
+          style: const TextStyle(
+            fontSize: 10,
+            fontWeight: FontWeight.bold,
+            color: Color(0xFF1A1A1A),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBankDetailRow(String label, String value) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(fontSize: 12, color: Colors.grey),
+        ),
+        Text(
+          value,
+          style: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.bold,
+            color: Color(0xFF1A1A1A),
+          ),
+        ),
+      ],
     );
   }
 }

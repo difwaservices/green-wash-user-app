@@ -178,7 +178,7 @@ class SubscriptionDashboardPage extends ConsumerWidget {
                               fontWeight: FontWeight.bold, fontSize: 16)),
                       const SizedBox(height: 4),
                       Text(
-                          '${sub.frequency} â€¢ â‚¹${sub.price.toStringAsFixed(0)} / bottle â€¢ Total: â‚¹${(sub.price * sub.quantity).toStringAsFixed(0)}',
+                          '${sub.frequency} • ₹${sub.price.toStringAsFixed(0)} / item • Total: ₹${(sub.price * sub.quantity).toStringAsFixed(0)}',
                           style: TextStyle(
                               color: Colors.grey.shade600, fontSize: 13)),
                     ],

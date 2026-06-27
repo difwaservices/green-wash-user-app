@@ -516,7 +516,7 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
                       style: TextStyle(color: Colors.grey, fontSize: 12),
                     ),
                     Text(
-                      ' â‚¹${order.total.toStringAsFixed(2)}',
+                      ' ₹${order.total.toStringAsFixed(2)}',
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 12,
@@ -1126,7 +1126,7 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'â‚¹$price x $count',
+                    '₹$price x $count',
                     style: const TextStyle(
                       color: Color(0xFF2E7D32),
                       fontSize: 12,
@@ -1204,7 +1204,7 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
         return _buildTransactionItem(
           tx['description'] ?? 'Transaction',
           _formatDate(tx['createdAt'] ?? ''),
-          '${isNegative ? '-' : '+'}â‚¹$amount',
+          '${isNegative ? '-' : '+'}₹$amount',
           tx['status'] ?? 'Completed',
           isNegative: isNegative,
           isFailed: tx['status'] == 'Failed',
@@ -1606,7 +1606,7 @@ class _ProfileDetailPageState extends ConsumerState<ProfileDetailPage> {
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
                           Text(
-                            'â‚¹${plan.price}',
+                            '₹${plan.price}',
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 28,

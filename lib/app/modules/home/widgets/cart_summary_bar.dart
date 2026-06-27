@@ -68,7 +68,7 @@ class CartSummaryBar extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  'â‚¹${cart.total.toStringAsFixed(0)}',
+                  '₹${cart.total.toStringAsFixed(0)}',
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 18,

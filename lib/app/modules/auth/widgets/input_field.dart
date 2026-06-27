@@ -97,10 +97,14 @@ class _InputFieldState extends State<InputField> {
               inputFormatters: widget.inputFormatters,
               style: const TextStyle(fontSize: 15, color: Color(0xFF1E293B)),
               decoration: InputDecoration(
+                filled: false,
                 hintText: widget.hintText,
                 hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 14),
                 prefixIcon: Icon(widget.prefixIcon, size: 20, color: const Color(0xFF94A3B8)),
                 border: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                focusedBorder: InputBorder.none,
+                errorBorder: InputBorder.none,
                 counterText: '', // Hide default character counter
                 contentPadding: const EdgeInsets.symmetric(vertical: 16),
                 suffixIcon: widget.isPassword

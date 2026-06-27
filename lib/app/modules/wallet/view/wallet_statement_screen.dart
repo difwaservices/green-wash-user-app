@@ -277,10 +277,10 @@ class _WalletStatementScreenState extends ConsumerState<WalletStatementScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               _buildSummaryItem(
-                  'Total money added', '+â‚¹${totalCredit.toStringAsFixed(0)}',
+                  'Total money added', '+₹${totalCredit.toStringAsFixed(0)}',
                   AppColors.primary),
               Container(width: 1, height: 30, color: Colors.grey.shade200),
-              _buildSummaryItem('Expense', '-â‚¹${totalDebit.toStringAsFixed(0)}',
+              _buildSummaryItem('Expense', '-₹${totalDebit.toStringAsFixed(0)}',
                   Colors.redAccent),
             ],
           ),
@@ -472,7 +472,7 @@ class _TransactionItemWidget extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                '${isCredit ? '+' : '-'}â‚¹${transaction.amount.toStringAsFixed(0)}',
+                '${isCredit ? '+' : '-'}₹${transaction.amount.toStringAsFixed(0)}',
                 style: TextStyle(
                   fontWeight: FontWeight.w900,
                   fontSize: 15,
@@ -481,7 +481,7 @@ class _TransactionItemWidget extends StatelessWidget {
               ),
               const SizedBox(height: 4),
               Text(
-                'Bal: â‚¹${transaction.balanceAfter.toStringAsFixed(0)}',
+                'Bal: ₹${transaction.balanceAfter.toStringAsFixed(0)}',
                 style: const TextStyle(
                     fontSize: 10,
                     color: Colors.grey,

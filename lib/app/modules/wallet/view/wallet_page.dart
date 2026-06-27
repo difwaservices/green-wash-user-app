@@ -190,7 +190,7 @@ class WalletPage extends ConsumerWidget {
                         const SizedBox(height: 8),
                         balance == null
                             ? const Text(
-                                'â‚¹0.00',
+                                '₹0.00',
                                 style: TextStyle(
                                   color: Colors.white,
                                   fontSize: 34,
@@ -199,7 +199,7 @@ class WalletPage extends ConsumerWidget {
                                 ),
                               )
                             : Text(
-                                'â‚¹${balance.toStringAsFixed(2)}',
+                                '₹${balance.toStringAsFixed(2)}',
                                 style: const TextStyle(
                                   color: Colors.white,
                                   fontSize: 34,
@@ -305,7 +305,7 @@ class WalletPage extends ConsumerWidget {
                       ],
                     ),
                     child: Text(
-                      'â‚¹$amt',
+                      '₹$amt',
                       style: const TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w800,
@@ -401,7 +401,7 @@ class WalletPage extends ConsumerWidget {
         return _TransactionItem(
           title: description,
           date: date,
-          amount: '${isCredit ? '+' : '-'}â‚¹${amount.toStringAsFixed(2)}',
+          amount: '${isCredit ? '+' : '-'}₹${amount.toStringAsFixed(2)}',
           isCredit: isCredit,
         );
       },

@@ -172,7 +172,7 @@ class ProductCard extends ConsumerWidget {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
-                                'â‚¹${product.price.toStringAsFixed(0)}',
+                                '₹${product.price.toStringAsFixed(0)}',
                                 style: const TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w800,

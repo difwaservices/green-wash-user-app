@@ -20,7 +20,8 @@ class FilterBottomSheet extends ConsumerStatefulWidget {
 
   const FilterBottomSheet({super.key, this.initialResult});
 
-  static Future<FilterResult?> show(BuildContext context, {FilterResult? initialResult}) {
+  static Future<FilterResult?> show(BuildContext context,
+      {FilterResult? initialResult}) {
     return showModalBottomSheet<FilterResult>(
       context: context,
       isScrollControlled: true,
@@ -57,9 +58,12 @@ class _FilterBottomSheetState extends ConsumerState<FilterBottomSheet> {
   @override
   void initState() {
     super.initState();
-    _priceRange = widget.initialResult?.priceRange ?? const RangeValues(10, 2000);
-    _selectedCategoryIds.addAll(widget.initialResult?.selectedCategoryIds ?? []);
-    _selectedDeliverySlots.addAll(widget.initialResult?.selectedDeliverySlots ?? []);
+    _priceRange =
+        widget.initialResult?.priceRange ?? const RangeValues(10, 2000);
+    _selectedCategoryIds
+        .addAll(widget.initialResult?.selectedCategoryIds ?? []);
+    _selectedDeliverySlots
+        .addAll(widget.initialResult?.selectedDeliverySlots ?? []);
     _fetchCategories();
   }
 
@@ -90,7 +94,8 @@ class _FilterBottomSheetState extends ConsumerState<FilterBottomSheet> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: MediaQuery.of(context).size.height * 0.85, // Increased height for more content
+      height: MediaQuery.of(context).size.height *
+          0.85, // Increased height for more content
       decoration: BoxDecoration(
         color: _bgColor,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
@@ -111,7 +116,7 @@ class _FilterBottomSheetState extends ConsumerState<FilterBottomSheet> {
               borderRadius: BorderRadius.circular(2),
             ),
           ),
-          
+
           // Header
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8.0),
@@ -143,7 +148,7 @@ class _FilterBottomSheetState extends ConsumerState<FilterBottomSheet> {
               ],
             ),
           ),
-          
+
           const Divider(height: 1),
 
           Expanded(
@@ -157,8 +162,8 @@ class _FilterBottomSheetState extends ConsumerState<FilterBottomSheet> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('â‚¹${_priceRange.start.round()}', style: _labelStyle),
-                      Text('â‚¹${_priceRange.end.round()}', style: _labelStyle),
+                      Text('₹${_priceRange.start.round()}', style: _labelStyle),
+                      Text('₹${_priceRange.end.round()}', style: _labelStyle),
                     ],
                   ),
                   SliderTheme(
@@ -212,14 +217,16 @@ class _FilterBottomSheetState extends ConsumerState<FilterBottomSheet> {
                         checkmarkColor: _primaryColor,
                         labelStyle: TextStyle(
                           color: isSelected ? _primaryColor : Colors.black87,
-                          fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                          fontWeight:
+                              isSelected ? FontWeight.w700 : FontWeight.w500,
                         ),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                           side: BorderSide(
                             color: isSelected
                                 ? _primaryColor
-                                : const Color(0xFF00ACC1).withValues(alpha: 0.2),
+                                : const Color(0xFF00ACC1)
+                                    .withValues(alpha: 0.2),
                           ),
                         ),
                       );
@@ -230,48 +237,51 @@ class _FilterBottomSheetState extends ConsumerState<FilterBottomSheet> {
 
                 // Categories
                 _buildCard([
-                   _buildSectionTitle('Categories'),
-                   const SizedBox(height: 12),
-                   if (_isLoadingCategories)
-                      const Center(child: CircularProgressIndicator())
-                   else if (_categories.isEmpty)
-                      const Text('No categories available')
-                   else
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: _categories.map((cat) {
-                          final isSelected = _selectedCategoryIds.contains(cat.id);
-                          return FilterChip(
-                            label: Text(cat.name),
-                            selected: isSelected,
-                            onSelected: (selected) {
-                               setState(() {
-                                 if (selected) {
-                                   _selectedCategoryIds.add(cat.id);
-                                 } else {
-                                   _selectedCategoryIds.remove(cat.id);
-                                 }
-                               });
-                            },
-                            backgroundColor: Colors.white,
-                            selectedColor: _primaryColor.withValues(alpha: 0.2),
-                            checkmarkColor: _primaryColor,
-                            labelStyle: TextStyle(
-                              color: isSelected ? _primaryColor : Colors.black87,
-                              fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                  _buildSectionTitle('Categories'),
+                  const SizedBox(height: 12),
+                  if (_isLoadingCategories)
+                    const Center(child: CircularProgressIndicator())
+                  else if (_categories.isEmpty)
+                    const Text('No categories available')
+                  else
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: _categories.map((cat) {
+                        final isSelected =
+                            _selectedCategoryIds.contains(cat.id);
+                        return FilterChip(
+                          label: Text(cat.name),
+                          selected: isSelected,
+                          onSelected: (selected) {
+                            setState(() {
+                              if (selected) {
+                                _selectedCategoryIds.add(cat.id);
+                              } else {
+                                _selectedCategoryIds.remove(cat.id);
+                              }
+                            });
+                          },
+                          backgroundColor: Colors.white,
+                          selectedColor: _primaryColor.withValues(alpha: 0.2),
+                          checkmarkColor: _primaryColor,
+                          labelStyle: TextStyle(
+                            color: isSelected ? _primaryColor : Colors.black87,
+                            fontWeight:
+                                isSelected ? FontWeight.w700 : FontWeight.w500,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            side: BorderSide(
+                              color: isSelected
+                                  ? _primaryColor
+                                  : const Color(0xFF00ACC1)
+                                      .withValues(alpha: 0.2),
                             ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              side: BorderSide(
-                                color: isSelected
-                                    ? _primaryColor
-                                    : const Color(0xFF00ACC1).withValues(alpha: 0.2),
-                              ),
-                            ),
-                          );
-                        }).toList(),
-                      ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
                 ]),
                 const SizedBox(height: 24),
               ],
@@ -374,6 +384,3 @@ class _FilterBottomSheetState extends ConsumerState<FilterBottomSheet> {
         color: Colors.black87,
       );
 }
-
-
-

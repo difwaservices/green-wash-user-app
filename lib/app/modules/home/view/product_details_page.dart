@@ -18,7 +18,45 @@ class ProductDetailsPage extends ConsumerStatefulWidget {
   ConsumerState<ProductDetailsPage> createState() => _ProductDetailsPageState();
 }
 
+String _getPlaceholderImage(String title) {
+  final t = title.toLowerCase();
+  if (t.contains('saree')) return 'https://images.unsplash.com/photo-1583391733958-d25e07fac04f?q=80&w=800&auto=format&fit=crop'; // Saree
+  if (t.contains('suit')) return 'https://images.unsplash.com/photo-1594938298603-c8148c4dae35?q=80&w=800&auto=format&fit=crop';
+  if (t.contains('blazer') || t.contains('coat') || t.contains('jacket')) return 'https://images.unsplash.com/photo-1591047139829-d91aecb6caea?q=80&w=800&auto=format&fit=crop';
+  if (t.contains('dress') || t.contains('gown')) return 'https://images.unsplash.com/photo-1595777457583-95e059d581b8?q=80&w=800&auto=format&fit=crop';
+  if (t.contains('shirt') || t.contains('t-shirt') || t.contains('top')) return 'https://images.unsplash.com/photo-1621072156002-e2fccdc0b176?q=80&w=800&auto=format&fit=crop';
+  if (t.contains('jeans') || t.contains('trousers') || t.contains('pants')) return 'https://images.unsplash.com/photo-1541099649105-f69ad21f3246?q=80&w=800&auto=format&fit=crop';
+  if (t.contains('polish')) return 'https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?q=80&w=800&auto=format&fit=crop'; // Leather shoes
+  if (t.contains('shoe') || t.contains('sneaker')) return 'https://images.unsplash.com/photo-1549298916-b41d501d3772?q=80&w=800&auto=format&fit=crop';
+  if (t.contains('single blanket')) return 'https://images.unsplash.com/photo-1580301762395-21ce84d00bc6?q=80&w=800&auto=format&fit=crop';
+  if (t.contains('double blanket')) return 'https://images.unsplash.com/photo-1579656592043-a20e25a4aa4b?q=80&w=800&auto=format&fit=crop';
+  if (t.contains('blanket')) return 'https://images.unsplash.com/photo-1580301762395-21ce84d00bc6?q=80&w=800&auto=format&fit=crop';
+  if (t.contains('duvet') || t.contains('comforter') || t.contains('bed')) return 'https://images.unsplash.com/photo-1540518614846-7eded433c457?q=80&w=800&auto=format&fit=crop';
+  if (t.contains('iron')) return 'https://images.unsplash.com/photo-1517677208171-0bc6725a3e60?q=80&w=800&auto=format&fit=crop';
+  if (t.contains('undergarment') || t.contains('shorts')) return 'https://images.unsplash.com/photo-1591195853828-11db59a44f6b?q=80&w=800&auto=format&fit=crop';
+  if (t.contains('curtain')) return 'https://images.unsplash.com/photo-1513694203232-719a280e022f?q=80&w=800&auto=format&fit=crop';
+  if (t.contains('toy')) return 'https://images.unsplash.com/photo-1559454403-b8fb88521f11?q=80&w=800&auto=format&fit=crop';
+  if (t.contains('bag') || t.contains('backpack')) return 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?q=80&w=800&auto=format&fit=crop';
+  if (t.contains('stain')) return 'https://images.unsplash.com/photo-1585421514738-01798e348b17?q=80&w=800&auto=format&fit=crop'; // Cleaning spray/stain
+  if (t.contains('dry clean')) return 'https://images.unsplash.com/photo-1582735689369-4fe89db7114c?q=80&w=800&auto=format&fit=crop';
+  if (t.contains('wash')) return 'https://images.unsplash.com/photo-1582735689369-4fe89db7114c?q=80&w=800&auto=format&fit=crop';
+  return 'https://images.unsplash.com/photo-1610557892470-55d9e80c0bce?q=80&w=800&auto=format&fit=crop'; // Default folded clothes
+}
+
+Widget _buildProductImage(String image, String title, BoxFit fit) {
+  String imgUrl = image.isEmpty ? _getPlaceholderImage(title) : image;
+  if (imgUrl.startsWith('http')) {
+    return Image.network(imgUrl, fit: fit, errorBuilder: (c, e, s) => Image.asset('assets/images/empty_wash.png', fit: fit));
+  } else {
+    return Image.asset(imgUrl, fit: fit, errorBuilder: (c, e, s) => Image.asset('assets/images/empty_wash.png', fit: fit));
+  }
+}
+
 class _ProductDetailsPageState extends ConsumerState<ProductDetailsPage> {
+  int _quantity = 1;
+  String _selectedFrequency = 'One-time'; // For Subscriptions
+  DateTime? _startDate; // For Subscriptions
+  String? _selectedDeliverySlot; // For Subscriptions
 
   void _addToCart(BuildContext context, CartProvider cart, CartItem newItem) {
     if (!cart.isSameShop(newItem.shopId)) {
@@ -124,7 +162,7 @@ class _ProductDetailsPageState extends ConsumerState<ProductDetailsPage> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => _FullScreenImagePage(imageUrl: product.image),
+                            builder: (context) => _FullScreenImagePage(imageUrl: product.image, productName: product.name),
                           ),
                         );
                       },
@@ -144,34 +182,7 @@ class _ProductDetailsPageState extends ConsumerState<ProductDetailsPage> {
                           child: Stack(
                             children: [
                               Positioned.fill(
-                                child: product.image.isEmpty
-                                    ? const Center(
-                                        child: Icon(Icons.water_drop_outlined,
-                                            size: 64, color: Colors.grey))
-                                    : product.image.startsWith('http')
-                                        ? Image.network(
-                                            product.image,
-                                            fit: BoxFit.contain,
-                                            loadingBuilder: (context, child, loadingProgress) {
-                                              if (loadingProgress == null) return child;
-                                              return const Center(
-                                                child: CircularProgressIndicator(
-                                                  strokeWidth: 2,
-                                                  color: AppColors.primary,
-                                                ),
-                                              );
-                                            },
-                                            errorBuilder: (_, __, ___) => const Center(
-                                                child: Icon(Icons.water_drop_outlined,
-                                                    size: 64, color: Colors.grey)),
-                                          )
-                                        : Image.asset(
-                                            product.image,
-                                            fit: BoxFit.contain,
-                                            errorBuilder: (_, __, ___) => const Center(
-                                                child: Icon(Icons.water_drop_outlined,
-                                                    size: 64, color: Colors.grey)),
-                                          ),
+                                child: _buildProductImage(product.image, product.name, BoxFit.cover),
                               ),
                               // Zoom Icon Overlay
                               Positioned(
@@ -243,7 +254,7 @@ class _ProductDetailsPageState extends ConsumerState<ProductDetailsPage> {
                               ),
                               const SizedBox(width: 16),
                               Text(
-                                'â‚¹${product.price.toStringAsFixed(0)}',
+                                '₹${product.price.toStringAsFixed(0)}',
                                 style: const TextStyle(
                                   fontSize: 24,
                                   fontWeight: FontWeight.w800,
@@ -608,7 +619,8 @@ class _ProductDetailsPageState extends ConsumerState<ProductDetailsPage> {
 
 class _FullScreenImagePage extends StatelessWidget {
   final String imageUrl;
-  const _FullScreenImagePage({required this.imageUrl});
+  final String productName;
+  const _FullScreenImagePage({required this.imageUrl, required this.productName});
 
   @override
   Widget build(BuildContext context) {
@@ -626,25 +638,7 @@ class _FullScreenImagePage extends StatelessWidget {
           maxScale: 4.0,
           child: Hero(
             tag: 'product_image_zoom',
-            child: imageUrl.isEmpty
-                ? const Icon(Icons.water_drop_outlined, size: 120, color: Colors.grey)
-                : imageUrl.startsWith('http')
-                    ? Image.network(
-                        imageUrl,
-                        fit: BoxFit.contain,
-                        errorBuilder: (_, __, ___) => const Icon(
-                            Icons.water_drop_outlined,
-                            size: 120,
-                            color: Colors.grey),
-                      )
-                    : Image.asset(
-                        imageUrl,
-                        fit: BoxFit.contain,
-                        errorBuilder: (_, __, ___) => const Icon(
-                            Icons.water_drop_outlined,
-                            size: 120,
-                            color: Colors.grey),
-                      ),
+            child: _buildProductImage(imageUrl, productName, BoxFit.contain),
           ),
         ),
       ),

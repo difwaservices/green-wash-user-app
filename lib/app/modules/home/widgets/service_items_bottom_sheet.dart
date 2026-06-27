@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../routes/app_routes.dart';
+import '../../../data/services/db_service.dart';
+import '../../../data/models/product_model.dart';
 
 class ServiceItemsBottomSheet extends StatefulWidget {
   final String serviceName;
@@ -22,6 +24,15 @@ class ServiceItemsBottomSheet extends StatefulWidget {
 
 class _ServiceItemsBottomSheetState extends State<ServiceItemsBottomSheet> {
   final Map<String, int> _quantities = {};
+
+  String _getHeroImage(String serviceName) {
+    if (serviceName.contains('Wash')) return 'assets/images/pkg_monthly_wash.png';
+    if (serviceName.contains('Dry Clean')) return 'assets/images/pkg_dry_clean.png';
+    if (serviceName.contains('Iron')) return 'assets/images/pkg_ironing.png';
+    if (serviceName.contains('Shoe')) return 'assets/images/pkg_shoe_care.png';
+    if (serviceName.contains('Blanket')) return 'assets/images/laundry_package_1.png';
+    return 'assets/images/hero_banner_wash.png';
+  }
 
   List<Map<String, dynamic>> _getItemsForService() {
     // Generate dummy items based on service name
@@ -121,19 +132,25 @@ class _ServiceItemsBottomSheetState extends State<ServiceItemsBottomSheet> {
           'icon': Icons.ice_skating_rounded
         },
       ];
-    } else {
-      // Default items
+    } else if (widget.serviceName.contains('Premium')) {
       return [
-        {
-          'name': 'Standard Item',
-          'price': 50,
-          'icon': Icons.local_laundry_service_rounded
-        },
-        {
-          'name': 'Large Item',
-          'price': 100,
-          'icon': Icons.local_laundry_service_rounded
-        },
+        {'name': 'Designer Suit', 'price': 499, 'icon': Icons.dry_cleaning_rounded},
+        {'name': 'Wedding Dress / Gown', 'price': 999, 'icon': Icons.checkroom_rounded},
+        {'name': 'Premium Silk Saree', 'price': 399, 'icon': Icons.dry_cleaning_rounded},
+        {'name': 'Leather Jacket', 'price': 599, 'icon': Icons.checkroom_rounded},
+      ];
+    } else if (widget.serviceName.contains('Stain')) {
+      return [
+        {'name': 'Tough Stain Removal (Shirt)', 'price': 99, 'icon': Icons.auto_fix_high_rounded},
+        {'name': 'Ink/Oil Stain (Pants)', 'price': 149, 'icon': Icons.auto_fix_high_rounded},
+        {'name': 'Deep Carpet/Rug Stain', 'price': 299, 'icon': Icons.auto_fix_high_rounded},
+      ];
+    } else {
+      // Default items for "More" or others
+      return [
+        {'name': 'Curtains Wash (Per kg)', 'price': 199, 'icon': Icons.window_rounded},
+        {'name': 'Soft Toys Cleaning', 'price': 149, 'icon': Icons.toys_rounded},
+        {'name': 'Bag / Backpack Wash', 'price': 249, 'icon': Icons.backpack_rounded},
       ];
     }
   }
@@ -159,7 +176,7 @@ class _ServiceItemsBottomSheetState extends State<ServiceItemsBottomSheet> {
     final items = _getItemsForService();
 
     return Container(
-      height: MediaQuery.of(context).size.height * 0.75, // Take 75% of screen
+      height: MediaQuery.of(context).size.height * 0.85, // Take 85% of screen because of image
       decoration: const BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
@@ -175,6 +192,20 @@ class _ServiceItemsBottomSheetState extends State<ServiceItemsBottomSheet> {
               decoration: BoxDecoration(
                 color: Colors.grey.shade300,
                 borderRadius: BorderRadius.circular(4),
+              ),
+            ),
+          ),
+
+          // Hero Image
+          Container(
+            width: double.infinity,
+            height: 140,
+            margin: const EdgeInsets.fromLTRB(24, 0, 24, 16),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              image: DecorationImage(
+                image: AssetImage(_getHeroImage(widget.serviceName)),
+                fit: BoxFit.cover,
               ),
             ),
           ),
@@ -272,7 +303,7 @@ class _ServiceItemsBottomSheetState extends State<ServiceItemsBottomSheet> {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              'â‚¹$price / piece',
+                              '₹$price / piece',
                               style: const TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w600,
@@ -343,8 +374,29 @@ class _ServiceItemsBottomSheetState extends State<ServiceItemsBottomSheet> {
               ),
               child: ElevatedButton(
                 onPressed: () {
+                  final cartProvider = CartProviderScope.of(context);
+                  
+                  final items = _getItemsForService();
+                  for (var item in items) {
+                    final name = item['name'] as String;
+                    final qty = _quantities[name] ?? 0;
+                    if (qty > 0) {
+                      final price = item['price'] as int;
+                      cartProvider.addToCart(CartItem(
+                        id: 'service_${name.toLowerCase().replaceAll(' ', '_')}',
+                        title: name,
+                        unitPrice: price.toDouble(),
+                        subtitle: '',
+                        category: '',
+                        image: '', 
+                        quantity: qty,
+                        shopId: 'service_${widget.serviceName.toLowerCase().replaceAll(' ', '_')}',
+                        shopName: widget.serviceName,
+                      ));
+                    }
+                  }
+
                   Navigator.pop(context);
-                  // Mock Adding to cart
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text('Added $_totalItems items to cart!'),
@@ -377,7 +429,7 @@ class _ServiceItemsBottomSheetState extends State<ServiceItemsBottomSheet> {
                     ),
                     const SizedBox(width: 12),
                     Text(
-                      'â‚¹$_totalPrice',
+                      '₹$_totalPrice',
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w800,

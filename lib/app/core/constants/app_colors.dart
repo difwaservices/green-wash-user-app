@@ -78,10 +78,10 @@ class AppColors {
   static const Color mywhite = white;
   static const Color myblack = black;
   static const Color buttonbgColor = buttonBgColor;
-  static const Color accentBlue = Color(0xFF06B6D4);
-  static const Color accent = Color(0xFF06B6D4);
-  static const Color primaryButton = Color(0xFF06B6D4);
+  static const Color accentBlue = Color(0xFF2E7D32);
+  static const Color accent = Color(0xFF2E7D32);
+  static const Color primaryButton = Color(0xFF2E7D32);
   static const Color logoprimary = logoPrimary;
   static const Color logosecondry = logoSecondary;
-  static const Color accentGreen = Color(0xFF06B6D4); // Swapped to brand cyan
+  static const Color accentGreen = Color(0xFF2E7D32); // Swapped to brand green
 }

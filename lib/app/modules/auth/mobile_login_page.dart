@@ -26,6 +26,8 @@ class _MobileLoginPageState extends ConsumerState<MobileLoginPage> {
     super.dispose();
   }
 
+
+
   void _showSnackBar(String message, {Color backgroundColor = Colors.black87}) {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
@@ -174,6 +176,59 @@ class _MobileLoginPageState extends ConsumerState<MobileLoginPage> {
                                     letterSpacing: 0.5,
                                   ),
                                 ),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: isSmallScreen ? 20 : 30),
+                    Row(
+                      children: [
+                        const Expanded(child: Divider()),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: Text(
+                            "OR",
+                            style: TextStyle(
+                              color: Colors.grey.shade400,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                        const Expanded(child: Divider()),
+                      ],
+                    ),
+                    SizedBox(height: isSmallScreen ? 20 : 30),
+                    GestureDetector(
+                      onTap: () {
+                        // Mock Google login by navigating directly to Home
+                        Navigator.pushNamedAndRemoveUntil(context, AppRoutes.home, (route) => false);
+                      },
+                      child: Container(
+                        width: double.infinity,
+                        height: 56,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(30),
+                          border: Border.all(color: Colors.grey.shade300, width: 1.5),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Image.network(
+                              'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/120px-Google_%22G%22_logo.svg.png',
+                              height: 24,
+                              errorBuilder: (_, __, ___) => const Icon(Icons.g_mobiledata, size: 30),
+                            ),
+                            const SizedBox(width: 12),
+                            const Text(
+                              "Continue with Google",
+                              style: TextStyle(
+                                color: Color(0xFF1E293B),
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ),

@@ -205,7 +205,7 @@ class _HeroBannerState extends State<_HeroBanner> {
       'image': 'assets/images/premium_wash_hero.png',
       'gradientStart': const Color(0xFF0A4429),
       'gradientEnd': const Color(0xFF1B5E20),
-      'badge': 'ðŸŒ¿ Eco Friendly',
+      'badge': '🌿 Eco Friendly',
     },
     {
       'title': 'Express Wash\n& Fold Service',
@@ -214,7 +214,7 @@ class _HeroBannerState extends State<_HeroBanner> {
       'image': 'assets/images/hero_banner_wash.png',
       'gradientStart': const Color(0xFF004D40),
       'gradientEnd': const Color(0xFF00695C),
-      'badge': 'âš¡ 24h Express',
+      'badge': '⚡ 24h Express',
     },
     {
       'title': 'Dry Clean &\nSteam Ironing',
@@ -223,7 +223,7 @@ class _HeroBannerState extends State<_HeroBanner> {
       'image': 'assets/images/hero_banner.png',
       'gradientStart': const Color(0xFF1A237E),
       'gradientEnd': const Color(0xFF283593),
-      'badge': 'ðŸ’Ž Premium',
+      'badge': '💎 Premium',
     },
     {
       'title': 'Blanket & Sofa\nDeep Cleaning',
@@ -232,7 +232,7 @@ class _HeroBannerState extends State<_HeroBanner> {
       'image': 'assets/images/premium_wash_hero.png',
       'gradientStart': const Color(0xFF3E2723),
       'gradientEnd': const Color(0xFF4E342E),
-      'badge': 'ðŸ›‹ï¸ Home Care',
+      'badge': '🛋️ Home Care',
     },
   ];
 
@@ -654,16 +654,16 @@ class _PackagesSection extends StatelessWidget {
               ProductCard(
                 imagePath: 'assets/images/pkg_monthly_wash.png',
                 title: 'Monthly Wash Plan',
-                price: 'â‚¹1499',
-                oldPrice: 'â‚¹1999',
+                price: '₹1499',
+                oldPrice: '₹1999',
                 discount: 'SAVE 25%',
               ),
               SizedBox(width: 20),
               ProductCard(
                 imagePath: 'assets/images/pkg_dry_clean.png',
                 title: 'Premium Dry Clean',
-                price: 'â‚¹499',
-                oldPrice: 'â‚¹699',
+                price: '₹499',
+                oldPrice: '₹699',
                 discount: 'SAVE 15%',
               ),
             ],
@@ -693,7 +693,7 @@ class ProductCard extends StatelessWidget {
     return GestureDetector(
       onTap: () {
         final numericPrice =
-            double.tryParse(price.replaceAll('â‚¹', '').replaceAll(',', '')) ??
+            double.tryParse(price.replaceAll('₹', '').replaceAll(',', '')) ??
                 0.0;
         final product = Product(
           id: 'pkg_$title',
@@ -792,30 +792,36 @@ class ProductCard extends StatelessWidget {
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      Text(
-                        price,
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w800,
-                          color: Color(0xFF2E7D32), // Green price
+                      Expanded(
+                        child: Wrap(
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          spacing: 4,
+                          children: [
+                            Text(
+                              price,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w800,
+                                color: Color(0xFF2E7D32),
+                              ),
+                            ),
+                            Text(
+                              oldPrice,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: Color(0xFF81C784),
+                                decoration: TextDecoration.lineThrough,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                      const SizedBox(width: 8),
-                      Text(
-                        oldPrice,
-                        style: const TextStyle(
-                          fontSize: 13,
-                          color: Color(0xFF81C784), // Faded green strikethrough
-                          decoration: TextDecoration.lineThrough,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const Spacer(),
                       GestureDetector(
                         onTap: () {
                           final cart = CartProviderScope.of(context);
                           final numericPrice = double.tryParse(price
-                                  .replaceAll('â‚¹', '')
+                                  .replaceAll('₹', '')
                                   .replaceAll(',', '')) ??
                               0.0;
                           cart.addToCart(CartItem(
@@ -1142,13 +1148,13 @@ class _TrendingSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return _buildHorizontalList(
       context: context,
-      title: 'Trending Now ðŸ”¥',
+      title: 'Trending Now 🔥',
       items: [
-        {'title': 'Winter Coat Cleaning', 'price': 'â‚¹499', 'image': 'assets/images/premium_wash_hero.png'},
-        {'title': 'Express Wash & Fold', 'price': 'â‚¹299', 'image': 'assets/images/laundry_package_1.png'},
-        {'title': 'Sneaker Deep Clean', 'price': 'â‚¹349', 'image': 'assets/images/pkg_shoe_care.png'},
-        {'title': 'Dry Cleaning', 'price': 'â‚¹199', 'image': 'assets/images/pkg_dry_clean.png'},
-        {'title': 'Steam Ironing', 'price': 'â‚¹149', 'image': 'assets/images/pkg_ironing.png'},
+        {'title': 'Winter Coat Cleaning', 'price': '₹499', 'image': 'assets/images/premium_wash_hero.png'},
+        {'title': 'Express Wash & Fold', 'price': '₹299', 'image': 'assets/images/laundry_package_1.png'},
+        {'title': 'Sneaker Deep Clean', 'price': '₹349', 'image': 'assets/images/pkg_shoe_care.png'},
+        {'title': 'Dry Cleaning', 'price': '₹199', 'image': 'assets/images/pkg_dry_clean.png'},
+        {'title': 'Steam Ironing', 'price': '₹149', 'image': 'assets/images/pkg_ironing.png'},
       ],
     );
   }
@@ -1161,13 +1167,13 @@ class _RecommendedSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return _buildHorizontalList(
       context: context,
-      title: 'Recommended For You ðŸŒŸ',
+      title: 'Recommended For You 🌟',
       items: [
-        {'title': 'Premium Office Wear', 'price': 'â‚¹899', 'image': 'assets/images/premium_wash_hero.png'},
-        {'title': 'Delicate Silk Care', 'price': 'â‚¹599', 'image': 'assets/images/laundry_package_2.png'},
-        {'title': 'Family Bundle Pack', 'price': 'â‚¹1499', 'image': 'assets/images/pkg_family_bundle.png'},
-        {'title': 'Monthly Wash Plan', 'price': 'â‚¹2999', 'image': 'assets/images/pkg_monthly_wash.png'},
-        {'title': 'Weekly Refresh', 'price': 'â‚¹799', 'image': 'assets/images/pkg_weekly_refresh.png'},
+        {'title': 'Premium Office Wear', 'price': '₹899', 'image': 'assets/images/premium_wash_hero.png'},
+        {'title': 'Delicate Silk Care', 'price': '₹599', 'image': 'assets/images/laundry_package_2.png'},
+        {'title': 'Family Bundle Pack', 'price': '₹1499', 'image': 'assets/images/pkg_family_bundle.png'},
+        {'title': 'Monthly Wash Plan', 'price': '₹2999', 'image': 'assets/images/pkg_monthly_wash.png'},
+        {'title': 'Weekly Refresh', 'price': '₹799', 'image': 'assets/images/pkg_weekly_refresh.png'},
       ],
     );
   }
@@ -1180,13 +1186,13 @@ class _RecentlyAddedSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return _buildHorizontalList(
       context: context,
-      title: 'Recently Added ðŸ†•',
+      title: 'Recently Added 🆕',
       items: [
-        {'title': 'Leather Jacket Care', 'price': 'â‚¹1299', 'image': 'assets/images/laundry_package_1.png'},
-        {'title': 'Carpet Deep Wash', 'price': 'â‚¹1999', 'image': 'assets/images/hero_banner_wash.png'},
-        {'title': 'Premium Package 1', 'price': 'â‚¹2499', 'image': 'assets/images/premium_package_1.png'},
-        {'title': 'Premium Package 2', 'price': 'â‚¹3499', 'image': 'assets/images/premium_package_2.png'},
-        {'title': 'Laundry Package', 'price': 'â‚¹599', 'image': 'assets/images/laundry_package_2.png'},
+        {'title': 'Leather Jacket Care', 'price': '₹1299', 'image': 'assets/images/laundry_package_1.png'},
+        {'title': 'Carpet Deep Wash', 'price': '₹1999', 'image': 'assets/images/hero_banner_wash.png'},
+        {'title': 'Premium Package 1', 'price': '₹2499', 'image': 'assets/images/premium_package_1.png'},
+        {'title': 'Premium Package 2', 'price': '₹3499', 'image': 'assets/images/premium_package_2.png'},
+        {'title': 'Laundry Package', 'price': '₹599', 'image': 'assets/images/laundry_package_2.png'},
       ],
     );
   }

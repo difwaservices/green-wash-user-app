@@ -209,7 +209,7 @@ class _LiveOrderCardState extends State<_LiveOrderCard> with SingleTickerProvide
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    Column(crossAxisAlignment: CrossAxisAlignment.start, children: [const Text('Total Bill', style: TextStyle(color: Colors.grey, fontSize: 11, fontWeight: FontWeight.w600)), const SizedBox(height: 2), Text('â‚¹${widget.order.total.toStringAsFixed(0)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: Colors.black))]),
+                    Column(crossAxisAlignment: CrossAxisAlignment.start, children: [const Text('Total Bill', style: TextStyle(color: Colors.grey, fontSize: 11, fontWeight: FontWeight.w600)), const SizedBox(height: 2), Text('₹${widget.order.total.toStringAsFixed(0)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: Colors.black))]),
                     BounceWidget(
                       onTap: () => _reorder(context),
                       child: Container(
@@ -319,13 +319,13 @@ class _OrderDetailsSheet extends StatelessWidget {
           const SizedBox(height: 24),
           const Text('ITEMS ORDERED', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey, letterSpacing: 1)),
           const SizedBox(height: 12),
-          ...order.items.map((item) => Padding(padding: const EdgeInsets.only(bottom: 8), child: Row(children: [Container(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2), decoration: BoxDecoration(border: Border.all(color: Colors.grey.shade300), borderRadius: BorderRadius.circular(4)), child: Text('${item.quantity}x', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12))), const SizedBox(width: 12), Expanded(child: Text(item.name, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: Color(0xFF1E293B)))), Text('â‚¹${(item.price * item.quantity).toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.bold))]))),
+          ...order.items.map((item) => Padding(padding: const EdgeInsets.only(bottom: 8), child: Row(children: [Container(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2), decoration: BoxDecoration(border: Border.all(color: Colors.grey.shade300), borderRadius: BorderRadius.circular(4)), child: Text('${item.quantity}x', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12))), const SizedBox(width: 12), Expanded(child: Text(item.name, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: Color(0xFF1E293B)))), Text('₹${(item.price * item.quantity).toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.bold))]))),
           const Divider(height: 40),
           const Text('BILL DETAILS', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey, letterSpacing: 1)),
           _row('Item Total', order.total - order.deliveryFee),
           _row('Delivery Fee', order.deliveryFee),
           const SizedBox(height: 8),
-          Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [const Text('Grand Total', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)), Text('â‚¹${order.total.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Color(0xFF1A1A1A)))]),
+          Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [const Text('Grand Total', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)), Text('₹${order.total.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Color(0xFF1A1A1A)))]),
           const SizedBox(height: 32),
           SizedBox(
             width: double.infinity,
@@ -344,5 +344,5 @@ class _OrderDetailsSheet extends StatelessWidget {
       ),
     );
   }
-  Widget _row(String l, double v) => Padding(padding: const EdgeInsets.only(bottom: 6), child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text(l, style: const TextStyle(color: Colors.grey, fontSize: 14)), Text('â‚¹${v.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.w600))]));
+  Widget _row(String l, double v) => Padding(padding: const EdgeInsets.only(bottom: 6), child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text(l, style: const TextStyle(color: Colors.grey, fontSize: 14)), Text('₹${v.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.w600))]));
 }

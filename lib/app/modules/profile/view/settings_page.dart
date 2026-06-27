@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
-
+import 'package:share_plus/share_plus.dart';
 import 'package:difwawaterapp/app/core/utils/auth_helper.dart';
 import 'package:difwawaterapp/core/state/auth_store.dart';
 import '../../../data/services/auth_service.dart' as auth;
@@ -226,9 +226,9 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                   icon: Icons.share_outlined,
                   title: 'Share App',
                   onTap: () {
-                    // TODO: Implement actual sharing logic with share_plus or url_launcher
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Share functionality arriving soon!')),
+                    Share.share(
+                      'Hey! Check out Green Wash Co. app for amazing services. Download it now: https://play.google.com/store/apps/details?id=com.greenwashco.app',
+                      subject: 'Download Green Wash Co. App',
                     );
                   },
                 ),

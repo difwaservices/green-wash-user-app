@@ -506,8 +506,8 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage>
                                 gradient: _isVerifying
                                     ? LinearGradient(
                                         colors: [
-                                          AppColors.iconBgStart.withValues(alpha: 0.6),
-                                          AppColors.iconBgEnd.withValues(alpha: 0.6),
+                                          const Color(0xFF4CAF50).withValues(alpha: 0.6),
+                                          const Color(0xFF1B5E20).withValues(alpha: 0.6),
                                         ],
                                       )
                                     : AppColors.buttonBgGradient,

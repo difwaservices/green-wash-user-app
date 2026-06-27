@@ -222,7 +222,7 @@ class _PremiumClubPageState extends State<PremiumClubPage>
       child: Row(
         children: [
           _toggleOption('Monthly', !_isYearly),
-          _toggleOption('Yearly  ðŸ”¥ Save 33%', _isYearly),
+          _toggleOption('Yearly  🔥 Save 33%', _isYearly),
         ],
       ),
     ).animate().fadeIn(delay: 300.ms).slideY(begin: 0.1);
@@ -263,14 +263,14 @@ class _PremiumClubPageState extends State<PremiumClubPage>
     final plans = [
       {
         'name': 'Free',
-        'price': 'â‚¹0',
+        'price': '₹0',
         'period': 'forever',
         'color': const Color(0xFF1E293B),
         'features': ['2 pickups/month', 'Standard processing', 'Basic support'],
       },
       {
         'name': 'Pro',
-        'price': _isYearly ? 'â‚¹7,999' : 'â‚¹999',
+        'price': _isYearly ? '₹7,999' : '₹999',
         'period': _isYearly ? '/year' : '/month',
         'color': const Color(0xFF2E7D32),
         'features': [
@@ -283,7 +283,7 @@ class _PremiumClubPageState extends State<PremiumClubPage>
       },
       {
         'name': 'Enterprise',
-        'price': _isYearly ? 'â‚¹19,999' : 'â‚¹1,999',
+        'price': _isYearly ? '₹19,999' : '₹1,999',
         'period': _isYearly ? '/year' : '/month',
         'color': const Color(0xFF7C3AED),
         'features': [
@@ -427,12 +427,12 @@ class _PremiumClubPageState extends State<PremiumClubPage>
   // â”€â”€â”€ FEATURE TABLE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildFeatureTable() {
     final features = [
-      {'label': 'Pickups per month', 'free': '2', 'pro': 'âˆž', 'ent': 'âˆž'},
+      {'label': 'Pickups per month', 'free': '2', 'pro': '∞', 'ent': '∞'},
       {'label': 'Cashback', 'free': '0%', 'pro': '10%', 'ent': '15%'},
       {'label': 'Processing time', 'free': '48h', 'pro': '24h', 'ent': '12h'},
-      {'label': 'Premium bags', 'free': 'âœ—', 'pro': 'âœ“', 'ent': 'âœ“'},
-      {'label': 'Dedicated support', 'free': 'âœ—', 'pro': 'âœ“', 'ent': 'âœ“'},
-      {'label': 'Team accounts', 'free': 'âœ—', 'pro': 'âœ—', 'ent': '5 users'},
+      {'label': 'Premium bags', 'free': '✗', 'pro': '✓', 'ent': '✓'},
+      {'label': 'Dedicated support', 'free': '✗', 'pro': '✓', 'ent': '✓'},
+      {'label': 'Team accounts', 'free': '✗', 'pro': '✗', 'ent': '5 users'},
     ];
 
     return Container(
@@ -501,8 +501,8 @@ class _PremiumClubPageState extends State<PremiumClubPage>
   }
 
   Widget _tableValue(String value, {bool highlight = false}) {
-    final isCheck = value == 'âœ“';
-    final isCross = value == 'âœ—';
+    final isCheck = value == '✓';
+    final isCross = value == '✗';
     return Expanded(
       flex: 2,
       child: Text(
@@ -526,10 +526,10 @@ class _PremiumClubPageState extends State<PremiumClubPage>
     final planNames = ['Free Plan', 'Pro Plan', 'Enterprise Plan'];
     final planPrices = [
       'Get Started Free',
-      _isYearly ? 'Subscribe â€” â‚¹7,999/year' : 'Subscribe â€” â‚¹999/month',
+      _isYearly ? 'Subscribe — ₹7,999/year' : 'Subscribe — ₹999/month',
       _isYearly
-          ? 'Subscribe â€” â‚¹19,999/year'
-          : 'Subscribe â€” â‚¹1,999/month',
+          ? 'Subscribe — ₹19,999/year'
+          : 'Subscribe — ₹1,999/month',
     ];
 
     return Padding(
@@ -600,7 +600,7 @@ class _PremiumClubPageState extends State<PremiumClubPage>
           ),
           const SizedBox(height: 8),
           Text(
-            'Cancel anytime â€¢ Secure payment â€¢ No hidden fees',
+            'Cancel anytime • Secure payment • No hidden fees',
             style: TextStyle(
               color: const Color(0xFF94A3B8),
               fontSize: 12,

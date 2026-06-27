@@ -17,17 +17,16 @@ class ProductService {
   /// Fetch all product categories.
   /// Response shape: { "success": true, "categories": [...] }
   Future<List<FoodCategory>> getCategories() async {
-    try {
-      final json = await _client.get('${ApiClient.baseUrl}/categories', requiresAuth: false);
-      final rawData = (json['categories'] ?? json['data']) as List<dynamic>? ?? [];
-      
-      // Senior Dev: Move parsing to ISOLATE to keep UI thread smooth
-      return await compute(_parseCategories, rawData);
-    } on ApiException {
-      rethrow;
-    } catch (e) {
-      throw ApiException(message: 'Unexpected error: ${e.toString()}');
-    }
+    // Return hardcoded laundry categories instead of API water-related data
+    return [
+      const FoodCategory(id: 'c1', name: 'Wash & Fold', image: ''),
+      const FoodCategory(id: 'c2', name: 'Dry Clean', image: ''),
+      const FoodCategory(id: 'c3', name: 'Ironing', image: ''),
+      const FoodCategory(id: 'c4', name: 'Premium Care', image: ''),
+      const FoodCategory(id: 'c5', name: 'Blankets', image: ''),
+      const FoodCategory(id: 'c6', name: 'Shoe Care', image: ''),
+      const FoodCategory(id: 'c7', name: 'Stain Removal', image: ''),
+    ];
   }
 
   static List<FoodCategory> _parseCategories(List<dynamic> data) {

@@ -207,7 +207,7 @@ class _TopUpPageState extends ConsumerState<TopUpPage> {
               child: Row(
                 children: [
                   const Text(
-                    'â‚¹',
+                    '₹',
                     style: TextStyle(
                         fontSize: 32,
                         fontWeight: FontWeight.w900,
@@ -268,7 +268,7 @@ class _TopUpPageState extends ConsumerState<TopUpPage> {
                           ] : [],
                         ),
                         child: Text(
-                          'â‚¹$amt',
+                          '₹$amt',
                           style: TextStyle(
                             color: isSelected ? const Color(0xFF00ACC1) : const Color(0xFF1E293B),
                             fontWeight: isSelected ? FontWeight.w900 : FontWeight.bold,
@@ -293,7 +293,7 @@ class _TopUpPageState extends ConsumerState<TopUpPage> {
                       if (amount < 100) {
                         ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
-                                content: Text('Minimum top-up is â‚¹100')));
+                                content: Text('Minimum top-up is ₹100')));
                         return;
                       }
                       final messenger = ScaffoldMessenger.of(context);

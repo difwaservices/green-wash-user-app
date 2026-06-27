@@ -280,7 +280,7 @@ class _ShippingAddressPageState extends ConsumerState<ShippingAddressPage> {
           color: Colors.white,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: isSelected ? AppColors.accentGreen : const Color(0xFF00ACC1).withOpacity(0.2),
+            color: isSelected ? AppColors.accentGreen : AppColors.accentGreen.withOpacity(0.2),
             width: isSelected ? 2 : 1,
           ),
           boxShadow: [

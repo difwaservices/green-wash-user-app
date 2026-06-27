@@ -238,17 +238,17 @@ class _LangTile extends StatelessWidget {
 
   String _flag(String code) {
     const flags = {
-      'en': 'ðŸ‡¬ðŸ‡§',
-      'hi': 'ðŸ‡®ðŸ‡³',
-      'bn': 'ðŸ‡®ðŸ‡³',
-      'te': 'ðŸ‡®ðŸ‡³',
-      'mr': 'ðŸ‡®ðŸ‡³',
-      'ta': 'ðŸ‡®ðŸ‡³',
-      'kn': 'ðŸ‡®ðŸ‡³',
-      'ml': 'ðŸ‡®ðŸ‡³',
-      'gu': 'ðŸ‡®ðŸ‡³',
-      'pa': 'ðŸ‡®ðŸ‡³',
+      'en': '🇺🇸',
+      'hi': '🇮🇳',
+      'bn': '🇮🇳',
+      'te': '🇮🇳',
+      'mr': '🇮🇳',
+      'ta': '🇮🇳',
+      'kn': '🇮🇳',
+      'ml': '🇮🇳',
+      'gu': '🇮🇳',
+      'pa': '🇮🇳',
     };
-    return flags[code] ?? 'ðŸŒ';
+    return flags[code] ?? '🌐';
   }
 }

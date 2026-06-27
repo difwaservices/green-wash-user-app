@@ -400,7 +400,7 @@ class _RestaurantMenuPageState extends ConsumerState<RestaurantMenuPage> {
       errorBuilder: (_, __, ___) => Container(
         color: Colors.grey.shade200,
         child: const Center(
-            child: Icon(Icons.water_drop_outlined, size: 64, color: Colors.grey)),
+            child: Icon(Icons.local_laundry_service_outlined, size: 64, color: Colors.grey)),
       ),
     );
   }
@@ -555,7 +555,7 @@ class _ProductsEmptyState extends StatelessWidget {
       child: Center(
         child: Column(
           children: [
-            Icon(Icons.water_drop_outlined, size: 48, color: Colors.grey),
+            Icon(Icons.local_laundry_service_outlined, size: 48, color: Colors.grey),
             SizedBox(height: 12),
             Text('Out of Stock',
                 style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
